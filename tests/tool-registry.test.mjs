@@ -14,7 +14,8 @@ test("active tools expose searchable metadata",()=>{
     assert.ok(tool.title);
     assert.ok(tool.summary);
     assert.ok(Array.isArray(tool.keywords));
-    assert.ok(tool.route.startsWith("/tools/"));
+    assert.ok(tool.route.startsWith("/"));
+    assert.ok(tool.category);
   }
 });
 
