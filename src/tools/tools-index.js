@@ -1,3 +1,5 @@
+import {TOOL_REGISTRY} from "./tool-registry.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+
 export function toolsIndexHTML(){
   return `<main class="tool-page">
     <div class="crumbs">Courses / Tools</div>
@@ -6,21 +8,17 @@ export function toolsIndexHTML(){
       <p>Small calculators and viewers that are reusable across courses and engineering work.</p></div>
     </header>
     <section class="tool-index-grid">
-      <button class="tool-index-card" data-tool-route="/tools/fluid">
-        <span class="file-icon">FL</span>
-        <span><strong>Fluid properties</strong><small>Legacy polynomial estimates with derived ν, α and Pr</small></span>
-        <span>Open ›</span>
-      </button>
-      <div class="tool-index-card disabled">
-        <span class="file-icon">CP</span>
-        <span><strong>CoolProp</strong><small>Reference-grade thermophysical properties · next</small></span>
-        <span>Planned</span>
-      </div>
-      <button class="tool-index-card" data-tool-route="/tools/periodic">
-        <span class="file-icon">PT</span>
-        <span><strong>Periodic table</strong><small>Search, category filtering and phase at temperature</small></span>
-        <span>Open ›</span>
-      </button>
+      ${TOOL_REGISTRY.map(tool=>tool.route?`
+        <button class="tool-index-card" data-tool-route="${tool.route}">
+          <span class="file-icon">${tool.short}</span>
+          <span><strong>${tool.title}</strong><small>${tool.summary}</small></span>
+          <span>Open ›</span>
+        </button>`:`
+        <div class="tool-index-card disabled">
+          <span class="file-icon">${tool.short}</span>
+          <span><strong>${tool.title}</strong><small>${tool.summary}</small></span>
+          <span>${tool.status}</span>
+        </div>`).join("")}
     </section>
   </main>`;
 }

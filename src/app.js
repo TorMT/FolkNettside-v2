@@ -1,21 +1,22 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {mountViewer} from "./viewer.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {loadContent} from "./content.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {renderResourceTree} from "./components/resource-tree.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {buildSearchIndex} from "./search/search-index.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {createSearchController} from "./components/search-dialog.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {loadModelDocument} from "./model/load-model.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {mountModelScene} from "./model/model-scene.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {mountViewer} from "./viewer.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {loadContent} from "./content.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {renderResourceTree} from "./components/resource-tree.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {buildSearchIndex} from "./search/search-index.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {createSearchController} from "./components/search-dialog.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {activeTools} from "./tools/tool-registry.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {loadModelDocument} from "./model/load-model.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {mountModelScene} from "./model/model-scene.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
 
 initSettings();
 
@@ -60,7 +61,7 @@ const vessel='<svg viewBox="0 0 760 380"><path d="M120 236 L560 236 L642 265 L60
 
 const route=()=>location.hash.slice(1)||"/portfolio";
 const go=path=>{location.hash=path};
-const globalSearch=createSearchController({index:buildSearchIndex({semesters,projects}),onNavigate:go});
+const globalSearch=createSearchController({index:buildSearchIndex({semesters,projects,tools:activeTools()}),onNavigate:go});
 function parseCourseRoute(path){const m=path.match(/^\/(?:courses|study)\/(\d+)\/([^/]+)$/i);return m?{semester:Number(m[1]),code:decodeURIComponent(m[2])}:null}
 function parseViewerRoute(path){const m=path.match(/^\/viewer\/(\d+)\/([^/]+)\/(\d+)$/i);return m?{semester:Number(m[1]),code:decodeURIComponent(m[2]),resourceIndex:Number(m[3])}:null}
 function getSemester(id){return semesters.find(s=>Number(s.id)===Number(id))}
