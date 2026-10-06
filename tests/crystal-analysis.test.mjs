@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {replicateCrystal} from "../src/tools/crystal-structures-core.js";
 import {
   analyzeCrystal,applyCrystalEdits,bondPairs,bondPlaneCuts,closePackedPlaneSpecs,
+  coordinationStats,firstShellCutoff,identifyCrystal,
   millerPlane,nearestSiteIndex,segmentPlaneIntersection
 } from "../src/tools/crystal-analysis.js";
 
