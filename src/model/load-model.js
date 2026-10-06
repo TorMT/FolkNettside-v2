@@ -7,7 +7,11 @@ function applyRules(documentModel,rules=[]){
     for(const rule of rules){
       if(!new RegExp(rule.match,"i").test(component.name))continue;
       if(rule.type)component.type=rule.type;
-      component.metadata={...component.metadata,hydro:rule.hydro!==false};
+      component.metadata={
+        ...component.metadata,
+        hydro:rule.hydro!==false,
+        ...(rule.propulsion?{propulsion:{...rule.propulsion}}:{})
+      };
       break;
     }
   }

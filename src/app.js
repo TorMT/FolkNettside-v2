@@ -31,6 +31,7 @@ let resistanceSpeedKn=10;
 let propulsionThrustKn=20;
 let propulsionInflow=3;
 let propulsionDiameter=1.5;
+let propulsionInitialized=false;
 
 function getEngineeringDocument(){
   if(!engineeringDocumentPromise){
@@ -171,35 +172,68 @@ async function engineeringPage(){
 
   if(engineeringMode==="Propulsion"){
     try{
-      const fixture=await loadPropulsionFixture();
+      const [fixture,documentModel]=await Promise.all([
+        loadPropulsionFixture(),
+        getEngineeringDocument().catch(()=>null)
+      ]);
       if(renderId!==engineeringRenderId)return;
-      const propulsion=propulsionPanelHTML(fixture,{
-        thrustKn:propulsionThrustKn,
-        inflowSpeed:propulsionInflow,
-        diameter:propulsionDiameter
-      });
+
+      const thrusters=documentModel?.components?.filter(component=>component.type==="thruster")||[];
+      const sourceThruster=thrusters.find(component=>component.id===selectedComponentId)||thrusters[0]||null;
+      const sourceCase=sourceThruster?.metadata?.propulsion||{};
+      if(!propulsionInitialized){
+        propulsionThrustKn=Number(sourceCase.thrust??fixture.thrust)/1000;
+        propulsionInflow=Number(sourceCase.inflowSpeed??fixture.inflowSpeed);
+        propulsionDiameter=Number(sourceCase.diameter??fixture.diameter);
+        propulsionInitialized=true;
+      }
+
+      const propulsion=propulsionPanelHTML(
+        {
+          ...fixture,
+          name:sourceThruster?`${sourceThruster.name} · actuator-disk estimate`:fixture.name,
+          diameter:Number(sourceCase.diameter??fixture.diameter),
+          thrust:Number(sourceCase.thrust??fixture.thrust),
+          inflowSpeed:Number(sourceCase.inflowSpeed??fixture.inflowSpeed)
+        },
+        {
+          thrustKn:propulsionThrustKn,
+          inflowSpeed:propulsionInflow,
+          diameter:propulsionDiameter
+        }
+      );
+
       app.innerHTML=top("engineering")+`<main class="workspace">
-        <div class="workspace-bar"><strong>${fixture.name}</strong><div class="mode-tabs">
+        <div class="workspace-bar"><strong>${sourceThruster?.name||fixture.name}</strong><div class="mode-tabs">
           ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
         </div></div>
         <aside class="tree">
+          <div class="tree-label">Thruster components</div>
+          ${thrusters.length?thrusters.map(component=>`<div class="tree-row ${component.id===sourceThruster?.id?"selected":""}" data-propulsion-component="${component.id}"><span>◎</span>${component.name}</div>`).join(""):'<div class="tree-row"><span>○</span>No tagged thruster</div>'}
           <div class="tree-label">Method</div>
-          <div class="tree-row selected"><span>◎</span>Ideal actuator disk</div>
-          <div class="tree-label">Future link</div>
-          <div class="tree-row"><span>○</span>Thruster component <span class="muted">ModelDocument</span></div>
+          <div class="tree-row selected"><span>≈</span>Ideal actuator disk</div>
+          <div class="tree-label">Source metadata</div>
+          <div class="tree-row"><span>D</span>Diameter <span class="muted">${sourceCase.diameter??"fixture"} m</span></div>
+          <div class="tree-row"><span>→</span>Axis <span class="muted">${Array.isArray(sourceCase.axis)?sourceCase.axis.join(", "):"not set"}</span></div>
           <div class="tree-row"><span>↝</span>OpenFOAM body force <span class="muted">later</span></div>
         </aside>
-        <section class="viewport">${propulsion.viewport}<div class="hud">Propulsion · actuator-disk estimate</div></section>
+        <section class="viewport">${propulsion.viewport}<div class="hud">Propulsion · ${sourceThruster?.name||"fixture"}</div></section>
         <aside class="inspector">${propulsion.inspector}</aside>
         <section class="results"><div class="results-summary">${propulsion.summary}</div>${propulsion.results}</section>
-        <footer class="statusbar"><span>Units SI</span><span>Momentum theory</span><span>Mode Propulsion</span><span class="top-spacer"></span><span>Ideal estimate</span></footer>
-      </main><div class="preview-badge">Propulsion · actuator disk baseline</div>`;
+        <footer class="statusbar"><span>Units SI</span><span>Momentum theory</span><span>Source ${sourceThruster?"ModelDocument":"fixture"}</span><span class="top-spacer"></span><span>Ideal estimate</span></footer>
+      </main><div class="preview-badge">Propulsion · component-linked actuator disk</div>`;
+
       bindNav();
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
+      app.querySelectorAll("[data-propulsion-component]").forEach(row=>row.onclick=()=>{
+        selectedComponentId=row.dataset.propulsionComponent;
+        propulsionInitialized=false;
+        engineeringPage();
+      });
       const rerun=()=>{
         propulsionThrustKn=Number(app.querySelector("#propulsion-thrust")?.value)||0;
         propulsionInflow=Number(app.querySelector("#propulsion-inflow")?.value)||0;
-        propulsionDiameter=Number(app.querySelector("#propulsion-diameter")?.value)||fixture.diameter;
+        propulsionDiameter=Number(app.querySelector("#propulsion-diameter")?.value)||Number(sourceCase.diameter??fixture.diameter);
         engineeringPage();
       };
       app.querySelector("#propulsion-thrust")?.addEventListener("change",rerun);
