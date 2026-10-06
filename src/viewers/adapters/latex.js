@@ -1,4 +1,5 @@
-import {escapeHTML,fetchText} from "../utils.js?v=7d3b41dda4bb5dfad00f69bb267324bfd90bbaca";import {getKaTeX} from "../../vendor/katex.js?v=7d3b41dda4bb5dfad00f69bb267324bfd90bbaca";
+import {escapeHTML,fetchText} from "../utils.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";import {getKaTeX} from "../../vendor/katex.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
+import {createDomFinder} from "../dom-search.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
 function documentBody(source){const match=source.match(/\\begin\{document\}([\s\S]*?)\\end\{document\}/);return match?match[1]:source}
 export async function render(container,resource){
   const source=await fetchText(resource.path),katex=await getKaTeX(),body=documentBody(source),blocks=[];let last=0,match;
@@ -12,5 +13,5 @@ export async function render(container,resource){
   }
   const rest=body.slice(last).trim();if(rest)blocks.push(`<p>${escapeHTML(rest)}</p>`);
   container.innerHTML=`<article class="latex-view"><div class="latex-rendered"><h2>${escapeHTML(resource.label)}</h2>${blocks.join("")}</div><details><summary>LaTeX source</summary><pre>${escapeHTML(source)}</pre></details></article>`;
-  return {info:"KaTeX preview · source fallback included"};
+  return {info:"KaTeX preview · source fallback included",actions:{find:createDomFinder(container)}};
 }

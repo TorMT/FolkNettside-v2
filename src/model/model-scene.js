@@ -1,4 +1,4 @@
-import {getThreeRuntime} from "./three-runtime.js?v=7d3b41dda4bb5dfad00f69bb267324bfd90bbaca";
+import {getThreeRuntime} from "./three-runtime.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,selectedComponentId=null}=options;
@@ -42,9 +42,30 @@ export async function mountModelScene(container,documentModel,options={}){
 
   const box=new THREE.Box3().setFromObject(root),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
   const radius=Math.max(size.length()/2,0.1);
+  const canonicalDirection=new THREE.Vector3(1.7,-1.8,1.25).normalize();
+  const canonicalDistance=radius*2.75;
   controls.target.copy(center);
-  camera.position.copy(center).add(new THREE.Vector3(radius*1.7,-radius*1.8,radius*1.25));
+  camera.position.copy(center).add(canonicalDirection.clone().multiplyScalar(canonicalDistance));
   camera.near=Math.max(radius/1000,0.001);camera.far=Math.max(radius*100,100);camera.updateProjectionMatrix();controls.update();
+
+  function resetView(){
+    controls.target.copy(center);
+    camera.position.copy(center).add(canonicalDirection.clone().multiplyScalar(canonicalDistance));
+    controls.update();
+    draw();
+  }
+
+  function fitView(){
+    const currentDirection=camera.position.clone().sub(controls.target);
+    if(currentDirection.lengthSq()<1e-12)currentDirection.copy(canonicalDirection);
+    currentDirection.normalize();
+    const fov=THREE.MathUtils.degToRad(camera.fov);
+    const distance=Math.max(radius/Math.sin(fov/2)*1.12,radius*1.2);
+    controls.target.copy(center);
+    camera.position.copy(center).add(currentDirection.multiplyScalar(distance));
+    controls.update();
+    draw();
+  }
 
   function draw(){renderer.render(scene,camera)}
   function select(mesh,notify=true){
@@ -98,6 +119,7 @@ export async function mountModelScene(container,documentModel,options={}){
   return {
     cleanup,
     selectById(id){select(meshes.find(mesh=>mesh.userData.component.id===id)||null,false)},
+    actions:{fit:fitView,resetZoom:resetView},
     info:`${documentModel.format} · ${documentModel.components.length} component(s) · ${documentModel.unit}`
   };
 }

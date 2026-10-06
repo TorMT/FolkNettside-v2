@@ -1,4 +1,5 @@
-import {escapeHTML,fetchJSON} from "../utils.js?v=7d3b41dda4bb5dfad00f69bb267324bfd90bbaca";
+import {escapeHTML,fetchJSON} from "../utils.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
+import {createDomFinder} from "../dom-search.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
 
 function renderOutput(output){
   if(Array.isArray(output?.text)) return `<pre>${escapeHTML(output.text.join(""))}</pre>`;
@@ -22,5 +23,5 @@ export async function render(container,resource){
       </div>
     </section>`).join("")}</div>`;
 
-  return {info:`${cells.length} cells`};
+  return {info:`${cells.length} cells`,actions:{find:createDomFinder(container)}};
 }

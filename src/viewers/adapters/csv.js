@@ -1,4 +1,5 @@
-import {escapeHTML,fetchText} from "../utils.js?v=7d3b41dda4bb5dfad00f69bb267324bfd90bbaca";
+import {escapeHTML,fetchText} from "../utils.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
+import {createDomFinder} from "../dom-search.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
 
 function parseRow(line,delimiter){
   const values=[];let current="",quoted=false;
@@ -33,5 +34,5 @@ export async function render(container,resource){
     <tbody>${rows.map(row=>`<tr>${header.map((_,index)=>`<td>${escapeHTML(row[index]??"")}</td>`).join("")}</tr>`).join("")}</tbody>
   </table></div>`;
 
-  return {info:`${rows.length} rows · ${header.length} columns · delimiter ${delimiter==="\t"?"tab":delimiter}`};
+  return {info:`${rows.length} rows · ${header.length} columns · delimiter ${delimiter==="\t"?"tab":delimiter}`,actions:{find:createDomFinder(container)}};
 }

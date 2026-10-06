@@ -1,4 +1,4 @@
-import {TOOL_REGISTRY} from "./tool-registry.js?v=7d3b41dda4bb5dfad00f69bb267324bfd90bbaca";
+import {TOOL_REGISTRY} from "./tool-registry.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
 
 export function toolsIndexHTML(){
   return `<main class="tool-page">
@@ -11,7 +11,7 @@ export function toolsIndexHTML(){
       ${TOOL_REGISTRY.map(tool=>tool.route?`
         <button class="tool-index-card" data-tool-route="${tool.route}">
           <span class="file-icon">${tool.short}</span>
-          <span><strong>${tool.title}</strong><small>${tool.summary}</small></span>
+          <span><strong>${tool.title}</strong><small>${tool.summary}</small><small class="tool-parity ${tool.parity||"review"}">Parity: ${tool.parity||"review"}</small></span>
           <span>Open ›</span>
         </button>`:`
         <div class="tool-index-card disabled">

@@ -1,5 +1,6 @@
-import {escapeHTML,fetchText,extension} from "../utils.js?v=7d3b41dda4bb5dfad00f69bb267324bfd90bbaca";
-import {getHighlighter} from "../../vendor/highlight.js?v=7d3b41dda4bb5dfad00f69bb267324bfd90bbaca";
+import {escapeHTML,fetchText,extension} from "../utils.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
+import {getHighlighter} from "../../vendor/highlight.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
+import {createDomFinder} from "../dom-search.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
 
 const languageByExtension={
   py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",
@@ -44,5 +45,5 @@ export async function render(container,resource){
     setTimeout(()=>event.currentTarget.textContent="Copy",1200);
   };
 
-  return {info:`${labelByExtension[ext]||"Text"} · ${text.split("\n").length} lines · ${text.length.toLocaleString()} chars`};
+  return {info:`${labelByExtension[ext]||"Text"} · ${text.split("\n").length} lines · ${text.length.toLocaleString()} chars`,actions:{find:createDomFinder(container)}};
 }
