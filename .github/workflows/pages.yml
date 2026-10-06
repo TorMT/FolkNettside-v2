@@ -1,0 +1,28 @@
+name: deploy-pages-preview
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: folk-v2-pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Smoke check
+        run: |
+          test -f index.html
+          test -f src/app.js
+          test -f src/viewer.js
+          test -f examples/semesters/5/TMR4182/Kok/hydro-demo.py
+      - name: Deploy gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
+          exclude_assets: '.github,docs'
