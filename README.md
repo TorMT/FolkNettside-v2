@@ -1,16 +1,19 @@
 # FolkNettside v2
 
-Separate preview/rebuild of FolkNettside.
+Separate rebuild and preview of FolkNettside.
 
-This repository is intentionally isolated from the current production FolkNettside so the existing Engineering Portfolio URL remains stable through 2027-01-01.
+The current production Engineering Portfolio remains untouched through 2027-01-01.
 
-## Current goal
+## Preview scope
 
-Build the new coherent UI shell first:
-- Portfolio
-- Study (Semester -> Course -> Resources, including Kok)
-- ViewerShell
-- Settings (theme lives here)
-- Engineering Workspace
+The first v2 shell now includes:
+- employer-facing Portfolio
+- Study with Semester -> Course -> Resources
+- Kok inside course/Study only
+- shared ViewerShell
+- Settings-owned global theme
+- optional Google/Autodesk connection states
+- Engineering Workspace shell
+- deterministic example fixtures for PDF, text/Python, CSV, HTML, notebook, STL and 3MF
 
-Public browsing is the default. Account connections are optional.
+See `docs/ARCHITECTURE.md` and `examples/README.md`.
