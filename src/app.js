@@ -1,16 +1,16 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
-import {mountViewer} from "./viewer.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
-import {loadContent} from "./content.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
-import {renderResourceTree} from "./components/resource-tree.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
-import {loadModelDocument} from "./model/load-model.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
-import {mountModelScene} from "./model/model-scene.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
+import {mountViewer} from "./viewer.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
+import {loadContent} from "./content.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
+import {renderResourceTree} from "./components/resource-tree.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
+import {loadModelDocument} from "./model/load-model.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
+import {mountModelScene} from "./model/model-scene.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=1093b9e37081cef71bae129b78834bb0ea84232a";
 
 initSettings();
 
