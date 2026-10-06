@@ -16,25 +16,26 @@ Legacy: `Tools/Coolprop/CoolPropForbedretKanksje2.html`
 Already migrated:
 - two independent state inputs
 - fluid selection
+- pressure / temperature / energy / entropy unit choices
 - engineering-unit conversion around SI CoolProp calls
 - standard state-property output
 - phase identification
 - local/lazy WASM runtime
+- Batch multi-output with TP / PT / PH / PU formats
+- process chain: isobaric, isothermal, isentropic, isochoric, isenthalpic
+- All data / explore
+- CSV export
+- JSON export
+- Air book-basis calibration
 
 Still required for full parity:
-- batch multi-output
-- batch diagram support
-- process chain: isobaric, isothermal, isentropic, isochoric, isenthalpic
-- process diagrams
-- All data / explore
+- Batch state-point diagram support
+- Process state-point diagram support
 - log P-h, linear P-h, T-s and P-v diagrams
 - saturation dome
 - optional isotherms, isobars and quality lines
 - diagram reset/zoom
 - PNG export
-- CSV export
-- JSON export
-- Air book-basis calibration
 - integrated help/reference notes
 
 The old implementation itself marked Table 4 batch mode and fully custom process input as incomplete; these are improvements, not parity blockers.
