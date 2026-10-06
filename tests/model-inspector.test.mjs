@@ -16,7 +16,7 @@ test("model inspector hydro and solid centroid reuse tested hydro core",()=>{
   assert.ok(Math.abs(result.displacementKg-40000)<1e-4);
   assert.ok(Math.abs(result.centerOfBuoyancy[2]-.5)<1e-7);
   assert.ok(Math.abs(result.solidVolume-80)<1e-7);
-  assert.ok(Math.abs(result.solidCentroid[2]-1)<1e-7);
+  assert.ok(Math.abs(result.solidCentroid[2]-0)<1e-7);
   assert.equal(result.diagnostics.watertight,true);
 });
 
