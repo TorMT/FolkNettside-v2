@@ -1,4 +1,4 @@
-import {crystalPreset,crystalType,distance3} from "./crystal-structures-core.js?v=20a2630f606975c765a0a2dde47d69dd31779dd6";
+import {crystalPreset,crystalType,distance3} from "./crystal-structures-core.js?v=2679c75179d890c7b8dca577d8f4a170607682bd";
 
 export const MANUAL_ATOMS={
   fe:{label:"Fe",species:"Fe",radius:.14,color:"#9aa6ad"},
@@ -164,7 +164,8 @@ export function analyzeCrystal({structureId,preset=null,baseSites=[],edits=[]}){
     activeAtoms:edited.sites.filter(site=>site.active!==false).length,
     markers:edited.markers.length,
     defects:defectCounts,
-    description:structure?.description||""
+    description:structure?.description||"",
+    identification:identifyCrystal({structureId,sites:edited.sites,edits})
   };
 }
 
@@ -190,4 +191,139 @@ export function bondPlaneCuts(sites,bonds,planes){
     }
   }
   return cuts;
+}
+
+
+const COMMON_CRYSTALS=[
+  {key:"fcc",name:"FCC (Face-Centered Cubic)",cn:12,speciesCounts:[1]},
+  {key:"bcc",name:"BCC (Body-Centered Cubic)",cn:8,speciesCounts:[1]},
+  {key:"sc",name:"SC (Simple Cubic)",cn:6,speciesCounts:[1]},
+  {key:"diamond",name:"Diamond / tetrahedral",cn:4,speciesCounts:[1,2]},
+  {key:"nacl",name:"NaCl (Rock Salt)",cn:6,speciesCounts:[2],ratio:[1,1]},
+  {key:"cscl",name:"CsCl",cn:8,speciesCounts:[2],ratio:[1,1]},
+  {key:"zns",name:"ZnS (Zinc Blende)",cn:4,speciesCounts:[2],ratio:[1,1]},
+  {key:"caf2",name:"CaF2 (Fluorite)",cn:8,speciesCounts:[2],ratio:[1,2]},
+  {key:"spinel",name:"Spinel-type",cn:null,speciesCounts:[3,4]}
+];
+
+export function firstShellCutoff(sortedDistances){
+  const values=sortedDistances.filter(value=>Number(value)>1e-8).map(Number).sort((a,b)=>a-b);
+  if(!values.length)return 0;
+  let cutoff=values[0]*1.28;
+  for(let i=1;i<values.length;i++){
+    if(values[i]/values[i-1]>1.20){
+      cutoff=values[i-1]*1.05;
+      break;
+    }
+  }
+  return cutoff;
+}
+
+export function coordinationStats(sites){
+  const active=(sites||[]).filter(site=>site.active!==false&&Array.isArray(site.pos));
+  if(!active.length)return {values:[],distribution:{},average:0,mode:0};
+  const values=active.map((site,index)=>{
+    const distances=active
+      .map((other,j)=>j===index?0:distance3(site.pos,other.pos))
+      .filter(value=>value>1e-8)
+      .sort((a,b)=>a-b);
+    const cutoff=firstShellCutoff(distances);
+    return distances.filter(distance=>distance<=cutoff+1e-10).length;
+  });
+  const distribution={};
+  for(const value of values)distribution[value]=(distribution[value]||0)+1;
+  const mode=Number(Object.entries(distribution).sort((a,b)=>b[1]-a[1]||Number(b[0])-Number(a[0]))[0]?.[0]||0);
+  return {
+    values,
+    distribution,
+    average:values.reduce((sum,value)=>sum+value,0)/values.length,
+    mode
+  };
+}
+
+function reducedRatio(counts){
+  const values=Object.values(counts).filter(value=>value>0).sort((a,b)=>a-b);
+  if(values.length<2)return values;
+  const gcd=(a,b)=>b===0?a:gcd(b,a%b);
+  const divisor=values.reduce(gcd);
+  return values.map(value=>value/divisor);
+}
+
+function ratioClose(actual,target,tolerance=.18){
+  if(actual.length!==target.length)return false;
+  const a=[...actual].sort((x,y)=>x-y);
+  const b=[...target].sort((x,y)=>x-y);
+  const scale=a[0]/b[0];
+  return a.every((value,index)=>Math.abs(value-scale*b[index])<=Math.max(.2,Math.abs(value)*tolerance));
+}
+
+export function identifyCrystal({structureId=null,sites=[],edits=[]}={}){
+  const active=sites.filter(site=>site.active!==false);
+  const counts=composition(active);
+  const species=Object.keys(counts);
+  const ratio=reducedRatio(counts);
+  const stats=coordinationStats(active);
+  const result={type:"Unknown",confidence:0,details:[],warnings:[],coordination:stats,composition:counts};
+
+  const known=COMMON_CRYSTALS.find(item=>item.key===structureId);
+  if(known){
+    result.type=known.name;
+    result.confidence=90;
+    if(known.cn!==null){
+      result.details.push("Expected coordination: "+known.cn);
+      if(stats.mode&&Math.abs(stats.mode-known.cn)<=2)result.confidence=Math.min(98,result.confidence+5);
+    }
+    if(known.ratio&&ratioClose(ratio,known.ratio))result.confidence=Math.min(98,result.confidence+3);
+  }else{
+    const candidates=COMMON_CRYSTALS.filter(item=>
+      item.speciesCounts.includes(species.length)
+      &&(item.cn===null||Math.abs(stats.mode-item.cn)<=2)
+      &&(!item.ratio||ratioClose(ratio,item.ratio))
+    );
+    if(candidates.length){
+      result.type=candidates[0].name;
+      result.confidence=70+(candidates[0].cn!==null?15:0);
+    }
+  }
+
+  const total=Object.values(counts).reduce((sum,value)=>sum+value,0);
+  const fe=counts.Fe||0,cCount=counts.C||0,cr=counts.Cr||0,ni=counts.Ni||0;
+  if(fe>0&&cCount>0&&total>0){
+    const carbonPercent=100*cCount/(fe+cCount);
+    const ratioFeC=fe/cCount;
+    if(fe+cCount>=4&&Math.abs(ratioFeC-3)<=.35){
+      result.type="Iron carbide / cementite-like Fe3C";
+      result.confidence=Math.max(result.confidence,90);
+      result.details.push("Fe:C approximately 3:1");
+    }else if(carbonPercent<.1){
+      result.type="Nearly pure iron";
+      result.confidence=Math.max(result.confidence,82);
+    }else if(carbonPercent<2.1){
+      result.type="Carbon steel-like Fe-C";
+      result.confidence=Math.max(result.confidence,86);
+      result.details.push(carbonPercent.toFixed(2)+"% C in displayed atom set");
+    }else{
+      result.type="High-carbon / cast-iron-like Fe-C";
+      result.confidence=Math.max(result.confidence,80);
+      result.details.push(carbonPercent.toFixed(2)+"% C in displayed atom set");
+    }
+  }
+  if(fe>0&&cr>0){
+    const crPercent=100*cr/(fe+cr);
+    if(crPercent>10){
+      result.type=ni>0?"Stainless-steel-like Fe-Cr-Ni":"Stainless-steel-like Fe-Cr";
+      result.confidence=Math.max(result.confidence,86);
+      result.details.push(crPercent.toFixed(1)+"% Cr in displayed Fe-Cr set");
+    }
+  }
+
+  const defectCounts={};
+  for(const edit of edits||[])defectCounts[edit.type]=(defectCounts[edit.type]||0)+1;
+  const defectTotal=Object.values(defectCounts).reduce((sum,value)=>sum+value,0);
+  if(defectTotal){
+    result.details.push("Defects: "+Object.entries(defectCounts).map(([key,value])=>key+":"+value).join(", "));
+    result.confidence=Math.max(45,result.confidence-Math.min(10,defectTotal));
+  }
+
+  return result;
 }

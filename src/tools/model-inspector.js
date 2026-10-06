@@ -1,5 +1,5 @@
-import {mountModelScene} from "../model/model-scene.js?v=20a2630f606975c765a0a2dde47d69dd31779dd6";
-import {modelHydroSummary,parseModelBuffer} from "./model-inspector-core.js?v=20a2630f606975c765a0a2dde47d69dd31779dd6";
+import {mountModelScene} from "../model/model-scene.js?v=2679c75179d890c7b8dca577d8f4a170607682bd";
+import {modelHydroSummaryAtAttitude,parseModelBuffer} from "./model-inspector-core.js?v=2679c75179d890c7b8dca577d8f4a170607682bd";
 
 function fmt(value,digits=4){
   const n=Number(value);
@@ -20,9 +20,10 @@ export function modelInspectorHTML(){
         '<div class="crystal-toggle-grid"><button class="btn primary" id="model-load-file">Open STL/3MF</button><button class="btn" id="model-load-example">Load wedge example</button></div>'+
         '<div class="crystal-subpanel"><strong>Camera</strong><div class="crystal-toggle-grid"><button class="btn" data-model-action="fit">Fit</button><button class="btn" data-model-action="reset">Reset</button><button class="btn" data-model-action="zoomIn">Zoom +</button><button class="btn" data-model-action="zoomOut">Zoom −</button></div><label class="field"><span>View</span><select id="model-view"><option value="iso">Iso</option><option value="front">Front</option><option value="rear">Rear</option><option value="port">Port</option><option value="starboard">Starboard</option><option value="top">Top</option></select></label></div>'+
         '<div class="crystal-subpanel"><strong>Alignment</strong><div class="crystal-toggle-grid"><button class="btn" data-model-action="autoAlign">Auto boat</button><button class="btn" data-model-action="alignReset">Reset align</button><button class="btn" data-model-swap="yz">Swap Y/Z</button><button class="btn" data-model-swap="xz">Swap X/Z</button><button class="btn" data-model-swap="xy">Swap X/Y</button></div></div>'+
-        '<div class="crystal-subpanel"><strong>Rotation / attitude</strong><div class="crystal-coordinate-grid"><label><span>Heel X°</span><input id="model-rot-x" type="number" step="1" value="0"></label><label><span>Trim Y°</span><input id="model-rot-y" type="number" step="1" value="0"></label><label><span>Yaw Z°</span><input id="model-rot-z" type="number" step="1" value="0"></label></div><button class="btn" id="model-rotation-reset">Reset attitude</button><p class="muted hydro-note">Attitude here is a visual inspection transform. Hydro numbers below are calculated in the source ModelDocument orientation.</p></div>'+
+        '<div class="crystal-subpanel"><strong>Rotation / attitude</strong><div class="crystal-coordinate-grid"><label><span>Heel X°</span><input id="model-rot-x" type="number" step="1" value="0"></label><label><span>Trim Y°</span><input id="model-rot-y" type="number" step="1" value="0"></label><label><span>Yaw Z°</span><input id="model-rot-z" type="number" step="1" value="0"></label></div><button class="btn" id="model-rotation-reset">Reset attitude</button><p class="muted hydro-note">Hydro below uses the same heel/trim/yaw attitude values as the 3D view.</p></div>'+
         '<div class="crystal-subpanel"><strong>Appearance</strong><label class="field"><span>Opacity</span><input id="model-opacity" type="range" min="0.1" max="1" step="0.05" value="1"></label><label class="field"><span>Model color</span><input id="model-color" type="color" value="#8aa7b5"></label><label class="field"><span>Background</span><input id="model-background" type="color" value="#081820"></label><label class="field"><span><input id="model-wireframe" type="checkbox"> Wireframe</span></label></div>'+
-        '<div class="crystal-subpanel"><strong>Measure</strong><div class="crystal-toggle-grid"><button class="btn" id="model-measure">Measure</button><button class="btn" id="model-measure-undo">Undo</button><button class="btn" id="model-measure-clear">Clear</button></div><div id="model-measure-list" class="muted">No measurements.</div></div>'+
+        '<div class="crystal-subpanel"><strong>Measure</strong><div class="crystal-toggle-grid"><button class="btn" id="model-measure">Measure</button><button class="btn" id="model-measure-undo">Undo</button><button class="btn" id="model-measure-clear">Clear</button></div><label class="field"><span>Snap</span><select id="model-snap-mode"><option value="none">None</option><option value="vertex">Vertex</option><option value="edge">Edge</option><option value="both">Vertex + edge</option></select></label><label class="field"><span>Snap tolerance (m)</span><input id="model-snap-tolerance" type="number" min="0" step="0.001" value="0.01"></label><div id="model-measure-list" class="muted">No measurements.</div></div>'+
+        '<div class="crystal-subpanel"><strong>Clipping</strong><label class="field"><span><input id="model-clip-enabled" type="checkbox"> Enable clip</span></label><label class="field"><span>Axis</span><select id="model-clip-axis"><option value="x">X</option><option value="y">Y</option><option value="z">Z</option></select></label><label class="field"><span>Offset (m)</span><input id="model-clip-offset" type="number" step="0.05" value="0"></label><label class="field"><span><input id="model-clip-invert" type="checkbox"> Invert</span></label></div>'+
         '<div class="crystal-subpanel"><strong>Hydro / waterline</strong><label class="field"><span>Waterline Z (m)</span><input id="model-waterline" type="number" step="0.05" value="0"></label><label class="field"><span><input id="model-waterline-visible" type="checkbox" checked> Show waterline</span></label><button class="btn primary" id="model-hydro-run">Recalculate hydro</button></div>'+
         '<div class="crystal-toggle-grid"><button class="btn" id="model-png">Save PNG</button><button class="btn" id="model-help">Help</button></div>'+
       '</aside>'+
@@ -58,7 +59,11 @@ export async function bindModelInspector(root){
     if(!documentModel)return;
     const waterline=Number(root.querySelector("#model-waterline")?.value)||0;
     try{
-      const summary=modelHydroSummary(documentModel,waterline,1025);
+      const summary=modelHydroSummaryAtAttitude(documentModel,waterline,1025,{
+        heel:Number(root.querySelector("#model-rot-x")?.value)||0,
+        trim:Number(root.querySelector("#model-rot-y")?.value)||0,
+        yaw:Number(root.querySelector("#model-rot-z")?.value)||0
+      });
       const cb=summary.centerOfBuoyancy;
       const cg=summary.solidCentroid;
       results.innerHTML='<div class="tool-result-grid">'+
@@ -114,11 +119,19 @@ export async function bindModelInspector(root){
   root.querySelectorAll("[data-model-swap]").forEach(button=>button.addEventListener("click",()=>sceneHandle?.actions.swapAxes(button.dataset.modelSwap)));
   root.querySelector("#model-view")?.addEventListener("change",event=>sceneHandle?.actions.setView(event.target.value));
 
-  const applyRotation=()=>sceneHandle?.actions.setRotation({x:Number(root.querySelector("#model-rot-x")?.value)||0,y:Number(root.querySelector("#model-rot-y")?.value)||0,z:Number(root.querySelector("#model-rot-z")?.value)||0});
+  const applyRotation=()=>{
+    sceneHandle?.actions.setRotation({
+      x:Number(root.querySelector("#model-rot-x")?.value)||0,
+      y:Number(root.querySelector("#model-rot-y")?.value)||0,
+      z:Number(root.querySelector("#model-rot-z")?.value)||0
+    });
+    renderHydro();
+  };
   for(const id of ["#model-rot-x","#model-rot-y","#model-rot-z"])root.querySelector(id)?.addEventListener("change",applyRotation);
   root.querySelector("#model-rotation-reset")?.addEventListener("click",()=>{
     for(const id of ["#model-rot-x","#model-rot-y","#model-rot-z"]){const input=root.querySelector(id);if(input)input.value="0"}
     sceneHandle?.actions.resetAttitude();
+    renderHydro();
   });
 
   const applyAppearance=()=>sceneHandle?.actions.setAppearance({
@@ -136,6 +149,22 @@ export async function bindModelInspector(root){
   });
   root.querySelector("#model-measure-undo")?.addEventListener("click",()=>sceneHandle?.actions.undoMeasurement());
   root.querySelector("#model-measure-clear")?.addEventListener("click",()=>sceneHandle?.actions.clearMeasurements());
+  const updateSnap=()=>sceneHandle?.actions.setMeasurementSnap({
+    mode:root.querySelector("#model-snap-mode")?.value||"none",
+    tolerance:Number(root.querySelector("#model-snap-tolerance")?.value)||0
+  });
+  root.querySelector("#model-snap-mode")?.addEventListener("change",updateSnap);
+  root.querySelector("#model-snap-tolerance")?.addEventListener("change",updateSnap);
+
+  const updateClip=()=>sceneHandle?.actions.setClipping({
+    enabled:root.querySelector("#model-clip-enabled")?.checked||false,
+    axis:root.querySelector("#model-clip-axis")?.value||"x",
+    offset:Number(root.querySelector("#model-clip-offset")?.value)||0,
+    invert:root.querySelector("#model-clip-invert")?.checked||false
+  });
+  for(const id of ["#model-clip-enabled","#model-clip-axis","#model-clip-offset","#model-clip-invert"]){
+    root.querySelector(id)?.addEventListener("change",updateClip);
+  }
 
   const updateWaterline=()=>sceneHandle?.actions.setWaterline({visible:root.querySelector("#model-waterline-visible")?.checked!==false,z:Number(root.querySelector("#model-waterline")?.value)||0});
   root.querySelector("#model-waterline")?.addEventListener("change",updateWaterline);

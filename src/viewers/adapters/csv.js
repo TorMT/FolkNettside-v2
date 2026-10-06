@@ -1,5 +1,5 @@
-import {escapeHTML,fetchText} from "../utils.js?v=20a2630f606975c765a0a2dde47d69dd31779dd6";
-import {createDomFinder} from "../dom-search.js?v=20a2630f606975c765a0a2dde47d69dd31779dd6";
+import {escapeHTML,fetchText} from "../utils.js?v=2679c75179d890c7b8dca577d8f4a170607682bd";
+import {createDomFinder} from "../dom-search.js?v=2679c75179d890c7b8dca577d8f4a170607682bd";
 
 function parseRow(line,delimiter){
   const values=[];let current="",quoted=false;
