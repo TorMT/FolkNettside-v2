@@ -33,8 +33,8 @@ export const TOOL_REGISTRY=[
     id:"crystal",
     title:"Crystal structures",
     short:"3D",
-    route:null,
-    status:"planned",
+    route:"/tools/crystal",
+    status:"prototype",
     category:"Chemistry",
     summary:"Reusable 3D crystallography viewer built on the shared model renderer.",
     keywords:["crystal","bcc","fcc","hcp","lattice","3d"]

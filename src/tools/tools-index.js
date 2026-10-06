@@ -1,4 +1,4 @@
-import {TOOL_REGISTRY} from "./tool-registry.js?v=37723afc675aaf728ff7a8c03cce840125c0b6a8";
+import {TOOL_REGISTRY} from "./tool-registry.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
 
 export function toolsIndexHTML(){
   return `<main class="tool-page">
