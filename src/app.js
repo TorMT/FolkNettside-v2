@@ -7,6 +7,7 @@ import {renderProjectCard,renderProjectDetail} from "./components/project-card.j
 import {buildSearchIndex} from "./search/search-index.js";
 import {createSearchController} from "./components/search-dialog.js";
 import {toolsIndexHTML} from "./tools/tools-index.js";
+import {activeTools} from "./tools/tool-registry.js";
 import {fluidCalculatorHTML} from "./tools/fluid-calculator.js";
 import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js";
 import {loadModelDocument} from "./model/load-model.js";
@@ -60,7 +61,7 @@ const vessel='<svg viewBox="0 0 760 380"><path d="M120 236 L560 236 L642 265 L60
 
 const route=()=>location.hash.slice(1)||"/portfolio";
 const go=path=>{location.hash=path};
-const globalSearch=createSearchController({index:buildSearchIndex({semesters,projects}),onNavigate:go});
+const globalSearch=createSearchController({index:buildSearchIndex({semesters,projects,tools:activeTools()}),onNavigate:go});
 function parseCourseRoute(path){const m=path.match(/^\/(?:courses|study)\/(\d+)\/([^/]+)$/i);return m?{semester:Number(m[1]),code:decodeURIComponent(m[2])}:null}
 function parseViewerRoute(path){const m=path.match(/^\/viewer\/(\d+)\/([^/]+)\/(\d+)$/i);return m?{semester:Number(m[1]),code:decodeURIComponent(m[2]),resourceIndex:Number(m[3])}:null}
 function getSemester(id){return semesters.find(s=>Number(s.id)===Number(id))}
