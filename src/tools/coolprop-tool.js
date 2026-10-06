@@ -2,8 +2,8 @@ import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,
   computeBatch,computeProcess,computeState,processTargetOptions,
   rowsToCSV,rowsToJSON,unitLabel
-} from "./coolprop-core.js?v=59d30a3c7ff4119cb4e624b6b3b6d2b10d34a347";
-import {getCoolProp} from "../vendor/coolprop-runtime.js?v=59d30a3c7ff4119cb4e624b6b3b6d2b10d34a347";
+} from "./coolprop-core.js?v=38692008f4206b65c9aa67d2ae3baae54773d1b8";
+import {getCoolProp} from "../vendor/coolprop-runtime.js?v=38692008f4206b65c9aa67d2ae3baae54773d1b8";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
