@@ -14,8 +14,8 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | LaTeX | dedicated adapter | pending TEX | rewrite-next | Compare KaTeX/MathJax compatibility |
 | Office | shared OOXML adapter | DOCX/XLSX/PPTX | prototype | Lazy ZIP/XML parser; provider-free baseline |
 | Video | shared video adapter/workspace | MP4 | prototype | Local resume/watched state; metadata/search next |
-| STL | shared model adapter | STL | prototype | Fixture renderer only; production renderer later |
-| 3MF | component-aware import | 3MF assembly | prototype | Lazy ZIP load; preserve object/build graph |
+| STL | shared Three.js ModelScene | ASCII STL | prototype | Render-on-demand; binary parser included |
+| 3MF | ModelDocument + shared Three.js scene | 3MF geometry assembly | prototype | Object/build identity, units, transforms and selection |
 | Fusion F3D/F3Z | semantic import pipeline | pending | planned | APS/native pipeline; do not fake F3Z as 3MF |
 | STEP/IGES | shared CAD import | pending | planned | Keep component/source identity where possible |
 | Hydrostatics | worker/BVH/clipped-solid engines | pending analytic fixtures | rewrite-next | Benchmark before replacing solver |

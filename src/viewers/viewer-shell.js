@@ -35,7 +35,7 @@ export async function mountViewer(root,resource,onBack){
     </footer>
   </main>`;
 
-  root.querySelector("#viewer-back").onclick=onBack;
+  root.querySelector("#viewer-back").onclick=()=>{root.__viewerCleanup?.();onBack();};
   root.querySelector("#open-original").onclick=()=>window.open(resource.path,"_blank","noopener");
   root.querySelector("#viewer-full").onclick=()=>root.querySelector(".viewer-canvas").requestFullscreen?.();
 
@@ -45,6 +45,7 @@ export async function mountViewer(root,resource,onBack){
   try{
     const adapter=await loadAdapter(resource);
     const result=await adapter.render(canvas,resource);
+    root.__viewerCleanup=result?.cleanup || null;
     status.textContent=result?.info || `.${adapter.extension}`;
   }catch(error){
     canvas.innerHTML=`<pre class="code-view">Viewer error: ${escapeHTML(error?.message || error)}</pre>`;
