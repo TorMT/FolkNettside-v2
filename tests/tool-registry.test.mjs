@@ -38,13 +38,13 @@ test("CoolProp stays in review until side-by-side verification is complete",()=>
 });
 
 
-test("known legacy-only tools stay registered until migrated",()=>{
+test("migrating legacy tools stay registered with fallback until full parity",()=>{
   for(const id of ["chemdraw","stl-advanced"]){
     const tool=toolById(id);
     assert.ok(tool,id+" disappeared from tool registry");
-    assert.equal(tool.status,"legacy");
-    assert.equal(tool.parity,"partial");
-    assert.ok(tool.legacyUrl);
+    assert.notEqual(tool.parity,"full");
+    assert.ok(["prototype","legacy"].includes(tool.status));
+    assert.ok(tool.legacyUrl?.startsWith("https://"));
   }
 });
 
