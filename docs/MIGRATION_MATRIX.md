@@ -21,7 +21,7 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | Hydrostatics | exact clipped-triangle surface integrals | box/wedge/multi-component | prototype | CI validates volume, CB and waterplane moments; worker/BVH only if needed |
 | FEM | engineering workspace Structure mode | cantilever frame JSON | prototype | Tested 2D Euler–Bernoulli frame solver; shell/solid later |
 | CFD/resistance | Resistance workspace baseline | ITTC friction JSON | prototype | ITTC-1957 friction only; total resistance/OpenFOAM later |
-| Thruster flow | propulsion module | pending | planned | Actuator disk first |
+| Thruster flow | Propulsion workspace baseline | actuator-disk JSON | prototype | Ideal momentum-theory disk now; ModelDocument/OpenFOAM coupling later |
 | CoolProp | engineering/science tool module | pending | planned | Consolidate variants |
 | Fluid calculator | shared calculator page | pending | planned | Preserve useful equations only |
 | ChemDraw | chemistry tool module | pending | planned | Review active use |

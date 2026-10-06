@@ -1,0 +1,9 @@
+{
+  "name": "Actuator-disk propulsion fixture",
+  "density": 1025,
+  "diameter": 1.5,
+  "thrust": 20000,
+  "inflowSpeed": 3,
+  "maxThrust": 30000,
+  "notes": "Ideal actuator-disk estimate only. No blade geometry, RPM map, cavitation, swirl, hull interaction or CFD."
+}
