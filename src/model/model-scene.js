@@ -1,11 +1,17 @@
 import {getThreeRuntime} from "./three-runtime.js";
 
-export async function mountModelScene(container,documentModel){
+export async function mountModelScene(container,documentModel,options={}){
+  const {showSidebar=true,onSelect=null,selectedComponentId=null}=options;
   const {THREE,OrbitControls}=await getThreeRuntime();
-  const stage=document.createElement("div");stage.className="three-stage";
+
+  const stage=document.createElement("div");
+  stage.className="three-stage"+(showSidebar?"":" three-stage-no-sidebar");
   const canvas=document.createElement("canvas");canvas.className="three-canvas";
-  const sidebar=document.createElement("div");sidebar.className="three-components";
-  stage.append(canvas,sidebar);container.replaceChildren(stage);
+  const sidebar=showSidebar?document.createElement("div"):null;
+  if(sidebar)sidebar.className="three-components";
+  stage.append(canvas);
+  if(sidebar)stage.append(sidebar);
+  container.replaceChildren(stage);
 
   const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
@@ -26,7 +32,6 @@ export async function mountModelScene(container,documentModel){
     geometry.computeVertexNormals();geometry.computeBoundingBox();geometry.computeBoundingSphere();
     const material=new THREE.MeshStandardMaterial({color:0x8aa7b5,roughness:.72,metalness:.06});
     const mesh=new THREE.Mesh(geometry,material);mesh.userData.component=component;
-
     if(component.transform){
       const matrix=new THREE.Matrix4().fromArray(component.transform);
       matrix.elements[12]*=scale;matrix.elements[13]*=scale;matrix.elements[14]*=scale;
@@ -42,23 +47,26 @@ export async function mountModelScene(container,documentModel){
   camera.near=Math.max(radius/1000,0.001);camera.far=Math.max(radius*100,100);camera.updateProjectionMatrix();controls.update();
 
   function draw(){renderer.render(scene,camera)}
-  function select(mesh){
+  function select(mesh,notify=true){
     for(const item of meshes){
       const isOther=Boolean(mesh)&&item!==mesh;
       item.material.color.set(item===mesh?0xb3157a:0x8aa7b5);
       item.material.transparent=isOther;
       item.material.opacity=isOther ? .32 : 1;
     }
-    sidebar.querySelectorAll("[data-component]").forEach(button=>button.classList.toggle("active",button.dataset.component===mesh?.userData.component.id));
+    if(sidebar)sidebar.querySelectorAll("[data-component]").forEach(button=>button.classList.toggle("active",button.dataset.component===mesh?.userData.component.id));
+    if(notify)onSelect?.(mesh?.userData.component||null);
     draw();
   }
 
-  sidebar.innerHTML=`<div class="three-components-title">Components</div>${documentModel.components.map(component=>`
-    <button data-component="${component.id}"><span>○</span><span>${component.name}</span></button>`).join("")}`;
-  sidebar.querySelectorAll("[data-component]").forEach(button=>button.onclick=()=>{
-    const mesh=meshes.find(item=>item.userData.component.id===button.dataset.component);
-    if(mesh)select(mesh);
-  });
+  if(sidebar){
+    sidebar.innerHTML=`<div class="three-components-title">Components</div>${documentModel.components.map(component=>`
+      <button data-component="${component.id}"><span>${component.geometry?"○":"▾"}</span><span>${component.name}</span></button>`).join("")}`;
+    sidebar.querySelectorAll("[data-component]").forEach(button=>button.onclick=()=>{
+      const mesh=meshes.find(item=>item.userData.component.id===button.dataset.component);
+      if(mesh)select(mesh);
+    });
+  }
 
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   canvas.addEventListener("pointerdown",event=>{
@@ -77,10 +85,19 @@ export async function mountModelScene(container,documentModel){
   controls.addEventListener("change",draw);
   const observer=new ResizeObserver(resize);observer.observe(canvas);resize();
 
+  if(selectedComponentId){
+    const initial=meshes.find(mesh=>mesh.userData.component.id===selectedComponentId);
+    if(initial)select(initial,false);
+  }
+
   const cleanup=()=>{
     observer.disconnect();controls.dispose();
     for(const mesh of meshes){mesh.geometry.dispose();mesh.material.dispose()}
     renderer.dispose();
   };
-  return {cleanup,info:`${documentModel.format} · ${documentModel.components.length} component(s) · ${documentModel.unit}`};
+  return {
+    cleanup,
+    selectById(id){select(meshes.find(mesh=>mesh.userData.component.id===id)||null,false)},
+    info:`${documentModel.format} · ${documentModel.components.length} component(s) · ${documentModel.unit}`
+  };
 }

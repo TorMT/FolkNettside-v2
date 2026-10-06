@@ -4,16 +4,37 @@ import {loadContent} from "./content.js";
 import {renderResourceTree} from "./components/resource-tree.js";
 import {hydroPanelHTML} from "./engineering/hydro-panel.js";
 import {renderProjectCard,renderProjectDetail} from "./components/project-card.js";
+import {loadModelDocument} from "./model/load-model.js";
+import {mountModelScene} from "./model/model-scene.js";
 
 initSettings();
 
 const app=document.querySelector("#app");
 const content=await loadContent();
-const {site,semesters,model,components,navLabels,projects}=content;
+const {site,semesters,model,components:configuredComponents,navLabels,projects}=content;
 
-let selectedComponentId=components.find(c=>c.type==="hull")?.id || components[0]?.id;
+let engineeringDocument=null;
+let engineeringDocumentPromise=null;
+let engineeringCleanup=null;
+let engineeringRenderId=0;
+let selectedComponentId=null;
 let engineeringMode="Model";
-let hydroDraft=1.20;
+let hydroDraft=Number(model.hydro?.defaultDraft??1.20);
+
+function getEngineeringDocument(){
+  if(!engineeringDocumentPromise){
+    engineeringDocumentPromise=loadModelDocument(model).then(documentModel=>{
+      engineeringDocument=documentModel;
+      selectedComponentId=selectedComponentId
+        || documentModel.components.find(component=>component.type==="hull"&&component.geometry)?.id
+        || documentModel.components.find(component=>component.geometry)?.id
+        || documentModel.components[0]?.id
+        || null;
+      return documentModel;
+    });
+  }
+  return engineeringDocumentPromise;
+}
 
 const vessel='<svg viewBox="0 0 760 380"><path d="M120 236 L560 236 L642 265 L603 305 L184 306 L104 268 Z" fill="#bccbd2" stroke="#eff7fa" stroke-width="3"/><path d="M250 151 L486 151 L541 230 L196 230 Z" fill="#dbe7ec" stroke="#eff7fa" stroke-width="3"/><rect x="292" y="109" width="165" height="39" rx="4" fill="#dbe7ec"/><path d="M326 109V45" stroke="#eff7fa" stroke-width="4"/><g fill="#17384c"><rect x="276" y="168" width="35" height="17" rx="3"/><rect x="321" y="168" width="35" height="17" rx="3"/><rect x="366" y="168" width="35" height="17" rx="3"/><rect x="411" y="168" width="35" height="17" rx="3"/></g><path d="M160 273 Q370 325 615 274" fill="none" stroke="#6dc6eb" stroke-width="3"/></svg>';
 
@@ -52,31 +73,116 @@ function coursePage(semesterId,code){const course=getCourse(semesterId,code);if(
 
 function settingsPage(){const s=getSettings(),acc={magenta:"#b3157a",teal:"#0b6e72",blue:"#1f57c9",amber:"#8f5a00",graphite:"#394d5b"};document.documentElement.dataset.lens="study";app.innerHTML=top("")+'<main class="settings"><aside class="side"><div class="side-title">Settings</div><button class="active">Appearance</button><button>Account & connections</button><button>Courses</button><button>Engineering</button><button>Privacy & data</button><button>Advanced</button></aside><section class="settings-main"><h1>Appearance</h1><p class="muted">Theme lives here only. Viewers and workspaces inherit the same global state.</p><div class="settings-card"><div class="setting-row"><div><strong>Mode</strong><small>Follow system, or force light/dark.</small></div><div class="segment">'+["system","light","dark"].map(v=>'<button data-setting="mode" data-value="'+v+'" class="'+(s.mode===v?"active":"")+'">'+v+'</button>').join("")+'</div></div><div class="setting-row"><div><strong>Accent</strong><small>Shared UI accent. Analysis colormaps remain independent.</small></div><div class="swatches">'+Object.entries(acc).map(([k,v])=>'<button class="swatch '+(s.accent===k?"active":"")+'" data-setting="accent" data-value="'+k+'" style="background:'+v+'" title="'+k+'"></button>').join("")+'</div></div></div><div class="settings-card"><div class="setting-row"><div><strong>Google</strong><small>Optional; only needed for Drive/cloud features.</small></div><button class="btn">Not connected</button></div><div class="setting-row"><div><strong>Autodesk</strong><small>Optional; future Fusion/APS connection.</small></div><button class="btn">Not connected</button></div></div></section></main><div class="preview-badge">Public by default · auth optional</div>';bindNav();app.querySelectorAll("[data-setting]").forEach(b=>b.onclick=()=>{setSetting(b.dataset.setting,b.dataset.value);settingsPage()})}
 
-function depthFor(component){const byId=new Map(components.map(c=>[c.id,c]));let d=0,current=component;while(current?.parentId&&d<20){d++;current=byId.get(current.parentId)}return d}
+function depthFor(component,list){
+  const byId=new Map(list.map(c=>[c.id,c]));
+  let depth=0,current=component;
+  while(current?.parentId&&depth<20){depth++;current=byId.get(current.parentId)}
+  return depth;
+}
+
 function engineeringPage(){
+  const renderId=++engineeringRenderId;
+  engineeringCleanup?.();
+  engineeringCleanup=null;
   document.documentElement.dataset.lens="workspace";
-  const selected=components.find(c=>c.id===selectedComponentId)||components[0];
-  const hydro=engineeringMode==="Hydro"?hydroPanelHTML({draft:hydroDraft}):null;
-  const inspector=hydro?hydro.inspector:`<h3>Properties</h3><div class="readout"><span>Component</span><strong>${selected.name}</strong></div><div class="readout"><span>Role</span><strong>${selected.type}</strong></div><div class="readout"><span>Source ID</span><strong>${selected.id}</strong></div>`;
-  const summary=hydro?hydro.summary:`<strong>Model summary</strong><div class="readout"><span>Components</span><strong>${components.length}</strong></div><div class="readout"><span>Format</span><strong>${model.format}</strong></div>`;
+
+  if(!engineeringDocument){
+    const fallback=configuredComponents||[];
+    app.innerHTML=top("engineering")+`<main class="workspace">
+      <div class="workspace-bar"><strong>${model.name}</strong><div class="mode-tabs">
+        ${["Model","Hydro","Structure","Resistance","Propulsion"].map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
+      </div></div>
+      <aside class="tree"><div class="tree-label">Components</div>
+        ${fallback.map(c=>`<div class="tree-row" style="padding-left:${8+depthFor(c,fallback)*16}px">${c.type==="assembly"?"▾":"○"} ${c.name}</div>`).join("")}
+      </aside>
+      <section class="viewport"><div class="engineering-loading"><strong>Loading ${model.format}</strong><span>${model.sourcePath}</span></div></section>
+      <aside class="inspector"><h3>Model</h3><p class="muted">Parsing component hierarchy and geometry…</p></aside>
+      <section class="results"><div class="results-summary"><strong>Preparing workspace</strong></div><div class="chart"></div></section>
+      <footer class="statusbar"><span>Units SI</span><span class="top-spacer"></span><span>Loading model…</span></footer>
+    </main>`;
+    bindNav();
+    app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
+    getEngineeringDocument()
+      .then(()=>{if(renderId===engineeringRenderId)engineeringPage()})
+      .catch(error=>{
+        if(renderId!==engineeringRenderId)return;
+        const viewport=app.querySelector(".viewport");
+        if(viewport)viewport.innerHTML=`<pre class="code-view">Model load error: ${String(error?.message||error)}</pre>`;
+      });
+    return;
+  }
+
+  const documentModel=engineeringDocument;
+  const uiComponents=documentModel.components;
+  const selected=uiComponents.find(c=>c.id===selectedComponentId)||uiComponents.find(c=>c.geometry)||uiComponents[0];
+  if(selected&&!selectedComponentId)selectedComponentId=selected.id;
+
+  const hydro=engineeringMode==="Hydro"
+    ? hydroPanelHTML(documentModel,{draft:hydroDraft},model.hydro||{})
+    : null;
+
+  const inspector=hydro?hydro.inspector:`
+    <h3>Properties</h3>
+    <div class="readout"><span>Component</span><strong id="prop-component">${selected?.name||"—"}</strong></div>
+    <div class="readout"><span>Role</span><strong id="prop-role">${selected?.type||"—"}</strong></div>
+    <div class="readout"><span>Source ID</span><strong id="prop-source">${selected?.sourceObjectId||"—"}</strong></div>
+    <div class="readout"><span>Units</span><strong>${documentModel.unit}</strong></div>`;
+  const summary=hydro?hydro.summary:`
+    <strong>Model summary</strong>
+    <div class="readout"><span>Components</span><strong>${uiComponents.length}</strong></div>
+    <div class="readout"><span>Geometry nodes</span><strong>${uiComponents.filter(c=>c.geometry).length}</strong></div>
+    <div class="readout"><span>Format</span><strong>${documentModel.format}</strong></div>`;
   const resultContent=hydro?hydro.results:`<div class="chart"><svg viewBox="0 0 700 170"><path d="M20 135 C90 132 122 80 190 92 S315 60 372 82 S502 35 675 46" fill="none" stroke="var(--accent)" stroke-width="3"/><path d="M20 145H680M20 20V145" stroke="var(--line-strong)"/></svg></div>`;
-  const waterline=hydro?`<div class="workspace-waterline" style="bottom:${hydro.waterlinePercent}%"><span>WL ${hydroDraft.toFixed(2)} m</span></div>`:"";
+  const waterline=hydro?`<div class="workspace-waterline" style="bottom:${hydro.waterlinePercent}%"><span>WL ${hydro.draft.toFixed(2)} m</span></div>`:"";
 
   app.innerHTML=top("engineering")+`<main class="workspace">
-    <div class="workspace-bar"><strong>${model.name}</strong><div class="mode-tabs">
+    <div class="workspace-bar"><strong>${documentModel.name}</strong><div class="mode-tabs">
       ${["Model","Hydro","Structure","Resistance","Propulsion"].map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
     </div></div>
-    <aside class="tree"><input placeholder="Filter components"><div class="tree-label">Components</div>
-      ${components.map(c=>`<div class="tree-row ${c.id===selectedComponentId?"selected":selectedComponentId&&depthFor(c)>1?"dim":""}" data-component="${c.id}" style="padding-left:${8+depthFor(c)*16}px">${c.type==="assembly"?"▾":"○"} ${c.name}</div>`).join("")}
+    <aside class="tree"><input id="component-filter" placeholder="Filter components"><div class="tree-label">Components</div>
+      <div id="component-tree">${uiComponents.map(c=>`<div class="tree-row ${c.id===selectedComponentId?"selected":""}" data-component="${c.id}" data-component-name="${c.name.toLowerCase()}" style="padding-left:${8+depthFor(c,uiComponents)*16}px">${c.geometry?"○":"▾"} ${c.name}</div>`).join("")}</div>
     </aside>
-    <section class="viewport"><div class="hud">${engineeringMode==="Hydro"?"Hydro analytic fixture":"Selected: "+selected.name+" · Esc clears focus"}</div>${vessel}${waterline}</section>
+    <section class="viewport"><div id="engineering-scene" class="engineering-scene"></div><div class="hud">${engineeringMode==="Hydro"?"Hydro · imported geometry":"Selected: "+(selected?.name||"—")}</div>${waterline}</section>
     <aside class="inspector">${inspector}</aside>
     <section class="results"><div class="results-summary">${summary}</div>${resultContent}</section>
-    <footer class="statusbar"><span>Units SI</span><span>Water ${hydro?.density||1025} kg/m³</span><span>Mode ${engineeringMode}</span><span class="top-spacer"></span><span>Ready</span></footer>
-  </main><div class="preview-badge">${engineeringMode==="Hydro"?"Hydro engine · analytic fixture":"Component model loaded from data"}</div>`;
+    <footer class="statusbar"><span>Units SI</span><span>Source ${documentModel.unit}</span><span>Mode ${engineeringMode}</span><span class="top-spacer"></span><span>Ready</span></footer>
+  </main><div class="preview-badge">${engineeringMode==="Hydro"?"Hydro · ModelDocument":"Shared ModelDocument"}</div>`;
 
   bindNav();
-  app.querySelectorAll("[data-component]").forEach(row=>row.onclick=()=>{selectedComponentId=row.dataset.component;engineeringPage()});
+  let sceneHandle=null;
+  const updateSelection=component=>{
+    if(!component)return;
+    selectedComponentId=component.id;
+    app.querySelectorAll("[data-component]").forEach(row=>row.classList.toggle("selected",row.dataset.component===component.id));
+    const name=app.querySelector("#prop-component"),role=app.querySelector("#prop-role"),source=app.querySelector("#prop-source");
+    if(name)name.textContent=component.name;
+    if(role)role.textContent=component.type;
+    if(source)source.textContent=component.sourceObjectId||"—";
+  };
+
+  mountModelScene(app.querySelector("#engineering-scene"),documentModel,{
+    showSidebar:false,
+    selectedComponentId,
+    onSelect:updateSelection
+  }).then(handle=>{
+    if(renderId!==engineeringRenderId){handle.cleanup();return}
+    sceneHandle=handle;
+    engineeringCleanup=handle.cleanup;
+  }).catch(error=>{
+    const target=app.querySelector("#engineering-scene");
+    if(target)target.innerHTML=`<pre class="code-view">3D render error: ${String(error?.message||error)}</pre>`;
+  });
+
+  app.querySelectorAll("[data-component]").forEach(row=>row.onclick=()=>{
+    const component=uiComponents.find(c=>c.id===row.dataset.component);
+    if(!component)return;
+    updateSelection(component);
+    sceneHandle?.selectById(component.id);
+  });
+  app.querySelector("#component-filter")?.addEventListener("input",event=>{
+    const query=event.target.value.trim().toLowerCase();
+    app.querySelectorAll("[data-component]").forEach(row=>row.hidden=query&&!row.dataset.componentName.includes(query));
+  });
   app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
   app.querySelector("#hydro-draft")?.addEventListener("change",event=>{hydroDraft=Number(event.target.value)||0;engineeringPage()});
 }
