@@ -1,0 +1,17 @@
+{
+  "name": "Cantilever beam fixture",
+  "units": {"length":"m","force":"N","stress":"Pa"},
+  "nodes": [
+    {"id":"root","x":0,"y":0},
+    {"id":"tip","x":3,"y":0}
+  ],
+  "elements": [
+    {"id":"beam","n1":"root","n2":"tip","E":210000000000,"A":0.02,"I":0.000008}
+  ],
+  "supports": [
+    {"node":"root","ux":true,"uy":true,"rz":true}
+  ],
+  "loads": [
+    {"node":"tip","fx":0,"fy":-20000,"mz":0}
+  ]
+}
