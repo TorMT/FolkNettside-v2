@@ -1,7 +1,25 @@
-const CRYSTAL={
-  H:"molecular",He:"hcp",C:"hexagonal",N:"molecular",O:"molecular",
-  Na:"bcc",Mg:"hcp",Al:"fcc",Si:"cubic",Cl:"orthorhombic",
-  Fe:"bcc",Cu:"fcc"
+export const CRYSTAL_STRUCTURES={
+  Li:"bcc",Na:"bcc",K:"bcc",Rb:"bcc",Cs:"bcc",Fr:"bcc",
+  Be:"hcp",Mg:"hcp",Ca:"fcc",Sr:"fcc",Ba:"bcc",Ra:"bcc",
+  Sc:"hcp",Ti:"hcp",V:"bcc",Cr:"bcc",Mn:"bcc",Fe:"bcc",Co:"hcp",Ni:"fcc",
+  Cu:"fcc",Zn:"hcp",Y:"hcp",Zr:"hcp",Nb:"bcc",Mo:"bcc",Tc:"hcp",Ru:"hcp",
+  Rh:"fcc",Pd:"fcc",Ag:"fcc",Cd:"hcp",Hf:"hcp",Ta:"bcc",W:"bcc",Re:"hcp",
+  Os:"hcp",Ir:"fcc",Pt:"fcc",Au:"fcc",Hg:"rhombohedral",Rf:"hcp",
+  Al:"fcc",Ga:"orthorhombic",In:"tetragonal",Sn:"tetragonal",Tl:"hcp",Pb:"fcc",
+  Si:"cubic",Ge:"cubic",C:"hexagonal",B:"rhombohedral",P:"molecular",S:"orthorhombic",
+  Se:"hexagonal",Te:"hexagonal",As:"rhombohedral",Sb:"rhombohedral",Bi:"rhombohedral",
+  H:"molecular",N:"molecular",O:"molecular",F:"molecular",Cl:"orthorhombic",
+  Br:"orthorhombic",I:"orthorhombic",He:"hcp",Ne:"fcc",Ar:"fcc",Kr:"fcc",Xe:"fcc",Rn:"fcc"
+};
+
+export const PROPERTY_DEFINITIONS={
+  atomic_mass:{label:"Atomic mass",unit:"u",digits:3},
+  density:{label:"Density",unit:"g/cm³",digits:3},
+  melt:{label:"Melting point",unit:"K",digits:1},
+  boil:{label:"Boiling point",unit:"K",digits:1},
+  electronegativity_pauling:{label:"Electronegativity",unit:"Pauling",digits:2},
+  first_ionization:{label:"1st ionization energy",unit:"eV",digits:2},
+  electron_affinity:{label:"Electron affinity",unit:"eV",digits:2}
 };
 
 export function stateAtTemperature(element,temperatureK){
@@ -15,15 +33,30 @@ export function stateAtTemperature(element,temperatureK){
   return hasBoil?"liquid":"unknown";
 }
 
+function inferCrystal(element){
+  if(CRYSTAL_STRUCTURES[element.symbol])return CRYSTAL_STRUCTURES[element.symbol];
+  const phase=String(element.phase||"").toLowerCase();
+  const category=String(element.category||"").toLowerCase();
+  if(phase==="gas")return "molecular";
+  if(category.includes("noble gas"))return "fcc";
+  if(category.includes("alkali metal"))return "bcc";
+  if(category.includes("alkaline earth"))return "hcp";
+  return "unknown";
+}
+
 export function enrichElement(element){
   const category=String(element.category||"unknown").toLowerCase();
-  const crystal=element.crystal_structure||CRYSTAL[element.symbol]||
-    (String(element.phase||"").toLowerCase()==="gas"?"molecular":"unknown");
-  const material=category.includes("metalloid")?"metalloid":category.includes("metal")?"metal":"nonmetal";
+  const crystal=element.crystal_structure||inferCrystal(element);
+  const material=category.includes("metalloid")
+    ?"metalloid"
+    :category.includes("metal")
+      ?"metal"
+      :"nonmetal";
   const searchable=[
     element.name,element.symbol,element.number,category,element.phase,
-    element.electron_configuration,crystal,material
-  ].filter(Boolean).join(" ").toLowerCase();
+    element.period,element.group,element.electron_configuration,
+    crystal,material
+  ].filter(value=>value!==null&&value!==undefined).join(" ").toLowerCase();
   return {...element,category,crystal_structure:crystal,material_tag:material,searchable};
 }
 
@@ -32,7 +65,9 @@ export function filterElements(elements,{
   category="all",
   phase="all",
   crystal="all",
-  material="all"
+  material="all",
+  period="all",
+  group="all"
 }={}){
   const q=String(search).trim().toLowerCase();
   return elements.filter(element=>{
@@ -41,7 +76,9 @@ export function filterElements(elements,{
       &&(category==="all"||e.category===category)
       &&(phase==="all"||String(e.phase||"unknown").toLowerCase()===phase)
       &&(crystal==="all"||e.crystal_structure===crystal)
-      &&(material==="all"||e.material_tag===material);
+      &&(material==="all"||e.material_tag===material)
+      &&(period==="all"||String(e.period||"")===String(period))
+      &&(group==="all"||String(e.group||"")===String(group));
   });
 }
 
@@ -50,6 +87,22 @@ export function propertyValue(element,key){
   return element[key]??null;
 }
 
+export function formattedProperty(element,key){
+  const definition=PROPERTY_DEFINITIONS[key];
+  if(!definition)return "—";
+  const raw=propertyValue(element,key);
+  const number=Number(raw);
+  if(raw===null||raw===undefined||!Number.isFinite(number))return "—";
+  return `${number.toFixed(definition.digits)}${definition.unit?` ${definition.unit}`:""}`;
+}
+
+export function uniqueValues(elements,key,{numeric=false}={}){
+  const values=[...new Set(elements
+    .map(element=>element[key])
+    .filter(value=>value!==null&&value!==undefined&&value!==""))];
+  return values.sort(numeric?(a,b)=>Number(a)-Number(b):(a,b)=>String(a).localeCompare(String(b)));
+}
+
 export function categories(elements){
-  return [...new Set(elements.map(element=>(element.category||"unknown").toLowerCase()))].sort();
+  return uniqueValues(elements,"category");
 }
