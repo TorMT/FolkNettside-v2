@@ -19,7 +19,7 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | Fusion F3D/F3Z | semantic import pipeline | pending | planned | APS/native pipeline; do not fake F3Z as 3MF |
 | STEP/IGES | shared CAD import | pending | planned | Keep component/source identity where possible |
 | Hydrostatics | exact clipped-triangle surface integrals | box/wedge/multi-component | prototype | CI validates volume, CB and waterplane moments; worker/BVH only if needed |
-| FEM | engineering workspace module | pending beam fixtures | planned | Beam/frame first, then Gmsh/CalculiX |
+| FEM | engineering workspace Structure mode | cantilever frame JSON | prototype | Tested 2D Euler–Bernoulli frame solver; shell/solid later |
 | CFD/resistance | engineering workspace module | pending | planned | Estimate first, OpenFOAM backend later |
 | Thruster flow | propulsion module | pending | planned | Actuator disk first |
 | CoolProp | engineering/science tool module | pending | planned | Consolidate variants |
