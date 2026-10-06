@@ -9,6 +9,7 @@ import {mountModelScene} from "./model/model-scene.js";
 import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js";
 
 initSettings();
 
@@ -27,6 +28,9 @@ let hydroTargetTonnes="";
 let hydroCurveCache={model:null,data:null};
 let structureLoadKn=-20;
 let resistanceSpeedKn=10;
+let propulsionThrustKn=20;
+let propulsionInflow=3;
+let propulsionDiameter=1.5;
 
 function getEngineeringDocument(){
   if(!engineeringDocumentPromise){
@@ -159,6 +163,50 @@ async function engineeringPage(){
     }catch(error){
       if(renderId!==engineeringRenderId)return;
       app.innerHTML=top("engineering")+`<main class="study"><section class="study-main"><div class="course-header"><h1>Resistance error</h1><p>${String(error?.message||error)}</p></div></section></main>`;
+      bindNav();
+    }
+    return;
+  }
+
+  if(engineeringMode==="Propulsion"){
+    try{
+      const fixture=await loadPropulsionFixture();
+      if(renderId!==engineeringRenderId)return;
+      const propulsion=propulsionPanelHTML(fixture,{
+        thrustKn:propulsionThrustKn,
+        inflowSpeed:propulsionInflow,
+        diameter:propulsionDiameter
+      });
+      app.innerHTML=top("engineering")+`<main class="workspace">
+        <div class="workspace-bar"><strong>${fixture.name}</strong><div class="mode-tabs">
+          ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
+        </div></div>
+        <aside class="tree">
+          <div class="tree-label">Method</div>
+          <div class="tree-row selected"><span>◎</span>Ideal actuator disk</div>
+          <div class="tree-label">Future link</div>
+          <div class="tree-row"><span>○</span>Thruster component <span class="muted">ModelDocument</span></div>
+          <div class="tree-row"><span>↝</span>OpenFOAM body force <span class="muted">later</span></div>
+        </aside>
+        <section class="viewport">${propulsion.viewport}<div class="hud">Propulsion · actuator-disk estimate</div></section>
+        <aside class="inspector">${propulsion.inspector}</aside>
+        <section class="results"><div class="results-summary">${propulsion.summary}</div>${propulsion.results}</section>
+        <footer class="statusbar"><span>Units SI</span><span>Momentum theory</span><span>Mode Propulsion</span><span class="top-spacer"></span><span>Ideal estimate</span></footer>
+      </main><div class="preview-badge">Propulsion · actuator disk baseline</div>`;
+      bindNav();
+      app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
+      const rerun=()=>{
+        propulsionThrustKn=Number(app.querySelector("#propulsion-thrust")?.value)||0;
+        propulsionInflow=Number(app.querySelector("#propulsion-inflow")?.value)||0;
+        propulsionDiameter=Number(app.querySelector("#propulsion-diameter")?.value)||fixture.diameter;
+        engineeringPage();
+      };
+      app.querySelector("#propulsion-thrust")?.addEventListener("change",rerun);
+      app.querySelector("#propulsion-inflow")?.addEventListener("change",rerun);
+      app.querySelector("#propulsion-diameter")?.addEventListener("change",rerun);
+    }catch(error){
+      if(renderId!==engineeringRenderId)return;
+      app.innerHTML=top("engineering")+`<main class="study"><section class="study-main"><div class="course-header"><h1>Propulsion error</h1><p>${String(error?.message||error)}</p></div></section></main>`;
       bindNav();
     }
     return;
