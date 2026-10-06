@@ -7,13 +7,13 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | Course/semester indexing | `scripts/update_site.py` + one manifest | yes | prototype | One-purpose updater; no HTML patching |
 | Theme picker | Settings + `src/settings.js` | n/a | prototype | No floating theme control |
 | PDF viewer | ViewerShell adapter | PDF | prototype | Native browser renderer first |
-| Code/text/Python | ViewerShell text adapter | MD, PY | prototype | Lazy loaded; syntax layer later |
+| Code/text/Python | ViewerShell code adapter | MD, PY | prototype | Lazy highlight.js, line numbers and copy |
 | CSV | ViewerShell CSV adapter | CSV | prototype | Delimiter detection; table renderer |
 | HTML | ViewerShell HTML adapter | HTML | prototype | Sandboxed iframe |
 | Notebook | ViewerShell notebook adapter | IPYNB | prototype | Source/output rendering |
 | LaTeX | dedicated adapter | pending TEX | rewrite-next | Compare KaTeX/MathJax compatibility |
 | Office | shared OOXML adapter | DOCX/XLSX/PPTX | prototype | Lazy ZIP/XML parser; provider-free baseline |
-| Video | shared video adapter/workspace | pending metadata/media | rewrite-next | Preserve progress/search/grouping |
+| Video | shared video adapter/workspace | MP4 | prototype | Local resume/watched state; metadata/search next |
 | STL | shared model adapter | STL | prototype | Fixture renderer only; production renderer later |
 | 3MF | component-aware import | 3MF assembly | prototype | Lazy ZIP load; preserve object/build graph |
 | Fusion F3D/F3Z | semantic import pipeline | pending | planned | APS/native pipeline; do not fake F3Z as 3MF |
