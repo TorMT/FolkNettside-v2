@@ -94,6 +94,7 @@ def resource(
     relative = path.relative_to(course_dir)
     nested = list(relative.parts[1:-1]) if len(relative.parts) > 2 else []
     return {
+        "source": "site",
         "section": section,
         "folders": nested,
         "relativePath": relative.as_posix(),
@@ -103,6 +104,31 @@ def resource(
         "kind": detect_kind(path),
         "size": stat.st_size,
         "modified": datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
+    }
+
+def external_resource(item: dict, course_dir: Path) -> dict:
+    url = str(item.get("url") or "").strip()
+    if not url.startswith("https://"):
+        raise ValueError(f"external resource must use https://: {url}")
+    label = str(item.get("label") or url)
+    provider = str(item.get("provider") or "remote").lower()
+    resource_id = str(item.get("id") or f"{provider}:{url}")
+    folders = item.get("folders") or []
+    if not isinstance(folders, list):
+        raise ValueError(f"external resource folders must be a list: {label}")
+    return {
+        "id": resource_id,
+        "source": "remote",
+        "provider": provider,
+        "section": str(item.get("section") or "Filer og ressurser"),
+        "folders": [str(folder) for folder in folders],
+        "relativePath": str(item.get("relativePath") or label),
+        "name": str(item.get("name") or label),
+        "label": label,
+        "path": url,
+        "url": url,
+        "kind": str(item.get("kind") or provider.upper()),
+        **({"videoId": str(item["videoId"])} if item.get("videoId") else {}),
     }
 
 def scan_course(semester_id: int, course_dir: Path) -> dict:
@@ -120,6 +146,11 @@ def scan_course(semester_id: int, course_dir: Path) -> dict:
         section = relative.parts[0] if len(relative.parts) > 1 else "Filer og ressurser"
         resources.append(resource(path, course_dir, stat, section))
 
+    for external in meta.get("externalResources", []):
+        if not isinstance(external, dict):
+            continue
+        resources.append(external_resource(external, course_dir))
+
     for extra in meta.get("extraResources", []):
         if not isinstance(extra, dict) or not extra.get("path"):
             continue
@@ -128,6 +159,7 @@ def scan_course(semester_id: int, course_dir: Path) -> dict:
             raise FileNotFoundError(f"extra resource not found: {path}")
         stat = path.stat()
         resources.append({
+            "source": "site",
             "section": str(extra.get("section") or "Filer og ressurser"),
             "folders": [],
             "relativePath": path.name,
@@ -148,7 +180,7 @@ def scan_course(semester_id: int, course_dir: Path) -> dict:
     seen: set[tuple[str, str]] = set()
     deduped: list[dict] = []
     for item in resources:
-        key = (item["section"], item["path"])
+        key = (item["section"], item.get("id") or item["path"])
         if key not in seen:
             seen.add(key)
             deduped.append(item)

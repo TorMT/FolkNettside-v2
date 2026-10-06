@@ -2,8 +2,21 @@
   "code": "TMR4182",
   "title": "Marin konstruksjon",
   "description": "Skrog, styrke, FEM og konstruksjonslære.",
-  "tags": ["Konstruksjon", "FEM", "Skrog"],
-  "sectionOrder": ["Forelesninger", "Øvinger", "Kok", "Videoer", "Filer og ressurser", "Quiz", "Modeller", "Karakterweb"],
+  "tags": [
+    "Konstruksjon",
+    "FEM",
+    "Skrog"
+  ],
+  "sectionOrder": [
+    "Forelesninger",
+    "Øvinger",
+    "Kok",
+    "Videoer",
+    "Filer og ressurser",
+    "Quiz",
+    "Modeller",
+    "Karakterweb"
+  ],
   "extraResources": [
     {
       "section": "Modeller",
@@ -14,6 +27,20 @@
       "section": "Modeller",
       "path": "examples/models/assembly-demo.3mf",
       "label": "3MF assembly - hull + thruster"
+    }
+  ],
+  "externalResources": [
+    {
+      "id": "yt:M7lc1UVf-VE",
+      "section": "Videoer",
+      "folders": [
+        "YouTube"
+      ],
+      "provider": "youtube",
+      "kind": "YOUTUBE",
+      "videoId": "M7lc1UVf-VE",
+      "url": "https://www.youtube.com/watch?v=M7lc1UVf-VE",
+      "label": "YouTube IFrame API test video"
     }
   ]
 }

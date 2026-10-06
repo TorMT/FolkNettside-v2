@@ -13,7 +13,7 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | Notebook | ViewerShell notebook adapter | IPYNB | prototype | Source/output rendering |
 | LaTeX | dedicated adapter | TEX | prototype | Lazy KaTeX preview with source fallback |
 | Office | shared OOXML adapter | DOCX/XLSX/PPTX | prototype | Lazy ZIP/XML parser; provider-free baseline |
-| Video | shared video adapter/workspace | MP4 | prototype | Local resume/watched state; metadata/search next |
+| Video | shared local/YouTube adapters + progress store | MP4 + YouTube | prototype | One progress model, local resume/watched state, externalResources manifest support; cloud sync later |
 | STL | shared Three.js ModelScene | ASCII STL | prototype | Render-on-demand; binary parser included |
 | 3MF | ModelDocument + shared Three.js scene | 3MF geometry assembly | prototype | Object/build identity, units, transforms and selection |
 | Fusion F3D/F3Z | semantic import pipeline | pending | planned | APS/native pipeline; do not fake F3Z as 3MF |

@@ -64,11 +64,17 @@ def main():
             seen_courses.add(key)
             for resource in course.get("resources",[]) or []:
                 path=str(resource.get("path",""))
+                source=str(resource.get("source") or "site")
                 clean=path[2:] if path.startswith("./") else path
                 require(bool(clean),f"{sid}/{code} resource missing path",errors)
-                if clean:
+                if source=="site" and clean:
                     require((ROOT/clean).exists(),f"{sid}/{code} missing resource file: {clean}",errors)
-                rkey=(sid,code,path)
+                elif source=="remote":
+                    require(path.startswith("https://"),f"{sid}/{code} remote resource must use https: {path}",errors)
+                    require(bool(resource.get("provider")),f"{sid}/{code} remote resource missing provider: {path}",errors)
+                else:
+                    require(source in {"site","remote"},f"{sid}/{code} unsupported resource source: {source}",errors)
+                rkey=(sid,code,resource.get("id") or path)
                 require(rkey not in seen_paths,f"duplicate resource path in {sid}/{code}: {path}",errors)
                 seen_paths.add(rkey)
                 folders=resource.get("folders",[])

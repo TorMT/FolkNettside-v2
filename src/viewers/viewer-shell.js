@@ -25,18 +25,18 @@ export async function mountViewer(root,resource,onBack){
       <aside class="viewer-panel">
         <div class="panel-tabs"><button class="active">Files</button><button>Info</button></div>
         <strong>${escapeHTML(resource.name)}</strong>
-        <p class="muted">${escapeHTML(resource.kind)} fixture</p>
+        <p class="muted">${escapeHTML(resource.kind)} · ${escapeHTML(resource.source||"site")}</p>
         <p class="muted">The adapter is loaded only when this file type is opened.</p>
       </aside>
     </div>
     <footer class="viewer-status">
       <span id="viewer-info">Loading…</span>
-      <span>${escapeHTML(resource.path)}</span>
+      <span>${escapeHTML(resource.url||resource.path)}</span>
     </footer>
   </main>`;
 
   root.querySelector("#viewer-back").onclick=()=>{root.__viewerCleanup?.();onBack();};
-  root.querySelector("#open-original").onclick=()=>window.open(resource.path,"_blank","noopener");
+  root.querySelector("#open-original").onclick=()=>window.open(resource.url||resource.path,"_blank","noopener");
   root.querySelector("#viewer-full").onclick=()=>root.querySelector(".viewer-canvas").requestFullscreen?.();
 
   const canvas=root.querySelector("#viewer-canvas");

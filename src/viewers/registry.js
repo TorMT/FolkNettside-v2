@@ -13,6 +13,10 @@ const adapterLoaders={
   cs:()=>import("./adapters/text.js"),java:()=>import("./adapters/text.js")
 };
 export async function loadAdapter(resource){
+  if(resource.kind==="YOUTUBE"){
+    const module=await import("./adapters/youtube.js");
+    return {extension:"youtube",render:module.render};
+  }
   if(resource.kind==="QUIZ"){
     const module=await import("./adapters/quiz.js");
     return {extension:"quiz",render:module.render};
