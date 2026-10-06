@@ -9,15 +9,21 @@ concurrency:
   group: folk-v2-pages
   cancel-in-progress: true
 jobs:
-  deploy:
+  validate-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Validate generated content manifest
+        run: python scripts/update_site.py --check
       - name: Smoke check
         run: |
           test -f index.html
           test -f src/app.js
-          test -f src/viewer.js
+          test -f src/content.js
+          test -f data/content-manifest.json
           test -f examples/semesters/5/TMR4182/Kok/hydro-demo.py
       - name: Deploy gh-pages
         uses: peaceiris/actions-gh-pages@v4
@@ -25,4 +31,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
           publish_branch: gh-pages
-          exclude_assets: '.github,docs'
+          exclude_assets: '.github,docs,scripts'

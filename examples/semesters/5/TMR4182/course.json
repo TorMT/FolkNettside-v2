@@ -1,0 +1,19 @@
+{
+  "code": "TMR4182",
+  "title": "Marin konstruksjon",
+  "description": "Skrog, styrke, FEM og konstruksjonslære.",
+  "tags": ["Konstruksjon", "FEM", "Skrog"],
+  "sectionOrder": ["Forelesninger", "Øvinger", "Kok", "Videoer", "Filer og ressurser", "Quiz", "Modeller", "Karakterweb"],
+  "extraResources": [
+    {
+      "section": "Modeller",
+      "path": "examples/models/wedge.stl",
+      "label": "Wedge testmodell"
+    },
+    {
+      "section": "Modeller",
+      "path": "examples/models/assembly-demo.3mf",
+      "label": "3MF assembly - hull + thruster"
+    }
+  ]
+}

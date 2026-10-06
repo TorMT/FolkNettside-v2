@@ -1,28 +1,53 @@
-export const semesters=Array.from({length:10},(_,i)=>i+1);
+let cache;
 
-export const courses=[
- ["TMR4182","Marin konstruksjon","Skrog, styrke, FEM og konstruksjonslære.",["Konstruksjon","FEM","Skrog"]],
- ["TMR4175","Hydrostatikk og stabilitet","Likevekt, oppdrift, stabilitet og lastetilfeller.",["Hydrostatikk","Stabilitet","Last"]],
- ["TMR4145","Skipsmotstand","Motstand, propulsjon og effektivitet.",["Motstand","Propulsjon","CFD"]],
- ["TMR4120","Strømningsmekanikk","Strømning, rør, tap og anvendelser.",["Fluid","Rør","Tap"]],
- ["TMA4100","Matematikk 4","Differensialligninger og numerikk.",["Matematikk","Numerikk"]],
- ["TME4100","Termodynamikk","Termodynamiske systemer og sykluser.",["Termodynamikk","Energi"]]
-];
+async function readJSON(path) {
+  const response = await fetch(path, {cache: "no-cache"});
+  if (!response.ok) throw new Error(`Failed to load ${path}: HTTP ${response.status}`);
+  return response.json();
+}
 
-export const resources=[
- {section:"Forelesninger",name:"lecture-01.pdf",label:"Forelesning 01 - hydrostatikk",path:"./examples/semesters/5/TMR4182/Forelesninger/lecture-01.pdf",kind:"PDF"},
- {section:"Kok",name:"kok-example.md",label:"Kok - eksempelnotater",path:"./examples/semesters/5/TMR4182/Kok/kok-example.md",kind:"MD"},
- {section:"Kok",name:"hydro-demo.py",label:"Kok - hydro demo kode",path:"./examples/semesters/5/TMR4182/Kok/hydro-demo.py",kind:"PY"},
- {section:"Kok",name:"hydro-data.csv",label:"Kok - hydro testdata",path:"./examples/semesters/5/TMR4182/Kok/hydro-data.csv",kind:"CSV"},
- {section:"Kok",name:"formula-demo.html",label:"Kok - HTML formelark",path:"./examples/semesters/5/TMR4182/Kok/formula-demo.html",kind:"HTML"},
- {section:"Kok",name:"hydro-demo.ipynb",label:"Kok - notebook",path:"./examples/semesters/5/TMR4182/Kok/hydro-demo.ipynb",kind:"IPYNB"},
- {section:"Modeller",name:"wedge.stl",label:"Wedge testmodell",path:"./examples/models/wedge.stl",kind:"STL"},
- {section:"Modeller",name:"assembly-demo.3mf",label:"3MF assembly - hull + thruster",path:"./examples/models/assembly-demo.3mf",kind:"3MF"}
-];
+function flattenCourses(manifest) {
+  return manifest.semesters.flatMap(semester =>
+    semester.courses.map(course => ({
+      ...course,
+      semester: semester.id
+    }))
+  );
+}
 
-export const components=[
- "Vessel","Hull","Deck","Machinery",
- "Main Thruster PS","Main Thruster SB","Tunnel Thruster","Battery Pack"
-];
+export async function loadContent() {
+  if (cache) return cache;
 
-export const navLabels={courses:"Courses"};
+  const [site, manifest, model] = await Promise.all([
+    readJSON("./config/site.json"),
+    readJSON("./data/content-manifest.json"),
+    readJSON("./data/demo-model.json")
+  ]);
+
+  const manifestBySemester = new Map(manifest.semesters.map(s => [Number(s.id), s]));
+  const semesters = site.semesterOrder.map(id => {
+    const found = manifestBySemester.get(Number(id));
+    return found || {id: Number(id), label: `Semester ${id}`, courses: []};
+  });
+
+  const courses = flattenCourses({semesters});
+  const resources = courses.flatMap(course =>
+    course.resources.map(item => ({...item, courseCode: course.code, semester: course.semester}))
+  );
+
+  cache = {
+    site,
+    manifest,
+    semesters,
+    courses,
+    resources,
+    model,
+    components: model.components,
+    navLabels: {courses: site.coursesLabel || "Courses"}
+  };
+  return cache;
+}
+
+export function clearContentCache() {
+  cache = undefined;
+}

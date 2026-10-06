@@ -1,0 +1,14 @@
+{
+  "name": "Vessel_demo.3mf",
+  "format": "3MF",
+  "components": [
+    {"id":"vessel","name":"Vessel","type":"assembly","parentId":null},
+    {"id":"hull","name":"Hull","type":"hull","parentId":"vessel"},
+    {"id":"deck","name":"Deck","type":"deck","parentId":"vessel"},
+    {"id":"machinery","name":"Machinery","type":"assembly","parentId":"vessel"},
+    {"id":"thruster-ps","name":"Main Thruster PS","type":"thruster","parentId":"machinery"},
+    {"id":"thruster-sb","name":"Main Thruster SB","type":"thruster","parentId":"machinery"},
+    {"id":"tunnel-thruster","name":"Tunnel Thruster","type":"thruster","parentId":"machinery"},
+    {"id":"battery-pack","name":"Battery Pack","type":"equipment","parentId":"vessel"}
+  ]
+}
