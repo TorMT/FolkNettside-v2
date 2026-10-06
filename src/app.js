@@ -33,11 +33,52 @@ function portfolioPage(){
   document.documentElement.dataset.lens="portfolio";
   app.innerHTML=top("portfolio")+
     '<main><section class="hero"><div><h1>Engineering for real-world challenges</h1><p>Marine technology, CAD, analysis, practical fabrication and repair projects — presented without the course archive clutter.</p><div class="hero-actions"><button class="btn primary" data-go="/engineering">Explore engineering</button><button class="btn dark" data-go="/courses">Open Courses</button></div></div><div class="vessel-card">'+vessel+'<div class="waterline"></div></div></section>'+
-    '<section class="section"><div class="section-head"><div><h2>Selected projects</h2><p class="muted">Design, analysis, software and hands-on engineering work.</p></div></div><div class="project-list">'+
-    projects.map(renderProjectCard).join("")+
-    '</div></section></main><div class="preview-badge">v2 preview · separate repo</div>';
+    '<section class="section"><div class="section-head"><div><h2>Selected projects</h2><p class="muted">Design, analysis, software and hands-on engineering work.</p></div></div><div class="project-list">'+projects.map(renderProjectCard).join("")+'</div></section></main><div class="preview-badge">v2 preview · separate repo</div>';
   bindNav();
   app.querySelectorAll("[data-project]").forEach(card=>card.onclick=()=>go("/projects/"+encodeURIComponent(card.dataset.project)));
+}
+
+function projectPage(slug){
+  const project=projects.find(item=>item.slug===slug);
+  if(!project)return notFoundPage("Project was not found.");
+  document.documentElement.dataset.lens="portfolio";
+  app.innerHTML=top("portfolio")+renderProjectDetail(project)+'<div class="preview-badge">Physical + digital engineering portfolio</div>';
+  bindNav();
+}
+
+function coursesPage(requestedSemester){document.documentElement.dataset.lens="study";const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;const semester=getSemester(semesterId)||semesters[0];app.innerHTML=top("courses")+'<main class="study"><section class="study-hero"><h1>Courses</h1><p>Semester, fag og ressurser — inkludert Kok, øvinger, videoer, quiz og verktøy.</p></section><div class="semester-tabs">'+semesters.map(s=>'<button class="'+(Number(s.id)===Number(semester.id)?"active":"")+'" data-semester="'+s.id+'">'+s.label+'</button>').join("")+'</div><section class="study-main"><div class="title-row"><div><h2>'+semester.label+'</h2><div class="muted">'+semester.courses.length+' fag i manifestet</div></div></div>'+(semester.courses.length?'<div class="course-grid">'+semester.courses.map(c=>'<article class="course-card" data-course="'+c.code+'"><span class="course-code">'+c.code+'</span><h3>'+c.title+'</h3><p>'+c.description+'</p><div class="tags">'+c.tags.map(t=>'<span class="tag">'+t+'</span>').join("")+'</div></article>').join("")+'</div>':'<div class="course-header"><h3>Ingen eksempeldata i dette semesteret ennå.</h3><p>Legg inn en fagmappe og kjør <code>python scripts/update_site.py</code>.</p></div>')+'</section></main><div class="preview-badge">Courses exposes Kok; Portfolio does not</div>';bindNav();app.querySelectorAll("[data-semester]").forEach(b=>b.onclick=()=>go("/courses/"+b.dataset.semester));app.querySelectorAll("[data-course]").forEach(c=>c.onclick=()=>go(courseRoute(semester.id,c.dataset.course)))}
+
+function coursePage(semesterId,code){const course=getCourse(semesterId,code);if(!course)return notFoundPage("Course "+code+" was not found in semester "+semesterId);document.documentElement.dataset.lens="study";const grouped=course.resources.reduce((a,r)=>((a[r.section]??=[]).push(r),a),{});const navItems=["Oversikt",...course.sections,"Karakterweb"];app.innerHTML=top("courses")+'<main class="layout"><aside class="side"><div class="side-title">'+course.code+'</div>'+[...new Set(navItems)].map((x,i)=>'<button class="'+(i===0?"active":"")+'">'+x+'</button>').join("")+'</aside><section class="content"><div class="crumbs">Courses / '+getSemester(semesterId).label+' / '+course.code+'</div><header class="course-header"><span class="course-code">'+course.code+'</span><h1>'+course.title+'</h1><p>'+course.description+'</p></header>'+course.sections.map(section=>{const items=grouped[section]||[];if(!items.length)return"";return'<section class="resource-section"><h2>'+section+'</h2><div class="resource-list">'+renderResourceTree(items,item=>course.resources.indexOf(item))+'</div></section>'}).join("")+'<section class="resource-section"><h2>Karakterweb</h2><div class="resource-list"><div class="resource-row" id="karakterweb"><span class="file-icon">KW</span><div><strong>Karakterweb</strong><div class="muted">karakterweb.no/ntnu/'+course.code+'</div></div><span class="muted">Open ↗</span></div></div></section></section></main><div class="preview-badge">Manifest-driven Course layout</div>';bindNav();app.querySelectorAll("[data-resource]").forEach(e=>e.onclick=()=>go(viewerRoute(semesterId,course.code,e.dataset.resource)));app.querySelector("#karakterweb").onclick=()=>open("https://karakterweb.no/ntnu/"+course.code,"_blank","noopener")}
+
+function settingsPage(){const s=getSettings(),acc={magenta:"#b3157a",teal:"#0b6e72",blue:"#1f57c9",amber:"#8f5a00",graphite:"#394d5b"};document.documentElement.dataset.lens="study";app.innerHTML=top("")+'<main class="settings"><aside class="side"><div class="side-title">Settings</div><button class="active">Appearance</button><button>Account & connections</button><button>Courses</button><button>Engineering</button><button>Privacy & data</button><button>Advanced</button></aside><section class="settings-main"><h1>Appearance</h1><p class="muted">Theme lives here only. Viewers and workspaces inherit the same global state.</p><div class="settings-card"><div class="setting-row"><div><strong>Mode</strong><small>Follow system, or force light/dark.</small></div><div class="segment">'+["system","light","dark"].map(v=>'<button data-setting="mode" data-value="'+v+'" class="'+(s.mode===v?"active":"")+'">'+v+'</button>').join("")+'</div></div><div class="setting-row"><div><strong>Accent</strong><small>Shared UI accent. Analysis colormaps remain independent.</small></div><div class="swatches">'+Object.entries(acc).map(([k,v])=>'<button class="swatch '+(s.accent===k?"active":"")+'" data-setting="accent" data-value="'+k+'" style="background:'+v+'" title="'+k+'"></button>').join("")+'</div></div></div><div class="settings-card"><div class="setting-row"><div><strong>Google</strong><small>Optional; only needed for Drive/cloud features.</small></div><button class="btn">Not connected</button></div><div class="setting-row"><div><strong>Autodesk</strong><small>Optional; future Fusion/APS connection.</small></div><button class="btn">Not connected</button></div></div></section></main><div class="preview-badge">Public by default · auth optional</div>';bindNav();app.querySelectorAll("[data-setting]").forEach(b=>b.onclick=()=>{setSetting(b.dataset.setting,b.dataset.value);settingsPage()})}
+
+function depthFor(component){const byId=new Map(components.map(c=>[c.id,c]));let d=0,current=component;while(current?.parentId&&d<20){d++;current=byId.get(current.parentId)}return d}
+function engineeringPage(){
+  document.documentElement.dataset.lens="workspace";
+  const selected=components.find(c=>c.id===selectedComponentId)||components[0];
+  const hydro=engineeringMode==="Hydro"?hydroPanelHTML({draft:hydroDraft}):null;
+  const inspector=hydro?hydro.inspector:`<h3>Properties</h3><div class="readout"><span>Component</span><strong>${selected.name}</strong></div><div class="readout"><span>Role</span><strong>${selected.type}</strong></div><div class="readout"><span>Source ID</span><strong>${selected.id}</strong></div>`;
+  const summary=hydro?hydro.summary:`<strong>Model summary</strong><div class="readout"><span>Components</span><strong>${components.length}</strong></div><div class="readout"><span>Format</span><strong>${model.format}</strong></div>`;
+  const resultContent=hydro?hydro.results:`<div class="chart"><svg viewBox="0 0 700 170"><path d="M20 135 C90 132 122 80 190 92 S315 60 372 82 S502 35 675 46" fill="none" stroke="var(--accent)" stroke-width="3"/><path d="M20 145H680M20 20V145" stroke="var(--line-strong)"/></svg></div>`;
+  const waterline=hydro?`<div class="workspace-waterline" style="bottom:${hydro.waterlinePercent}%"><span>WL ${hydroDraft.toFixed(2)} m</span></div>`:"";
+
+  app.innerHTML=top("engineering")+`<main class="workspace">
+    <div class="workspace-bar"><strong>${model.name}</strong><div class="mode-tabs">
+      ${["Model","Hydro","Structure","Resistance","Propulsion"].map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
+    </div></div>
+    <aside class="tree"><input placeholder="Filter components"><div class="tree-label">Components</div>
+      ${components.map(c=>`<div class="tree-row ${c.id===selectedComponentId?"selected":selectedComponentId&&depthFor(c)>1?"dim":""}" data-component="${c.id}" style="padding-left:${8+depthFor(c)*16}px">${c.type==="assembly"?"▾":"○"} ${c.name}</div>`).join("")}
+    </aside>
+    <section class="viewport"><div class="hud">${engineeringMode==="Hydro"?"Hydro analytic fixture":"Selected: "+selected.name+" · Esc clears focus"}</div>${vessel}${waterline}</section>
+    <aside class="inspector">${inspector}</aside>
+    <section class="results"><div class="results-summary">${summary}</div>${resultContent}</section>
+    <footer class="statusbar"><span>Units SI</span><span>Water ${hydro?.density||1025} kg/m³</span><span>Mode ${engineeringMode}</span><span class="top-spacer"></span><span>Ready</span></footer>
+  </main><div class="preview-badge">${engineeringMode==="Hydro"?"Hydro engine · analytic fixture":"Component model loaded from data"}</div>`;
+
+  bindNav();
+  app.querySelectorAll("[data-component]").forEach(row=>row.onclick=()=>{selectedComponentId=row.dataset.component;engineeringPage()});
+  app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
+  app.querySelector("#hydro-draft")?.addEventListener("change",event=>{hydroDraft=Number(event.target.value)||0;engineeringPage()});
 }
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
