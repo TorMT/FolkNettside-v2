@@ -73,8 +73,45 @@ function courseRoute(semester,code){return `/courses/${semester}/${encodeURIComp
 function viewerRoute(semester,code,index){return `/viewer/${semester}/${encodeURIComponent(code)}/${index}`}
 function engineeringModeRoute(mode){return `/engineering/${String(mode).toLowerCase()}`}
 
-function top(active){return '<header class="topbar"><div class="brand" id="home"><span class="brand-mark"></span>FolkNettside</div><nav class="nav"><button data-go="/portfolio" class="'+(active==="portfolio"?"active":"")+'">Projects</button><button data-go="/engineering" class="'+(active==="engineering"?"active":"")+'">Engineering</button><button data-go="/portfolio">About</button><button data-go="/portfolio">CV</button><button data-go="/portfolio">Contact</button></nav><span class="top-spacer"></span><nav class="nav"><button data-go="/courses" class="'+(active==="courses"?"active":"")+'">'+navLabels.courses+'</button></nav><div class="top-actions"><button class="icon-btn" data-search-open aria-label="Search">⌕</button><button class="icon-btn" data-go="/settings" aria-label="Settings">⚙</button></div></header>'}
-function bindNav(){app.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));app.querySelector("#home")?.addEventListener("click",()=>go("/portfolio"));app.querySelectorAll("[data-search-open]").forEach(b=>b.onclick=()=>globalSearch.open())}
+function top(active){return '<header class="topbar"><div class="brand" id="home"><span class="brand-mark"></span>FolkNettside</div><nav class="nav"><button data-go="/portfolio" class="'+(active==="portfolio"?"active":"")+'">Projects</button><button data-go="/engineering" class="'+(active==="engineering"?"active":"")+'">Engineering</button><button data-go="/portfolio">About</button><button data-go="/portfolio">CV</button><button data-go="/portfolio">Contact</button></nav><span class="top-spacer"></span><nav class="nav"><button data-go="/courses" class="'+(active==="courses"?"active":"")+'">'+navLabels.courses+'</button></nav><div class="top-actions"><button class="icon-btn" data-search-open aria-label="Search">⌕</button><button class="icon-btn" data-go="/settings" aria-label="Settings">⚙</button></div></header><nav class="mobile-nav" aria-label="Primary"><button data-go="/portfolio" class="'+(active==="portfolio"?"active":"")+'"><span>◇</span>Projects</button><button data-go="/courses" class="'+(active==="courses"?"active":"")+'"><span>▤</span>Courses</button><button data-go="/engineering" class="'+(active==="engineering"?"active":"")+'"><span>⌁</span>Engineering</button><button data-search-open><span>⌕</span>Search</button></nav>'}
+
+function bindMobileWorkspacePanels(){
+  const workspace=app.querySelector(".workspace");
+  if(!workspace||workspace.querySelector(".mobile-workspace-actions"))return;
+  const tree=workspace.querySelector(".tree");
+  const inspector=workspace.querySelector(".inspector");
+  if(!tree&&!inspector)return;
+
+  const actions=document.createElement("div");
+  actions.className="mobile-workspace-actions";
+
+  const addAction=(label,panel)=>{
+    if(!panel)return;
+    const button=document.createElement("button");
+    button.type="button";
+    button.textContent=label;
+    button.addEventListener("click",()=>panel.classList.add("mobile-open"));
+    actions.append(button);
+
+    const close=document.createElement("button");
+    close.type="button";
+    close.className="mobile-panel-close";
+    close.textContent="Close";
+    close.addEventListener("click",()=>panel.classList.remove("mobile-open"));
+    panel.prepend(close);
+  };
+
+  addAction("Components",tree);
+  addAction("Properties",inspector);
+  workspace.append(actions);
+}
+
+function bindNav(){
+  app.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+  app.querySelector("#home")?.addEventListener("click",()=>go("/portfolio"));
+  app.querySelectorAll("[data-search-open]").forEach(b=>b.onclick=()=>globalSearch.open());
+  bindMobileWorkspacePanels();
+}
 
 function portfolioPage(){
   document.documentElement.dataset.lens="portfolio";
@@ -186,6 +223,35 @@ async function crystalToolPage(){
     const target=app.querySelector("#crystal-stage");
     if(target)target.textContent="3D render error: "+String(error?.message||error);
   }
+}
+
+function mobilePreviewPage(){
+  document.documentElement.dataset.lens="study";
+  const targets=[
+    ["Portfolio","/portfolio"],
+    ["Courses","/courses"],
+    ["Engineering","/engineering"],
+    ["Tools","/tools"]
+  ];
+  app.innerHTML=top("")+`<main class="mobile-preview-page">
+    <section class="mobile-preview-copy">
+      <div class="crumbs">Developer preview / Mobile</div>
+      <h1>Mobile preview</h1>
+      <p class="muted">This is the real v2 site rendered inside a 390 × 844 CSS-pixel viewport.</p>
+      <div class="mobile-preview-tabs">${targets.map(([label,path],index)=>`<button data-preview-route="${path}" class="${index===0?"active":""}">${label}</button>`).join("")}</div>
+    </section>
+    <div class="device-frame">
+      <div class="device-speaker"></div>
+      <iframe id="mobile-preview-frame" title="Mobile site preview" src="./?mobile-preview=1#/portfolio"></iframe>
+      <div class="device-home"></div>
+    </div>
+  </main>`;
+  bindNav();
+  const frame=app.querySelector("#mobile-preview-frame");
+  app.querySelectorAll("[data-preview-route]").forEach(button=>button.onclick=()=>{
+    app.querySelectorAll("[data-preview-route]").forEach(item=>item.classList.toggle("active",item===button));
+    frame.src="./?mobile-preview=1#"+button.dataset.previewRoute;
+  });
 }
 
 function settingsPage(){const s=getSettings(),acc={magenta:"#b3157a",teal:"#0b6e72",blue:"#1f57c9",amber:"#8f5a00",graphite:"#394d5b"};document.documentElement.dataset.lens="study";app.innerHTML=top("")+'<main class="settings"><aside class="side"><div class="side-title">Settings</div><button class="active">Appearance</button><button>Account & connections</button><button>Courses</button><button>Engineering</button><button>Privacy & data</button><button>Advanced</button></aside><section class="settings-main"><h1>Appearance</h1><p class="muted">Theme lives here only. Viewers and workspaces inherit the same global state.</p><div class="settings-card"><div class="setting-row"><div><strong>Mode</strong><small>Follow system, or force light/dark.</small></div><div class="segment">'+["system","light","dark"].map(v=>'<button data-setting="mode" data-value="'+v+'" class="'+(s.mode===v?"active":"")+'">'+v+'</button>').join("")+'</div></div><div class="setting-row"><div><strong>Accent</strong><small>Shared UI accent. Analysis colormaps remain independent.</small></div><div class="swatches">'+Object.entries(acc).map(([k,v])=>'<button class="swatch '+(s.accent===k?"active":"")+'" data-setting="accent" data-value="'+k+'" style="background:'+v+'" title="'+k+'"></button>').join("")+'</div></div></div><div class="settings-card"><div class="setting-row"><div><strong>Google</strong><small>Optional; only needed for Drive/cloud features.</small></div><button class="btn">Not connected</button></div><div class="setting-row"><div><strong>Autodesk</strong><small>Optional; future Fusion/APS connection.</small></div><button class="btn">Not connected</button></div></div></section></main><div class="preview-badge">Public by default · auth optional</div>';bindNav();app.querySelectorAll("[data-setting]").forEach(b=>b.onclick=()=>{setSetting(b.dataset.setting,b.dataset.value);settingsPage()})}
@@ -507,5 +573,5 @@ async function engineeringPage(){
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
 
-async function render(){const path=route();if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}const viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/tools")return toolsPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
+async function render(){const path=route();if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}const viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/tools")return toolsPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
 window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();globalSearch.open()}});window.addEventListener("hashchange",render);render();
