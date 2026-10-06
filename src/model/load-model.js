@@ -1,13 +1,17 @@
-import {extension} from "../viewers/utils.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
-import {parse3MF} from "./parsers/three-mf.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
-import {parseSTL} from "./parsers/stl.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {extension} from "../viewers/utils.js?v=e39b98077eed11779471c81b49cce38b5350d256";
+import {parse3MF} from "./parsers/three-mf.js?v=e39b98077eed11779471c81b49cce38b5350d256";
+import {parseSTL} from "./parsers/stl.js?v=e39b98077eed11779471c81b49cce38b5350d256";
 
 function applyRules(documentModel,rules=[]){
   for(const component of documentModel.components){
     for(const rule of rules){
       if(!new RegExp(rule.match,"i").test(component.name))continue;
       if(rule.type)component.type=rule.type;
-      component.metadata={...component.metadata,hydro:rule.hydro!==false};
+      component.metadata={
+        ...component.metadata,
+        hydro:rule.hydro!==false,
+        ...(rule.propulsion?{propulsion:{...rule.propulsion}}:{})
+      };
       break;
     }
   }

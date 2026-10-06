@@ -3,14 +3,51 @@
   "format": "3MF",
   "sourcePath": "./examples/models/assembly-demo.3mf",
   "components": [
-    {"id":"fixture-vessel","name":"Vessel","type":"assembly","parentId":null},
-    {"id":"fixture-hull","name":"Hull","type":"hull","parentId":"fixture-vessel"},
-    {"id":"fixture-thruster","name":"Main Thruster","type":"thruster","parentId":"fixture-vessel"}
+    {
+      "id": "fixture-vessel",
+      "name": "Vessel",
+      "type": "assembly",
+      "parentId": null
+    },
+    {
+      "id": "fixture-hull",
+      "name": "Hull",
+      "type": "hull",
+      "parentId": "fixture-vessel"
+    },
+    {
+      "id": "fixture-thruster",
+      "name": "Main Thruster",
+      "type": "thruster",
+      "parentId": "fixture-vessel"
+    }
   ],
   "componentRules": [
-    {"match":"^Hull$","type":"hull","hydro":true},
-    {"match":"Thruster","type":"thruster","hydro":false},
-    {"match":"^Vessel$","type":"assembly","hydro":false}
+    {
+      "match": "^Hull$",
+      "type": "hull",
+      "hydro": true
+    },
+    {
+      "match": "Thruster",
+      "type": "thruster",
+      "hydro": false,
+      "propulsion": {
+        "diameter": 0.5,
+        "thrust": 20000,
+        "inflowSpeed": 3,
+        "axis": [
+          1,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "match": "^Vessel$",
+      "type": "assembly",
+      "hydro": false
+    }
   ],
   "hydro": {
     "density": 1025,

@@ -1,4 +1,4 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=e39b98077eed11779471c81b49cce38b5350d256";
 
 let worker=null;
 let currentModel=null;
@@ -12,7 +12,7 @@ function explicitInclude(modelDocument){
 
 function ensureWorker(){
   if(worker||typeof Worker==="undefined")return worker;
-  worker=new Worker(new URL("./hydro-worker.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34",import.meta.url),{type:"module"});
+  worker=new Worker(new URL("./hydro-worker.js?v=e39b98077eed11779471c81b49cce38b5350d256",import.meta.url),{type:"module"});
   worker.onmessage=event=>{
     const {id,ok,result,error}=event.data||{};
     const entry=pending.get(id);
