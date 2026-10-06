@@ -13,6 +13,7 @@ export function createModelDocument({name,format,unit="meter",components=[]}){
     components:components.map((component,index)=>({
       id:component.id??`component-${index+1}`,
       name:component.name??`Component ${index+1}`,
+      type:component.type??(component.geometry?"component":"assembly"),
       sourceObjectId:component.sourceObjectId??null,
       parentId:component.parentId??null,
       transform:component.transform??null,

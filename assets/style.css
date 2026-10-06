@@ -53,3 +53,6 @@
 .project-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}.project-detail-grid article,.project-media-placeholder{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px}.project-detail-grid h2{margin-top:0}.project-detail-grid p,.project-detail-grid li{line-height:1.6;color:var(--ink-2)}
 .project-media-placeholder{margin-top:18px;min-height:180px;display:grid;place-items:center;text-align:center;background:repeating-linear-gradient(135deg,var(--surface),var(--surface) 14px,var(--surface-sunk) 14px,var(--surface-sunk) 28px)}
 @media(max-width:760px){.project-detail-hero{grid-template-columns:1fr}.project-facts{border-left:0;border-top:1px solid var(--line);padding-left:0;padding-top:12px}.project-detail-grid{grid-template-columns:1fr}}
+
+.engineering-scene{position:absolute;inset:0}.engineering-scene>.three-stage{height:100%}.three-stage-no-sidebar{grid-template-columns:1fr!important}
+.engineering-loading{position:absolute;inset:0;display:grid;place-content:center;gap:8px;text-align:center;color:#dce9ef}.engineering-loading span{font-size:12px;color:#8eabb9}

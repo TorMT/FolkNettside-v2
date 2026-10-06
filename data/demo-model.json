@@ -1,14 +1,21 @@
 {
-  "name": "Vessel_demo.3mf",
+  "name": "Hydro Assembly Fixture",
   "format": "3MF",
+  "sourcePath": "./examples/models/assembly-demo.3mf",
   "components": [
-    {"id":"vessel","name":"Vessel","type":"assembly","parentId":null},
-    {"id":"hull","name":"Hull","type":"hull","parentId":"vessel"},
-    {"id":"deck","name":"Deck","type":"deck","parentId":"vessel"},
-    {"id":"machinery","name":"Machinery","type":"assembly","parentId":"vessel"},
-    {"id":"thruster-ps","name":"Main Thruster PS","type":"thruster","parentId":"machinery"},
-    {"id":"thruster-sb","name":"Main Thruster SB","type":"thruster","parentId":"machinery"},
-    {"id":"tunnel-thruster","name":"Tunnel Thruster","type":"thruster","parentId":"machinery"},
-    {"id":"battery-pack","name":"Battery Pack","type":"equipment","parentId":"vessel"}
-  ]
+    {"id":"fixture-vessel","name":"Vessel","type":"assembly","parentId":null},
+    {"id":"fixture-hull","name":"Hull","type":"hull","parentId":"fixture-vessel"},
+    {"id":"fixture-thruster","name":"Main Thruster","type":"thruster","parentId":"fixture-vessel"}
+  ],
+  "componentRules": [
+    {"match":"^Hull$","type":"hull","hydro":true},
+    {"match":"Thruster","type":"thruster","hydro":false},
+    {"match":"^Vessel$","type":"assembly","hydro":false}
+  ],
+  "hydro": {
+    "density": 1025,
+    "defaultDraft": 1.2,
+    "minDraft": 0,
+    "maxDraft": 2
+  }
 }
