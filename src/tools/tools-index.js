@@ -16,11 +16,11 @@ export function toolsIndexHTML(){
         <span><strong>CoolProp</strong><small>Reference-grade thermophysical properties · next</small></span>
         <span>Planned</span>
       </div>
-      <div class="tool-index-card disabled">
+      <button class="tool-index-card" data-tool-route="/tools/periodic">
         <span class="file-icon">PT</span>
-        <span><strong>Periodic table</strong><small>Data-driven chemistry tool · planned</small></span>
-        <span>Planned</span>
-      </div>
+        <span><strong>Periodic table</strong><small>Search, category filtering and phase at temperature</small></span>
+        <span>Open ›</span>
+      </button>
     </section>
   </main>`;
 }

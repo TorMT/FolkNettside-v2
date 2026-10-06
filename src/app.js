@@ -8,6 +8,7 @@ import {buildSearchIndex} from "./search/search-index.js";
 import {createSearchController} from "./components/search-dialog.js";
 import {toolsIndexHTML} from "./tools/tools-index.js";
 import {fluidCalculatorHTML} from "./tools/fluid-calculator.js";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js";
 import {loadModelDocument} from "./model/load-model.js";
 import {mountModelScene} from "./model/model-scene.js";
 import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js";
@@ -38,6 +39,7 @@ let propulsionInflow=3;
 let propulsionDiameter=1.5;
 let propulsionInitialized=false;
 let fluidToolState={fluid:"air",temperature:20,unit:"C"};
+let periodicToolState={search:"",phase:"all",category:"all",temperature:298,selected:null};
 
 function getEngineeringDocument(){
   if(!engineeringDocumentPromise){
@@ -110,6 +112,38 @@ function fluidToolPage(){
     };
     fluidToolPage();
   });
+}
+
+async function periodicToolPage(){
+  document.documentElement.dataset.lens="study";
+  try{
+    const elements=await loadPeriodicFixture();
+    app.innerHTML=top("courses")+periodicTableHTML(elements,periodicToolState);
+    bindNav();
+
+    const rerender=()=>{
+      periodicToolState={
+        ...periodicToolState,
+        search:app.querySelector("#periodic-search")?.value||"",
+        category:app.querySelector("#periodic-category")?.value||"all",
+        phase:app.querySelector("#periodic-phase")?.value||"all",
+        temperature:Number(app.querySelector("#periodic-temperature")?.value)||298
+      };
+      periodicToolPage();
+    };
+
+    app.querySelector("#periodic-search")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-category")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-phase")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-temperature")?.addEventListener("change",rerender);
+    app.querySelectorAll("[data-element]").forEach(button=>button.onclick=()=>{
+      periodicToolState={...periodicToolState,selected:Number(button.dataset.element)};
+      periodicToolPage();
+    });
+  }catch(error){
+    app.innerHTML=top("courses")+`<main class="tool-page"><div class="course-header"><h1>Periodic table error</h1><p>${String(error?.message||error)}</p></div></main>`;
+    bindNav();
+  }
 }
 
 function settingsPage(){const s=getSettings(),acc={magenta:"#b3157a",teal:"#0b6e72",blue:"#1f57c9",amber:"#8f5a00",graphite:"#394d5b"};document.documentElement.dataset.lens="study";app.innerHTML=top("")+'<main class="settings"><aside class="side"><div class="side-title">Settings</div><button class="active">Appearance</button><button>Account & connections</button><button>Courses</button><button>Engineering</button><button>Privacy & data</button><button>Advanced</button></aside><section class="settings-main"><h1>Appearance</h1><p class="muted">Theme lives here only. Viewers and workspaces inherit the same global state.</p><div class="settings-card"><div class="setting-row"><div><strong>Mode</strong><small>Follow system, or force light/dark.</small></div><div class="segment">'+["system","light","dark"].map(v=>'<button data-setting="mode" data-value="'+v+'" class="'+(s.mode===v?"active":"")+'">'+v+'</button>').join("")+'</div></div><div class="setting-row"><div><strong>Accent</strong><small>Shared UI accent. Analysis colormaps remain independent.</small></div><div class="swatches">'+Object.entries(acc).map(([k,v])=>'<button class="swatch '+(s.accent===k?"active":"")+'" data-setting="accent" data-value="'+k+'" style="background:'+v+'" title="'+k+'"></button>').join("")+'</div></div></div><div class="settings-card"><div class="setting-row"><div><strong>Google</strong><small>Optional; only needed for Drive/cloud features.</small></div><button class="btn">Not connected</button></div><div class="setting-row"><div><strong>Autodesk</strong><small>Optional; future Fusion/APS connection.</small></div><button class="btn">Not connected</button></div></div></section></main><div class="preview-badge">Public by default · auth optional</div>';bindNav();app.querySelectorAll("[data-setting]").forEach(b=>b.onclick=()=>{setSetting(b.dataset.setting,b.dataset.value);settingsPage()})}
@@ -431,5 +465,5 @@ async function engineeringPage(){
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
 
-async function render(){const path=route(),viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/tools")return toolsPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
+async function render(){const path=route(),viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/tools")return toolsPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
 window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();globalSearch.open()}});window.addEventListener("hashchange",render);render();
