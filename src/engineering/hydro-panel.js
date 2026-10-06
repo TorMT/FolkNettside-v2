@@ -25,6 +25,7 @@ export function hydroPanelHTML({
   solveError=null,
   draft,
   targetDisplacementTonnes="",
+  geometryWarnings=[],
   config={}
 }){
   const density=Number(config.density)||1025;
@@ -49,6 +50,7 @@ export function hydroPanelHTML({
         ${solvedText?`<p class="hydro-solve-result">Draft: <strong>${solvedText}</strong></p>`:""}
         ${solveError?`<p class="hydro-solve-error">${esc(solveError)}</p>`:""}
       </div>
+      ${geometryWarnings.length?`<div class="geometry-warning"><strong>Geometry warning</strong><span>${geometryWarnings.length} included component(s) are not watertight. Hydro results may be invalid.</span></div>`:""}
       <p class="muted hydro-note">Calculations run in a Web Worker from imported ModelDocument geometry in world-space metres.</p>
     `,
     summary:`
