@@ -1,79 +1,136 @@
-import {getThreeRuntime} from "./three-runtime.js?v=0229689279d590d75553a254f7674b17d66813e0";
+import {getThreeRuntime} from "./three-runtime.js?v=20a2630f606975c765a0a2dde47d69dd31779dd6";
 
 export async function mountModelScene(container,documentModel,options={}){
-  const {showSidebar=true,onSelect=null,selectedComponentId=null}=options;
+  const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;
   const {THREE,OrbitControls}=await getThreeRuntime();
 
   const stage=document.createElement("div");
   stage.className="three-stage"+(showSidebar?"":" three-stage-no-sidebar");
-  const canvas=document.createElement("canvas");canvas.className="three-canvas";
+  const canvas=document.createElement("canvas");
+  canvas.className="three-canvas";
   const sidebar=showSidebar?document.createElement("div"):null;
   if(sidebar)sidebar.className="three-components";
   stage.append(canvas);
   if(sidebar)stage.append(sidebar);
   container.replaceChildren(stage);
 
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,preserveDrawingBuffer:true});
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
   renderer.outputColorSpace=THREE.SRGBColorSpace;
-  const scene=new THREE.Scene();scene.background=new THREE.Color(0x081820);
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x081820);
+  scene.up.set(0,0,1);
   const camera=new THREE.PerspectiveCamera(45,1,0.001,100000);
-  const controls=new OrbitControls(camera,canvas);controls.enableDamping=false;
+  camera.up.set(0,0,1);
+  const controls=new OrbitControls(camera,canvas);
+  controls.enableDamping=false;
+  controls.screenSpacePanning=true;
   scene.add(new THREE.HemisphereLight(0xd8edf5,0x24313a,2.2));
-  const key=new THREE.DirectionalLight(0xffffff,2.4);key.position.set(4,6,8);scene.add(key);
-  const root=new THREE.Group();scene.add(root);
-  const meshes=[];const scale=documentModel.unitScaleToMeters||1;
+  const key=new THREE.DirectionalLight(0xffffff,2.4);
+  key.position.set(4,6,8);
+  scene.add(key);
+
+  const alignmentGroup=new THREE.Group();
+  const attitudeGroup=new THREE.Group();
+  const root=new THREE.Group();
+  scene.add(alignmentGroup);
+  alignmentGroup.add(attitudeGroup);
+  attitudeGroup.add(root);
+  const meshes=[];
+  const scale=documentModel.unitScaleToMeters||1;
+  const baseColor=new THREE.Color(0x8aa7b5);
+  let appearanceOpacity=1;
+  let selectedMesh=null;
 
   for(const component of documentModel.components){
     if(!component.geometry)continue;
     const geometry=new THREE.BufferGeometry();
     geometry.setAttribute("position",new THREE.BufferAttribute(new Float32Array(component.geometry.positions.map(value=>value*scale)),3));
     if(component.geometry.indices?.length)geometry.setIndex(component.geometry.indices);
-    geometry.computeVertexNormals();geometry.computeBoundingBox();geometry.computeBoundingSphere();
-    const material=new THREE.MeshStandardMaterial({color:0x8aa7b5,roughness:.72,metalness:.06});
-    const mesh=new THREE.Mesh(geometry,material);mesh.userData.component=component;
+    geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+    const material=new THREE.MeshStandardMaterial({color:baseColor.clone(),roughness:.72,metalness:.06});
+    const mesh=new THREE.Mesh(geometry,material);
+    mesh.userData.component=component;
     if(component.transform){
       const matrix=new THREE.Matrix4().fromArray(component.transform);
-      matrix.elements[12]*=scale;matrix.elements[13]*=scale;matrix.elements[14]*=scale;
+      matrix.elements[12]*=scale;
+      matrix.elements[13]*=scale;
+      matrix.elements[14]*=scale;
       mesh.applyMatrix4(matrix);
     }
-    root.add(mesh);meshes.push(mesh);
+    root.add(mesh);
+    meshes.push(mesh);
   }
 
-  const box=new THREE.Box3().setFromObject(root),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
-  const radius=Math.max(size.length()/2,0.1);
+  function bounds(){
+    root.updateMatrixWorld(true);
+    const box=new THREE.Box3().setFromObject(root);
+    const center=box.getCenter(new THREE.Vector3());
+    const size=box.getSize(new THREE.Vector3());
+    const radius=Math.max(size.length()/2,.1);
+    return {box,center,size,radius};
+  }
+
+  let currentBounds=bounds();
   const canonicalDirection=new THREE.Vector3(1.7,-1.8,1.25).normalize();
-  const canonicalDistance=radius*2.75;
-  controls.target.copy(center);
-  camera.position.copy(center).add(canonicalDirection.clone().multiplyScalar(canonicalDistance));
-  camera.near=Math.max(radius/1000,0.001);camera.far=Math.max(radius*100,100);camera.updateProjectionMatrix();controls.update();
-
-  function resetView(){
-    controls.target.copy(center);
-    camera.position.copy(center).add(canonicalDirection.clone().multiplyScalar(canonicalDistance));
-    controls.update();
-    draw();
-  }
-
-  function fitView(){
-    const currentDirection=camera.position.clone().sub(controls.target);
-    if(currentDirection.lengthSq()<1e-12)currentDirection.copy(canonicalDirection);
-    currentDirection.normalize();
-    const fov=THREE.MathUtils.degToRad(camera.fov);
-    const distance=Math.max(radius/Math.sin(fov/2)*1.12,radius*1.2);
-    controls.target.copy(center);
-    camera.position.copy(center).add(currentDirection.multiplyScalar(distance));
-    controls.update();
-    draw();
-  }
 
   function draw(){renderer.render(scene,camera)}
+
+  function placeCamera(direction,distanceFactor=2.75){
+    currentBounds=bounds();
+    const dir=direction.clone().normalize();
+    controls.target.copy(currentBounds.center);
+    camera.position.copy(currentBounds.center).add(dir.multiplyScalar(currentBounds.radius*distanceFactor));
+    camera.near=Math.max(currentBounds.radius/1000,.001);
+    camera.far=Math.max(currentBounds.radius*100,100);
+    camera.updateProjectionMatrix();
+    controls.update();
+    draw();
+  }
+
+  function resetView(){placeCamera(canonicalDirection,2.75)}
+
+  function fitView(){
+    currentBounds=bounds();
+    const direction=camera.position.clone().sub(controls.target);
+    if(direction.lengthSq()<1e-12)direction.copy(canonicalDirection);
+    direction.normalize();
+    const fov=THREE.MathUtils.degToRad(camera.fov);
+    const distance=Math.max(currentBounds.radius/Math.sin(fov/2)*1.12,currentBounds.radius*1.2);
+    controls.target.copy(currentBounds.center);
+    camera.position.copy(currentBounds.center).add(direction.multiplyScalar(distance));
+    controls.update();
+    draw();
+  }
+
+  function zoom(factor){
+    const delta=camera.position.clone().sub(controls.target);
+    const length=Math.max(.001,delta.length()*Number(factor||1));
+    delta.normalize().multiplyScalar(length);
+    camera.position.copy(controls.target).add(delta);
+    controls.update();
+    draw();
+  }
+
+  const viewDirections={
+    iso:canonicalDirection,
+    front:new THREE.Vector3(0,-1,.15),
+    rear:new THREE.Vector3(0,1,.15),
+    port:new THREE.Vector3(-1,0,.15),
+    starboard:new THREE.Vector3(1,0,.15),
+    top:new THREE.Vector3(0,-.001,1)
+  };
+  function setView(name){placeCamera((viewDirections[name]||canonicalDirection).clone(),2.75)}
+
   function select(mesh,notify=true){
+    selectedMesh=mesh||null;
     for(const item of meshes){
       const isOther=Boolean(mesh)&&item!==mesh;
-      item.material.color.set(item===mesh?0xb3157a:0x8aa7b5);
-      item.material.transparent=isOther;
-      item.material.opacity=isOther ? .32 : 1;
+      item.material.color.copy(item===mesh?new THREE.Color(0xb3157a):baseColor);
+      item.material.opacity=isOther?Math.min(appearanceOpacity,.32):appearanceOpacity;
+      item.material.transparent=item.material.opacity<1;
     }
     if(sidebar)sidebar.querySelectorAll("[data-component]").forEach(button=>button.classList.toggle("active",button.dataset.component===mesh?.userData.component.id));
     if(notify)onSelect?.(mesh?.userData.component||null);
@@ -81,30 +138,203 @@ export async function mountModelScene(container,documentModel,options={}){
   }
 
   if(sidebar){
-    sidebar.innerHTML=`<div class="three-components-title">Components</div>${documentModel.components.map(component=>`
-      <button data-component="${component.id}"><span>${component.geometry?"○":"▾"}</span><span>${component.name}</span></button>`).join("")}`;
-    sidebar.querySelectorAll("[data-component]").forEach(button=>button.onclick=()=>{
-      const mesh=meshes.find(item=>item.userData.component.id===button.dataset.component);
-      if(mesh)select(mesh);
-    });
+    const title=document.createElement("div");
+    title.className="three-components-title";
+    title.textContent="Components";
+    sidebar.append(title);
+    for(const component of documentModel.components){
+      const button=document.createElement("button");
+      button.dataset.component=component.id;
+      const icon=document.createElement("span");
+      icon.textContent=component.geometry?"○":"▾";
+      const label=document.createElement("span");
+      label.textContent=component.name;
+      button.append(icon,label);
+      button.addEventListener("click",()=>{
+        const mesh=meshes.find(item=>item.userData.component.id===button.dataset.component);
+        if(mesh)select(mesh);
+      });
+      sidebar.append(button);
+    }
   }
 
-  const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
-  canvas.addEventListener("pointerdown",event=>{
+  const measurementGroup=new THREE.Group();
+  scene.add(measurementGroup);
+  const measurements=[];
+  let measureEnabled=false;
+  let firstMeasurePoint=null;
+  function emitMeasurements(){
+    onMeasurements?.(measurements.map(item=>({a:item.a.toArray(),b:item.b.toArray(),distance:item.distance})));
+  }
+  function addMeasurement(a,b){
+    const geometry=new THREE.BufferGeometry().setFromPoints([a,b]);
+    const material=new THREE.LineBasicMaterial({color:0xf2b84b});
+    const line=new THREE.Line(geometry,material);
+    measurementGroup.add(line);
+    measurements.push({a:a.clone(),b:b.clone(),distance:a.distanceTo(b),line,material});
+    emitMeasurements();
+    draw();
+  }
+  function clearMeasurements(){
+    firstMeasurePoint=null;
+    while(measurements.length){
+      const item=measurements.pop();
+      measurementGroup.remove(item.line);
+      item.line.geometry.dispose();
+      item.material.dispose();
+    }
+    emitMeasurements();
+    draw();
+  }
+  function undoMeasurement(){
+    firstMeasurePoint=null;
+    const item=measurements.pop();
+    if(item){
+      measurementGroup.remove(item.line);
+      item.line.geometry.dispose();
+      item.material.dispose();
+    }
+    emitMeasurements();
+    draw();
+  }
+
+  const waterlineMaterial=new THREE.MeshBasicMaterial({color:0x55b8e6,transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false});
+  const waterlineGeometry=new THREE.PlaneGeometry(1,1);
+  const waterlineMesh=new THREE.Mesh(waterlineGeometry,waterlineMaterial);
+  waterlineMesh.visible=false;
+  scene.add(waterlineMesh);
+  function updateWaterlineSize(){
+    currentBounds=bounds();
+    const span=Math.max(currentBounds.size.x,currentBounds.size.y,currentBounds.radius*2,1)*1.35;
+    waterlineMesh.scale.set(span,span,1);
+  }
+  function setWaterline({visible=true,z=0}={}){
+    updateWaterlineSize();
+    waterlineMesh.visible=Boolean(visible);
+    waterlineMesh.position.set(0,0,Number(z)||0);
+    draw();
+  }
+
+  function resetAlignment(){
+    alignmentGroup.rotation.set(0,0,0);
+    alignmentGroup.quaternion.identity();
+    alignmentGroup.updateMatrixWorld(true);
+    fitView();
+  }
+
+  function swapAxes(type){
+    const euler=type==="yz"?new THREE.Euler(Math.PI/2,0,0):type==="xz"?new THREE.Euler(0,Math.PI/2,0):new THREE.Euler(0,0,Math.PI/2);
+    const q=new THREE.Quaternion().setFromEuler(euler);
+    alignmentGroup.quaternion.premultiply(q);
+    alignmentGroup.updateMatrixWorld(true);
+    fitView();
+  }
+
+  function autoAlign(){
+    const savedAlign=alignmentGroup.quaternion.clone();
+    const savedAttitude=attitudeGroup.quaternion.clone();
+    alignmentGroup.quaternion.identity();
+    attitudeGroup.quaternion.identity();
+    alignmentGroup.updateMatrixWorld(true);
+    const base=bounds();
+    const corners=[];
+    for(const x of [base.box.min.x,base.box.max.x])for(const y of [base.box.min.y,base.box.max.y])for(const z of [base.box.min.z,base.box.max.z])corners.push(new THREE.Vector3(x,y,z).sub(base.center));
+    let best={score:Infinity,q:new THREE.Quaternion()};
+    const turns=[0,Math.PI/2,Math.PI,Math.PI*1.5];
+    for(const rx of turns)for(const ry of turns)for(const rz of turns){
+      const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(rx,ry,rz));
+      const min=new THREE.Vector3(Infinity,Infinity,Infinity);
+      const max=new THREE.Vector3(-Infinity,-Infinity,-Infinity);
+      for(const corner of corners){
+        const p=corner.clone().applyQuaternion(q);
+        min.min(p);max.max(p);
+      }
+      const s=max.clone().sub(min);
+      let score=0;
+      if(s.x<s.y)score+=(s.y-s.x)/(s.x+s.y+1e-9);
+      if(s.y<s.z)score+=(s.z-s.y)/(s.y+s.z+1e-9);
+      score+=.35*(s.z+1e-9)/(s.x+1e-9);
+      if(!(s.z<=s.x&&s.z<=s.y))score+=2;
+      if(score<best.score)best={score,q};
+    }
+    alignmentGroup.quaternion.copy(best.q);
+    attitudeGroup.quaternion.copy(savedAttitude);
+    alignmentGroup.updateMatrixWorld(true);
+    if(!Number.isFinite(best.score))alignmentGroup.quaternion.copy(savedAlign);
+    fitView();
+    return best.score;
+  }
+
+  function setRotation({x=0,y=0,z=0}={}){
+    attitudeGroup.rotation.set(THREE.MathUtils.degToRad(Number(x)||0),THREE.MathUtils.degToRad(Number(y)||0),THREE.MathUtils.degToRad(Number(z)||0));
+    attitudeGroup.updateMatrixWorld(true);
+    fitView();
+  }
+
+  function resetAttitude(){
+    attitudeGroup.rotation.set(0,0,0);
+    attitudeGroup.quaternion.identity();
+    attitudeGroup.updateMatrixWorld(true);
+    fitView();
+  }
+
+  function setAppearance({wireframe=null,opacity=null,modelColor=null,background=null}={}){
+    if(background)scene.background.set(background);
+    if(modelColor)baseColor.set(modelColor);
+    if(opacity!==null)appearanceOpacity=Math.max(.05,Math.min(1,Number(opacity)||1));
+    for(const mesh of meshes){
+      if(wireframe!==null)mesh.material.wireframe=Boolean(wireframe);
+      mesh.material.needsUpdate=true;
+    }
+    select(selectedMesh,false);
+    draw();
+  }
+
+  function screenshot(filename="model.png"){
+    draw();
+    const url=canvas.toDataURL("image/png");
+    const anchor=document.createElement("a");
+    anchor.href=url;
+    anchor.download=filename;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    return url;
+  }
+
+  const raycaster=new THREE.Raycaster();
+  const pointer=new THREE.Vector2();
+  function pointerHit(event){
     const rect=canvas.getBoundingClientRect();
     pointer.x=((event.clientX-rect.left)/rect.width)*2-1;
     pointer.y=-((event.clientY-rect.top)/rect.height)*2+1;
     raycaster.setFromCamera(pointer,camera);
-    select(raycaster.intersectObjects(meshes,false)[0]?.object||null);
-  });
+    return raycaster.intersectObjects(meshes,false)[0]||null;
+  }
+  function onPointerDown(event){
+    const hit=pointerHit(event);
+    if(measureEnabled){
+      if(!hit)return;
+      if(!firstMeasurePoint)firstMeasurePoint=hit.point.clone();
+      else{addMeasurement(firstMeasurePoint,hit.point.clone());firstMeasurePoint=null}
+      return;
+    }
+    select(hit?.object||null);
+  }
+  canvas.addEventListener("pointerdown",onPointerDown);
 
   function resize(){
     const width=Math.max(1,canvas.clientWidth),height=Math.max(1,canvas.clientHeight);
     renderer.setSize(width,height,false);
-    camera.aspect=width/height;camera.updateProjectionMatrix();draw();
+    camera.aspect=width/height;
+    camera.updateProjectionMatrix();
+    draw();
   }
   controls.addEventListener("change",draw);
-  const observer=new ResizeObserver(resize);observer.observe(canvas);resize();
+  const observer=new ResizeObserver(resize);
+  observer.observe(canvas);
+  resetView();
+  resize();
 
   if(selectedComponentId){
     const initial=meshes.find(mesh=>mesh.userData.component.id===selectedComponentId);
@@ -112,14 +342,41 @@ export async function mountModelScene(container,documentModel,options={}){
   }
 
   const cleanup=()=>{
-    observer.disconnect();controls.dispose();
+    observer.disconnect();
+    controls.dispose();
+    canvas.removeEventListener("pointerdown",onPointerDown);
+    clearMeasurements();
+    waterlineGeometry.dispose();
+    waterlineMaterial.dispose();
     for(const mesh of meshes){mesh.geometry.dispose();mesh.material.dispose()}
     renderer.dispose();
   };
+
   return {
     cleanup,
     selectById(id){select(meshes.find(mesh=>mesh.userData.component.id===id)||null,false)},
-    actions:{fit:fitView,resetZoom:resetView},
-    info:`${documentModel.format} · ${documentModel.components.length} component(s) · ${documentModel.unit}`
+    actions:{
+      fit:fitView,
+      resetZoom:resetView,
+      zoomIn:()=>zoom(.8),
+      zoomOut:()=>zoom(1.25),
+      setView,
+      autoAlign,
+      resetAlignment,
+      swapAxes,
+      setRotation,
+      resetAttitude,
+      setAppearance,
+      setMeasurement(enabled){measureEnabled=Boolean(enabled);firstMeasurePoint=null;return measureEnabled},
+      clearMeasurements,
+      undoMeasurement,
+      setWaterline,
+      screenshot,
+      getBounds(){
+        const value=bounds();
+        return {min:value.box.min.toArray(),max:value.box.max.toArray(),size:value.size.toArray(),center:value.center.toArray()};
+      }
+    },
+    info:documentModel.format+" · "+documentModel.components.length+" component(s) · "+documentModel.unit
   };
 }

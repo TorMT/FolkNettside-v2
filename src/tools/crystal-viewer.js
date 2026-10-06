@@ -1,8 +1,10 @@
-import {getThreeRuntime} from "../model/three-runtime.js?v=0229689279d590d75553a254f7674b17d66813e0";
+import {getThreeRuntime} from "../model/three-runtime.js?v=20a2630f606975c765a0a2dde47d69dd31779dd6";
+import {crystalEditorPanelHTML} from "./crystal-editor-panel.js?v=20a2630f606975c765a0a2dde47d69dd31779dd6";
 import {
   cellEdges,crystalPreset,crystalType,distance3,idealHoleCenters,
   listCrystalPresets,listCrystalTypes,replicateCrystal
-} from "./crystal-structures-core.js?v=0229689279d590d75553a254f7674b17d66813e0";
+} from "./crystal-structures-core.js?v=20a2630f606975c765a0a2dde47d69dd31779dd6";
+import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,millerPlane} from "./crystal-analysis.js?v=20a2630f606975c765a0a2dde47d69dd31779dd6";
 
 const SPECIES_COLORS={
   A:0xb3157a,B:0x2f7fa4,O:0xd9e7ed,
@@ -24,8 +26,8 @@ export function crystalToolHTML(state={}){
     <div class="crumbs">Courses / Tools / Crystal structures</div>
     <header class="tool-header">
       <div><span class="project-kicker">Materials tool</span><h1>Crystal structures</h1>
-      <p>Shared Three.js crystallography viewer. Legacy structures and material presets are being migrated without removing the full legacy tool.</p>
-      <div class="tool-parity-banner"><strong>Migration in progress:</strong> structures, replication, presets, hole visualization and measurement are now in v2. Defects, Miller planes, manual atoms and analyzer remain available in the <a href="https://tormt.folk.ntnu.no/Tools/KrystallStrukturer/krystall-viewer.html" target="_blank" rel="noopener">full legacy tool ↗</a>.</div></div>
+      <p>Shared Three.js crystallography editor with structures, defects, planes, holes, measurement and analysis.</p>
+      <div class="tool-parity-banner"><strong>Migration in progress:</strong> the major interactive legacy features are now present in v2. The full legacy tool remains available while the advanced structure-identification/analyzer behavior is compared side by side.</div></div>
     </header>
 
     <section class="crystal-tool-layout">
@@ -56,8 +58,11 @@ export function crystalToolHTML(state={}){
           <button class="btn ${state.showTetra?"primary":""}" id="crystal-tetra">Tetra holes</button>
           <button class="btn ${state.showOcta?"primary":""}" id="crystal-octa">Octa holes</button>
           <button class="btn ${state.measure?"primary":""}" id="crystal-measure">Measure</button>
+          <button class="btn" id="crystal-undo-measure">Undo measurement</button>
           <button class="btn" id="crystal-clear-measure">Clear measurements</button>
         </div>
+
+        ${crystalEditorPanelHTML(state)}
 
         <div class="readout"><span>Equivalent atoms/cell</span><strong>${crystal.equivalentAtoms??"—"}</strong></div>
         <div class="readout"><span>Coordination number</span><strong>${crystal.coordinationNumber??"—"}</strong></div>
@@ -118,20 +123,53 @@ export async function mountCrystalViewer(container,state={}){
   const group=new THREE.Group();
   scene.add(group);
 
-  const atomSites=replicateCrystal(type,{nx,ny,nz,a,c,preset});
-  const species=[...new Set(atomSites.map(site=>site.species))];
+  const baseSites=replicateCrystal(type,{nx,ny,nz,a,c,preset});
+  const edited=applyCrystalEdits(baseSites,state.edits||[]);
+  const atomSites=edited.sites.filter(site=>site.active!==false);
   const atomGeometry=new THREE.SphereGeometry(.11*Math.max(.55,Math.min(1.4,a)),24,16);
-  const materialBySpecies=new Map(species.map((name,index)=>[
-    name,new THREE.MeshStandardMaterial({color:speciesColor(name,index),roughness:.5,metalness:.12})
-  ]));
+  const materialCache=new Map();
+
+  function materialForSite(site,index){
+    const key=String(site.color||site.species||"A");
+    if(!materialCache.has(key)){
+      materialCache.set(key,new THREE.MeshStandardMaterial({
+        color:site.color||speciesColor(site.species,index),
+        roughness:.5,
+        metalness:.12
+      }));
+    }
+    return materialCache.get(key);
+  }
 
   const atoms=[];
-  for(const site of atomSites){
-    const atom=new THREE.Mesh(atomGeometry,materialBySpecies.get(site.species));
+  const visibility=state.visibility||"both";
+  for(const [index,site] of atomSites.entries()){
+    const atom=new THREE.Mesh(atomGeometry,materialForSite(site,index));
+    const defaultRadius=.11*Math.max(.55,Math.min(1.4,a));
+    const radius=Number(site.radius)||defaultRadius;
+    atom.scale.setScalar(radius/defaultRadius);
     atom.position.set(...site.pos);
     atom.userData.site=site;
+    atom.visible=visibility!=="holes";
     group.add(atom);
     atoms.push(atom);
+  }
+
+  const markerObjects=[];
+  for(const marker of edited.markers){
+    const geometry=new THREE.SphereGeometry(.075*Math.max(.55,Math.min(1.4,a)),16,12);
+    const material=new THREE.MeshStandardMaterial({
+      color:marker.color||0x4b88c6,
+      emissive:marker.color||0x4b88c6,
+      emissiveIntensity:.5,
+      transparent:true,
+      opacity:.92
+    });
+    const mesh=new THREE.Mesh(geometry,material);
+    mesh.position.set(...marker.pos);
+    mesh.userData.marker=marker;
+    group.add(mesh);
+    markerObjects.push(mesh);
   }
 
   const edgeMaterial=new THREE.LineBasicMaterial({color:0x7995a5,transparent:true,opacity:.8});
@@ -173,6 +211,7 @@ export async function mountCrystalViewer(container,state={}){
     });
     const mesh=new THREE.Mesh(geometry,material);
     mesh.position.set(...position);
+    mesh.visible=visibility!=="atoms";
     group.add(mesh);
     holeObjects.push(mesh);
   };
@@ -181,7 +220,57 @@ export async function mountCrystalViewer(container,state={}){
       if(state.showTetra)for(const p of holes.tetra)addHole([(ix+p[0])*a,(iy+p[1])*a,(iz+p[2])*a],"tetra");
       if(state.showOcta)for(const p of holes.octa)addHole([(ix+p[0])*a,(iy+p[1])*a,(iz+p[2])*a],"octa");
     }
+  }else if(crystal?.cell==="hexagonal"){
+    const cScale=c||a*(crystal.idealCA||1);
+    for(let ix=0;ix<nx;ix++)for(let iy=0;iy<ny;iy++)for(let iz=0;iz<nz;iz++){
+      const offset=[ix*1.5*a,iz*Math.sqrt(3)*a+(ix%2)*(Math.sqrt(3)*a/2),iy*cScale];
+      const transform=p=>[p[0]*a+offset[0],p[1]*a+offset[1],p[2]*cScale+offset[2]];
+      if(state.showTetra)for(const p of holes.tetra)addHole(transform(p),"tetra");
+      if(state.showOcta)for(const p of holes.octa)addHole(transform(p),"octa");
+    }
   }
+
+  const bondObjects=[];
+  const bonds=state.showBonds?bondPairs(edited.sites,Number(state.bondThreshold)||1.15*a):[];
+  if(state.showBonds){
+    const bondMaterial=new THREE.LineBasicMaterial({color:0x8fb1c2,transparent:true,opacity:.45});
+    for(const bond of bonds){
+      const left=edited.sites[bond.a],right=edited.sites[bond.b];
+      if(!left||!right||left.active===false||right.active===false)continue;
+      const line=addLine(THREE,group,left.pos,right.pos,bondMaterial);
+      line.userData.sharedBondMaterial=bondMaterial;
+      bondObjects.push(line);
+    }
+  }
+
+  const planeObjects=[];
+  function addPlane(spec,index){
+    const normal=new THREE.Vector3(...spec.normal).normalize();
+    const basePoint=spec.point||[.5,.5,.5];
+    const point=new THREE.Vector3(basePoint[0]*a,basePoint[1]*a,basePoint[2]*(crystal?.cell==="hexagonal"?(c||a*(crystal.idealCA||1)):a));
+    const extent=Math.max(nx,ny,nz)*a*2.2;
+    const geometry=new THREE.PlaneGeometry(extent,extent);
+    const material=new THREE.MeshBasicMaterial({
+      color:index%2?0x2f7fa4:0xb3157a,
+      transparent:true,
+      opacity:.15,
+      side:THREE.DoubleSide,
+      depthWrite:false
+    });
+    const mesh=new THREE.Mesh(geometry,material);
+    mesh.position.copy(point);
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),normal);
+    mesh.userData.planeLabel=spec.label;
+    group.add(mesh);
+    planeObjects.push(mesh);
+  }
+
+  let planeSpecs=[];
+  if(state.planeFamily==="close")planeSpecs=closePackedPlaneSpecs(type);
+  else if(state.planeFamily==="miller"){
+    try{planeSpecs=[millerPlane(state.h,state.k,state.l)]}catch{}
+  }
+  planeSpecs.forEach(addPlane);
 
   const measurementGroup=new THREE.Group();
   group.add(measurementGroup);
@@ -194,9 +283,15 @@ export async function mountCrystalViewer(container,state={}){
   const radius=Math.max(size.length()/2,.5);
   const controls=new OrbitControls(camera,canvas);
   controls.enableDamping=false;
-  controls.target.copy(center);
-  camera.position.copy(center).add(new THREE.Vector3(radius*1.9,-radius*2.2,radius*1.6));
-  controls.update();
+  const canonicalDirection=new THREE.Vector3(1.9,-2.2,1.6).normalize();
+  const canonicalDistance=radius*3.35;
+  function resetView(){
+    controls.target.copy(center);
+    camera.position.copy(center).add(canonicalDirection.clone().multiplyScalar(canonicalDistance));
+    controls.update();
+    draw();
+  }
+  resetView();
 
   function draw(){renderer.render(scene,camera)}
   function resize(){
@@ -220,6 +315,18 @@ export async function mountCrystalViewer(container,state={}){
   const count=root?.querySelector("#crystal-atom-count");
   if(count)count.textContent=String(atomSites.length);
   const measurementList=root?.querySelector("#crystal-measurements");
+  const analysisTarget=root?.querySelector("#crystal-analysis");
+  const analysis=analyzeCrystal({structureId:type,preset,baseSites,edits:state.edits||[]});
+  if(analysisTarget){
+    const composition=Object.entries(analysis.composition).map(([name,value])=>name+":"+value).join(" · ")||"—";
+    const defects=Object.entries(analysis.defects).filter(([,value])=>value>0).map(([name,value])=>name+":"+value).join(" · ")||"none";
+    analysisTarget.innerHTML=
+      '<div class="readout"><span>Composition</span><strong>'+composition+'</strong></div>'+
+      '<div class="readout"><span>Active atoms</span><strong>'+analysis.activeAtoms+'</strong></div>'+
+      '<div class="readout"><span>Defects</span><strong>'+defects+'</strong></div>'+
+      '<div class="readout"><span>Bonds</span><strong>'+bonds.length+'</strong></div>'+
+      '<div class="readout"><span>Planes</span><strong>'+planeSpecs.length+'</strong></div>';
+  }
 
   function updateMeasurementUI(){
     if(!measurementList)return;
@@ -230,6 +337,18 @@ export async function mountCrystalViewer(container,state={}){
     measurementList.innerHTML=measurements.map((item,index)=>
       `<div><strong>#${index+1}</strong> ${item.distance.toFixed(4)} relative units</div>`
     ).join("");
+  }
+
+  function undoMeasurement(){
+    firstSite=null;
+    const item=measurements.pop();
+    if(item){
+      measurementGroup.remove(item.line);
+      item.line.geometry.dispose();
+      item.material.dispose();
+    }
+    updateMeasurementUI();
+    draw();
   }
 
   function clearMeasurements(){
@@ -247,7 +366,7 @@ export async function mountCrystalViewer(container,state={}){
   const raycaster=new THREE.Raycaster();
   const pointer=new THREE.Vector2();
   function onPointerDown(event){
-    if(!state.measure)return;
+    if(!state.measure&&!["vacancy","dopant"].includes(state.editMode))return;
     const rect=canvas.getBoundingClientRect();
     pointer.x=((event.clientX-rect.left)/rect.width)*2-1;
     pointer.y=-((event.clientY-rect.top)/rect.height)*2+1;
@@ -255,6 +374,15 @@ export async function mountCrystalViewer(container,state={}){
     const hit=raycaster.intersectObjects(atoms,false)[0]?.object;
     if(!hit)return;
     const site=hit.userData.site;
+
+    if(["vacancy","dopant"].includes(state.editMode)){
+      container.dispatchEvent(new CustomEvent("crystal-site-edit",{
+        bubbles:true,
+        detail:{baseIndex:site.baseIndex,pos:[...site.pos]}
+      }));
+      return;
+    }
+
     if(!firstSite){
       firstSite=site;
       updateMeasurementUI();
@@ -265,7 +393,9 @@ export async function mountCrystalViewer(container,state={}){
   }
   canvas.addEventListener("pointerdown",onPointerDown);
 
+  root?.querySelector("#crystal-undo-measure")?.addEventListener("click",undoMeasurement);
   root?.querySelector("#crystal-clear-measure")?.addEventListener("click",clearMeasurements);
+  root?.querySelector("#crystal-reset-view")?.addEventListener("click",resetView);
 
   controls.addEventListener("change",draw);
   const observer=new ResizeObserver(resize);
@@ -274,16 +404,26 @@ export async function mountCrystalViewer(container,state={}){
 
   return {
     measurements,
+    analysis,
+    resetView,
+    undoMeasurement,
+    clearMeasurements,
     cleanup(){
       observer.disconnect();
       controls.dispose();
       canvas.removeEventListener("pointerdown",onPointerDown);
       clearMeasurements();
       atomGeometry.dispose();
-      for(const material of materialBySpecies.values())material.dispose();
+      for(const material of materialCache.values())material.dispose();
       edgeMaterial.dispose();
       for(const line of lines)line.geometry.dispose();
+      for(const line of bondObjects){
+        line.geometry.dispose();
+        line.userData.sharedBondMaterial?.dispose?.();
+      }
       for(const mesh of holeObjects){mesh.geometry.dispose();mesh.material.dispose()}
+      for(const mesh of markerObjects){mesh.geometry.dispose();mesh.material.dispose()}
+      for(const mesh of planeObjects){mesh.geometry.dispose();mesh.material.dispose()}
       renderer.dispose();
     }
   };
