@@ -1,18 +1,14 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=e39b98077eed11779471c81b49cce38b5350d256";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
+import {createHydroInclude} from "./hydro-selection.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
 
 let worker=null;
 let currentModel=null;
 let requestId=0;
 const pending=new Map();
 
-function explicitInclude(modelDocument){
-  const explicit=modelDocument.components.some(item=>Object.prototype.hasOwnProperty.call(item.metadata||{},"hydro"));
-  return component=>component.geometry&&(explicit?component.metadata?.hydro===true:true);
-}
-
 function ensureWorker(){
   if(worker||typeof Worker==="undefined")return worker;
-  worker=new Worker(new URL("./hydro-worker.js?v=e39b98077eed11779471c81b49cce38b5350d256",import.meta.url),{type:"module"});
+  worker=new Worker(new URL("./hydro-worker.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07",import.meta.url),{type:"module"});
   worker.onmessage=event=>{
     const {id,ok,result,error}=event.data||{};
     const entry=pending.get(id);
@@ -52,21 +48,21 @@ export async function analyzeHydroAsync(modelDocument,waterline){
   await ensureModel(modelDocument);
   const queued=request("analyze",{waterline});
   if(queued)return queued;
-  return analyzeModelDocument(modelDocument,waterline,{include:explicitInclude(modelDocument)});
+  return analyzeModelDocument(modelDocument,waterline,{include:createHydroInclude(modelDocument)});
 }
 
 export async function hydroCurveAsync(modelDocument,options){
   await ensureModel(modelDocument);
   const queued=request("curve",options);
   if(queued)return queued;
-  return hydroCurve(modelDocument,{...options,include:explicitInclude(modelDocument)});
+  return hydroCurve(modelDocument,{...options,include:createHydroInclude(modelDocument)});
 }
 
 export async function solveHydroDraftAsync(modelDocument,targetVolume,options){
   await ensureModel(modelDocument);
   const queued=request("solve",{targetVolume,...options});
   if(queued)return queued;
-  return solveWaterlineForVolume(modelDocument,targetVolume,{...options,include:explicitInclude(modelDocument)});
+  return solveWaterlineForVolume(modelDocument,targetVolume,{...options,include:createHydroInclude(modelDocument)});
 }
 
 export function disposeHydroWorker(){
