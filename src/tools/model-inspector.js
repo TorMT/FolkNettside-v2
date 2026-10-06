@@ -13,7 +13,7 @@ function resultCard(label,value,unit=""){
 export function modelInspectorHTML(){
   return '<main class="tool-page model-inspector-page">'+
     '<div class="crumbs">Courses / Tools / Advanced model inspector</div>'+
-    '<header class="tool-header"><div><span class="project-kicker">Engineering tool</span><h1>Advanced model inspector</h1><p>Shared STL/3MF scene for alignment, measurement, model inspection and hydro checks.</p><div class="tool-parity-banner"><strong>Migration in progress:</strong> v2 now covers the core legacy viewer controls. The full legacy STL viewer remains available while trim/heel hydro and remaining specialist display options are compared.</div></div><div id="model-inspector-status" class="coolprop-engine-status">No model loaded</div></header>'+
+    '<header class="tool-header"><div><span class="project-kicker">Engineering tool</span><h1>Advanced model inspector</h1><p>Shared STL/3MF scene for alignment, measurement, model inspection and hydro checks.</p><div class="tool-parity-banner"><strong>Parity review:</strong> legacy camera, alignment, snap measurement, clipping, appearance, CG/CB, waterline, attitude hydro, PNG export and help workflows are represented in v2. The legacy viewer remains available until side-by-side interaction verification is complete.</div></div><div id="model-inspector-status" class="coolprop-engine-status">No model loaded</div></header>'+
     '<section class="model-inspector-layout">'+
       '<aside class="tool-inputs model-inspector-controls">'+
         '<input id="model-inspector-file" type="file" accept=".stl,.3mf" hidden>'+

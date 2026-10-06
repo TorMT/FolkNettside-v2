@@ -187,11 +187,10 @@ Additional parity completed:
 - shared X/Y/Z clipping plane with invert + offset
 - hydro analysis now applies the same heel/trim/yaw attitude as the 3D view
 
-Remaining before parity review/full:
-- side-by-side validation of legacy auto-align/snap/clipping interaction details
-- compare any remaining specialist rendering/help options that are still useful
+Remaining:
+- final side-by-side validation of auto-align, snapping, clipping, rendering and help interaction details.
 
-Status: `partial`. Legacy fallback remains available until side-by-side verification.
+Status: `review`. Legacy fallback remains available until `full`.
 
 ## Theme creator and Image to theme
 
