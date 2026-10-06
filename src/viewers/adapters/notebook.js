@@ -1,4 +1,4 @@
-import {escapeHTML,fetchJSON} from "../utils.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {escapeHTML,fetchJSON} from "../utils.js?v=94d12bc5f13f9102e6d9b0b90ae4c5e46dabc090";
 
 function renderOutput(output){
   if(Array.isArray(output?.text)) return `<pre>${escapeHTML(output.text.join(""))}</pre>`;

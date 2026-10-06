@@ -1,13 +1,4 @@
-const PREFIX="folk-v2-video:";
-
-function keyFor(resource){return PREFIX+resource.path}
-
-function readState(resource){
-  try{return JSON.parse(localStorage.getItem(keyFor(resource))||"{}")}catch{return{}}
-}
-function writeState(resource,state){
-  try{localStorage.setItem(keyFor(resource),JSON.stringify(state))}catch{}
-}
+import {localVideoProgress} from "../../video/progress-store.js?v=94d12bc5f13f9102e6d9b0b90ae4c5e46dabc090";
 
 export async function render(container,resource){
   const wrap=document.createElement("div");
@@ -17,13 +8,13 @@ export async function render(container,resource){
   video.controls=true;
   video.preload="metadata";
   video.playsInline=true;
-  video.src=resource.path;
+  video.src=resource.url||resource.path;
   const resume=document.createElement("div");
   resume.className="video-resume muted";
   wrap.append(video,resume);
   container.replaceChildren(wrap);
 
-  const saved=readState(resource);
+  const saved=localVideoProgress.read(resource);
   let lastWrite=0;
 
   const duration=await new Promise(resolve=>{
@@ -31,6 +22,8 @@ export async function render(container,resource){
       if(saved.position>0&&saved.position<video.duration-2){
         video.currentTime=Math.min(saved.position,Math.max(0,video.duration-1));
         resume.textContent=`Resumed at ${formatTime(video.currentTime)}`;
+      }else if(saved.watched){
+        resume.textContent="Watched";
       }
       resolve(Number.isFinite(video.duration)?video.duration:null);
     },{once:true});
@@ -42,14 +35,19 @@ export async function render(container,resource){
     if(now-lastWrite<1500)return;
     lastWrite=now;
     const watched=Number.isFinite(video.duration)&&video.duration>0&&video.currentTime/video.duration>=0.9;
-    writeState(resource,{position:video.currentTime,duration:video.duration,watched,updatedAt:Date.now()});
+    localVideoProgress.write(resource,{
+      position:video.currentTime,
+      duration:video.duration,
+      watched:watched||Boolean(saved.watched),
+      updatedAt:Date.now()
+    });
   });
   video.addEventListener("ended",()=>{
-    writeState(resource,{position:0,duration:video.duration,watched:true,updatedAt:Date.now()});
+    localVideoProgress.write(resource,{position:0,duration:video.duration,watched:true,updatedAt:Date.now()});
     resume.textContent="Watched";
   });
 
-  return {info:duration?`Video · ${formatTime(duration)} · local resume enabled`:"Video · local resume enabled"};
+  return {info:duration?`Video · ${formatTime(duration)} · local progress enabled`:"Video · local progress enabled"};
 }
 
 function formatTime(seconds){
