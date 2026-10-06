@@ -26,3 +26,9 @@ test("app keeps Courses routes and legacy Study alias",()=>{
 test("app includes physical project route",()=>{
   assert.match(source,/\/projects\//);
 });
+
+
+test("engineering modes have deep-link routes",()=>{
+  assert.match(source,/engineeringModeRoute/);
+  assert.match(source,/structure\|resistance\|propulsion/);
+});
