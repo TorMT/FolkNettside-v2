@@ -1,5 +1,5 @@
-import {DEFAULT_FLUIDS,INPUTS,OUTPUTS,computeState} from "./coolprop-core.js?v=6dd95082c857b5cdbf7a42e3723a99c97486befb";
-import {getCoolProp} from "../vendor/coolprop-runtime.js?v=6dd95082c857b5cdbf7a42e3723a99c97486befb";
+import {DEFAULT_FLUIDS,INPUTS,OUTPUTS,computeState} from "./coolprop-core.js?v=f3af112d5890d3a854ead3982ac9dc909dab923c";
+import {getCoolProp} from "../vendor/coolprop-runtime.js?v=f3af112d5890d3a854ead3982ac9dc909dab923c";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
