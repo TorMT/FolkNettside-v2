@@ -18,6 +18,8 @@ import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hy
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js";
 import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js";
 
 initSettings();
 
@@ -44,6 +46,7 @@ let fluidToolState={fluid:"air",temperature:20,unit:"C"};
 let periodicToolState={search:"",phase:"all",category:"all",material:"all",period:"all",group:"all",crystal:"all",property:"atomic_mass",temperature:298,selected:null};
 let crystalToolState={type:"bcc",a:1,c:""};
 let crystalCleanup=null;
+let workspaceDrawerCleanup=null;
 
 function getEngineeringDocument(){
   if(!engineeringDocumentPromise){
@@ -73,44 +76,19 @@ function courseRoute(semester,code){return `/courses/${semester}/${encodeURIComp
 function viewerRoute(semester,code,index){return `/viewer/${semester}/${encodeURIComponent(code)}/${index}`}
 function engineeringModeRoute(mode){return `/engineering/${String(mode).toLowerCase()}`}
 
-function top(active){return '<header class="topbar"><div class="brand" id="home"><span class="brand-mark"></span>FolkNettside</div><nav class="nav"><button data-go="/portfolio" class="'+(active==="portfolio"?"active":"")+'">Projects</button><button data-go="/engineering" class="'+(active==="engineering"?"active":"")+'">Engineering</button><button data-go="/portfolio">About</button><button data-go="/portfolio">CV</button><button data-go="/portfolio">Contact</button></nav><span class="top-spacer"></span><nav class="nav"><button data-go="/courses" class="'+(active==="courses"?"active":"")+'">'+navLabels.courses+'</button></nav><div class="top-actions"><button class="icon-btn" data-search-open aria-label="Search">⌕</button><button class="icon-btn" data-go="/settings" aria-label="Settings">⚙</button></div></header><nav class="mobile-nav" aria-label="Primary"><button data-go="/portfolio" class="'+(active==="portfolio"?"active":"")+'"><span>◇</span>Projects</button><button data-go="/courses" class="'+(active==="courses"?"active":"")+'"><span>▤</span>Courses</button><button data-go="/engineering" class="'+(active==="engineering"?"active":"")+'"><span>⌁</span>Engineering</button><button data-search-open><span>⌕</span>Search</button></nav>'}
-
-function bindMobileWorkspacePanels(){
-  const workspace=app.querySelector(".workspace");
-  if(!workspace||workspace.querySelector(".mobile-workspace-actions"))return;
-  const tree=workspace.querySelector(".tree");
-  const inspector=workspace.querySelector(".inspector");
-  if(!tree&&!inspector)return;
-
-  const actions=document.createElement("div");
-  actions.className="mobile-workspace-actions";
-
-  const addAction=(label,panel)=>{
-    if(!panel)return;
-    const button=document.createElement("button");
-    button.type="button";
-    button.textContent=label;
-    button.addEventListener("click",()=>panel.classList.add("mobile-open"));
-    actions.append(button);
-
-    const close=document.createElement("button");
-    close.type="button";
-    close.className="mobile-panel-close";
-    close.textContent="Close";
-    close.addEventListener("click",()=>panel.classList.remove("mobile-open"));
-    panel.prepend(close);
-  };
-
-  addAction("Components",tree);
-  addAction("Properties",inspector);
-  workspace.append(actions);
+function top(active){
+  return renderTopShell(active,{coursesLabel:navLabels.courses});
 }
 
 function bindNav(){
-  app.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
-  app.querySelector("#home")?.addEventListener("click",()=>go("/portfolio"));
-  app.querySelectorAll("[data-search-open]").forEach(b=>b.onclick=()=>globalSearch.open());
-  bindMobileWorkspacePanels();
+  workspaceDrawerCleanup?.();
+  workspaceDrawerCleanup=null;
+  bindShellNavigation(app,{
+    navigate:go,
+    openSearch:()=>globalSearch.open(),
+    onHome:()=>go("/portfolio")
+  });
+  workspaceDrawerCleanup=bindWorkspaceDrawers(app);
 }
 
 function portfolioPage(){
