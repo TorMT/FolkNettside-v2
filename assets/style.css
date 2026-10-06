@@ -563,3 +563,10 @@
 
 .tool-parity{margin-top:5px!important;font-size:9px!important;text-transform:uppercase;letter-spacing:.06em;font-weight:750}.tool-parity.full{color:var(--ok)}.tool-parity.partial,.tool-parity.review{color:var(--warn)}
 .tool-parity-banner{margin-top:14px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--warn) 48%,var(--line));border-radius:8px;background:color-mix(in srgb,var(--warn) 8%,var(--surface));font-size:12px;line-height:1.45;color:var(--ink-2)}.tool-parity-banner strong{color:var(--ink)}.tool-parity-banner a{color:var(--accent);font-weight:750}
+
+.tool-index-card-actions{cursor:default}
+.tool-card-actions{display:flex;flex-direction:column;gap:6px;align-items:stretch;min-width:96px}
+.tool-action{border:1px solid var(--line);background:var(--surface-sunk);color:var(--ink);padding:7px 9px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.tool-action:hover{border-color:var(--accent)}
+.tool-action.primary{background:var(--accent);border-color:var(--accent);color:white}
+@media(max-width:760px){.tool-index-card-actions{grid-template-columns:38px minmax(0,1fr)}.tool-card-actions{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));min-width:0}.tool-card-actions:has(.tool-action:only-child){grid-template-columns:1fr}.tool-action{min-height:42px}}

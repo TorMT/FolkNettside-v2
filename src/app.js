@@ -1,26 +1,26 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {mountViewer} from "./viewer.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {loadContent} from "./content.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {renderResourceTree} from "./components/resource-tree.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {buildSearchIndex} from "./search/search-index.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {createSearchController} from "./components/search-dialog.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {activeTools} from "./tools/tool-registry.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {loadModelDocument} from "./model/load-model.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {mountModelScene} from "./model/model-scene.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=042595eaf995d6fb7a6021d1da92e6201149a0cd";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {mountViewer} from "./viewer.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {loadContent} from "./content.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {renderResourceTree} from "./components/resource-tree.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {buildSearchIndex} from "./search/search-index.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {createSearchController} from "./components/search-dialog.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {activeTools} from "./tools/tool-registry.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {loadModelDocument} from "./model/load-model.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {mountModelScene} from "./model/model-scene.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
 
 initSettings();
 
@@ -119,6 +119,9 @@ function toolsPage(){
   app.innerHTML=top("courses")+toolsIndexHTML();
   bindNav();
   app.querySelectorAll("[data-tool-route]").forEach(button=>button.onclick=()=>go(button.dataset.toolRoute));
+  app.querySelectorAll("[data-tool-legacy]").forEach(button=>button.onclick=()=>{
+    window.open(button.dataset.toolLegacy,"_blank","noopener");
+  });
 }
 
 function fluidToolPage(){
