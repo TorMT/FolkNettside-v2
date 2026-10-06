@@ -1,16 +1,18 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
-import {mountViewer} from "./viewer.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
-import {loadContent} from "./content.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
-import {renderResourceTree} from "./components/resource-tree.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
-import {loadModelDocument} from "./model/load-model.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
-import {mountModelScene} from "./model/model-scene.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=f535ec1348b3523ace15d945e2114bc1e6c42fb3";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {mountViewer} from "./viewer.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {loadContent} from "./content.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {renderResourceTree} from "./components/resource-tree.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {buildSearchIndex} from "./search/search-index.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {createSearchController} from "./components/search-dialog.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {loadModelDocument} from "./model/load-model.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {mountModelScene} from "./model/model-scene.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
 
 initSettings();
 
@@ -53,6 +55,7 @@ const vessel='<svg viewBox="0 0 760 380"><path d="M120 236 L560 236 L642 265 L60
 
 const route=()=>location.hash.slice(1)||"/portfolio";
 const go=path=>{location.hash=path};
+const globalSearch=createSearchController({index:buildSearchIndex({semesters,projects}),onNavigate:go});
 function parseCourseRoute(path){const m=path.match(/^\/(?:courses|study)\/(\d+)\/([^/]+)$/i);return m?{semester:Number(m[1]),code:decodeURIComponent(m[2])}:null}
 function parseViewerRoute(path){const m=path.match(/^\/viewer\/(\d+)\/([^/]+)\/(\d+)$/i);return m?{semester:Number(m[1]),code:decodeURIComponent(m[2]),resourceIndex:Number(m[3])}:null}
 function getSemester(id){return semesters.find(s=>Number(s.id)===Number(id))}
@@ -61,8 +64,8 @@ function courseRoute(semester,code){return `/courses/${semester}/${encodeURIComp
 function viewerRoute(semester,code,index){return `/viewer/${semester}/${encodeURIComponent(code)}/${index}`}
 function engineeringModeRoute(mode){return `/engineering/${String(mode).toLowerCase()}`}
 
-function top(active){return '<header class="topbar"><div class="brand" id="home"><span class="brand-mark"></span>FolkNettside</div><nav class="nav"><button data-go="/portfolio" class="'+(active==="portfolio"?"active":"")+'">Projects</button><button data-go="/engineering" class="'+(active==="engineering"?"active":"")+'">Engineering</button><button data-go="/portfolio">About</button><button data-go="/portfolio">CV</button><button data-go="/portfolio">Contact</button></nav><span class="top-spacer"></span><nav class="nav"><button data-go="/courses" class="'+(active==="courses"?"active":"")+'">'+navLabels.courses+'</button></nav><div class="top-actions"><button class="icon-btn" aria-label="Search">⌕</button><button class="icon-btn" data-go="/settings" aria-label="Settings">⚙</button></div></header>'}
-function bindNav(){app.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));app.querySelector("#home")?.addEventListener("click",()=>go("/portfolio"))}
+function top(active){return '<header class="topbar"><div class="brand" id="home"><span class="brand-mark"></span>FolkNettside</div><nav class="nav"><button data-go="/portfolio" class="'+(active==="portfolio"?"active":"")+'">Projects</button><button data-go="/engineering" class="'+(active==="engineering"?"active":"")+'">Engineering</button><button data-go="/portfolio">About</button><button data-go="/portfolio">CV</button><button data-go="/portfolio">Contact</button></nav><span class="top-spacer"></span><nav class="nav"><button data-go="/courses" class="'+(active==="courses"?"active":"")+'">'+navLabels.courses+'</button></nav><div class="top-actions"><button class="icon-btn" data-search-open aria-label="Search">⌕</button><button class="icon-btn" data-go="/settings" aria-label="Settings">⚙</button></div></header>'}
+function bindNav(){app.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));app.querySelector("#home")?.addEventListener("click",()=>go("/portfolio"));app.querySelectorAll("[data-search-open]").forEach(b=>b.onclick=()=>globalSearch.open())}
 
 function portfolioPage(){
   document.documentElement.dataset.lens="portfolio";
@@ -405,4 +408,4 @@ function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><secti
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
 
 async function render(){const path=route(),viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
-window.addEventListener("hashchange",render);render();
+window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();globalSearch.open()}});window.addEventListener("hashchange",render);render();
