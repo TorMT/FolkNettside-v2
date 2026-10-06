@@ -26,7 +26,7 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | Fluid calculator | shared Tools calculator | legacy polynomial fixture | prototype | Pure tested core; legacy validity warnings; CoolProp remains separate |
 | ChemDraw | chemistry tool module | pending | planned | Review active use |
 | Crystal structures | 3D science tool module | pending | planned | Reuse shared renderer |
-| Periodic table | data-driven Tools module | local element fixture | prototype | Tested filtering/phase logic; full dataset can replace fixture without UI rewrite |
+| Periodic table | data-driven Tools module | full local dataset + test fixture | prototype | 118-element data vendored locally with CC BY-SA attribution; tested filtering/phase logic |
 | Quiz | shared course module | quiz JSON | prototype | Interactive scoring/feedback; data-driven |
 | Karakterweb | shared course capability | course code | prototype | External fallback always available |
 | Google Drive/login | Settings connection service | n/a | planned | Optional auth only |
