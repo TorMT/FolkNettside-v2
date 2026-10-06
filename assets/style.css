@@ -17,3 +17,10 @@
 .latex-view{max-width:900px;margin:0 auto;padding:30px;background:var(--surface);min-height:100%}.latex-rendered{font-size:17px;line-height:1.65}.latex-equation{overflow:auto;padding:18px 0}.latex-view details{margin-top:30px;border-top:1px solid var(--line);padding-top:16px}.latex-view pre{white-space:pre-wrap;background:var(--surface-sunk);padding:14px;border-radius:8px}
 .video-view{display:block;width:min(100%,1100px);max-height:100%;margin:auto;background:#000}
 .quiz-view{max-width:760px;margin:0 auto;padding:34px;background:var(--surface);min-height:100%}.quiz-options{display:grid;gap:10px;margin:22px 0}.quiz-option{border:1px solid var(--line);background:var(--surface-sunk);color:var(--ink);padding:14px 16px;border-radius:8px;text-align:left;cursor:pointer}.quiz-option[data-correct="true"]{border-color:var(--ok);outline:2px solid color-mix(in srgb,var(--ok) 35%,transparent)}.quiz-option[data-wrong="true"]{border-color:var(--danger)}.quiz-result{font-size:28px;margin:24px 0}
+
+.office-doc,.office-workbook,.office-slides{min-height:100%;background:var(--surface-sunk);padding:28px;overflow:auto}
+.office-page{max-width:850px;min-height:980px;margin:0 auto;background:var(--surface);border:1px solid var(--line);padding:64px 70px;box-shadow:var(--shadow)}
+.office-page h1{font-size:30px;margin:0 0 28px}.office-page p{line-height:1.65}
+.office-table{margin-top:24px}
+.office-sheet{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:20px;overflow:hidden}.office-sheet h2{padding:14px 18px;margin:0;border-bottom:1px solid var(--line)}
+.office-slides{display:grid;gap:24px;justify-items:center}.office-slide{position:relative;aspect-ratio:16/9;width:min(100%,960px);background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);padding:64px 72px}.office-slide h2{font-size:34px;margin-top:0}.office-slide p{font-size:20px;line-height:1.5}.office-slide-number{position:absolute;right:18px;bottom:14px;color:var(--ink-3);font-size:12px}

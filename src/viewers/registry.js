@@ -1,6 +1,6 @@
 import {extension} from "./utils.js";
 const adapterLoaders={
-  pdf:()=>import("./adapters/pdf.js"),csv:()=>import("./adapters/csv.js"),
+  pdf:()=>import("./adapters/pdf.js"),docx:()=>import("./adapters/office.js"),xlsx:()=>import("./adapters/office.js"),pptx:()=>import("./adapters/office.js"),csv:()=>import("./adapters/csv.js"),
   html:()=>import("./adapters/html.js"),htm:()=>import("./adapters/html.js"),
   ipynb:()=>import("./adapters/notebook.js"),tex:()=>import("./adapters/latex.js"),
   mp4:()=>import("./adapters/video.js"),webm:()=>import("./adapters/video.js"),mkv:()=>import("./adapters/video.js"),

@@ -12,7 +12,7 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | HTML | ViewerShell HTML adapter | HTML | prototype | Sandboxed iframe |
 | Notebook | ViewerShell notebook adapter | IPYNB | prototype | Source/output rendering |
 | LaTeX | dedicated adapter | pending TEX | rewrite-next | Compare KaTeX/MathJax compatibility |
-| Office | dedicated adapter/fallback | pending DOCX/XLSX/PPTX | planned | Avoid provider-specific assumptions |
+| Office | shared OOXML adapter | DOCX/XLSX/PPTX | prototype | Lazy ZIP/XML parser; provider-free baseline |
 | Video | shared video adapter/workspace | pending metadata/media | rewrite-next | Preserve progress/search/grouping |
 | STL | shared model adapter | STL | prototype | Fixture renderer only; production renderer later |
 | 3MF | component-aware import | 3MF assembly | prototype | Lazy ZIP load; preserve object/build graph |
