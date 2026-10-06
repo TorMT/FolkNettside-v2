@@ -1,18 +1,21 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {mountViewer} from "./viewer.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {loadContent} from "./content.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {renderResourceTree} from "./components/resource-tree.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {buildSearchIndex} from "./search/search-index.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {createSearchController} from "./components/search-dialog.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {loadModelDocument} from "./model/load-model.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {mountModelScene} from "./model/model-scene.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=c9c52e3b1153b0dc22d31c8fe65ebf21f17865c4";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {mountViewer} from "./viewer.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {loadContent} from "./content.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {renderResourceTree} from "./components/resource-tree.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {buildSearchIndex} from "./search/search-index.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {createSearchController} from "./components/search-dialog.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {loadModelDocument} from "./model/load-model.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {mountModelScene} from "./model/model-scene.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
 
 initSettings();
 
@@ -35,6 +38,8 @@ let propulsionThrustKn=20;
 let propulsionInflow=3;
 let propulsionDiameter=1.5;
 let propulsionInitialized=false;
+let fluidToolState={fluid:"air",temperature:20,unit:"C"};
+let periodicToolState={search:"",phase:"all",category:"all",temperature:298,selected:null};
 
 function getEngineeringDocument(){
   if(!engineeringDocumentPromise){
@@ -84,9 +89,62 @@ function projectPage(slug){
   bindNav();
 }
 
-function coursesPage(requestedSemester){document.documentElement.dataset.lens="study";const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;const semester=getSemester(semesterId)||semesters[0];app.innerHTML=top("courses")+'<main class="study"><section class="study-hero"><h1>Courses</h1><p>Semester, fag og ressurser — inkludert Kok, øvinger, videoer, quiz og verktøy.</p></section><div class="semester-tabs">'+semesters.map(s=>'<button class="'+(Number(s.id)===Number(semester.id)?"active":"")+'" data-semester="'+s.id+'">'+s.label+'</button>').join("")+'</div><section class="study-main"><div class="title-row"><div><h2>'+semester.label+'</h2><div class="muted">'+semester.courses.length+' fag i manifestet</div></div></div>'+(semester.courses.length?'<div class="course-grid">'+semester.courses.map(c=>'<article class="course-card" data-course="'+c.code+'"><span class="course-code">'+c.code+'</span><h3>'+c.title+'</h3><p>'+c.description+'</p><div class="tags">'+c.tags.map(t=>'<span class="tag">'+t+'</span>').join("")+'</div></article>').join("")+'</div>':'<div class="course-header"><h3>Ingen eksempeldata i dette semesteret ennå.</h3><p>Legg inn en fagmappe og kjør <code>python scripts/update_site.py</code>.</p></div>')+'</section></main><div class="preview-badge">Courses exposes Kok; Portfolio does not</div>';bindNav();app.querySelectorAll("[data-semester]").forEach(b=>b.onclick=()=>go("/courses/"+b.dataset.semester));app.querySelectorAll("[data-course]").forEach(c=>c.onclick=()=>go(courseRoute(semester.id,c.dataset.course)))}
+function coursesPage(requestedSemester){document.documentElement.dataset.lens="study";const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;const semester=getSemester(semesterId)||semesters[0];app.innerHTML=top("courses")+'<main class="study"><section class="study-hero"><h1>Courses</h1><p>Semester, fag og ressurser — inkludert Kok, øvinger, videoer, quiz og verktøy.</p><div class="hero-actions"><button class="btn dark" data-go="/tools">Open Tools</button></div></section><div class="semester-tabs">'+semesters.map(s=>'<button class="'+(Number(s.id)===Number(semester.id)?"active":"")+'" data-semester="'+s.id+'">'+s.label+'</button>').join("")+'</div><section class="study-main"><div class="title-row"><div><h2>'+semester.label+'</h2><div class="muted">'+semester.courses.length+' fag i manifestet</div></div></div>'+(semester.courses.length?'<div class="course-grid">'+semester.courses.map(c=>'<article class="course-card" data-course="'+c.code+'"><span class="course-code">'+c.code+'</span><h3>'+c.title+'</h3><p>'+c.description+'</p><div class="tags">'+c.tags.map(t=>'<span class="tag">'+t+'</span>').join("")+'</div></article>').join("")+'</div>':'<div class="course-header"><h3>Ingen eksempeldata i dette semesteret ennå.</h3><p>Legg inn en fagmappe og kjør <code>python scripts/update_site.py</code>.</p></div>')+'</section></main><div class="preview-badge">Courses exposes Kok; Portfolio does not</div>';bindNav();app.querySelectorAll("[data-semester]").forEach(b=>b.onclick=()=>go("/courses/"+b.dataset.semester));app.querySelectorAll("[data-course]").forEach(c=>c.onclick=()=>go(courseRoute(semester.id,c.dataset.course)))}
 
 function coursePage(semesterId,code){const course=getCourse(semesterId,code);if(!course)return notFoundPage("Course "+code+" was not found in semester "+semesterId);document.documentElement.dataset.lens="study";const grouped=course.resources.reduce((a,r)=>((a[r.section]??=[]).push(r),a),{});const navItems=["Oversikt",...course.sections,"Karakterweb"];app.innerHTML=top("courses")+'<main class="layout"><aside class="side"><div class="side-title">'+course.code+'</div>'+[...new Set(navItems)].map((x,i)=>'<button class="'+(i===0?"active":"")+'">'+x+'</button>').join("")+'</aside><section class="content"><div class="crumbs">Courses / '+getSemester(semesterId).label+' / '+course.code+'</div><header class="course-header"><span class="course-code">'+course.code+'</span><h1>'+course.title+'</h1><p>'+course.description+'</p></header>'+course.sections.map(section=>{const items=grouped[section]||[];if(!items.length)return"";return'<section class="resource-section"><h2>'+section+'</h2><div class="resource-list">'+renderResourceTree(items,item=>course.resources.indexOf(item))+'</div></section>'}).join("")+'<section class="resource-section"><h2>Karakterweb</h2><div class="resource-list"><div class="resource-row" id="karakterweb"><span class="file-icon">KW</span><div><strong>Karakterweb</strong><div class="muted">karakterweb.no/ntnu/'+course.code+'</div></div><span class="muted">Open ↗</span></div></div></section></section></main><div class="preview-badge">Manifest-driven Course layout</div>';bindNav();app.querySelectorAll("[data-resource]").forEach(e=>e.onclick=()=>go(viewerRoute(semesterId,course.code,e.dataset.resource)));app.querySelector("#karakterweb").onclick=()=>open("https://karakterweb.no/ntnu/"+course.code,"_blank","noopener")}
+
+function toolsPage(){
+  document.documentElement.dataset.lens="study";
+  app.innerHTML=top("courses")+toolsIndexHTML();
+  bindNav();
+  app.querySelectorAll("[data-tool-route]").forEach(button=>button.onclick=()=>go(button.dataset.toolRoute));
+}
+
+function fluidToolPage(){
+  document.documentElement.dataset.lens="study";
+  app.innerHTML=top("courses")+fluidCalculatorHTML(fluidToolState);
+  bindNav();
+  app.querySelector("#fluid-calculate")?.addEventListener("click",()=>{
+    fluidToolState={
+      fluid:app.querySelector("#fluid-id")?.value||"air",
+      temperature:Number(app.querySelector("#fluid-temperature")?.value)||0,
+      unit:app.querySelector("#fluid-unit")?.value||"C"
+    };
+    fluidToolPage();
+  });
+}
+
+async function periodicToolPage(){
+  document.documentElement.dataset.lens="study";
+  try{
+    const elements=await loadPeriodicFixture();
+    app.innerHTML=top("courses")+periodicTableHTML(elements,periodicToolState);
+    bindNav();
+
+    const rerender=()=>{
+      periodicToolState={
+        ...periodicToolState,
+        search:app.querySelector("#periodic-search")?.value||"",
+        category:app.querySelector("#periodic-category")?.value||"all",
+        phase:app.querySelector("#periodic-phase")?.value||"all",
+        temperature:Number(app.querySelector("#periodic-temperature")?.value)||298
+      };
+      periodicToolPage();
+    };
+
+    app.querySelector("#periodic-search")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-category")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-phase")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-temperature")?.addEventListener("change",rerender);
+    app.querySelectorAll("[data-element]").forEach(button=>button.onclick=()=>{
+      periodicToolState={...periodicToolState,selected:Number(button.dataset.element)};
+      periodicToolPage();
+    });
+  }catch(error){
+    app.innerHTML=top("courses")+`<main class="tool-page"><div class="course-header"><h1>Periodic table error</h1><p>${String(error?.message||error)}</p></div></main>`;
+    bindNav();
+  }
+}
 
 function settingsPage(){const s=getSettings(),acc={magenta:"#b3157a",teal:"#0b6e72",blue:"#1f57c9",amber:"#8f5a00",graphite:"#394d5b"};document.documentElement.dataset.lens="study";app.innerHTML=top("")+'<main class="settings"><aside class="side"><div class="side-title">Settings</div><button class="active">Appearance</button><button>Account & connections</button><button>Courses</button><button>Engineering</button><button>Privacy & data</button><button>Advanced</button></aside><section class="settings-main"><h1>Appearance</h1><p class="muted">Theme lives here only. Viewers and workspaces inherit the same global state.</p><div class="settings-card"><div class="setting-row"><div><strong>Mode</strong><small>Follow system, or force light/dark.</small></div><div class="segment">'+["system","light","dark"].map(v=>'<button data-setting="mode" data-value="'+v+'" class="'+(s.mode===v?"active":"")+'">'+v+'</button>').join("")+'</div></div><div class="setting-row"><div><strong>Accent</strong><small>Shared UI accent. Analysis colormaps remain independent.</small></div><div class="swatches">'+Object.entries(acc).map(([k,v])=>'<button class="swatch '+(s.accent===k?"active":"")+'" data-setting="accent" data-value="'+k+'" style="background:'+v+'" title="'+k+'"></button>').join("")+'</div></div></div><div class="settings-card"><div class="setting-row"><div><strong>Google</strong><small>Optional; only needed for Drive/cloud features.</small></div><button class="btn">Not connected</button></div><div class="setting-row"><div><strong>Autodesk</strong><small>Optional; future Fusion/APS connection.</small></div><button class="btn">Not connected</button></div></div></section></main><div class="preview-badge">Public by default · auth optional</div>';bindNav();app.querySelectorAll("[data-setting]").forEach(b=>b.onclick=()=>{setSetting(b.dataset.setting,b.dataset.value);settingsPage()})}
 
@@ -407,5 +465,5 @@ async function engineeringPage(){
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
 
-async function render(){const path=route(),viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
+async function render(){const path=route(),viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/tools")return toolsPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
 window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();globalSearch.open()}});window.addEventListener("hashchange",render);render();
