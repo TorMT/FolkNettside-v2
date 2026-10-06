@@ -1,5 +1,5 @@
-import {parseSTL} from "../../model/parsers/stl.js?v=6c2f4986e635a040dd0ce80033ff58b471f172b6";
-import {mountModelScene} from "../../model/model-scene.js?v=6c2f4986e635a040dd0ce80033ff58b471f172b6";
+import {parseSTL} from "../../model/parsers/stl.js?v=7d3b41dda4bb5dfad00f69bb267324bfd90bbaca";
+import {mountModelScene} from "../../model/model-scene.js?v=7d3b41dda4bb5dfad00f69bb267324bfd90bbaca";
 export async function render(container,resource){
   const response=await fetch(resource.path);if(!response.ok)throw new Error(`HTTP ${response.status}`);
   const model=parseSTL(await response.arrayBuffer(),resource.label||resource.name);
