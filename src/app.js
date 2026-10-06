@@ -41,7 +41,7 @@ let propulsionInflow=3;
 let propulsionDiameter=1.5;
 let propulsionInitialized=false;
 let fluidToolState={fluid:"air",temperature:20,unit:"C"};
-let periodicToolState={search:"",phase:"all",category:"all",temperature:298,selected:null};
+let periodicToolState={search:"",phase:"all",category:"all",material:"all",period:"all",group:"all",crystal:"all",property:"atomic_mass",temperature:298,selected:null};
 let crystalToolState={type:"bcc",a:1,c:""};
 let crystalCleanup=null;
 
@@ -130,15 +130,25 @@ async function periodicToolPage(){
         ...periodicToolState,
         search:app.querySelector("#periodic-search")?.value||"",
         category:app.querySelector("#periodic-category")?.value||"all",
+        material:app.querySelector("#periodic-material")?.value||"all",
+        period:app.querySelector("#periodic-period")?.value||"all",
+        group:app.querySelector("#periodic-group")?.value||"all",
         phase:app.querySelector("#periodic-phase")?.value||"all",
+        crystal:app.querySelector("#periodic-crystal")?.value||"all",
+        property:app.querySelector("#periodic-property")?.value||"atomic_mass",
         temperature:Number(app.querySelector("#periodic-temperature")?.value)||298
       };
       periodicToolPage();
     };
 
     app.querySelector("#periodic-search")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-property")?.addEventListener("change",rerender);
     app.querySelector("#periodic-category")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-material")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-period")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-group")?.addEventListener("change",rerender);
     app.querySelector("#periodic-phase")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-crystal")?.addEventListener("change",rerender);
     app.querySelector("#periodic-temperature")?.addEventListener("change",rerender);
     app.querySelectorAll("[data-element]").forEach(button=>button.onclick=()=>{
       periodicToolState={...periodicToolState,selected:Number(button.dataset.element)};
