@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {analyzeHydrostatics} from "../src/hydro/hydrostatics.js";
+import {analyzeHydrostatics,analyzeModelDocument} from "../src/hydro/hydrostatics.js";
 import {boxMesh,reverseWinding,wedgePrismMesh} from "../src/hydro/fixtures.js";
 
 const near=(actual,expected,tol=1e-8)=>assert.ok(Math.abs(actual-expected)<=tol,`expected ${actual} ≈ ${expected}`);
@@ -37,4 +37,35 @@ test("wedge prism full volume matches trapezoidal analytic volume",()=>{
   const L=8,B=2,H0=.5,H1=2;
   const r=analyzeHydrostatics(wedgePrismMesh({L,B,H0,H1}),3);
   near(r.volume,L*B*(H0+H1)/2,1e-7);
+});
+
+
+test("ModelDocument applies source units and component transform",()=>{
+  const geometry=boxMesh({L:10000,B:3000,H:2000});
+  const transform=[1,0,0,0, 0,1,0,0, 0,0,1,0, 2000,0,0,1];
+  const model={
+    unitScaleToMeters:.001,
+    components:[{id:"hull",name:"Hull",transform,geometry}]
+  };
+  const r=analyzeModelDocument(model,1.2);
+  near(r.volume,36,1e-7);
+  near(r.centerOfBuoyancy[0],2,1e-8);
+  near(r.centerOfBuoyancy[2],.6,1e-8);
+  near(r.waterplane.area,30,1e-7);
+});
+
+test("ModelDocument aggregates multiple translated waterplanes",()=>{
+  const transform=(x)=>[1,0,0,0, 0,1,0,0, 0,0,1,0, x,0,0,1];
+  const model={
+    unitScaleToMeters:1,
+    components:[
+      {id:"left",name:"Left",transform:transform(-3),geometry:boxMesh({L:2,B:2,H:2})},
+      {id:"right",name:"Right",transform:transform(3),geometry:boxMesh({L:2,B:2,H:2})}
+    ]
+  };
+  const r=analyzeModelDocument(model,1);
+  near(r.volume,8,1e-8);
+  near(r.centerOfBuoyancy[0],0,1e-8);
+  near(r.waterplane.area,8,1e-8);
+  near(r.waterplane.centroid[0],0,1e-8);
 });

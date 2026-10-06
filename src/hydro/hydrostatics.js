@@ -165,22 +165,62 @@ export function analyzeHydrostatics({positions,indices},waterline=0){
   };
 }
 
+function transformGeometryToWorld(geometry,transform,scale=1){
+  const m=transform||[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+  const out=new Array(geometry.positions.length);
+  for(let i=0;i<geometry.positions.length;i+=3){
+    const x=geometry.positions[i],y=geometry.positions[i+1],z=geometry.positions[i+2];
+    out[i]=(m[0]*x+m[4]*y+m[8]*z+m[12])*scale;
+    out[i+1]=(m[1]*x+m[5]*y+m[9]*z+m[13])*scale;
+    out[i+2]=(m[2]*x+m[6]*y+m[10]*z+m[14])*scale;
+  }
+  return {positions:out,indices:geometry.indices};
+}
+
+function combineWaterplanes(items){
+  const area=items.reduce((sum,item)=>sum+item.area,0);
+  if(area<EPS)return {area:0,centroid:[0,0],ixx:0,iyy:0,ixy:0,loops:[]};
+  const cx=items.reduce((sum,item)=>sum+item.area*item.centroid[0],0)/area;
+  const cy=items.reduce((sum,item)=>sum+item.area*item.centroid[1],0)/area;
+  let ixOrigin=0,iyOrigin=0,ixyOrigin=0;
+  for(const item of items){
+    const [x,y]=item.centroid;
+    ixOrigin+=item.ixx+item.area*y*y;
+    iyOrigin+=item.iyy+item.area*x*x;
+    ixyOrigin+=item.ixy+item.area*x*y;
+  }
+  return {
+    area,centroid:[cx,cy],
+    ixx:ixOrigin-area*cy*cy,
+    iyy:iyOrigin-area*cx*cx,
+    ixy:ixyOrigin-area*cx*cy,
+    loops:items.flatMap(item=>item.loops||[])
+  };
+}
+
 export function analyzeModelDocument(modelDocument,waterline=0,{include=()=>true}={}){
+  const scale=Number(modelDocument.unitScaleToMeters)||1;
   let totalVolume=0;
-  let first=[0,0,0];
+  const first=[0,0,0];
   const perComponent=[];
+  const waterplanes=[];
+
   for(const component of modelDocument.components||[]){
     if(!component.geometry||!include(component))continue;
-    const result=analyzeHydrostatics(component.geometry,waterline);
+    const worldGeometry=transformGeometryToWorld(component.geometry,component.transform,scale);
+    const result=analyzeHydrostatics(worldGeometry,waterline);
     perComponent.push({componentId:component.id,name:component.name,...result});
     totalVolume+=result.volume;
     first[0]+=result.volume*result.centerOfBuoyancy[0];
     first[1]+=result.volume*result.centerOfBuoyancy[1];
     first[2]+=result.volume*result.centerOfBuoyancy[2];
+    if(result.waterplane.area>EPS)waterplanes.push(result.waterplane);
   }
+
   return {
     volume:totalVolume,
-    centerOfBuoyancy:totalVolume>EPS?first.map(v=>v/totalVolume):[0,0,waterline],
+    centerOfBuoyancy:totalVolume>EPS?first.map(value=>value/totalVolume):[0,0,waterline],
+    waterplane:combineWaterplanes(waterplanes),
     components:perComponent
   };
 }
