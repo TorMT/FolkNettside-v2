@@ -218,6 +218,15 @@ export function idealHoleCenters(id){
     ],
     octa:[]
   };
+  if(id==="hcp"){
+    return {
+      tetra:[
+        [.5,Math.sqrt(3)/3,.25],
+        [.5,2*Math.sqrt(3)/3,.75]
+      ],
+      octa:[[.5,Math.sqrt(3)/2,.5]]
+    };
+  }
   return {tetra:[],octa:[]};
 }
 
