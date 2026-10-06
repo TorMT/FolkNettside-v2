@@ -2,8 +2,9 @@ import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,
   computeBatch,computeProcess,computeState,processTargetOptions,
   rowsToCSV,rowsToJSON,unitLabel
-} from "./coolprop-core.js?v=38692008f4206b65c9aa67d2ae3baae54773d1b8";
-import {getCoolProp} from "../vendor/coolprop-runtime.js?v=38692008f4206b65c9aa67d2ae3baae54773d1b8";
+} from "./coolprop-core.js?v=c4d711984d388bef3791c769968f6ea69188349b";
+import {getCoolProp} from "../vendor/coolprop-runtime.js?v=c4d711984d388bef3791c769968f6ea69188349b";
+import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=c4d711984d388bef3791c769968f6ea69188349b";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -53,6 +54,15 @@ function normalizedState(state={}){
       input2:state.explore?.input2||"P",
       value2:state.explore?.value2??1
     },
+    diagram:{
+      visible:Boolean(state.diagram?.visible),
+      type:state.diagram?.type||"log-ph",
+      isotherms:state.diagram?.isotherms!==false,
+      isobars:state.diagram?.isobars!==false,
+      quality:state.diagram?.quality!==false,
+      source:state.diagram?.source||"",
+      states:Array.isArray(state.diagram?.states)?state.diagram.states:[]
+    },
     exportRows:state.exportRows||[],
     exportName:state.exportName||"coolprop-results"
   };
@@ -80,7 +90,7 @@ function singleHTML(s){
       <label class="field"><span>Input 2</span><select id="cp-single-i2">${inputOptions(x.input2)}</select></label>
       <label class="field"><span>Value 2</span><input id="cp-single-v2" type="number" step="any" value="${esc(x.value2)}"></label>
     </div>
-    <div class="coolprop-actions"><button class="btn primary" id="cp-single-run">Calculate state</button><button class="btn" id="cp-single-example">Air · 1 bar · 25 °C</button></div>
+    <div class="coolprop-actions"><button class="btn primary" id="cp-single-run">Calculate state</button><button class="btn" id="cp-single-example">Air · 1 bar · 25 °C</button><button class="btn" id="cp-single-diagram">Show diagram</button></div>
     <div id="cp-single-results" class="coolprop-results"><div class="tool-result-card"><span>Ready</span><strong>Choose a state</strong><p>The WASM engine loads only when calculation starts.</p></div></div>
   </section>`;
 }
@@ -96,7 +106,7 @@ function batchHTML(s){
     <div class="coolprop-output-pills">
       ${outputChoices.map(key=>`<label><input type="checkbox" data-cp-batch-output="${key}" ${x.outputs.includes(key)?"checked":""}><span>${key}</span></label>`).join("")}
     </div>
-    <div class="coolprop-actions"><button class="btn primary" id="cp-batch-run">Run batch</button><button class="btn" id="cp-batch-example">Load example</button></div>
+    <div class="coolprop-actions"><button class="btn primary" id="cp-batch-run">Run batch</button><button class="btn" id="cp-batch-example">Load example</button><button class="btn" id="cp-batch-diagram">Show diagram</button></div>
     <div id="cp-batch-results" class="coolprop-results"><div class="tool-result-card"><span>Batch</span><strong>TP / PT / PH / PU</strong><p>Select outputs and calculate multiple states with the same engine.</p></div></div>
   </section>`;
 }
@@ -128,7 +138,7 @@ function processHTML(s){
       <label class="field coolprop-span-3"><span>Description</span><input id="cp-start-description" value="${esc(start.description||"Point 1")}"></label>
     </div>
     <div id="cp-process-steps">${s.process.steps.map(processStepHTML).join("")||'<div class="search-empty">No process steps yet.</div>'}</div>
-    <div class="coolprop-actions"><button class="btn" id="cp-process-add">+ Add step</button><button class="btn primary" id="cp-process-run">Calculate process</button><button class="btn" id="cp-process-example">Rankine-style example</button><button class="btn" id="cp-process-clear">Clear steps</button></div>
+    <div class="coolprop-actions"><button class="btn" id="cp-process-add">+ Add step</button><button class="btn primary" id="cp-process-run">Calculate process</button><button class="btn" id="cp-process-example">Rankine-style example</button><button class="btn" id="cp-process-clear">Clear steps</button><button class="btn" id="cp-process-diagram">Show diagram</button></div>
     <div id="cp-process-results" class="coolprop-results"></div>
   </section>`;
 }
@@ -168,6 +178,24 @@ export function coolPropToolHTML(state={}){
     ${batchHTML(s)}
     ${processHTML(s)}
     ${exploreHTML(s)}
+
+    <section class="settings-card coolprop-diagram-section" id="cp-diagram-section" ${s.diagram.visible?"":"hidden"}>
+      <div class="coolprop-diagram-head">
+        <div><strong>Thermodynamic diagram</strong><small id="cp-diagram-source">${esc(s.diagram.source||"State points")}</small></div>
+        <div class="coolprop-diagram-controls">
+          <select id="cp-diagram-type">
+            ${[["log-ph","log P-h"],["ph","P-h"],["ts","T-s"],["pv","P-v"]].map(([value,label])=>`<option value="${value}" ${s.diagram.type===value?"selected":""}>${label}</option>`).join("")}
+          </select>
+          <label><input id="cp-diagram-isotherms" type="checkbox" ${s.diagram.isotherms?"checked":""}> Isotherms</label>
+          <label><input id="cp-diagram-isobars" type="checkbox" ${s.diagram.isobars?"checked":""}> Isobars</label>
+          <label><input id="cp-diagram-quality" type="checkbox" ${s.diagram.quality?"checked":""}> Quality</label>
+          <button class="btn" id="cp-diagram-reset">Reset</button>
+          <button class="btn" id="cp-diagram-png">PNG</button>
+          <button class="btn" id="cp-diagram-close">Close</button>
+        </div>
+      </div>
+      <div id="cp-diagram-stage" class="coolprop-diagram-stage"></div>
+    </section>
 
     <section class="settings-card coolprop-export">
       <strong>Export last result</strong>
@@ -237,6 +265,8 @@ function downloadText(filename,text,mime){
 
 export function bindCoolPropTool(root,state,onState){
   let s=normalizedState(state);
+  let diagramHandle=null;
+  let lastEngine=null;
   const status=root.querySelector("#coolprop-status");
 
   const syncGlobal=()=>({
@@ -264,8 +294,56 @@ export function bindCoolPropTool(root,state,onState){
   const getEngine=async()=>{
     status.textContent="Loading local engine…";
     const engine=await getCoolProp();
+    lastEngine=engine;
     status.textContent="Engine ready";
     return engine;
+  };
+
+  const diagramState=()=>({
+    visible:true,
+    type:root.querySelector("#cp-diagram-type")?.value||s.diagram.type||"log-ph",
+    isotherms:root.querySelector("#cp-diagram-isotherms")?.checked??s.diagram.isotherms,
+    isobars:root.querySelector("#cp-diagram-isobars")?.checked??s.diagram.isobars,
+    quality:root.querySelector("#cp-diagram-quality")?.checked??s.diagram.quality,
+    source:s.diagram.source,
+    states:s.diagram.states
+  });
+
+  const mountDiagram=async(diagram=s.diagram)=>{
+    if(!diagram?.states?.length)return;
+    const section=root.querySelector("#cp-diagram-section");
+    const stage=root.querySelector("#cp-diagram-stage");
+    if(!section||!stage)return;
+    section.hidden=false;
+    diagramHandle?.cleanup?.();
+    const engine=lastEngine||await getEngine();
+    diagramHandle=mountCoolPropDiagram(stage,{
+      engine,
+      fluid:root.querySelector("#cp-fluid")?.value||s.fluid,
+      type:diagram.type||"log-ph",
+      states:diagram.states,
+      options:{
+        isotherms:diagram.isotherms,
+        isobars:diagram.isobars,
+        quality:diagram.quality
+      }
+    });
+  };
+
+  const setDiagramStates=(states,source)=>{
+    s=normalizedState({...s,diagram:{...s.diagram,states,source}});
+    onState(s,false);
+  };
+
+  const showDiagram=async(source)=>{
+    if(!s.diagram.states.length){
+      const target=root.querySelector("#cp-"+source+"-results");
+      if(target)target.insertAdjacentHTML("afterbegin",'<div class="geometry-warning"><strong>Diagram</strong><span>Calculate valid state points first.</span></div>');
+      return;
+    }
+    s=normalizedState({...s,diagram:{...s.diagram,...diagramState(),visible:true,source}});
+    onState(s,false);
+    await mountDiagram(s.diagram);
   };
 
   root.querySelector("#cp-single-example")?.addEventListener("click",()=>{
@@ -287,6 +365,7 @@ export function bindCoolPropTool(root,state,onState){
       const result=computeState(engine,{fluid:root.querySelector("#cp-fluid").value,...next,units,bookBasis:root.querySelector("#cp-book-basis").checked});
       target.innerHTML=resultGrid(result,units);
       save({...syncGlobal(),single:next,exportRows:stateRowsForExport(result),exportName:"coolprop-single"},false);
+      setDiagramStates([result],"Single");
     }catch(error){
       status.textContent="Engine error";
       target.innerHTML=`<div class="geometry-warning"><strong>CoolProp error</strong><span>${esc(error?.message||error)}</span></div>`;
@@ -311,6 +390,7 @@ export function bindCoolPropTool(root,state,onState){
       const flat=batchRowsForExport(rows);
       target.innerHTML=genericTable(flat);
       save({...syncGlobal(),batch,exportRows:flat,exportName:"coolprop-batch"},false);
+      setDiagramStates(rows.filter(row=>row.status==="OK").map(row=>row.state),"Batch");
     }catch(error){
       target.innerHTML=`<div class="geometry-warning"><strong>Batch error</strong><span>${esc(error?.message||error)}</span></div>`;
     }
@@ -378,6 +458,7 @@ export function bindCoolPropTool(root,state,onState){
       const flat=processRowsForExport(rows);
       target.innerHTML=genericTable(flat);
       save({...syncGlobal(),process,exportRows:flat,exportName:"coolprop-process"},false);
+      setDiagramStates(rows.filter(row=>row.status==="OK").map(row=>row.state),"Process");
     }catch(error){
       target.innerHTML=`<div class="geometry-warning"><strong>Process error</strong><span>${esc(error?.message||error)}</span></div>`;
     }
@@ -406,10 +487,42 @@ export function bindCoolPropTool(root,state,onState){
     }
   });
 
+  root.querySelector("#cp-single-diagram")?.addEventListener("click",()=>showDiagram("single"));
+  root.querySelector("#cp-batch-diagram")?.addEventListener("click",()=>showDiagram("batch"));
+  root.querySelector("#cp-process-diagram")?.addEventListener("click",()=>showDiagram("process"));
+
+  for(const selector of ["#cp-diagram-type","#cp-diagram-isotherms","#cp-diagram-isobars","#cp-diagram-quality"]){
+    root.querySelector(selector)?.addEventListener("change",async()=>{
+      if(!s.diagram.states.length)return;
+      s=normalizedState({...s,diagram:{...s.diagram,...diagramState(),visible:true}});
+      onState(s,false);
+      await mountDiagram(s.diagram);
+    });
+  }
+  root.querySelector("#cp-diagram-reset")?.addEventListener("click",()=>diagramHandle?.reset?.());
+  root.querySelector("#cp-diagram-png")?.addEventListener("click",()=>diagramHandle?.downloadPNG?.("coolprop-"+(s.diagram.type||"diagram")+".png"));
+  root.querySelector("#cp-diagram-close")?.addEventListener("click",()=>{
+    const section=root.querySelector("#cp-diagram-section");
+    if(section)section.hidden=true;
+    diagramHandle?.cleanup?.();
+    diagramHandle=null;
+    s=normalizedState({...s,diagram:{...s.diagram,visible:false}});
+    onState(s,false);
+  });
+
+  if(s.diagram.visible&&s.diagram.states.length){
+    mountDiagram(s.diagram).catch(error=>{
+      const stage=root.querySelector("#cp-diagram-stage");
+      if(stage)stage.textContent="Diagram error: "+String(error?.message||error);
+    });
+  }
+
   root.querySelector("#cp-export-csv")?.addEventListener("click",()=>{
     if(s.exportRows.length)downloadText((s.exportName||"coolprop-results")+".csv",rowsToCSV(s.exportRows),"text/csv;charset=utf-8");
   });
   root.querySelector("#cp-export-json")?.addEventListener("click",()=>{
     if(s.exportRows.length)downloadText((s.exportName||"coolprop-results")+".json",rowsToJSON(s.exportRows),"application/json;charset=utf-8");
   });
+
+  return {cleanup(){diagramHandle?.cleanup?.();diagramHandle=null}};
 }
