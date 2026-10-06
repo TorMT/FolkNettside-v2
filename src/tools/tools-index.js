@@ -1,24 +1,33 @@
-import {TOOL_REGISTRY} from "./tool-registry.js";
+import {visibleTools} from "./tool-registry.js";
+
+function parityLabel(tool){
+  if(tool.parity==="full")return "Parity: full";
+  if(tool.parity==="review")return "Parity: review";
+  return tool.route?"Parity: partial":"Legacy preserved";
+}
 
 export function toolsIndexHTML(){
+  const tools=visibleTools();
   return `<main class="tool-page">
     <div class="crumbs">Courses / Tools</div>
     <header class="tool-header">
       <div><span class="project-kicker">Shared tools</span><h1>Engineering tools</h1>
-      <p>Small calculators and viewers that are reusable across courses and engineering work.</p></div>
+      <p>v2 tools are migrated without dropping working legacy features. Incomplete migrations keep a full legacy fallback.</p></div>
     </header>
     <section class="tool-index-grid">
-      ${TOOL_REGISTRY.map(tool=>tool.route?`
-        <button class="tool-index-card" data-tool-route="${tool.route}">
+      ${tools.map(tool=>`
+        <article class="tool-index-card tool-index-card-actions">
           <span class="file-icon">${tool.short}</span>
-          <span><strong>${tool.title}</strong><small>${tool.summary}</small><small class="tool-parity ${tool.parity||"review"}">Parity: ${tool.parity||"review"}</small></span>
-          <span>Open ›</span>
-        </button>`:`
-        <div class="tool-index-card disabled">
-          <span class="file-icon">${tool.short}</span>
-          <span><strong>${tool.title}</strong><small>${tool.summary}</small></span>
-          <span>${tool.status}</span>
-        </div>`).join("")}
+          <span>
+            <strong>${tool.title}</strong>
+            <small>${tool.summary}</small>
+            <small class="tool-parity ${tool.parity||"review"}">${parityLabel(tool)}</small>
+          </span>
+          <div class="tool-card-actions">
+            ${tool.route?`<button class="tool-action primary" data-tool-route="${tool.route}">Open v2</button>`:""}
+            ${tool.legacyUrl?`<button class="tool-action" data-tool-legacy="${tool.legacyUrl}">${tool.route?"Full legacy":"Open legacy"}</button>`:""}
+          </div>
+        </article>`).join("")}
     </section>
   </main>`;
 }

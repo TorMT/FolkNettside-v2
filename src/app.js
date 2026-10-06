@@ -119,6 +119,9 @@ function toolsPage(){
   app.innerHTML=top("courses")+toolsIndexHTML();
   bindNav();
   app.querySelectorAll("[data-tool-route]").forEach(button=>button.onclick=()=>go(button.dataset.toolRoute));
+  app.querySelectorAll("[data-tool-legacy]").forEach(button=>button.onclick=()=>{
+    window.open(button.dataset.toolLegacy,"_blank","noopener");
+  });
 }
 
 function fluidToolPage(){

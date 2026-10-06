@@ -24,11 +24,9 @@ test("registry lookup is deterministic",()=>{
 });
 
 
-test("unfinished migrations preserve legacy access when a legacy tool exists",()=>{
+test("unfinished legacy migrations always preserve full legacy access",()=>{
   for(const tool of toolsNeedingParityReview()){
-    if(["fluid","periodic","coolprop"].includes(tool.id)){
-      assert.ok(tool.legacyUrl?.startsWith("https://"),`${tool.id} lost its legacy fallback`);
-    }
+    assert.ok(tool.legacyUrl?.startsWith("https://"),tool.id+" lost its legacy fallback before full parity");
   }
 });
 
@@ -36,4 +34,21 @@ test("CoolProp cannot be marked full until feature parity is complete",()=>{
   const tool=toolById("coolprop");
   assert.equal(toolParityComplete(tool),false);
   assert.equal(tool.parity,"partial");
+});
+
+
+test("known legacy-only tools stay registered until migrated",()=>{
+  for(const id of ["chemdraw","stl-advanced","theme-creator","image-theme"]){
+    const tool=toolById(id);
+    assert.ok(tool,id+" disappeared from tool registry");
+    assert.equal(tool.status,"legacy");
+    assert.equal(tool.parity,"partial");
+    assert.ok(tool.legacyUrl);
+  }
+});
+
+test("crystal migration is partial while advanced legacy features are missing",()=>{
+  const tool=toolById("crystal");
+  assert.equal(tool.parity,"partial");
+  assert.ok(tool.legacyUrl?.includes("KrystallStrukturer"));
 });
