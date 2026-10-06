@@ -23,8 +23,8 @@ export const TOOL_REGISTRY=[
     id:"coolprop",
     title:"CoolProp",
     short:"CP",
-    route:null,
-    status:"planned",
+    route:"/tools/coolprop",
+    status:"prototype",
     category:"Engineering",
     summary:"Reference-grade thermophysical properties.",
     keywords:["coolprop","thermodynamics","fluid","properties"]

@@ -9,6 +9,7 @@ import {createSearchController} from "./components/search-dialog.js";
 import {toolsIndexHTML} from "./tools/tools-index.js";
 import {activeTools} from "./tools/tool-registry.js";
 import {fluidCalculatorHTML} from "./tools/fluid-calculator.js";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js";
 import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js";
 import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js";
 import {loadModelDocument} from "./model/load-model.js";
@@ -43,6 +44,7 @@ let propulsionInflow=3;
 let propulsionDiameter=1.5;
 let propulsionInitialized=false;
 let fluidToolState={fluid:"air",temperature:20,unit:"C"};
+let coolPropState={fluid:"Air",input1:"P",value1:1,input2:"T",value2:25};
 let periodicToolState={search:"",phase:"all",category:"all",material:"all",period:"all",group:"all",crystal:"all",property:"atomic_mass",temperature:298,selected:null};
 let crystalToolState={type:"bcc",a:1,c:""};
 let crystalCleanup=null;
@@ -130,6 +132,16 @@ function fluidToolPage(){
       unit:app.querySelector("#fluid-unit")?.value||"C"
     };
     fluidToolPage();
+  });
+}
+
+function coolPropToolPage(){
+  document.documentElement.dataset.lens="study";
+  app.innerHTML=top("courses")+coolPropToolHTML(coolPropState);
+  bindNav();
+  bindCoolPropTool(app,coolPropState,(next,rerender=true)=>{
+    coolPropState={...coolPropState,...next};
+    if(rerender)coolPropToolPage();
   });
 }
 
@@ -551,5 +563,5 @@ async function engineeringPage(){
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
 
-async function render(){const path=route();if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}const viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/tools")return toolsPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
+async function render(){const path=route();if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}const viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/tools")return toolsPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
 window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();globalSearch.open()}});window.addEventListener("hashchange",render);render();
