@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T10:30:00+00:00",
+  "generatedAt": "2026-10-06T10:34:48.901226+00:00",
   "source": "examples/semesters",
   "semesters": [
     {
@@ -12,17 +12,118 @@
           "code": "TMR4182",
           "title": "Marin konstruksjon",
           "description": "Skrog, styrke, FEM og konstruksjonslære.",
-          "tags": ["Konstruksjon", "FEM", "Skrog"],
-          "sections": ["Forelesninger", "Kok", "Modeller"],
+          "tags": [
+            "Konstruksjon",
+            "FEM",
+            "Skrog"
+          ],
+          "sections": [
+            "Forelesninger",
+            "Kok",
+            "Videoer",
+            "Quiz",
+            "Modeller"
+          ],
           "resources": [
-            {"section":"Forelesninger","name":"lecture-01.pdf","label":"lecture 01","path":"./examples/semesters/5/TMR4182/Forelesninger/lecture-01.pdf","kind":"PDF","size":1922,"modified":"2026-10-06T00:00:00+00:00"},
-            {"section":"Kok","name":"formula-demo.html","label":"formula demo","path":"./examples/semesters/5/TMR4182/Kok/formula-demo.html","kind":"HTML","size":393,"modified":"2026-10-06T00:00:00+00:00"},
-            {"section":"Kok","name":"hydro-data.csv","label":"hydro data","path":"./examples/semesters/5/TMR4182/Kok/hydro-data.csv","kind":"CSV","size":88,"modified":"2026-10-06T00:00:00+00:00"},
-            {"section":"Kok","name":"hydro-demo.ipynb","label":"hydro demo","path":"./examples/semesters/5/TMR4182/Kok/hydro-demo.ipynb","kind":"IPYNB","size":498,"modified":"2026-10-06T00:00:00+00:00"},
-            {"section":"Kok","name":"hydro-demo.py","label":"hydro demo","path":"./examples/semesters/5/TMR4182/Kok/hydro-demo.py","kind":"PY","size":240,"modified":"2026-10-06T00:00:00+00:00"},
-            {"section":"Kok","name":"kok-example.md","label":"kok example","path":"./examples/semesters/5/TMR4182/Kok/kok-example.md","kind":"MD","size":218,"modified":"2026-10-06T00:00:00+00:00"},
-            {"section":"Modeller","name":"wedge.stl","label":"Wedge testmodell","path":"./examples/models/wedge.stl","kind":"STL","size":1179,"modified":"2026-10-06T00:00:00+00:00"},
-            {"section":"Modeller","name":"assembly-demo.3mf","label":"3MF assembly - hull + thruster","path":"./examples/models/assembly-demo.3mf","kind":"3MF","size":1197,"modified":"2026-10-06T00:00:00+00:00"}
+            {
+              "section": "Forelesninger",
+              "name": "formulas.tex",
+              "label": "formulas",
+              "path": "./examples/semesters/5/TMR4182/Forelesninger/formulas.tex",
+              "kind": "TEX",
+              "size": 283,
+              "modified": "2026-10-06T10:34:48.527670+00:00"
+            },
+            {
+              "section": "Forelesninger",
+              "name": "lecture-01.pdf",
+              "label": "lecture 01",
+              "path": "./examples/semesters/5/TMR4182/Forelesninger/lecture-01.pdf",
+              "kind": "PDF",
+              "size": 1922,
+              "modified": "2026-10-06T10:34:48.527736+00:00"
+            },
+            {
+              "section": "Kok",
+              "name": "formula-demo.html",
+              "label": "formula demo",
+              "path": "./examples/semesters/5/TMR4182/Kok/formula-demo.html",
+              "kind": "HTML",
+              "size": 393,
+              "modified": "2026-10-06T10:34:48.527736+00:00"
+            },
+            {
+              "section": "Kok",
+              "name": "hydro-data.csv",
+              "label": "hydro data",
+              "path": "./examples/semesters/5/TMR4182/Kok/hydro-data.csv",
+              "kind": "CSV",
+              "size": 88,
+              "modified": "2026-10-06T10:34:48.527840+00:00"
+            },
+            {
+              "section": "Kok",
+              "name": "hydro-demo.ipynb",
+              "label": "hydro demo",
+              "path": "./examples/semesters/5/TMR4182/Kok/hydro-demo.ipynb",
+              "kind": "IPYNB",
+              "size": 498,
+              "modified": "2026-10-06T10:34:48.527840+00:00"
+            },
+            {
+              "section": "Kok",
+              "name": "hydro-demo.py",
+              "label": "hydro demo",
+              "path": "./examples/semesters/5/TMR4182/Kok/hydro-demo.py",
+              "kind": "PY",
+              "size": 240,
+              "modified": "2026-10-06T10:34:48.527840+00:00"
+            },
+            {
+              "section": "Kok",
+              "name": "kok-example.md",
+              "label": "kok example",
+              "path": "./examples/semesters/5/TMR4182/Kok/kok-example.md",
+              "kind": "MD",
+              "size": 218,
+              "modified": "2026-10-06T10:34:48.527840+00:00"
+            },
+            {
+              "section": "Quiz",
+              "name": "hydro-basics.quiz.json",
+              "label": "hydro basics.quiz",
+              "path": "./examples/semesters/5/TMR4182/Quiz/hydro-basics.quiz.json",
+              "kind": "QUIZ",
+              "size": 524,
+              "modified": "2026-10-06T10:34:48.527840+00:00"
+            },
+            {
+              "section": "Videoer",
+              "name": "demo.mp4",
+              "label": "demo",
+              "path": "./examples/semesters/5/TMR4182/Videoer/demo.mp4",
+              "kind": "VIDEO",
+              "size": 2880,
+              "modified": "2026-10-06T10:34:48.527840+00:00"
+            },
+            {
+              "section": "Modeller",
+              "name": "wedge.stl",
+              "label": "Wedge testmodell",
+              "path": "./examples/models/wedge.stl",
+              "kind": "STL",
+              "size": 1179,
+              "modified": "2026-10-06T10:34:48.527561+00:00"
+            },
+            {
+              "section": "Modeller",
+              "name": "assembly-demo.3mf",
+              "label": "3MF assembly - hull + thruster",
+              "path": "./examples/models/assembly-demo.3mf",
+              "kind": "3MF",
+              "size": 1197,
+              "modified": "2026-10-06T10:34:48.527510+00:00"
+            }
           ]
         }
       ]
