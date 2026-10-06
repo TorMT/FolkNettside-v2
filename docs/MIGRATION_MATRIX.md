@@ -23,7 +23,7 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | CFD/resistance | Resistance workspace baseline | ITTC friction JSON | prototype | ITTC-1957 friction only; total resistance/OpenFOAM later |
 | Thruster flow | Propulsion workspace baseline | actuator-disk JSON + 3MF thruster | prototype | Ideal disk reads thruster metadata from ModelDocument; OpenFOAM coupling later |
 | CoolProp | engineering/science tool module | pending | planned | Consolidate variants |
-| Fluid calculator | shared calculator page | pending | planned | Preserve useful equations only |
+| Fluid calculator | shared Tools calculator | legacy polynomial fixture | prototype | Pure tested core; legacy validity warnings; CoolProp remains separate |
 | ChemDraw | chemistry tool module | pending | planned | Review active use |
 | Crystal structures | 3D science tool module | pending | planned | Reuse shared renderer |
 | Periodic table | data-driven tool | pending | planned | Keep if actively useful |
