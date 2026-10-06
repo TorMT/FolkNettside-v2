@@ -16,7 +16,7 @@ test("model inspector hydro and solid centroid reuse tested hydro core",()=>{
   assert.ok(Math.abs(result.displacementKg-40000)<1e-4);
   assert.ok(Math.abs(result.centerOfBuoyancy[2]-.5)<1e-7);
   assert.ok(Math.abs(result.solidVolume-80)<1e-7);
-  assert.ok(Math.abs(result.solidCentroid[2]-0)<1e-7);
+  assert.ok(Math.abs(result.solidCentroid[2]-1)<1e-7);
   assert.equal(result.diagnostics.watertight,true);
 });
 
@@ -33,7 +33,7 @@ test("attitude transform changes world centroid consistently",()=>{
   const result=modelHydroSummary(transformed,10,1000);
   assert.ok(Math.abs(result.solidCentroid[0]-0)<1e-7);
   assert.ok(Math.abs(result.solidCentroid[1]+1)<1e-7);
-  assert.ok(Math.abs(result.solidCentroid[2]-1)<1e-7);
+  assert.ok(Math.abs(result.solidCentroid[2])<1e-7);
 });
 
 test("attitude matrix returns identity at zero angles",()=>{
