@@ -18,10 +18,11 @@ function flattenCourses(manifest) {
 export async function loadContent() {
   if (cache) return cache;
 
-  const [site, manifest, model] = await Promise.all([
+  const [site, manifest, model, projects] = await Promise.all([
     readJSON("./config/site.json"),
     readJSON("./data/content-manifest.json"),
-    readJSON("./data/demo-model.json")
+    readJSON("./data/demo-model.json"),
+    readJSON("./data/projects.json")
   ]);
 
   const manifestBySemester = new Map(manifest.semesters.map(s => [Number(s.id), s]));
@@ -42,6 +43,7 @@ export async function loadContent() {
     courses,
     resources,
     model,
+    projects,
     components: model.components,
     navLabels: {courses: site.coursesLabel || "Courses"}
   };
