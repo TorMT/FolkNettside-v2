@@ -28,15 +28,17 @@ Already migrated:
 - JSON export
 - Air book-basis calibration
 
-Still required for full parity:
-- Batch state-point diagram support
-- Process state-point diagram support
+Now also migrated:
+- Single / Batch / Process state-point diagrams
 - log P-h, linear P-h, T-s and P-v diagrams
 - saturation dome
 - optional isotherms, isobars and quality lines
-- diagram reset/zoom
+- diagram drag-pan / wheel-zoom / reset
 - PNG export
+
+Still required for full parity:
 - integrated help/reference notes
+- final side-by-side functional and visual verification
 
 The old implementation itself marked Table 4 batch mode and fully custom process input as incomplete; these are improvements, not parity blockers.
 
