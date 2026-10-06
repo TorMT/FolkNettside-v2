@@ -1,5 +1,5 @@
-import {escapeHTML,fetchText,extension} from "../utils.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {getHighlighter} from "../../vendor/highlight.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
+import {escapeHTML,fetchText,extension} from "../utils.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {getHighlighter} from "../../vendor/highlight.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
 
 const languageByExtension={
   py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",

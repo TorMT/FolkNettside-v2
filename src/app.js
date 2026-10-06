@@ -1,23 +1,23 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {mountViewer} from "./viewer.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {loadContent} from "./content.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {renderResourceTree} from "./components/resource-tree.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {buildSearchIndex} from "./search/search-index.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {createSearchController} from "./components/search-dialog.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {activeTools} from "./tools/tool-registry.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {loadModelDocument} from "./model/load-model.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {mountModelScene} from "./model/model-scene.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=eb34a4b67aa36e3a2a61f80894de45fb26e16295";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {mountViewer} from "./viewer.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {loadContent} from "./content.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {renderResourceTree} from "./components/resource-tree.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {buildSearchIndex} from "./search/search-index.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {createSearchController} from "./components/search-dialog.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {activeTools} from "./tools/tool-registry.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {loadModelDocument} from "./model/load-model.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {mountModelScene} from "./model/model-scene.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=8aa0c11932670c127bfa632341edc0b2d5192849";
 
 initSettings();
 
@@ -41,7 +41,7 @@ let propulsionInflow=3;
 let propulsionDiameter=1.5;
 let propulsionInitialized=false;
 let fluidToolState={fluid:"air",temperature:20,unit:"C"};
-let periodicToolState={search:"",phase:"all",category:"all",temperature:298,selected:null};
+let periodicToolState={search:"",phase:"all",category:"all",material:"all",period:"all",group:"all",crystal:"all",property:"atomic_mass",temperature:298,selected:null};
 let crystalToolState={type:"bcc",a:1,c:""};
 let crystalCleanup=null;
 
@@ -130,15 +130,25 @@ async function periodicToolPage(){
         ...periodicToolState,
         search:app.querySelector("#periodic-search")?.value||"",
         category:app.querySelector("#periodic-category")?.value||"all",
+        material:app.querySelector("#periodic-material")?.value||"all",
+        period:app.querySelector("#periodic-period")?.value||"all",
+        group:app.querySelector("#periodic-group")?.value||"all",
         phase:app.querySelector("#periodic-phase")?.value||"all",
+        crystal:app.querySelector("#periodic-crystal")?.value||"all",
+        property:app.querySelector("#periodic-property")?.value||"atomic_mass",
         temperature:Number(app.querySelector("#periodic-temperature")?.value)||298
       };
       periodicToolPage();
     };
 
     app.querySelector("#periodic-search")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-property")?.addEventListener("change",rerender);
     app.querySelector("#periodic-category")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-material")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-period")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-group")?.addEventListener("change",rerender);
     app.querySelector("#periodic-phase")?.addEventListener("change",rerender);
+    app.querySelector("#periodic-crystal")?.addEventListener("change",rerender);
     app.querySelector("#periodic-temperature")?.addEventListener("change",rerender);
     app.querySelectorAll("[data-element]").forEach(button=>button.onclick=()=>{
       periodicToolState={...periodicToolState,selected:Number(button.dataset.element)};
