@@ -65,7 +65,7 @@ export const TOOL_REGISTRY=[
     short:"STL",
     route:"/tools/model-inspector",
     status:"prototype",
-    parity:"partial",
+    parity:"review",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/stlview1.html",
     category:"Engineering",
     summary:"Shared STL/3MF inspector with camera, alignment, measurement, CG/CB, waterline hydro checks and PNG export.",

@@ -1,10 +1,10 @@
-import {getThreeRuntime} from "../model/three-runtime.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {crystalEditorPanelHTML} from "./crystal-editor-panel.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
+import {getThreeRuntime} from "../model/three-runtime.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {crystalEditorPanelHTML} from "./crystal-editor-panel.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
 import {
   cellEdges,crystalPreset,crystalType,distance3,idealHoleCenters,
   listCrystalPresets,listCrystalTypes,replicateCrystal
-} from "./crystal-structures-core.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,millerPlane} from "./crystal-analysis.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
+} from "./crystal-structures-core.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,millerPlane} from "./crystal-analysis.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
 
 const SPECIES_COLORS={
   A:0xb3157a,B:0x2f7fa4,O:0xd9e7ed,

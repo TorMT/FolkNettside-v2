@@ -1,30 +1,30 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {mountViewer} from "./viewer.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {loadContent} from "./content.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {renderResourceTree} from "./components/resource-tree.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {buildSearchIndex} from "./search/search-index.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {createSearchController} from "./components/search-dialog.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {activeTools} from "./tools/tool-registry.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {loadModelDocument} from "./model/load-model.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {mountModelScene} from "./model/model-scene.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {mountViewer} from "./viewer.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {loadContent} from "./content.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {renderResourceTree} from "./components/resource-tree.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {buildSearchIndex} from "./search/search-index.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {createSearchController} from "./components/search-dialog.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {activeTools} from "./tools/tool-registry.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {loadModelDocument} from "./model/load-model.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {mountModelScene} from "./model/model-scene.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
 
 initSettings();
 
@@ -376,7 +376,7 @@ function themeStudioPage(mode="manual"){
   });
 }
 
-function settingsPage(){const s=getSettings(),acc={magenta:"#b3157a",teal:"#0b6e72",blue:"#1f57c9",amber:"#8f5a00",graphite:"#394d5b"};document.documentElement.dataset.lens="study";app.innerHTML=top("")+'<main class="settings"><aside class="side"><div class="side-title">Settings</div><button class="active">Appearance</button><button>Account & connections</button><button>Courses</button><button>Engineering</button><button>Privacy & data</button><button>Advanced</button></aside><section class="settings-main"><h1>Appearance</h1><p class="muted">Theme lives here only. Viewers and workspaces inherit the same global state.</p><div class="settings-card"><div class="setting-row"><div><strong>Mode</strong><small>Follow system, or force light/dark.</small></div><div class="segment">'+["system","light","dark"].map(v=>'<button data-setting="mode" data-value="'+v+'" class="'+(s.mode===v?"active":"")+'">'+v+'</button>').join("")+'</div></div><div class="setting-row"><div><strong>Accent</strong><small>Shared UI accent. Analysis colormaps remain independent.</small></div><div class="swatches">'+Object.entries(acc).map(([k,v])=>'<button class="swatch '+(s.accent===k?"active":"")+'" data-setting="accent" data-value="'+k+'" style="background:'+v+'" title="'+k+'"></button>').join("")+'</div></div></div><div class="settings-card"><div class="setting-row"><div><strong>Google</strong><small>Optional; only needed for Drive/cloud features.</small></div><button class="btn">Not connected</button></div><div class="setting-row"><div><strong>Autodesk</strong><small>Optional; future Fusion/APS connection.</small></div><button class="btn">Not connected</button></div></div></section></main><div class="preview-badge">Public by default · auth optional</div>';bindNav();app.querySelectorAll("[data-setting]").forEach(b=>b.onclick=()=>{setSetting(b.dataset.setting,b.dataset.value);settingsPage()})}
+function settingsPage(){const s=getSettings(),acc={magenta:"#b3157a",teal:"#0b6e72",blue:"#1f57c9",amber:"#8f5a00",graphite:"#394d5b"};document.documentElement.dataset.lens="study";app.innerHTML=top("")+'<main class="settings"><aside class="side"><div class="side-title">Settings</div><button class="active">Appearance</button><button>Account & connections</button><button>Courses</button><button>Engineering</button><button>Privacy & data</button><button>Advanced</button></aside><section class="settings-main"><h1>Appearance</h1><p class="muted">Theme lives here only. Viewers and workspaces inherit the same global state.</p><div class="settings-card"><div class="setting-row"><div><strong>Mode</strong><small>Follow system, or force light/dark.</small></div><div class="segment">'+["system","light","dark"].map(v=>'<button data-setting="mode" data-value="'+v+'" class="'+(s.mode===v?"active":"")+'">'+v+'</button>').join("")+'</div></div><div class="setting-row"><div><strong>Accent</strong><small>Shared UI accent. Analysis colormaps remain independent.</small></div><div class="swatches">'+Object.entries(acc).map(([k,v])=>'<button class="swatch '+(s.accent===k?"active":"")+'" data-setting="accent" data-value="'+k+'" style="background:'+v+'" title="'+k+'"></button>').join("")+'</div></div></div><div class="settings-card"><div class="setting-row"><div><strong>Theme Studio</strong><small>Manual theme authoring and image → palette generation live under Settings.</small></div><div class="settings-shortcuts"><button class="btn" data-go="/settings/theme-studio/manual">Manual</button><button class="btn" data-go="/settings/theme-studio/image">Image → theme</button></div></div></div><div class="settings-card"><div class="setting-row"><div><strong>Google</strong><small>Optional; only needed for Drive/cloud features.</small></div><button class="btn">Not connected</button></div><div class="setting-row"><div><strong>Autodesk</strong><small>Optional; future Fusion/APS connection.</small></div><button class="btn">Not connected</button></div></div></section></main><div class="preview-badge">Public by default · auth optional</div>';bindNav();app.querySelectorAll("[data-setting]").forEach(b=>b.onclick=()=>{setSetting(b.dataset.setting,b.dataset.value);settingsPage()})}
 
 function depthFor(component,list){
   const byId=new Map(list.map(c=>[c.id,c]));

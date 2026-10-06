@@ -2,10 +2,10 @@ import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,
   computeBatch,computeProcess,computeState,processTargetOptions,
   rowsToCSV,rowsToJSON,saturationWarning,unitLabel
-} from "./coolprop-core.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {getCoolProp} from "../vendor/coolprop-runtime.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
-import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=163ef63e81a0eff464bd137031a1aded2d533ea7";
+} from "./coolprop-core.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {getCoolProp} from "../vendor/coolprop-runtime.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
