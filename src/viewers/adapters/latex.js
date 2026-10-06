@@ -1,4 +1,5 @@
 import {escapeHTML,fetchText} from "../utils.js";import {getKaTeX} from "../../vendor/katex.js";
+import {createDomFinder} from "../dom-search.js";
 function documentBody(source){const match=source.match(/\\begin\{document\}([\s\S]*?)\\end\{document\}/);return match?match[1]:source}
 export async function render(container,resource){
   const source=await fetchText(resource.path),katex=await getKaTeX(),body=documentBody(source),blocks=[];let last=0,match;
@@ -12,5 +13,5 @@ export async function render(container,resource){
   }
   const rest=body.slice(last).trim();if(rest)blocks.push(`<p>${escapeHTML(rest)}</p>`);
   container.innerHTML=`<article class="latex-view"><div class="latex-rendered"><h2>${escapeHTML(resource.label)}</h2>${blocks.join("")}</div><details><summary>LaTeX source</summary><pre>${escapeHTML(source)}</pre></details></article>`;
-  return {info:"KaTeX preview · source fallback included"};
+  return {info:"KaTeX preview · source fallback included",actions:{find:createDomFinder(container)}};
 }

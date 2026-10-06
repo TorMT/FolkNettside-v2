@@ -1,5 +1,6 @@
 import {escapeHTML,extension} from "../utils.js";
 import {getJSZip} from "../../vendor/jszip.js";
+import {createDomFinder} from "../dom-search.js";
 
 function parseXML(text){
   const doc=new DOMParser().parseFromString(text,"application/xml");
@@ -118,8 +119,10 @@ async function renderPptx(container,zip){
 export async function render(container,resource){
   const zip=await loadArchive(resource.path);
   const ext=extension(resource.path);
-  if(ext==="docx")return renderDocx(container,zip);
-  if(ext==="xlsx")return renderXlsx(container,zip);
-  if(ext==="pptx")return renderPptx(container,zip);
-  throw new Error(`Unsupported Office format: .${ext}`);
+  let result;
+  if(ext==="docx")result=await renderDocx(container,zip);
+  else if(ext==="xlsx")result=await renderXlsx(container,zip);
+  else if(ext==="pptx")result=await renderPptx(container,zip);
+  else throw new Error(`Unsupported Office format: .${ext}`);
+  return {...result,actions:{find:createDomFinder(container)}};
 }

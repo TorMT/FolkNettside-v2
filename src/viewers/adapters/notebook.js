@@ -1,4 +1,5 @@
 import {escapeHTML,fetchJSON} from "../utils.js";
+import {createDomFinder} from "../dom-search.js";
 
 function renderOutput(output){
   if(Array.isArray(output?.text)) return `<pre>${escapeHTML(output.text.join(""))}</pre>`;
@@ -22,5 +23,5 @@ export async function render(container,resource){
       </div>
     </section>`).join("")}</div>`;
 
-  return {info:`${cells.length} cells`};
+  return {info:`${cells.length} cells`,actions:{find:createDomFinder(container)}};
 }

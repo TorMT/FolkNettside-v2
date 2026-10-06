@@ -6,16 +6,16 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 |---|---|---:|---|---|
 | Course/semester indexing | `scripts/update_site.py` + one manifest | yes | prototype | One-purpose updater; no HTML patching |
 | Theme picker | Settings + `src/settings.js` | n/a | prototype | No floating theme control |
-| PDF viewer | ViewerShell adapter | PDF | prototype | Native browser renderer first |
-| Code/text/Python | ViewerShell code adapter | MD, PY | prototype | Lazy highlight.js, line numbers and copy |
-| CSV | ViewerShell CSV adapter | CSV | prototype | Delimiter detection; table renderer |
+| PDF viewer | ViewerShell adapter | PDF | prototype | Native browser renderer; unsupported toolbar actions hidden |
+| Code/text/Python | ViewerShell code adapter | MD, PY | prototype | Lazy highlighting, line numbers, copy and in-viewer Find |
+| CSV | ViewerShell CSV adapter | CSV | prototype | Delimiter detection, table renderer and Find |
 | HTML | ViewerShell HTML adapter | HTML | prototype | Sandboxed iframe |
-| Notebook | ViewerShell notebook adapter | IPYNB | prototype | Source/output rendering |
-| LaTeX | dedicated adapter | TEX | prototype | Lazy KaTeX preview with source fallback |
-| Office | shared OOXML adapter | DOCX/XLSX/PPTX | prototype | Lazy ZIP/XML parser; provider-free baseline |
+| Notebook | ViewerShell notebook adapter | IPYNB | prototype | Source/output rendering and Find |
+| LaTeX | dedicated adapter | TEX | prototype | Lazy KaTeX preview, source fallback and Find |
+| Office | shared OOXML adapter | DOCX/XLSX/PPTX | prototype | Lazy ZIP/XML parser, provider-free baseline and Find |
 | Video | shared local/YouTube adapters + progress store | MP4 + YouTube | prototype | One progress model, local resume/watched state, externalResources manifest support; cloud sync later |
-| STL | shared Three.js ModelScene | ASCII STL | prototype | Render-on-demand; binary parser included |
-| 3MF | ModelDocument + shared Three.js scene | 3MF geometry assembly | prototype | Object/build identity, units, transforms and selection |
+| STL | shared Three.js ModelScene | ASCII STL | prototype | Render-on-demand; binary parser; real Fit/Reset controls |
+| 3MF | ModelDocument + shared Three.js scene | 3MF geometry assembly | prototype | Object/build identity, units, transforms, selection and real Fit/Reset controls |
 | Fusion F3D/F3Z | semantic import pipeline | pending | planned | APS/native pipeline; do not fake F3Z as 3MF |
 | STEP/IGES | shared CAD import | pending | planned | Keep component/source identity where possible |
 | Hydrostatics | exact clipped-triangle surface integrals | box/wedge/multi-component | prototype | CI validates volume, CB and waterplane moments; worker/BVH only if needed |
