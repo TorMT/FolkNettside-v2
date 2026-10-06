@@ -6,8 +6,9 @@ Parity states:
 - `partial`: known legacy features are missing.
 - `review`: feature coverage appears complete but still needs explicit side-by-side verification.
 - `full`: verified parity or approved supersession.
+- `retired`: intentionally not migrated because the old tool/function is obsolete or has been replaced by an approved v2 mechanism.
 
-While parity is not `full`, the v2 Tools page must retain a working HTTPS link to the full legacy tool.
+While parity is neither `full` nor `retired`, the v2 Tools page must retain a working HTTPS link to the full legacy tool. Retired tools are excluded from the v2 Tools surface and from parity-review work.
 
 ## CoolProp
 
@@ -162,44 +163,33 @@ Parity requirements or approved replacements:
 
 Some of these can be superseded by the shared Model/Engineering workspace, but legacy access remains until the replacement is demonstrably complete.
 
-## Theme creator
+## Retired theme tools
 
-Legacy: `Tools/theme-creator.html`
+The following legacy tools are intentionally **not** migrated:
 
-Preserve:
-- theme name/editing
-- live preview
-- CSS generation
-- JS generation
-- reset
-- copy outputs
+- `Tools/theme-creator.html`
+- `Tools/image-to-theme.html`
 
-This may ultimately live under Settings/Developer rather than Courses/Tools.
+Reason:
+- v2 has one centralized Settings-owned theme system;
+- viewer/tool-specific theme generation is intentionally removed;
+- CSS/JS theme generators and image-to-theme export would reintroduce the duplicated theme architecture v2 is designed to eliminate.
 
-## Image to theme
+Registry status: `retired`.
 
-Legacy: `Tools/image-to-theme.html`
-
-Preserve:
-- image upload/drag-drop
-- palette extraction
-- color role assignment
-- auto-assign
-- live preview
-- generate CSS
-- generate JS
-- JSON download
-- reset/new image
-
-This may ultimately live under Settings/Developer.
+The legacy files may continue to exist on the old production site during the production freeze, but they are not parity blockers and should not be surfaced as v2 tools.
 
 ## Migration rule
 
-Before any legacy tool is removed, hidden, or redirected:
-1. inventory all working legacy features;
-2. encode the inventory here;
-3. add deterministic tests for calculation/data logic;
-4. verify the v2 UI exposes the functions;
-5. compare v2 and legacy side-by-side;
-6. keep the legacy fallback until parity becomes `full`;
-7. only then change the registry parity to `full`.
+For each legacy tool or feature:
+1. inventory the working legacy behavior;
+2. decide whether it is still useful, superseded, or obsolete;
+3. if obsolete/superseded, document the reason and mark it `retired`;
+4. otherwise encode the required parity here;
+5. add deterministic tests for calculation/data logic;
+6. verify the v2 UI exposes the functions;
+7. compare v2 and legacy side-by-side;
+8. keep the legacy fallback until parity becomes `full`;
+9. only then change the registry parity to `full`.
+
+Do not port obsolete functionality merely for numerical parity with the old Tools directory.

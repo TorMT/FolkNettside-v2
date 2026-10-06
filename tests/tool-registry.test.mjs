@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {TOOL_REGISTRY,activeTools,toolById,toolParityComplete,toolsNeedingParityReview} from "../src/tools/tool-registry.js";
+import {TOOL_REGISTRY,activeTools,toolById,toolParityComplete,toolsNeedingParityReview,visibleTools} from "../src/tools/tool-registry.js";
 
 test("tool ids and active routes are unique",()=>{
   const ids=TOOL_REGISTRY.map(tool=>tool.id);
@@ -52,4 +52,16 @@ test("crystal migration is partial while advanced legacy features are missing",(
   const tool=toolById("crystal");
   assert.equal(tool.parity,"partial");
   assert.ok(tool.legacyUrl?.includes("KrystallStrukturer"));
+});
+
+
+test("retired theme tools are intentionally excluded from v2 parity work",()=>{
+  const theme=toolById("theme-creator");
+  const imageTheme=toolById("image-theme");
+  assert.equal(theme.status,"retired");
+  assert.equal(theme.parity,"retired");
+  assert.equal(imageTheme.status,"retired");
+  assert.equal(imageTheme.parity,"retired");
+  assert.ok(!visibleTools().some(tool=>tool.id==="theme-creator"||tool.id==="image-theme"));
+  assert.ok(!toolsNeedingParityReview().some(tool=>tool.id==="theme-creator"||tool.id==="image-theme"));
 });
