@@ -24,3 +24,8 @@
 .office-table{margin-top:24px}
 .office-sheet{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:20px;overflow:hidden}.office-sheet h2{padding:14px 18px;margin:0;border-bottom:1px solid var(--line)}
 .office-slides{display:grid;gap:24px;justify-items:center}.office-slide{position:relative;aspect-ratio:16/9;width:min(100%,960px);background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);padding:64px 72px}.office-slide h2{font-size:34px;margin-top:0}.office-slide p{font-size:20px;line-height:1.5}.office-slide-number{position:absolute;right:18px;bottom:14px;color:var(--ink-3);font-size:12px}
+
+.resource-folder{border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--surface-sunk) 42%,var(--surface))}
+.resource-folder:last-child{border-bottom:0}.resource-folder>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:9px}.resource-folder>summary::-webkit-details-marker{display:none}.resource-folder>summary .muted{margin-left:auto;font-size:12px}
+.folder-icon{display:inline-block;transition:transform .14s ease;color:var(--accent)}.resource-folder[open]>summary .folder-icon{transform:rotate(90deg)}
+.resource-folder-body{margin-left:18px;border-left:2px solid var(--line)}.resource-folder-body>.resource-row{border-bottom:1px solid var(--line)}
