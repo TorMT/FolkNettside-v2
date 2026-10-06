@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-06T11:39:49.669438+00:00",
+  "generatedAt": "2026-10-06T11:41:39.097612+00:00",
   "source": "examples/semesters",
   "semesters": [
     {
@@ -38,7 +38,7 @@
               "path": "./examples/semesters/5/TMR4182/Filer og ressurser/Office/hydro-data.xlsx",
               "kind": "XLSX",
               "size": 1639,
-              "modified": "2026-10-06T11:39:49.123786+00:00"
+              "modified": "2026-10-06T11:41:38.680791+00:00"
             },
             {
               "section": "Filer og ressurser",
@@ -51,7 +51,7 @@
               "path": "./examples/semesters/5/TMR4182/Filer og ressurser/Office/hydro-notes.docx",
               "kind": "DOCX",
               "size": 1013,
-              "modified": "2026-10-06T11:39:49.124004+00:00"
+              "modified": "2026-10-06T11:41:38.680958+00:00"
             },
             {
               "section": "Filer og ressurser",
@@ -64,7 +64,7 @@
               "path": "./examples/semesters/5/TMR4182/Filer og ressurser/Office/hydro-slides.pptx",
               "kind": "PPTX",
               "size": 1653,
-              "modified": "2026-10-06T11:39:49.124004+00:00"
+              "modified": "2026-10-06T11:41:38.680958+00:00"
             },
             {
               "section": "Forelesninger",
@@ -75,7 +75,7 @@
               "path": "./examples/semesters/5/TMR4182/Forelesninger/formulas.tex",
               "kind": "TEX",
               "size": 283,
-              "modified": "2026-10-06T11:39:49.124004+00:00"
+              "modified": "2026-10-06T11:41:38.680958+00:00"
             },
             {
               "section": "Forelesninger",
@@ -86,7 +86,7 @@
               "path": "./examples/semesters/5/TMR4182/Forelesninger/lecture-01.pdf",
               "kind": "PDF",
               "size": 1922,
-              "modified": "2026-10-06T11:39:49.124203+00:00"
+              "modified": "2026-10-06T11:41:38.681205+00:00"
             },
             {
               "section": "Kok",
@@ -97,7 +97,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/formula-demo.html",
               "kind": "HTML",
               "size": 393,
-              "modified": "2026-10-06T11:39:49.124203+00:00"
+              "modified": "2026-10-06T11:41:38.681205+00:00"
             },
             {
               "section": "Kok",
@@ -108,7 +108,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/hydro-data.csv",
               "kind": "CSV",
               "size": 88,
-              "modified": "2026-10-06T11:39:49.124368+00:00"
+              "modified": "2026-10-06T11:41:38.681385+00:00"
             },
             {
               "section": "Kok",
@@ -119,7 +119,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/hydro-demo.ipynb",
               "kind": "IPYNB",
               "size": 498,
-              "modified": "2026-10-06T11:39:49.124368+00:00"
+              "modified": "2026-10-06T11:41:38.681385+00:00"
             },
             {
               "section": "Kok",
@@ -130,7 +130,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/hydro-demo.py",
               "kind": "PY",
               "size": 240,
-              "modified": "2026-10-06T11:39:49.124368+00:00"
+              "modified": "2026-10-06T11:41:38.681385+00:00"
             },
             {
               "section": "Kok",
@@ -141,7 +141,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/kok-example.md",
               "kind": "MD",
               "size": 218,
-              "modified": "2026-10-06T11:39:49.124368+00:00"
+              "modified": "2026-10-06T11:41:38.681385+00:00"
             },
             {
               "section": "Modeller",
@@ -152,7 +152,7 @@
               "path": "./examples/models/assembly-demo.3mf",
               "kind": "3MF",
               "size": 1217,
-              "modified": "2026-10-06T11:39:49.123534+00:00"
+              "modified": "2026-10-06T11:41:38.680350+00:00"
             },
             {
               "section": "Modeller",
@@ -163,7 +163,7 @@
               "path": "./examples/models/wedge.stl",
               "kind": "STL",
               "size": 1179,
-              "modified": "2026-10-06T11:39:49.123617+00:00"
+              "modified": "2026-10-06T11:41:38.680552+00:00"
             },
             {
               "section": "Quiz",
@@ -174,7 +174,7 @@
               "path": "./examples/semesters/5/TMR4182/Quiz/hydro-basics.quiz.json",
               "kind": "QUIZ",
               "size": 524,
-              "modified": "2026-10-06T11:39:49.124368+00:00"
+              "modified": "2026-10-06T11:41:38.681385+00:00"
             },
             {
               "section": "Videoer",
@@ -185,7 +185,7 @@
               "path": "./examples/semesters/5/TMR4182/Videoer/demo.mp4",
               "kind": "VIDEO",
               "size": 2880,
-              "modified": "2026-10-06T11:39:49.124368+00:00"
+              "modified": "2026-10-06T11:41:38.681385+00:00"
             },
             {
               "section": "Øvinger",
@@ -198,7 +198,7 @@
               "path": "./examples/semesters/5/TMR4182/Øvinger/Øving 01/oppgave.pdf",
               "kind": "PDF",
               "size": 1922,
-              "modified": "2026-10-06T11:39:49.124874+00:00"
+              "modified": "2026-10-06T11:41:38.682050+00:00"
             },
             {
               "section": "Øvinger",
@@ -211,7 +211,7 @@
               "path": "./examples/semesters/5/TMR4182/Øvinger/Øving 01/plot.py",
               "kind": "PY",
               "size": 156,
-              "modified": "2026-10-06T11:39:49.124992+00:00"
+              "modified": "2026-10-06T11:41:38.682164+00:00"
             },
             {
               "section": "Øvinger",
@@ -224,7 +224,7 @@
               "path": "./examples/semesters/5/TMR4182/Øvinger/Øving 01/solve.py",
               "kind": "PY",
               "size": 203,
-              "modified": "2026-10-06T11:39:49.124992+00:00"
+              "modified": "2026-10-06T11:41:38.682164+00:00"
             }
           ]
         }
