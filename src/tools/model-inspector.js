@@ -6,6 +6,10 @@ function fmt(value,digits=4){
   return Number.isFinite(n)?n.toFixed(digits):"—";
 }
 
+function resultCard(label,value,unit=""){
+  return '<div class="tool-result-card"><span>'+label+'</span><strong>'+value+'</strong><small>'+unit+'</small></div>';
+}
+
 export function modelInspectorHTML(){
   return '<main class="tool-page model-inspector-page">'+
     '<div class="crumbs">Courses / Tools / Advanced model inspector</div>'+
@@ -57,14 +61,15 @@ export async function bindModelInspector(root){
       const summary=modelHydroSummary(documentModel,waterline,1025);
       const cb=summary.centerOfBuoyancy;
       const cg=summary.solidCentroid;
-      results.innerHTML='        <div class="tool-result-grid">        '<div class="tool-result-card"><span>Topology</span><strong>'+(summary.diagnostics.watertight?"Watertight":"Check geometry")+'</strong><small>'+summary.diagnostics.triangles+' triangles</small></div>'+
-        '<div class="tool-result-card"><span>Solid volume</span><strong>'+fmt(summary.solidVolume,4)+'</strong><small>m³</small></div>'+
-        '<div class="tool-result-card"><span>Geometric centroid</span><strong>'+cg.map(v=>fmt(v,3)).join(", ")+'</strong><small>x, y, z m</small></div>'+
-        '<div class="tool-result-card"><span>Submerged volume</span><strong>'+fmt(summary.volume,4)+'</strong><small>m³</small></div>'+
-        '<div class="tool-result-card"><span>Displacement</span><strong>'+fmt(summary.displacementKg/1000,3)+'</strong><small>tonnes @ 1025 kg/m³</small></div>'+
-        '<div class="tool-result-card"><span>Center of buoyancy</span><strong>'+cb.map(v=>fmt(v,3)).join(", ")+'</strong><small>x, y, z m</small></div>'+
-        '<div class="tool-result-card"><span>Waterplane area</span><strong>'+fmt(summary.waterplane.area,4)+'</strong><small>m²</small></div>'+
-        '<div class="tool-result-card"><span>Model size</span><strong>'+summary.diagnostics.bounds.size.map(v=>fmt(v,3)).join(" × ")+'</strong><small>m</small></div>'+
+      results.innerHTML='<div class="tool-result-grid">'+
+        resultCard("Topology",summary.diagnostics.watertight?"Watertight":"Check geometry",summary.diagnostics.triangles+" triangles")+
+        resultCard("Solid volume",fmt(summary.solidVolume,4),"m³")+
+        resultCard("Geometric centroid",cg.map(v=>fmt(v,3)).join(", "),"x, y, z m")+
+        resultCard("Submerged volume",fmt(summary.volume,4),"m³")+
+        resultCard("Displacement",fmt(summary.displacementKg/1000,3),"tonnes @ 1025 kg/m³")+
+        resultCard("Center of buoyancy",cb.map(v=>fmt(v,3)).join(", "),"x, y, z m")+
+        resultCard("Waterplane area",fmt(summary.waterplane.area,4),"m²")+
+        resultCard("Model size",summary.diagnostics.bounds.size.map(v=>fmt(v,3)).join(" × "),"m")+
         '</div>';
       setStatus(documentModel.name+" · "+documentModel.format);
     }catch(error){
