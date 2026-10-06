@@ -76,11 +76,11 @@ export const TOOL_REGISTRY=[
     title:"Theme creator",
     short:"TH",
     route:null,
-    status:"retired",
-    parity:"retired",
+    status:"legacy",
+    parity:"partial",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/theme-creator.html",
     category:"Developer",
-    summary:"Retired in v2. Theme ownership is centralized in Settings; the old CSS/JS generator is intentionally not migrated.",
+    summary:"Legacy CSS/JS theme generator preserved while its authoring functions move into v2 Developer/Appearance tools.",
     keywords:["theme","css","colors","settings","developer"]
   },
   {
@@ -88,11 +88,11 @@ export const TOOL_REGISTRY=[
     title:"Image to theme",
     short:"IMG",
     route:null,
-    status:"retired",
-    parity:"retired",
+    status:"legacy",
+    parity:"partial",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/image-to-theme.html",
     category:"Developer",
-    summary:"Retired in v2. Image-derived theme generation is intentionally not part of the new Settings-based theme system.",
+    summary:"Legacy image palette extraction, role assignment and theme export preserved during v2 migration.",
     keywords:["image","theme","palette","colors","json","css","export"]
   }
 ];
@@ -102,7 +102,7 @@ export function activeTools(){
 }
 
 export function visibleTools(){
-  return TOOL_REGISTRY.filter(tool=>tool.status!=="retired"&&(tool.route||tool.legacyUrl));
+  return TOOL_REGISTRY.filter(tool=>tool.route||tool.legacyUrl);
 }
 
 export function toolById(id){
@@ -114,5 +114,5 @@ export function toolParityComplete(tool){
 }
 
 export function toolsNeedingParityReview(){
-  return TOOL_REGISTRY.filter(tool=>tool.parity!=="full"&&tool.parity!=="retired");
+  return TOOL_REGISTRY.filter(tool=>tool.parity!=="full");
 }
