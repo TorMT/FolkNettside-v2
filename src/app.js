@@ -8,6 +8,7 @@ import {loadModelDocument} from "./model/load-model.js";
 import {mountModelScene} from "./model/model-scene.js";
 import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js";
 
 initSettings();
 
@@ -25,6 +26,7 @@ let hydroDraft=Number(model.hydro?.defaultDraft??1.20);
 let hydroTargetTonnes="";
 let hydroCurveCache={model:null,data:null};
 let structureLoadKn=-20;
+let resistanceSpeedKn=10;
 
 function getEngineeringDocument(){
   if(!engineeringDocumentPromise){
@@ -122,6 +124,41 @@ async function engineeringPage(){
     }catch(error){
       if(renderId!==engineeringRenderId)return;
       app.innerHTML=top("engineering")+`<main class="study"><section class="study-main"><div class="course-header"><h1>Structure error</h1><p>${String(error?.message||error)}</p></div></section></main>`;
+      bindNav();
+    }
+    return;
+  }
+
+  if(engineeringMode==="Resistance"){
+    try{
+      const fixture=await loadResistanceFixture();
+      if(renderId!==engineeringRenderId)return;
+      const resistance=resistancePanelHTML(fixture,{speedKnots:resistanceSpeedKn});
+      app.innerHTML=top("engineering")+`<main class="workspace">
+        <div class="workspace-bar"><strong>${fixture.name}</strong><div class="mode-tabs">
+          ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
+        </div></div>
+        <aside class="tree">
+          <div class="tree-label">Method</div>
+          <div class="tree-row selected"><span>≈</span>ITTC-1957 friction line</div>
+          <div class="tree-label">Inputs</div>
+          <div class="tree-row"><span>L</span>Length <span class="muted">${fixture.length} m</span></div>
+          <div class="tree-row"><span>S</span>Wetted surface <span class="muted">${fixture.wettedSurface} m²</span></div>
+        </aside>
+        <section class="viewport">${resistance.viewport}<div class="hud">Resistance · friction baseline</div></section>
+        <aside class="inspector">${resistance.inspector}</aside>
+        <section class="results"><div class="results-summary">${resistance.summary}</div>${resistance.results}</section>
+        <footer class="statusbar"><span>Units SI</span><span>ITTC-1957</span><span>Mode Resistance</span><span class="top-spacer"></span><span>Not total resistance</span></footer>
+      </main><div class="preview-badge">Resistance · ITTC friction baseline</div>`;
+      bindNav();
+      app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
+      app.querySelector("#resistance-speed")?.addEventListener("change",event=>{
+        resistanceSpeedKn=Number(event.target.value)||0;
+        engineeringPage();
+      });
+    }catch(error){
+      if(renderId!==engineeringRenderId)return;
+      app.innerHTML=top("engineering")+`<main class="study"><section class="study-main"><div class="course-header"><h1>Resistance error</h1><p>${String(error?.message||error)}</p></div></section></main>`;
       bindNav();
     }
     return;

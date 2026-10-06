@@ -63,3 +63,5 @@
 
 .structure-stage{position:absolute;inset:0;display:grid;place-items:center;background:var(--surface-sunk);padding:18px}.structure-svg{width:100%;height:100%;max-height:100%;overflow:visible}.structure-results{display:grid;grid-template-columns:minmax(300px,1fr) minmax(280px,.75fr);gap:12px;padding:12px}.structure-diagram{border:1px solid var(--line);border-radius:8px;background:var(--surface-sunk);min-height:180px;padding:8px}.structure-diagram .structure-svg{height:180px}
 @media(max-width:900px){.structure-results{grid-template-columns:1fr}}
+
+.resistance-stage{position:absolute;inset:0;display:grid;place-items:center;background:var(--surface-sunk);padding:18px}.resistance-svg{width:100%;height:100%;max-height:100%}.resistance-results{padding:12px}.resistance-results .hydro-grid{padding:0}.resistance-warning{margin-top:10px;border:1px solid var(--warn);border-radius:8px;padding:10px 12px;font-size:12px;background:color-mix(in srgb,var(--warn) 7%,var(--surface))}

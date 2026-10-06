@@ -1,0 +1,10 @@
+{
+  "name": "ITTC friction baseline fixture",
+  "length": 50,
+  "wettedSurface": 500,
+  "density": 1025,
+  "kinematicViscosity": 0.00000119,
+  "speedKnots": 10,
+  "maxSpeedKnots": 14,
+  "notes": "Frictional resistance only. No form factor, appendage, wave-making, air or correlation allowance."
+}
