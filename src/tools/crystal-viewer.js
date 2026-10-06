@@ -320,7 +320,11 @@ export async function mountCrystalViewer(container,state={}){
   if(analysisTarget){
     const composition=Object.entries(analysis.composition).map(([name,value])=>name+":"+value).join(" · ")||"—";
     const defects=Object.entries(analysis.defects).filter(([,value])=>value>0).map(([name,value])=>name+":"+value).join(" · ")||"none";
+    const identification=analysis.identification||{};
     analysisTarget.innerHTML=
+      '<div class="readout"><span>Identification</span><strong>'+String(identification.type||analysis.structureName)+'</strong></div>'+
+      '<div class="readout"><span>Confidence</span><strong>'+String(identification.confidence??0)+'%</strong></div>'+
+      '<div class="readout"><span>Coordination</span><strong>'+String(identification.coordination?.mode??analysis.coordinationNumber??"—")+'</strong></div>'+
       '<div class="readout"><span>Composition</span><strong>'+composition+'</strong></div>'+
       '<div class="readout"><span>Active atoms</span><strong>'+analysis.activeAtoms+'</strong></div>'+
       '<div class="readout"><span>Defects</span><strong>'+defects+'</strong></div>'+

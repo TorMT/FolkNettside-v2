@@ -83,3 +83,46 @@ test("plane intersections reproduce legacy bond cut markers",()=>{
   assert.equal(cuts.length,1);
   assert.deepEqual(cuts[0].point,[.5,0,0]);
 });
+
+
+test("first-shell detection separates a clear neighbor shell",()=>{
+  const cutoff=firstShellCutoff([1,1,1,1,1.8,2]);
+  assert.ok(cutoff>1&&cutoff<1.2);
+});
+
+test("coordination stats recover a BCC-like center coordination",()=>{
+  const center={pos:[0,0,0],species:"Fe",active:true};
+  const corners=[];
+  for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1])corners.push({pos:[x,y,z],species:"Fe",active:true});
+  const stats=coordinationStats([center,...corners]);
+  assert.equal(stats.values[0],8);
+});
+
+test("crystal identification preserves explicit structure knowledge",()=>{
+  const sites=[
+    {pos:[0,0,0],species:"Fe",active:true},
+    {pos:[1,1,1],species:"Fe",active:true}
+  ];
+  const result=identifyCrystal({structureId:"bcc",sites});
+  assert.equal(result.type,"BCC (Body-Centered Cubic)");
+  assert.ok(result.confidence>=90);
+});
+
+test("crystal identification retains legacy alloy heuristics",()=>{
+  const steel=identifyCrystal({
+    sites:[
+      ...Array.from({length:99},(_,i)=>({pos:[i,0,0],species:"Fe",active:true})),
+      {pos:[.5,.5,.5],species:"C",active:true}
+    ]
+  });
+  assert.match(steel.type,/Carbon steel/i);
+
+  const stainless=identifyCrystal({
+    sites:[
+      ...Array.from({length:8},(_,i)=>({pos:[i,0,0],species:"Fe",active:true})),
+      ...Array.from({length:2},(_,i)=>({pos:[i,.5,0],species:"Cr",active:true})),
+      {pos:[0,1,0],species:"Ni",active:true}
+    ]
+  });
+  assert.match(stainless.type,/Stainless/i);
+});

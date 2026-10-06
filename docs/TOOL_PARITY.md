@@ -118,11 +118,18 @@ Migrated:
 - composition/defect/bond/plane analyzer summary
 - shared Three.js renderer with render-on-demand and cleanup
 
-Remaining before review/full:
-- compare the legacy advanced automatic structure/material analyzer against v2 and migrate any useful identification heuristics not represented by the explicit structure/preset model
-- side-by-side interaction/visual verification
+Analyzer parity added:
+- first-shell cutoff detection
+- coordination distribution, average and mode
+- common SC/BCC/FCC/Diamond/NaCl/CsCl/ZnS/CaF2/Spinel matching
+- stoichiometric ratio matching
+- Fe-C / Fe3C-like and Fe-Cr(-Ni) material heuristics
+- defect-aware confidence/details
 
-Status: `partial`. Legacy fallback remains available.
+Remaining:
+- final side-by-side interaction/visual verification.
+
+Status: `review`. Legacy fallback remains available until `full`.
 
 ## Chemical structure editor
 

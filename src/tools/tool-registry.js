@@ -41,7 +41,7 @@ export const TOOL_REGISTRY=[
     short:"3D",
     route:"/tools/crystal",
     status:"prototype",
-    parity:"partial",
+    parity:"review",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/KrystallStrukturer/krystall-viewer.html",
     category:"Chemistry",
     summary:"Shared Three.js crystal editor with structures, defects, holes, measurement, planes and analysis; legacy analyzer remains available during review.",
