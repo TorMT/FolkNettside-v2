@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 URL="https://tormt.folk.ntnu.no/Tools/Coolprop/coolprop.wasm"
 OUTPUT=ROOT/"src/vendor/coolprop/coolprop.wasm"
-EXPECTED_SIZE=4215367
+EXPECTED_SIZE=4175872
 EXPECTED_GIT_BLOB_SHA1="db4c724c417c9614a600c5105946be1605a02106"
 
 def git_blob_sha1(data: bytes) -> str:
@@ -32,6 +32,8 @@ def main() -> int:
     if data[:4]!=b"\x00asm":
         raise SystemExit("CoolProp download is not a WebAssembly binary")
     actual=git_blob_sha1(data)
+    sha256=hashlib.sha256(data).hexdigest()
+    print(f"Downloaded CoolProp WASM: {len(data)} bytes; git blob {actual}; sha256 {sha256}")
     if actual!=EXPECTED_GIT_BLOB_SHA1:
         raise SystemExit(f"CoolProp Git blob SHA mismatch: {actual}")
 

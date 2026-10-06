@@ -30,7 +30,8 @@ export function coolPropToolHTML(state={}){
     <div class="crumbs">Courses / Tools / CoolProp</div>
     <header class="tool-header">
       <div><span class="project-kicker">Thermodynamics tool</span><h1>CoolProp</h1>
-      <p>Local WebAssembly property engine. Choose two independent properties and calculate the thermodynamic state entirely in the browser.</p></div>
+      <p>Local WebAssembly property engine. Choose two independent properties and calculate the thermodynamic state entirely in the browser.</p>
+      <div class="tool-parity-banner"><strong>Migration in progress:</strong> the v2 state-point calculator is functional, while Batch, Process, diagrams and export are being ported. <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">Open the full legacy tool ↗</a></div></div>
       <div class="coolprop-engine-status" id="coolprop-status">Engine not loaded</div>
     </header>
     <section class="tool-layout">

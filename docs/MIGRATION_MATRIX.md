@@ -22,7 +22,7 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | FEM | engineering workspace Structure mode | cantilever frame JSON | prototype | Tested 2D Euler–Bernoulli frame solver; shell/solid later |
 | CFD/resistance | Resistance workspace baseline | ITTC friction JSON | prototype | ITTC-1957 friction only; total resistance/OpenFOAM later |
 | Thruster flow | Propulsion workspace baseline | actuator-disk JSON + 3MF thruster | prototype | Ideal disk reads thruster metadata from ModelDocument; OpenFOAM coupling later |
-| CoolProp | lazy local WASM Tools module | verified legacy WASM + fake-engine CI | prototype | Two-input state calculator; engine fetched/verified at build, loaded only on demand |
+| CoolProp | lazy local WASM Tools module | legacy engine + fake-engine CI | prototype | Partial parity; legacy fallback retained until Batch/Process/diagrams/export/book-basis/help are ported |
 | Fluid calculator | shared Tools calculator | legacy polynomial fixture | prototype | Pure tested core; legacy validity warnings; CoolProp remains separate |
 | ChemDraw | chemistry tool module | pending | planned | Review active use |
 | Crystal structures | shared Three.js Tools module | BCC/FCC/HCP analytic cells | prototype | Tested lattice core; render-on-demand and shared Three.js runtime |
