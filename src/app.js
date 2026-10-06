@@ -57,6 +57,7 @@ function getSemester(id){return semesters.find(s=>Number(s.id)===Number(id))}
 function getCourse(semesterId,code){return getSemester(semesterId)?.courses.find(c=>c.code.toLowerCase()===String(code).toLowerCase())}
 function courseRoute(semester,code){return `/courses/${semester}/${encodeURIComponent(code)}`}
 function viewerRoute(semester,code,index){return `/viewer/${semester}/${encodeURIComponent(code)}/${index}`}
+function engineeringModeRoute(mode){return `/engineering/${String(mode).toLowerCase()}`}
 
 function top(active){return '<header class="topbar"><div class="brand" id="home"><span class="brand-mark"></span>FolkNettside</div><nav class="nav"><button data-go="/portfolio" class="'+(active==="portfolio"?"active":"")+'">Projects</button><button data-go="/engineering" class="'+(active==="engineering"?"active":"")+'">Engineering</button><button data-go="/portfolio">About</button><button data-go="/portfolio">CV</button><button data-go="/portfolio">Contact</button></nav><span class="top-spacer"></span><nav class="nav"><button data-go="/courses" class="'+(active==="courses"?"active":"")+'">'+navLabels.courses+'</button></nav><div class="top-actions"><button class="icon-btn" aria-label="Search">⌕</button><button class="icon-btn" data-go="/settings" aria-label="Settings">⚙</button></div></header>'}
 function bindNav(){app.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));app.querySelector("#home")?.addEventListener("click",()=>go("/portfolio"))}
@@ -120,7 +121,7 @@ async function engineeringPage(){
         <footer class="statusbar"><span>Units SI</span><span>2D frame</span><span>Mode Structure</span><span class="top-spacer"></span><span>Linear static</span></footer>
       </main><div class="preview-badge">Structure · tested frame FEM</div>`;
       bindNav();
-      app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
+      app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       app.querySelector("#structure-load")?.addEventListener("change",event=>{
         structureLoadKn=Number(event.target.value)||0;
         engineeringPage();
@@ -155,7 +156,7 @@ async function engineeringPage(){
         <footer class="statusbar"><span>Units SI</span><span>ITTC-1957</span><span>Mode Resistance</span><span class="top-spacer"></span><span>Not total resistance</span></footer>
       </main><div class="preview-badge">Resistance · ITTC friction baseline</div>`;
       bindNav();
-      app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
+      app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       app.querySelector("#resistance-speed")?.addEventListener("change",event=>{
         resistanceSpeedKn=Number(event.target.value)||0;
         engineeringPage();
@@ -194,7 +195,7 @@ async function engineeringPage(){
         <footer class="statusbar"><span>Units SI</span><span>Momentum theory</span><span>Mode Propulsion</span><span class="top-spacer"></span><span>Ideal estimate</span></footer>
       </main><div class="preview-badge">Propulsion · actuator disk baseline</div>`;
       bindNav();
-      app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
+      app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       const rerun=()=>{
         propulsionThrustKn=Number(app.querySelector("#propulsion-thrust")?.value)||0;
         propulsionInflow=Number(app.querySelector("#propulsion-inflow")?.value)||0;
@@ -227,7 +228,7 @@ async function engineeringPage(){
       <footer class="statusbar"><span>Units SI</span><span class="top-spacer"></span><span>Loading model…</span></footer>
     </main>`;
     bindNav();
-    app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
+    app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
     getEngineeringDocument()
       .then(()=>{if(renderId===engineeringRenderId)engineeringPage()})
       .catch(error=>{
@@ -341,7 +342,7 @@ async function engineeringPage(){
     const query=event.target.value.trim().toLowerCase();
     app.querySelectorAll("[data-component]").forEach(row=>row.hidden=query&&!row.dataset.componentName.includes(query));
   });
-  app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
+  app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
   app.querySelector("#hydro-draft")?.addEventListener("change",event=>{hydroDraft=Number(event.target.value)||0;engineeringPage()});
   app.querySelector("#hydro-solve")?.addEventListener("click",()=>{
     hydroTargetTonnes=app.querySelector("#hydro-target")?.value??"";engineeringPage();
@@ -353,5 +354,5 @@ async function engineeringPage(){
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
 
-async function render(){const path=route(),viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/settings")return settingsPage();if(path==="/engineering")return engineeringPage();return portfolioPage()}
+async function render(){const path=route(),viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
 window.addEventListener("hashchange",render);render();
