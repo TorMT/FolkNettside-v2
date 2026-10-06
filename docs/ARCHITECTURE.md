@@ -5,9 +5,9 @@ This repository is isolated from the existing production FolkNettside.
 ## Current direction
 
 - one shared app shell
-- Study keeps Semester -> Course -> Resources
-- Kok belongs inside Study/course content
-- Portfolio does not surface Kok or study archive details
+- Courses keeps Semester -> Course -> Resources
+- Kok belongs inside Courses/course content
+- Portfolio does not surface Kok or course archive details
 - public browsing is default
 - Google/Autodesk connections are optional
 - theme controls live only under Settings
