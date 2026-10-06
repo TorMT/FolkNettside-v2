@@ -19,9 +19,13 @@ test("air legacy fit returns derived properties consistently",()=>{
   assert.equal(r.warnings.length,0);
 });
 
-test("water fit warns outside documented range",()=>{
-  const r=fluidProperties("water",120,"C");
+test("water fit warns outside documented range while still physical",()=>{
+  const r=fluidProperties("water",-5,"C");
   assert.equal(r.warnings.length,1);
+});
+
+test("non-physical legacy polynomial output is rejected",()=>{
+  assert.throws(()=>fluidProperties("water",80,"C"),/non-physical property/);
 });
 
 test("invalid absolute temperature is rejected",()=>{
