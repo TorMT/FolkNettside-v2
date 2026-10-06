@@ -1,19 +1,27 @@
 #!/usr/bin/env python3
-"""Build the v2 course/content manifest from a semester folder tree.
+"""Fast manifest updater for FolkNettside v2.
 
-The script intentionally has one job:
-  folders + small course metadata -> data/content-manifest.json
+The updater deliberately never reads ordinary resource file contents.
+Large PDFs, videos, CAD archives, etc. are treated as directory metadata only:
+name, path, size and modified time.
 
-It does not patch HTML, rewrite navigation, modify viewers, or deploy anything.
+Usage:
+  python scripts/update_site.py
+  python scripts/update_site.py --semester 5
+  python scripts/update_site.py --semester 5 --course TMR4182
 """
 
 from __future__ import annotations
 
 import argparse
+import copy
 import json
+import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Iterator
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE = ROOT / "examples" / "semesters"
@@ -21,47 +29,18 @@ DEFAULT_OUTPUT = ROOT / "data" / "content-manifest.json"
 
 IGNORE_NAMES = {"course.json", "index.json", ".DS_Store", "Thumbs.db"}
 KIND_BY_SUFFIX = {
-    ".pdf": "PDF",
-    ".md": "MD",
-    ".txt": "TXT",
-    ".py": "PY",
-    ".js": "JS",
-    ".mjs": "JS",
-    ".ts": "TS",
-    ".tsx": "TSX",
-    ".jsx": "JSX",
-    ".java": "JAVA",
-    ".c": "C",
-    ".cc": "CPP",
-    ".cpp": "CPP",
-    ".h": "H",
-    ".hpp": "HPP",
-    ".cs": "CS",
-    ".json": "JSON",
-    ".yaml": "YAML",
-    ".yml": "YAML",
-    ".csv": "CSV",
-    ".html": "HTML",
-    ".htm": "HTML",
-    ".tex": "TEX",
+    ".pdf": "PDF", ".md": "MD", ".txt": "TXT", ".py": "PY",
+    ".js": "JS", ".mjs": "JS", ".ts": "TS", ".tsx": "TSX", ".jsx": "JSX",
+    ".java": "JAVA", ".c": "C", ".cc": "CPP", ".cpp": "CPP",
+    ".h": "H", ".hpp": "HPP", ".cs": "CS",
+    ".json": "JSON", ".yaml": "YAML", ".yml": "YAML",
+    ".csv": "CSV", ".html": "HTML", ".htm": "HTML", ".tex": "TEX",
     ".ipynb": "IPYNB",
-    ".doc": "DOC",
-    ".docx": "DOCX",
-    ".xls": "XLS",
-    ".xlsx": "XLSX",
-    ".ppt": "PPT",
-    ".pptx": "PPTX",
-    ".mp4": "VIDEO",
-    ".webm": "VIDEO",
-    ".mkv": "VIDEO",
-    ".stl": "STL",
-    ".3mf": "3MF",
-    ".step": "STEP",
-    ".stp": "STEP",
-    ".iges": "IGES",
-    ".igs": "IGES",
-    ".f3d": "F3D",
-    ".f3z": "F3Z",
+    ".doc": "DOC", ".docx": "DOCX", ".xls": "XLS", ".xlsx": "XLSX",
+    ".ppt": "PPT", ".pptx": "PPTX",
+    ".mp4": "VIDEO", ".webm": "VIDEO", ".mkv": "VIDEO", ".mov": "VIDEO",
+    ".stl": "STL", ".3mf": "3MF", ".step": "STEP", ".stp": "STEP",
+    ".iges": "IGES", ".igs": "IGES", ".f3d": "F3D", ".f3z": "F3Z",
 }
 
 def rel_web(path: Path) -> str:
@@ -86,10 +65,38 @@ def load_json(path: Path) -> dict:
         raise ValueError(f"{path} must contain a JSON object")
     return data
 
-def resource(path: Path, section: str, label: str | None = None) -> dict:
-    stat = path.stat()
+def walk_files(root: Path) -> Iterator[tuple[Path, os.stat_result]]:
+    """Recursive scandir walk with one stat call per file.
+
+    File contents are never opened here. This keeps large video/CAD files cheap.
+    """
+    stack = [root]
+    while stack:
+        directory = stack.pop()
+        with os.scandir(directory) as entries:
+            for entry in entries:
+                if entry.name.startswith("."):
+                    continue
+                if entry.is_dir(follow_symlinks=False):
+                    stack.append(Path(entry.path))
+                    continue
+                if not entry.is_file(follow_symlinks=False) or entry.name in IGNORE_NAMES:
+                    continue
+                yield Path(entry.path), entry.stat(follow_symlinks=False)
+
+def resource(
+    path: Path,
+    course_dir: Path,
+    stat: os.stat_result,
+    section: str,
+    label: str | None = None,
+) -> dict:
+    relative = path.relative_to(course_dir)
+    nested = list(relative.parts[1:-1]) if len(relative.parts) > 2 else []
     return {
         "section": section,
+        "folders": nested,
+        "relativePath": relative.as_posix(),
         "name": path.name,
         "label": label or prettify(path.name),
         "path": "./" + rel_web(path),
@@ -108,12 +115,10 @@ def scan_course(semester_id: int, course_dir: Path) -> dict:
     section_order = list(meta.get("sectionOrder") or [])
     resources: list[dict] = []
 
-    for path in sorted(course_dir.rglob("*"), key=lambda p: p.as_posix().lower()):
-        if not path.is_file() or path.name in IGNORE_NAMES or path.name.startswith("."):
-            continue
+    for path, stat in walk_files(course_dir):
         relative = path.relative_to(course_dir)
         section = relative.parts[0] if len(relative.parts) > 1 else "Filer og ressurser"
-        resources.append(resource(path, section))
+        resources.append(resource(path, course_dir, stat, section))
 
     for extra in meta.get("extraResources", []):
         if not isinstance(extra, dict) or not extra.get("path"):
@@ -121,10 +126,27 @@ def scan_course(semester_id: int, course_dir: Path) -> dict:
         path = ROOT / str(extra["path"])
         if not path.exists() or not path.is_file():
             raise FileNotFoundError(f"extra resource not found: {path}")
-        resources.append(resource(path, str(extra.get("section") or "Filer og ressurser"), extra.get("label")))
+        stat = path.stat()
+        resources.append({
+            "section": str(extra.get("section") or "Filer og ressurser"),
+            "folders": [],
+            "relativePath": path.name,
+            "name": path.name,
+            "label": str(extra.get("label") or prettify(path.name)),
+            "path": "./" + rel_web(path),
+            "kind": detect_kind(path),
+            "size": stat.st_size,
+            "modified": datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
+        })
 
-    seen = set()
-    deduped = []
+    resources.sort(key=lambda item: (
+        item["section"].casefold(),
+        [part.casefold() for part in item["folders"]],
+        item["name"].casefold(),
+    ))
+
+    seen: set[tuple[str, str]] = set()
+    deduped: list[dict] = []
     for item in resources:
         key = (item["section"], item["path"])
         if key not in seen:
@@ -145,32 +167,100 @@ def scan_course(semester_id: int, course_dir: Path) -> dict:
         "resources": deduped,
     }
 
-def build_manifest(source: Path) -> dict:
-    semesters: list[dict] = []
+def scan_semester(source: Path, semester_id: int, course_code: str | None = None) -> dict:
+    semester_dir = source / str(semester_id)
+    if not semester_dir.is_dir():
+        raise FileNotFoundError(f"semester not found: {semester_dir}")
+
+    course_dirs = sorted(
+        (p for p in semester_dir.iterdir() if p.is_dir()),
+        key=lambda p: p.name.casefold(),
+    )
+    if course_code:
+        wanted = course_code.casefold()
+        course_dirs = [p for p in course_dirs if p.name.casefold() == wanted]
+        if not course_dirs:
+            raise FileNotFoundError(f"course not found: {semester_dir / course_code}")
+
+    courses = [scan_course(semester_id, course_dir) for course_dir in course_dirs]
+    return {"id": semester_id, "label": f"Semester {semester_id}", "courses": courses}
+
+def build_full_manifest(source: Path) -> dict:
     if not source.exists():
         raise FileNotFoundError(f"semester source not found: {source}")
 
-    for semester_dir in sorted((p for p in source.iterdir() if p.is_dir()), key=lambda p: p.name):
-        try:
-            semester_id = int(semester_dir.name)
-        except ValueError:
+    semester_ids = []
+    for path in source.iterdir():
+        if not path.is_dir():
             continue
+        try:
+            semester_ids.append(int(path.name))
+        except ValueError:
+            pass
 
-        courses = [
-            scan_course(semester_id, course_dir)
-            for course_dir in sorted((p for p in semester_dir.iterdir() if p.is_dir()), key=lambda p: p.name.casefold())
-        ]
-        semesters.append({"id": semester_id, "label": f"Semester {semester_id}", "courses": courses})
-
+    semesters = [scan_semester(source, semester_id) for semester_id in sorted(semester_ids)]
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "source": rel_web(source),
         "semesters": semesters,
     }
 
+def merge_scope(
+    current: dict,
+    source: Path,
+    semester_id: int,
+    course_code: str | None,
+) -> dict:
+    """Update only one semester/course while preserving the rest of the manifest."""
+    result = copy.deepcopy(current) if current else {
+        "schemaVersion": 2,
+        "source": rel_web(source),
+        "semesters": [],
+    }
+    result["schemaVersion"] = 2
+    result["source"] = rel_web(source)
+    result["generatedAt"] = datetime.now(timezone.utc).isoformat()
+
+    semesters = list(result.get("semesters") or [])
+    index = next((i for i, item in enumerate(semesters) if int(item.get("id", -1)) == semester_id), None)
+
+    if course_code is None:
+        scanned = scan_semester(source, semester_id)
+        if index is None:
+            semesters.append(scanned)
+        else:
+            semesters[index] = scanned
+    else:
+        scanned_course = scan_semester(source, semester_id, course_code)["courses"][0]
+        if index is None:
+            semesters.append({
+                "id": semester_id,
+                "label": f"Semester {semester_id}",
+                "courses": [scanned_course],
+            })
+        else:
+            semester = copy.deepcopy(semesters[index])
+            courses = list(semester.get("courses") or [])
+            course_index = next(
+                (i for i, item in enumerate(courses)
+                 if str(item.get("code", "")).casefold() == course_code.casefold()),
+                None,
+            )
+            if course_index is None:
+                courses.append(scanned_course)
+            else:
+                courses[course_index] = scanned_course
+            courses.sort(key=lambda item: str(item.get("code", "")).casefold())
+            semester["courses"] = courses
+            semesters[index] = semester
+
+    semesters.sort(key=lambda item: int(item.get("id", 0)))
+    result["semesters"] = semesters
+    return result
+
 def stable_for_check(data: dict) -> dict:
-    clone = dict(data)
+    clone = copy.deepcopy(data)
     clone.pop("generatedAt", None)
     for semester in clone.get("semesters", []):
         for course in semester.get("courses", []):
@@ -182,12 +272,29 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--check", action="store_true", help="Fail if the committed manifest is stale")
+    parser.add_argument("--semester", type=int, help="Only update one semester")
+    parser.add_argument("--course", help="Only update one course; requires --semester")
+    parser.add_argument("--check", action="store_true", help="Fail if the full committed manifest is stale")
     args = parser.parse_args()
+
+    if args.course and args.semester is None:
+        parser.error("--course requires --semester")
+    if args.check and (args.semester is not None or args.course):
+        parser.error("--check validates the full manifest and cannot be combined with a scope")
 
     source = args.source if args.source.is_absolute() else ROOT / args.source
     output = args.output if args.output.is_absolute() else ROOT / args.output
-    manifest = build_manifest(source)
+    started = time.perf_counter()
+
+    if args.semester is None:
+        manifest = build_full_manifest(source)
+        scope = "all semesters"
+    else:
+        current = load_json(output) if output.exists() else {}
+        manifest = merge_scope(current, source, args.semester, args.course)
+        scope = f"semester {args.semester}"
+        if args.course:
+            scope += f" / {args.course}"
 
     if args.check:
         if not output.exists():
@@ -197,14 +304,30 @@ def main() -> int:
         if stable_for_check(current) != stable_for_check(manifest):
             print("content manifest is stale; run: python scripts/update_site.py", file=sys.stderr)
             return 1
-        print("content manifest is up to date")
+        print(f"content manifest is up to date ({time.perf_counter()-started:.3f}s)")
         return 0
 
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    total_courses = sum(len(s["courses"]) for s in manifest["semesters"])
-    total_files = sum(len(c["resources"]) for s in manifest["semesters"] for c in s["courses"])
-    print(f"Updated {output.relative_to(ROOT)}: {len(manifest['semesters'])} semester(s), {total_courses} course(s), {total_files} resource(s)")
+
+    target_courses = [
+        course
+        for semester in manifest.get("semesters", [])
+        if args.semester is None or int(semester["id"]) == args.semester
+        for course in semester.get("courses", [])
+        if not args.course or course["code"].casefold() == args.course.casefold()
+    ]
+    total_files = sum(len(course["resources"]) for course in target_courses)
+    video_files = sum(
+        1 for course in target_courses for item in course["resources"]
+        if item["kind"] == "VIDEO"
+    )
+    elapsed = time.perf_counter() - started
+    print(
+        f"Updated {scope}: {len(target_courses)} course(s), "
+        f"{total_files} resource(s), {video_files} video(s) in {elapsed:.3f}s"
+    )
+    print("Large resources were indexed from filesystem metadata only; contents were not read.")
     return 0
 
 if __name__ == "__main__":
