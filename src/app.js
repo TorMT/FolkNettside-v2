@@ -7,6 +7,7 @@ import {renderProjectCard,renderProjectDetail} from "./components/project-card.j
 import {loadModelDocument} from "./model/load-model.js";
 import {mountModelScene} from "./model/model-scene.js";
 import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 
 initSettings();
 
@@ -23,6 +24,7 @@ let engineeringMode="Model";
 let hydroDraft=Number(model.hydro?.defaultDraft??1.20);
 let hydroTargetTonnes="";
 let hydroCurveCache={model:null,data:null};
+let structureLoadKn=-20;
 
 function getEngineeringDocument(){
   if(!engineeringDocumentPromise){
@@ -88,12 +90,48 @@ async function engineeringPage(){
   engineeringCleanup?.();
   engineeringCleanup=null;
   document.documentElement.dataset.lens="workspace";
+  const modes=["Model","Hydro","Structure","Resistance","Propulsion"];
+
+  if(engineeringMode==="Structure"){
+    try{
+      const fixture=await loadStructureFixture();
+      if(renderId!==engineeringRenderId)return;
+      const structure=structurePanelHTML(fixture,{loadFy:structureLoadKn*1000});
+      const caseModel=structure.model;
+      app.innerHTML=top("engineering")+`<main class="workspace">
+        <div class="workspace-bar"><strong>${caseModel.name}</strong><div class="mode-tabs">
+          ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
+        </div></div>
+        <aside class="tree">
+          <div class="tree-label">Frame nodes</div>
+          ${caseModel.nodes.map(node=>`<div class="tree-row"><span>○</span>${node.id} <span class="muted">(${node.x}, ${node.y})</span></div>`).join("")}
+          <div class="tree-label">Elements</div>
+          ${caseModel.elements.map(element=>`<div class="tree-row"><span>─</span>${element.id} <span class="muted">${element.n1}→${element.n2}</span></div>`).join("")}
+        </aside>
+        <section class="viewport">${structure.viewport}<div class="hud">2D frame FEM · Euler–Bernoulli</div></section>
+        <aside class="inspector">${structure.inspector}</aside>
+        <section class="results"><div class="results-summary">${structure.summary}</div>${structure.results}</section>
+        <footer class="statusbar"><span>Units SI</span><span>2D frame</span><span>Mode Structure</span><span class="top-spacer"></span><span>Linear static</span></footer>
+      </main><div class="preview-badge">Structure · tested frame FEM</div>`;
+      bindNav();
+      app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
+      app.querySelector("#structure-load")?.addEventListener("change",event=>{
+        structureLoadKn=Number(event.target.value)||0;
+        engineeringPage();
+      });
+    }catch(error){
+      if(renderId!==engineeringRenderId)return;
+      app.innerHTML=top("engineering")+`<main class="study"><section class="study-main"><div class="course-header"><h1>Structure error</h1><p>${String(error?.message||error)}</p></div></section></main>`;
+      bindNav();
+    }
+    return;
+  }
 
   if(!engineeringDocument){
     const fallback=configuredComponents||[];
     app.innerHTML=top("engineering")+`<main class="workspace">
       <div class="workspace-bar"><strong>${model.name}</strong><div class="mode-tabs">
-        ${["Model","Hydro","Structure","Resistance","Propulsion"].map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
+        ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
       </div></div>
       <aside class="tree"><div class="tree-label">Components</div>
         ${fallback.map(c=>`<div class="tree-row" style="padding-left:${8+depthFor(c,fallback)*16}px">${c.type==="assembly"?"▾":"○"} ${c.name}</div>`).join("")}
@@ -128,13 +166,9 @@ async function engineeringPage(){
     const samples=Math.max(3,Number(config.curveSamples??9));
     try{
       const analysisPromise=analyzeHydroAsync(documentModel,hydroDraft);
-      let curvePromise;
-      if(hydroCurveCache.model===documentModel&&hydroCurveCache.data){
-        curvePromise=Promise.resolve(hydroCurveCache.data);
-      }else{
-        curvePromise=hydroCurveAsync(documentModel,{minWaterline,maxWaterline,samples});
-      }
-
+      const curvePromise=hydroCurveCache.model===documentModel&&hydroCurveCache.data
+        ? Promise.resolve(hydroCurveCache.data)
+        : hydroCurveAsync(documentModel,{minWaterline,maxWaterline,samples});
       let solvePromise=Promise.resolve(null);
       const target=Number(hydroTargetTonnes);
       if(Number.isFinite(target)&&target>0){
@@ -143,14 +177,11 @@ async function engineeringPage(){
           minWaterline,maxWaterline,tolerance:1e-7,maxIterations:60
         }).then(value=>({value,error:null})).catch(error=>({value:null,error:String(error?.message||error)}));
       }
-
       const [result,curve,solvedState]=await Promise.all([analysisPromise,curvePromise,solvePromise]);
       if(renderId!==engineeringRenderId)return;
       hydroCurveCache={model:documentModel,data:curve};
       hydro=hydroPanelHTML({
-        modelDocument:documentModel,
-        result,
-        curve,
+        modelDocument:documentModel,result,curve,
         solved:solvedState?.value||null,
         solveError:solvedState?.error||null,
         draft:hydroDraft,
@@ -161,11 +192,8 @@ async function engineeringPage(){
       if(renderId!==engineeringRenderId)return;
       hydro={
         inspector:`<h3>Hydro error</h3><p class="hydro-solve-error">${String(error?.message||error)}</p>`,
-        summary:"<strong>Hydro unavailable</strong>",
-        results:"",
-        draft:hydroDraft,
-        density:Number(model.hydro?.density)||1025,
-        waterlinePercent:0
+        summary:"<strong>Hydro unavailable</strong>",results:"",
+        draft:hydroDraft,density:Number(model.hydro?.density)||1025,waterlinePercent:0
       };
     }
   }
@@ -186,7 +214,7 @@ async function engineeringPage(){
 
   app.innerHTML=top("engineering")+`<main class="workspace">
     <div class="workspace-bar"><strong>${documentModel.name}</strong><div class="mode-tabs">
-      ${["Model","Hydro","Structure","Resistance","Propulsion"].map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
+      ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
     </div></div>
     <aside class="tree"><input id="component-filter" placeholder="Filter components"><div class="tree-label">Components</div>
       <div id="component-tree">${uiComponents.map(c=>`<div class="tree-row ${c.id===selectedComponentId?"selected":""}" data-component="${c.id}" data-component-name="${c.name.toLowerCase()}" style="padding-left:${8+depthFor(c,uiComponents)*16}px">${c.geometry?"○":"▾"} ${c.name}</div>`).join("")}</div>
@@ -210,13 +238,10 @@ async function engineeringPage(){
   };
 
   mountModelScene(app.querySelector("#engineering-scene"),documentModel,{
-    showSidebar:false,
-    selectedComponentId,
-    onSelect:updateSelection
+    showSidebar:false,selectedComponentId,onSelect:updateSelection
   }).then(handle=>{
     if(renderId!==engineeringRenderId){handle.cleanup();return}
-    sceneHandle=handle;
-    engineeringCleanup=handle.cleanup;
+    sceneHandle=handle;engineeringCleanup=handle.cleanup;
   }).catch(error=>{
     const target=app.querySelector("#engineering-scene");
     if(target)target.innerHTML=`<pre class="code-view">3D render error: ${String(error?.message||error)}</pre>`;
@@ -225,8 +250,7 @@ async function engineeringPage(){
   app.querySelectorAll("[data-component]").forEach(row=>row.onclick=()=>{
     const component=uiComponents.find(c=>c.id===row.dataset.component);
     if(!component)return;
-    updateSelection(component);
-    sceneHandle?.selectById(component.id);
+    updateSelection(component);sceneHandle?.selectById(component.id);
   });
   app.querySelector("#component-filter")?.addEventListener("input",event=>{
     const query=event.target.value.trim().toLowerCase();
@@ -235,14 +259,10 @@ async function engineeringPage(){
   app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
   app.querySelector("#hydro-draft")?.addEventListener("change",event=>{hydroDraft=Number(event.target.value)||0;engineeringPage()});
   app.querySelector("#hydro-solve")?.addEventListener("click",()=>{
-    hydroTargetTonnes=app.querySelector("#hydro-target")?.value??"";
-    engineeringPage();
+    hydroTargetTonnes=app.querySelector("#hydro-target")?.value??"";engineeringPage();
   });
   app.querySelector("#hydro-target")?.addEventListener("keydown",event=>{
-    if(event.key==="Enter"){
-      hydroTargetTonnes=event.currentTarget.value;
-      engineeringPage();
-    }
+    if(event.key==="Enter"){hydroTargetTonnes=event.currentTarget.value;engineeringPage()}
   });
 }
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
