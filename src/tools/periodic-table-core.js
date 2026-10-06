@@ -18,6 +18,7 @@ export const PROPERTY_DEFINITIONS={
   melt:{label:"Melting point",unit:"K",digits:1},
   boil:{label:"Boiling point",unit:"K",digits:1},
   electronegativity_pauling:{label:"Electronegativity",unit:"Pauling",digits:2},
+  atomic_radius:{label:"Atomic radius",unit:"pm",digits:0},
   first_ionization:{label:"1st ionization energy",unit:"eV",digits:2},
   electron_affinity:{label:"Electron affinity",unit:"eV",digits:2}
 };
@@ -67,7 +68,8 @@ export function filterElements(elements,{
   crystal="all",
   material="all",
   period="all",
-  group="all"
+  group="all",
+  quick=""
 }={}){
   const q=String(search).trim().toLowerCase();
   return elements.filter(element=>{
@@ -78,13 +80,32 @@ export function filterElements(elements,{
       &&(crystal==="all"||e.crystal_structure===crystal)
       &&(material==="all"||e.material_tag===material)
       &&(period==="all"||String(e.period||"")===String(period))
-      &&(group==="all"||String(e.group||"")===String(group));
+      &&(group==="all"||String(e.group||"")===String(group))
+      &&matchesQuickFilter(e,quick);
   });
 }
 
 export function propertyValue(element,key){
   if(key==="first_ionization")return element.ionization_energies?.[0]??null;
+  if(key==="atomic_radius"){
+    return element.atomic_radius
+      ?? element.atomic_radii?.empirical?.[0]
+      ?? element.atomic_radii?.calculated?.[0]
+      ?? null;
+  }
   return element[key]??null;
+}
+
+export function matchesQuickFilter(element,quick){
+  if(!quick)return true;
+  const e=element.searchable?element:enrichElement(element);
+  if(quick==="metal")return e.material_tag==="metal";
+  if(quick==="nonmetal")return e.material_tag==="nonmetal";
+  if(quick==="stp-gas")return String(e.phase||"").toLowerCase()==="gas";
+  if(quick==="bcc")return e.crystal_structure==="bcc";
+  if(quick==="fcc")return e.crystal_structure==="fcc";
+  if(quick==="radioactive")return Number(e.number)>=84;
+  return true;
 }
 
 export function formattedProperty(element,key){
