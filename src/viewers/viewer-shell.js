@@ -1,5 +1,5 @@
-import {loadAdapter} from "./registry.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
-import {escapeHTML} from "./utils.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {loadAdapter} from "./registry.js?v=fc6088e97be38f728db2b9e6a89d92c339303629";
+import {escapeHTML} from "./utils.js?v=fc6088e97be38f728db2b9e6a89d92c339303629";
 
 export async function mountViewer(root,resource,onBack){
   root.innerHTML=`<main class="viewer">

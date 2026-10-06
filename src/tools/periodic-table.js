@@ -1,11 +1,13 @@
-import {categories,enrichElement,filterElements,propertyValue,stateAtTemperature} from "./periodic-table-core.js?v=15d24fd082b26072429e49ea1b48eb2f869fce4f";
+import {categories,enrichElement,filterElements,propertyValue,stateAtTemperature} from "./periodic-table-core.js?v=fc6088e97be38f728db2b9e6a89d92c339303629";
 
 let fixturePromise;
-export function loadPeriodicFixture(path="./examples/tools/periodic-elements.fixture.json"){
+export function loadPeriodicFixture(path="./data/periodic-table.json"){
   if(!fixturePromise){
     fixturePromise=fetch(path).then(async response=>{
       if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${path}`);
-      return (await response.json()).map(enrichElement);
+      const payload=await response.json();
+      const list=Array.isArray(payload)?payload:(payload.elements||[]);
+      return list.map(enrichElement);
     });
   }
   return fixturePromise;
