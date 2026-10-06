@@ -1,5 +1,5 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=fc6088e97be38f728db2b9e6a89d92c339303629";
-import {createHydroInclude} from "./hydro-selection.js?v=fc6088e97be38f728db2b9e6a89d92c339303629";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
+import {createHydroInclude} from "./hydro-selection.js?v=ced39fef1175d0aebcfd8e5f61676759bfef65fe";
 
 let modelDocument=null;
 
