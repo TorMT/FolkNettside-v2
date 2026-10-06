@@ -1,5 +1,5 @@
-import {getJSZip} from "../../vendor/jszip.js?v=c4d711984d388bef3791c769968f6ea69188349b";
-import {createModelDocument} from "../model-document.js?v=c4d711984d388bef3791c769968f6ea69188349b";
+import {getJSZip} from "../../vendor/jszip.js?v=3e5e6b1c0a328e6d3af2beb473242e3324a0e0c1";
+import {createModelDocument} from "../model-document.js?v=3e5e6b1c0a328e6d3af2beb473242e3324a0e0c1";
 
 const IDENTITY=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
 

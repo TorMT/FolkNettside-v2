@@ -166,6 +166,43 @@ export function computeStateSI(engine,{
   };
 }
 
+export function saturationWarning(engine,{
+  fluid,
+  input1,
+  value1,
+  input2,
+  value2,
+  units=DEFAULT_UNITS
+}){
+  const pair=new Set([input1,input2]);
+  if(!(pair.has("P")&&pair.has("T"))||!engine?.propsSI)return null;
+
+  const pressureInput=input1==="P"?value1:value2;
+  const temperatureInput=input1==="T"?value1:value2;
+  const pressureSI=inputToSI("P",pressureInput,units);
+  const temperatureSI=inputToSI("T",temperatureInput,units);
+
+  try{
+    const saturationTemperature=engine.propsSI("T","P",pressureSI,"Q",0,fluid);
+    if(!Number.isFinite(saturationTemperature))return null;
+    const deltaK=Math.abs(temperatureSI-saturationTemperature);
+    if(deltaK>=5)return null;
+    return {
+      severity:deltaK<.5?"critical":"warning",
+      deltaK,
+      saturationTemperatureK:saturationTemperature,
+      saturationTemperature:outputFromSI("T",saturationTemperature,units),
+      pressure:pressureInput,
+      temperature:temperatureInput,
+      message:deltaK<.5
+        ?"P and T are at or extremely close to saturation. P and T alone do not determine vapour quality in the two-phase region; use Q, H, S or D as an independent property."
+        :"P and T are close to saturation. If the state is two-phase, add Q, H, S or D to determine the state unambiguously."
+    };
+  }catch{
+    return null;
+  }
+}
+
 export function computeState(engine,{
   fluid,
   input1,
