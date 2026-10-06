@@ -1,4 +1,4 @@
-import {escapeHTML,fetchText} from "../utils.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
+import {escapeHTML,fetchText} from "../utils.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
 
 function parseRow(line,delimiter){
   const values=[];let current="",quoted=false;

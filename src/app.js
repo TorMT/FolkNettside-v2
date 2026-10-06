@@ -1,15 +1,16 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
-import {mountViewer} from "./viewer.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
-import {loadContent} from "./content.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
-import {renderResourceTree} from "./components/resource-tree.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
-import {loadModelDocument} from "./model/load-model.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
-import {mountModelScene} from "./model/model-scene.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=abc69b6ea8ff233a967a9264dee3e5ff2d2ebc07";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {mountViewer} from "./viewer.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {loadContent} from "./content.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {renderResourceTree} from "./components/resource-tree.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {loadModelDocument} from "./model/load-model.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {mountModelScene} from "./model/model-scene.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=0ba145647f4dceaa1b572ead8d399f35f9ddcab1";
 
 initSettings();
 
@@ -275,7 +276,9 @@ async function engineeringPage(){
 
   const documentModel=engineeringDocument;
   const uiComponents=documentModel.components;
+  const diagnostics=analyzeModelDiagnostics(documentModel);
   const selected=uiComponents.find(c=>c.id===selectedComponentId)||uiComponents.find(c=>c.geometry)||uiComponents[0];
+  const selectedDiagnostics=diagnostics.components.find(item=>item.componentId===selected?.id)||null;
   if(selected&&!selectedComponentId)selectedComponentId=selected.id;
 
   let hydro=null;
@@ -300,12 +303,15 @@ async function engineeringPage(){
       const [result,curve,solvedState]=await Promise.all([analysisPromise,curvePromise,solvePromise]);
       if(renderId!==engineeringRenderId)return;
       hydroCurveCache={model:documentModel,data:curve};
+      const includedIds=new Set(result.components.map(item=>item.componentId));
+      const geometryWarnings=diagnostics.components.filter(item=>includedIds.has(item.componentId)&&!item.watertight);
       hydro=hydroPanelHTML({
         modelDocument:documentModel,result,curve,
         solved:solvedState?.value||null,
         solveError:solvedState?.error||null,
         draft:hydroDraft,
         targetDisplacementTonnes:hydroTargetTonnes,
+        geometryWarnings,
         config
       });
     }catch(error){
@@ -323,11 +329,21 @@ async function engineeringPage(){
     <div class="readout"><span>Component</span><strong id="prop-component">${selected?.name||"—"}</strong></div>
     <div class="readout"><span>Role</span><strong id="prop-role">${selected?.type||"—"}</strong></div>
     <div class="readout"><span>Source ID</span><strong id="prop-source">${selected?.sourceObjectId||"—"}</strong></div>
-    <div class="readout"><span>Units</span><strong>${documentModel.unit}</strong></div>`;
+    <div class="readout"><span>Units</span><strong>${documentModel.unit}</strong></div>
+    ${selectedDiagnostics?`
+      <div class="readout"><span>Triangles</span><strong>${selectedDiagnostics.triangleCount}</strong></div>
+      <div class="readout"><span>Watertight</span><strong class="${selectedDiagnostics.watertight?"status-ok":"status-warn"}">${selectedDiagnostics.watertight?"Yes":"No"}</strong></div>
+      <div class="readout"><span>Boundary edges</span><strong>${selectedDiagnostics.boundaryEdges}</strong></div>
+      <div class="readout"><span>Non-manifold</span><strong>${selectedDiagnostics.nonManifoldEdges}</strong></div>
+      <div class="readout"><span>Degenerate</span><strong>${selectedDiagnostics.degenerateTriangles}</strong></div>
+    `:""}`;
   const summary=hydro?hydro.summary:`
     <strong>Model summary</strong>
     <div class="readout"><span>Components</span><strong>${uiComponents.length}</strong></div>
-    <div class="readout"><span>Geometry nodes</span><strong>${uiComponents.filter(c=>c.geometry).length}</strong></div>
+    <div class="readout"><span>Geometry nodes</span><strong>${diagnostics.geometryComponents}</strong></div>
+    <div class="readout"><span>Triangles</span><strong>${diagnostics.triangles}</strong></div>
+    <div class="readout"><span>Topology</span><strong class="${diagnostics.watertight?"status-ok":"status-warn"}">${diagnostics.watertight?"Watertight":"Check geometry"}</strong></div>
+    <div class="readout"><span>Size</span><strong>${diagnostics.bounds.size.map(v=>v.toFixed(3)).join(" × ")} m</strong></div>
     <div class="readout"><span>Format</span><strong>${documentModel.format}</strong></div>`;
   const resultContent=hydro?hydro.results:`<div class="chart"><svg viewBox="0 0 700 170"><path d="M20 135 C90 132 122 80 190 92 S315 60 372 82 S502 35 675 46" fill="none" stroke="var(--accent)" stroke-width="3"/><path d="M20 145H680M20 20V145" stroke="var(--line-strong)"/></svg></div>`;
   const waterline=hydro?`<div class="workspace-waterline" style="bottom:${hydro.waterlinePercent}%"><span>WL ${hydro.draft.toFixed(2)} m</span></div>`:"";
