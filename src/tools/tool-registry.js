@@ -75,24 +75,24 @@ export const TOOL_REGISTRY=[
     id:"theme-creator",
     title:"Theme creator",
     short:"TH",
-    route:null,
-    status:"legacy",
-    parity:"partial",
+    route:"/settings/theme-studio/manual",
+    status:"prototype",
+    parity:"review",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/theme-creator.html",
     category:"Developer",
-    summary:"Legacy CSS/JS theme generator preserved while its authoring functions move into v2 Developer/Appearance tools.",
+    summary:"Manual theme authoring migrated into Settings-owned Theme Studio with CSS/JS export and live preview.",
     keywords:["theme","css","colors","settings","developer"]
   },
   {
     id:"image-theme",
     title:"Image to theme",
     short:"IMG",
-    route:null,
-    status:"legacy",
-    parity:"partial",
+    route:"/settings/theme-studio/image",
+    status:"prototype",
+    parity:"review",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/image-to-theme.html",
     category:"Developer",
-    summary:"Legacy image palette extraction, role assignment and theme export preserved during v2 migration.",
+    summary:"Image palette extraction, role assignment, auto-assign, preview and JSON/CSS/JS export migrated into Theme Studio.",
     keywords:["image","theme","palette","colors","json","css","export"]
   }
 ];
