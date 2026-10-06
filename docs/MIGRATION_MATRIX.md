@@ -20,7 +20,7 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | STEP/IGES | shared CAD import | pending | planned | Keep component/source identity where possible |
 | Hydrostatics | exact clipped-triangle surface integrals | box/wedge/multi-component | prototype | CI validates volume, CB and waterplane moments; worker/BVH only if needed |
 | FEM | engineering workspace Structure mode | cantilever frame JSON | prototype | Tested 2D Euler–Bernoulli frame solver; shell/solid later |
-| CFD/resistance | engineering workspace module | pending | planned | Estimate first, OpenFOAM backend later |
+| CFD/resistance | Resistance workspace baseline | ITTC friction JSON | prototype | ITTC-1957 friction only; total resistance/OpenFOAM later |
 | Thruster flow | propulsion module | pending | planned | Actuator disk first |
 | CoolProp | engineering/science tool module | pending | planned | Consolidate variants |
 | Fluid calculator | shared calculator page | pending | planned | Preserve useful equations only |
