@@ -128,18 +128,24 @@ Status: `partial`. Legacy fallback remains available.
 
 Legacy: `Tools/ChemDraw.html`
 
-Parity requirements:
+Migrated:
+- lazy Kekule Composer runtime
 - New
-- Import
+- Import for the legacy format set
 - MOL export
 - SMILES export
 - Undo
 - Redo
 - Clean 2D
 - Copy SMILES
-- existing tips/error-help behavior where useful
+- the legacy keyboard shortcuts
+- load/error status and tips
+- route cleanup so global hotkeys do not leak outside the tool
 
-Until migrated, this remains a legacy-only tool in the v2 registry.
+Remaining:
+- final side-by-side behavior check against the legacy Kekule build.
+
+Status: `review`. Legacy fallback remains available until `full`.
 
 ## Advanced STL engineering viewer
 

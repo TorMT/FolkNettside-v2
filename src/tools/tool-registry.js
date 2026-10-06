@@ -51,12 +51,12 @@ export const TOOL_REGISTRY=[
     id:"chemdraw",
     title:"Chemical structure editor",
     short:"CH",
-    route:null,
-    status:"legacy",
-    parity:"partial",
+    route:"/tools/chemistry-editor",
+    status:"prototype",
+    parity:"review",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/ChemDraw.html",
     category:"Chemistry",
-    summary:"Legacy chemical editor retained until New/Import/MOL/SMILES/Undo/Redo/Clean 2D parity exists in v2.",
+    summary:"Lazy Kekule molecule editor with New/Import, MOL/SMILES export, Undo/Redo, Clean 2D and Copy SMILES.",
     keywords:["chemistry","molecule","mol","smiles","structure","editor"]
   },
   {
