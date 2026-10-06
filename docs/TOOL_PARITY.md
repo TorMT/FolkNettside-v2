@@ -193,21 +193,34 @@ Remaining before parity review/full:
 
 Status: `partial`. Legacy fallback remains available until side-by-side verification.
 
-## Retired theme tools
+## Theme creator and Image to theme
 
-The following legacy tools are intentionally **not** migrated:
-
+Legacy:
 - `Tools/theme-creator.html`
 - `Tools/image-to-theme.html`
 
-Reason:
-- v2 has one centralized Settings-owned theme system;
-- viewer/tool-specific theme generation is intentionally removed;
-- CSS/JS theme generators and image-to-theme export would reintroduce the duplicated theme architecture v2 is designed to eliminate.
+Migrated into the Settings-owned Theme Studio:
+- manual theme name and role editing
+- live preview
+- CSS generation
+- JS registry generation
+- copy outputs
+- image upload / drag-drop
+- local image palette extraction
+- five-color palette
+- manual palette-to-role assignment
+- auto-assign
+- JSON download
+- reset/new theme workflow
 
-Registry status: `retired`.
+Architectural change:
+- the generators no longer own runtime theme state;
+- generated themes target the single Settings-owned theme system.
 
-The legacy files may continue to exist on the old production site during the production freeze, but they are not parity blockers and should not be surfaced as v2 tools.
+Remaining:
+- final side-by-side visual/behavior verification.
+
+Status: `review`. Both legacy fallbacks remain available until `full`.
 
 ## Migration rule
 

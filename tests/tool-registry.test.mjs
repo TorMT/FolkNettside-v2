@@ -55,13 +55,16 @@ test("crystal stays in review until side-by-side verification is complete",()=>{
 });
 
 
-test("theme authoring tools remain visible until v2 migration preserves their functions",()=>{
-  for(const id of ["theme-creator","image-theme"]){
-    const tool=toolById(id);
-    assert.equal(tool.status,"legacy");
-    assert.equal(tool.parity,"partial");
+test("theme authoring tools migrate through one Settings-owned Theme Studio without losing fallback",()=>{
+  const manual=toolById("theme-creator");
+  const image=toolById("image-theme");
+  for(const tool of [manual,image]){
+    assert.equal(tool.status,"prototype");
+    assert.equal(tool.parity,"review");
+    assert.ok(tool.route?.startsWith("/settings/theme-studio/"));
     assert.ok(tool.legacyUrl?.startsWith("https://"));
-    assert.ok(visibleTools().some(item=>item.id===id));
-    assert.ok(toolsNeedingParityReview().some(item=>item.id===id));
+    assert.ok(visibleTools().some(item=>item.id===tool.id));
+    assert.ok(toolsNeedingParityReview().some(item=>item.id===tool.id));
   }
+  assert.notEqual(manual.route,image.route);
 });
