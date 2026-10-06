@@ -12,5 +12,6 @@ test("youtube id parser accepts common URL forms",()=>{
 
 test("youtube id parser rejects unrelated URLs",()=>{
   assert.equal(youtubeVideoId("https://example.com/video"),null);
-  assert.equal(youtubeVideoId("not-a-video"),null);
+  assert.equal(youtubeVideoId("too-short"),null);
+  assert.equal(youtubeVideoId("invalid$id!"),null);
 });
