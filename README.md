@@ -8,8 +8,8 @@ The current production Engineering Portfolio remains untouched through 2027-01-0
 
 The first v2 shell now includes:
 - employer-facing Portfolio
-- Study with Semester -> Course -> Resources
-- Kok inside course/Study only
+- Courses with Semester -> Course -> Resources
+- Kok inside course/Courses only
 - shared ViewerShell
 - Settings-owned global theme
 - optional Google/Autodesk connection states
