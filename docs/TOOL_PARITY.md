@@ -98,29 +98,31 @@ Status: `review`. Legacy fallback remains until `full`.
 
 Legacy: `Tools/KrystallStrukturer/krystall-viewer.html`
 
-v2 currently:
-- BCC
-- FCC
-- HCP
-- cell edges
-- lattice scaling and HCP c/a
-- shared Three.js renderer
-- render-on-demand and cleanup
-
-Legacy capabilities that must remain available until migrated:
-- structures: SC, BCC, FCC, Diamond, HCP, NaCl, CsCl, ZnS, CaF2, Spinel
-- element/material presets including Fe, Cu, Al, Ni, Si, C and spinel examples
-- measurement tool with undo/clear
+Migrated:
+- structures: SC, BCC, FCC, Diamond, HCP, NaCl, CsCl, ZnS, CaF2 and simplified Spinel
+- material presets: Na, Fe, Cu, Al, Ni, Si, C, MgAl2O4 and Fe3O4
+- cell replication and lattice scaling
+- HCP c/a handling
 - tetrahedral and octahedral hole visualization
-- structure analyzer
-- defect modes: dopant substitution, vacancy, interstitial, electron marker, hole marker
+- measurement with undo/clear
 - atom/hole visibility modes
-- manual atom placement
-- manual atom type/radius/color
-- undo/clear manual atoms
-- reset view and other working legacy interaction controls
+- bond visualization
+- vacancy and dopant substitution by atom click or coordinate snap
+- interstitials
+- electron/hole markers
+- manual atoms with type/radius/color
+- edit undo/clear
+- close-packed plane families
+- custom Miller planes
+- reset view
+- composition/defect/bond/plane analyzer summary
+- shared Three.js renderer with render-on-demand and cleanup
 
-Status: `partial`.
+Remaining before review/full:
+- compare the legacy advanced automatic structure/material analyzer against v2 and migrate any useful identification heuristics not represented by the explicit structure/preset model
+- side-by-side interaction/visual verification
+
+Status: `partial`. Legacy fallback remains available.
 
 ## Chemical structure editor
 
