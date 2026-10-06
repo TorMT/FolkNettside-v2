@@ -17,6 +17,7 @@ export async function mountModelScene(container,documentModel,options={}){
   const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,preserveDrawingBuffer:true});
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
   renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.localClippingEnabled=true;
   const scene=new THREE.Scene();
   scene.background=new THREE.Color(0x081820);
   scene.up.set(0,0,1);
@@ -162,6 +163,8 @@ export async function mountModelScene(container,documentModel,options={}){
   scene.add(measurementGroup);
   const measurements=[];
   let measureEnabled=false;
+  let measureSnapMode="none";
+  let measureSnapTolerance=0.01;
   let firstMeasurePoint=null;
   function emitMeasurements(){
     onMeasurements?.(measurements.map(item=>({a:item.a.toArray(),b:item.b.toArray(),distance:item.distance})));
@@ -278,6 +281,28 @@ export async function mountModelScene(container,documentModel,options={}){
     fitView();
   }
 
+  const clipPlane=new THREE.Plane(new THREE.Vector3(1,0,0),0);
+  let clippingEnabled=false;
+  function setClipping({enabled=false,axis="x",offset=0,invert=false}={}){
+    const vectors={
+      x:new THREE.Vector3(1,0,0),
+      y:new THREE.Vector3(0,1,0),
+      z:new THREE.Vector3(0,0,1)
+    };
+    const normal=(vectors[axis]||vectors.x).clone();
+    if(invert)normal.multiplyScalar(-1);
+    clipPlane.normal.copy(normal);
+    clipPlane.constant=-(Number(offset)||0)*(invert?-1:1);
+    clippingEnabled=Boolean(enabled);
+    for(const mesh of meshes){
+      mesh.material.clippingPlanes=clippingEnabled?[clipPlane]:[];
+      mesh.material.clipShadows=clippingEnabled;
+      mesh.material.needsUpdate=true;
+    }
+    draw();
+    return {enabled:clippingEnabled,axis,offset:Number(offset)||0,invert:Boolean(invert)};
+  }
+
   function setAppearance({wireframe=null,opacity=null,modelColor=null,background=null}={}){
     if(background)scene.background.set(background);
     if(modelColor)baseColor.set(modelColor);
@@ -311,12 +336,60 @@ export async function mountModelScene(container,documentModel,options={}){
     raycaster.setFromCamera(pointer,camera);
     return raycaster.intersectObjects(meshes,false)[0]||null;
   }
+
+  function nearestPointOnSegment(point,a,b){
+    const ab=b.clone().sub(a);
+    const lengthSq=Math.max(ab.lengthSq(),1e-16);
+    const t=Math.max(0,Math.min(1,ab.dot(point.clone().sub(a))/lengthSq));
+    return a.clone().addScaledVector(ab,t);
+  }
+
+  function snappedMeasurePoint(hit){
+    if(!hit||measureSnapMode==="none")return hit?.point?.clone?.()||null;
+    const mesh=hit.object;
+    const geometry=mesh?.geometry;
+    const position=geometry?.getAttribute?.("position");
+    const faceIndex=Number(hit.faceIndex);
+    if(!position||!Number.isInteger(faceIndex)||faceIndex<0)return hit.point.clone();
+
+    const index=geometry.index;
+    const tri=[];
+    for(let corner=0;corner<3;corner++){
+      const vertexIndex=index?index.getX(faceIndex*3+corner):faceIndex*3+corner;
+      const point=new THREE.Vector3(
+        position.getX(vertexIndex),
+        position.getY(vertexIndex),
+        position.getZ(vertexIndex)
+      ).applyMatrix4(mesh.matrixWorld);
+      tri.push(point);
+    }
+
+    const candidates=[];
+    if(measureSnapMode==="vertex"||measureSnapMode==="both"){
+      for(const point of tri)candidates.push(point);
+    }
+    if(measureSnapMode==="edge"||measureSnapMode==="both"){
+      candidates.push(
+        nearestPointOnSegment(hit.point,tri[0],tri[1]),
+        nearestPointOnSegment(hit.point,tri[1],tri[2]),
+        nearestPointOnSegment(hit.point,tri[2],tri[0])
+      );
+    }
+    let best=null,bestDistance=Infinity;
+    for(const point of candidates){
+      const distance=point.distanceTo(hit.point);
+      if(distance<bestDistance){best=point;bestDistance=distance}
+    }
+    return best&&bestDistance<=measureSnapTolerance?best.clone():hit.point.clone();
+  }
   function onPointerDown(event){
     const hit=pointerHit(event);
     if(measureEnabled){
       if(!hit)return;
-      if(!firstMeasurePoint)firstMeasurePoint=hit.point.clone();
-      else{addMeasurement(firstMeasurePoint,hit.point.clone());firstMeasurePoint=null}
+      const point=snappedMeasurePoint(hit);
+      if(!point)return;
+      if(!firstMeasurePoint)firstMeasurePoint=point;
+      else{addMeasurement(firstMeasurePoint,point);firstMeasurePoint=null}
       return;
     }
     select(hit?.object||null);
@@ -367,7 +440,15 @@ export async function mountModelScene(container,documentModel,options={}){
       setRotation,
       resetAttitude,
       setAppearance,
+      setClipping,
       setMeasurement(enabled){measureEnabled=Boolean(enabled);firstMeasurePoint=null;return measureEnabled},
+      setMeasurementSnap({mode="none",tolerance=.01}={}){
+        const valid=["none","vertex","edge","both"];
+        measureSnapMode=valid.includes(String(mode))?String(mode):"none";
+        const value=Number(tolerance);
+        measureSnapTolerance=Number.isFinite(value)&&value>=0?value:.01;
+        return {mode:measureSnapMode,tolerance:measureSnapTolerance};
+      },
       clearMeasurements,
       undoMeasurement,
       setWaterline,

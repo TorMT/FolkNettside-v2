@@ -174,13 +174,17 @@ Migrated into the shared ModelScene / Advanced Model Inspector:
 Superseded:
 - viewer-local theme ownership is intentionally replaced by global Settings; explicit model/background appearance controls remain available where useful.
 
-Remaining before parity review/full:
-- verify legacy snap-to-vertex/edge measurement behavior and migrate it if still useful
-- compare legacy clipping controls and retain/migrate them if they provide value not covered elsewhere
-- hydro under non-zero trim/heel must use transformed analysis geometry, not only visual attitude
-- final side-by-side visual/behavior check
+Additional parity completed:
+- measurement snap modes: none / vertex / edge / both, using the hit triangle for efficient local snapping
+- configurable snap tolerance
+- shared X/Y/Z clipping plane with invert + offset
+- hydro analysis now applies the same heel/trim/yaw attitude as the 3D view
 
-Status: `partial`. Legacy fallback remains available.
+Remaining before parity review/full:
+- side-by-side validation of legacy auto-align/snap/clipping interaction details
+- compare any remaining specialist rendering/help options that are still useful
+
+Status: `partial`. Legacy fallback remains available until side-by-side verification.
 
 ## Retired theme tools
 
