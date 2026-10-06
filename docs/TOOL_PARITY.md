@@ -147,29 +147,40 @@ Remaining:
 
 Status: `review`. Legacy fallback remains available until `full`.
 
-## Advanced STL engineering viewer
+## Advanced STL / model inspector
 
 Legacy: `Tools/stlview1.html`
 
-Parity requirements or approved replacements:
+Migrated into the shared ModelScene / Advanced Model Inspector:
+- STL and 3MF local loading
 - Fit / Reset / Zoom+ / Zoom-
-- download/open original
-- import alignment
 - automatic boat alignment
 - reset alignment
 - axis swaps X/Y, X/Z, Y/Z
-- camera/view presets
-- object rotation controls
-- render/view options
-- theme/look controls where still relevant
-- measurement + clear
-- CG/CB information/recalculation
-- hydro waterline
-- trim/heel reset
+- camera presets: iso/front/rear/port/starboard/top
+- separate alignment and user-attitude transforms
+- X/Y/Z rotation controls
+- wireframe, opacity, model color and background
+- surface measurement with undo/clear
+- model bounds / topology
+- geometric solid centroid
+- center of buoyancy
+- displacement / waterplane area at horizontal waterline
+- waterline visualization
 - PNG export
-- working help modes
+- in-tool help
+- shared scene cleanup and mobile layout
 
-Some of these can be superseded by the shared Model/Engineering workspace, but legacy access remains until the replacement is demonstrably complete.
+Superseded:
+- viewer-local theme ownership is intentionally replaced by global Settings; explicit model/background appearance controls remain available where useful.
+
+Remaining before parity review/full:
+- verify legacy snap-to-vertex/edge measurement behavior and migrate it if still useful
+- compare legacy clipping controls and retain/migrate them if they provide value not covered elsewhere
+- hydro under non-zero trim/heel must use transformed analysis geometry, not only visual attitude
+- final side-by-side visual/behavior check
+
+Status: `partial`. Legacy fallback remains available.
 
 ## Retired theme tools
 

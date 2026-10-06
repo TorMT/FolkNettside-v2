@@ -61,14 +61,14 @@ export const TOOL_REGISTRY=[
   },
   {
     id:"stl-advanced",
-    title:"Advanced STL engineering viewer",
+    title:"Advanced model inspector",
     short:"STL",
-    route:null,
-    status:"legacy",
+    route:"/tools/model-inspector",
+    status:"prototype",
     parity:"partial",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/stlview1.html",
     category:"Engineering",
-    summary:"Legacy advanced STL/hydro viewer retained while v2 Model/Engineering absorbs its measurement, alignment, CG/CB, hydro and export tools.",
+    summary:"Shared STL/3MF inspector with camera, alignment, measurement, CG/CB, waterline hydro checks and PNG export.",
     keywords:["stl","3d","hydro","measure","cg","cb","waterline","trim","heel","alignment"]
   },
   {

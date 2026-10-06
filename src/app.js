@@ -9,6 +9,7 @@ import {createSearchController} from "./components/search-dialog.js";
 import {toolsIndexHTML} from "./tools/tools-index.js";
 import {activeTools} from "./tools/tool-registry.js";
 import {fluidCalculatorHTML} from "./tools/fluid-calculator.js";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js";
 import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js";
 import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js";
 import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js";
@@ -52,6 +53,7 @@ let crystalToolState={type:"bcc",preset:"",nx:1,ny:1,nz:1,a:1,c:"",showTetra:fal
 let crystalCleanup=null;
 let coolPropCleanup=null;
 let chemEditorCleanup=null;
+let modelInspectorCleanup=null;
 let workspaceDrawerCleanup=null;
 
 function getEngineeringDocument(){
@@ -140,6 +142,21 @@ function fluidToolPage(){
     };
     fluidToolPage();
   });
+}
+
+async function modelInspectorPage(){
+  document.documentElement.dataset.lens="study";
+  modelInspectorCleanup?.();
+  modelInspectorCleanup=null;
+  app.innerHTML=top("courses")+modelInspectorHTML();
+  bindNav();
+  try{
+    const handle=await bindModelInspector(app);
+    modelInspectorCleanup=handle?.cleanup||null;
+  }catch(error){
+    const target=app.querySelector("#model-inspector-status");
+    if(target)target.textContent="Inspector error: "+String(error?.message||error);
+  }
 }
 
 async function chemEditorPage(){
@@ -665,5 +682,5 @@ async function engineeringPage(){
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
 
-async function render(){const path=route();if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}const viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/tools")return toolsPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
+async function render(){const path=route();if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}const viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/tools")return toolsPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/model-inspector")return modelInspectorPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
 window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();globalSearch.open()}});window.addEventListener("hashchange",render);render();

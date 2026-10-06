@@ -617,3 +617,19 @@
   .chem-composer{height:58dvh;min-height:430px}
   .chem-editor-note{display:grid}
 }
+
+.model-inspector-page{max-width:1560px;margin:0 auto}
+.model-inspector-layout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:14px}
+.model-inspector-controls{max-height:calc(100vh - 128px);overflow:auto}
+.model-inspector-main{min-width:0;display:grid;grid-template-rows:minmax(520px,68vh) auto;gap:12px}
+.model-inspector-stage{min-height:520px;background:#081820;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.model-inspector-stage .three-stage{height:100%;min-height:520px}
+.model-inspector-stage .three-canvas{height:100%;min-height:520px}
+.model-inspector-results{min-width:0}
+#model-measure-list{display:grid;gap:3px;font-size:10px}
+@media(max-width:900px){
+  .model-inspector-layout{grid-template-columns:1fr}
+  .model-inspector-controls{max-height:none;overflow:visible}
+  .model-inspector-main{grid-template-rows:minmax(440px,58dvh) auto}
+  .model-inspector-stage,.model-inspector-stage .three-stage,.model-inspector-stage .three-canvas{min-height:440px}
+}
