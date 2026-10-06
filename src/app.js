@@ -1,26 +1,26 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {mountViewer} from "./viewer.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {loadContent} from "./content.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {renderResourceTree} from "./components/resource-tree.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {buildSearchIndex} from "./search/search-index.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {createSearchController} from "./components/search-dialog.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {activeTools} from "./tools/tool-registry.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {loadModelDocument} from "./model/load-model.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {mountModelScene} from "./model/model-scene.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {mountViewer} from "./viewer.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {loadContent} from "./content.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {renderResourceTree} from "./components/resource-tree.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {buildSearchIndex} from "./search/search-index.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {createSearchController} from "./components/search-dialog.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {activeTools} from "./tools/tool-registry.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {loadModelDocument} from "./model/load-model.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {mountModelScene} from "./model/model-scene.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
 
 initSettings();
 
@@ -46,7 +46,7 @@ let propulsionInitialized=false;
 let fluidToolState={fluid:"air",temperature:20,unit:"C"};
 let coolPropState={fluid:"Air",input1:"P",value1:1,input2:"T",value2:25};
 let periodicToolState={search:"",phase:"all",category:"all",material:"all",period:"all",group:"all",crystal:"all",property:"atomic_mass",temperature:298,selected:null};
-let crystalToolState={type:"bcc",a:1,c:""};
+let crystalToolState={type:"bcc",preset:"",nx:1,ny:1,nz:1,a:1,c:"",showTetra:false,showOcta:false,measure:false};
 let crystalCleanup=null;
 let workspaceDrawerCleanup=null;
 
@@ -197,17 +197,44 @@ async function crystalToolPage(){
   app.innerHTML=top("courses")+crystalToolHTML(crystalToolState);
   bindNav();
 
-  const rerender=()=>{
-    crystalToolState={
-      type:app.querySelector("#crystal-type")?.value||"bcc",
-      a:Number(app.querySelector("#crystal-a")?.value)||1,
-      c:app.querySelector("#crystal-c")?.value||""
-    };
-    crystalToolPage();
-  };
+  const readState=()=>({
+    ...crystalToolState,
+    type:app.querySelector("#crystal-type")?.value||"bcc",
+    preset:app.querySelector("#crystal-preset")?.value||"",
+    nx:Number(app.querySelector("#crystal-nx")?.value)||1,
+    ny:Number(app.querySelector("#crystal-ny")?.value)||1,
+    nz:Number(app.querySelector("#crystal-nz")?.value)||1,
+    a:Number(app.querySelector("#crystal-a")?.value)||1,
+    c:app.querySelector("#crystal-c")?.value||""
+  });
+  const rerender=()=>{crystalToolState=readState();crystalToolPage()};
   app.querySelector("#crystal-type")?.addEventListener("change",rerender);
-  app.querySelector("#crystal-a")?.addEventListener("change",rerender);
-  app.querySelector("#crystal-c")?.addEventListener("change",rerender);
+  app.querySelector("#crystal-preset")?.addEventListener("change",event=>{
+    const value=event.target.value;
+    if(value){
+      const preset={Na:"sc",Fe:"bcc",Cu:"fcc",Al:"fcc",Ni:"fcc",Si:"diamond",C:"diamond",MgAl2O4:"spinel",Fe3O4:"spinel"}[value];
+      crystalToolState={...readState(),preset:value,type:preset||crystalToolState.type};
+      crystalToolPage();
+    }else{
+      crystalToolState={...readState(),preset:""};
+      crystalToolPage();
+    }
+  });
+  for(const id of ["#crystal-nx","#crystal-ny","#crystal-nz","#crystal-a","#crystal-c"]){
+    app.querySelector(id)?.addEventListener("change",rerender);
+  }
+  app.querySelector("#crystal-tetra")?.addEventListener("click",()=>{
+    crystalToolState={...readState(),showTetra:!crystalToolState.showTetra};
+    crystalToolPage();
+  });
+  app.querySelector("#crystal-octa")?.addEventListener("click",()=>{
+    crystalToolState={...readState(),showOcta:!crystalToolState.showOcta};
+    crystalToolPage();
+  });
+  app.querySelector("#crystal-measure")?.addEventListener("click",()=>{
+    crystalToolState={...readState(),measure:!crystalToolState.measure};
+    crystalToolPage();
+  });
 
   try{
     const handle=await mountCrystalViewer(app.querySelector("#crystal-stage"),crystalToolState);

@@ -1,4 +1,4 @@
-import {createModelDocument} from "../model-document.js?v=33df360439ba2ff7c5d1dd3324885863e2194f82";
+import {createModelDocument} from "../model-document.js?v=e20b7932369f663022714d061be3a7037a33b0d5";
 
 function binaryLooksValid(buffer){
   if(buffer.byteLength<84)return false;
