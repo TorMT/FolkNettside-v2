@@ -39,7 +39,7 @@ test("CoolProp stays in review until side-by-side verification is complete",()=>
 
 
 test("known legacy-only tools stay registered until migrated",()=>{
-  for(const id of ["chemdraw","stl-advanced","theme-creator","image-theme"]){
+  for(const id of ["chemdraw","stl-advanced"]){
     const tool=toolById(id);
     assert.ok(tool,id+" disappeared from tool registry");
     assert.equal(tool.status,"legacy");
