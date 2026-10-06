@@ -36,9 +36,14 @@ Now also migrated:
 - diagram drag-pan / wheel-zoom / reset
 - PNG export
 
-Still required for full parity:
-- integrated help/reference notes
+Now also migrated:
+- searchable integrated help/reference notes covering overview, diagrams, phases, units, Air book basis and common errors
+- legacy P-T near-saturation / two-phase ambiguity warning
+
+Remaining:
 - final side-by-side functional and visual verification
+
+Status: `review`. The full legacy fallback remains until verification promotes this to `full`.
 
 The old implementation itself marked Table 4 batch mode and fully custom process input as incomplete; these are improvements, not parity blockers.
 

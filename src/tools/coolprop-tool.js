@@ -1,10 +1,11 @@
 import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,
   computeBatch,computeProcess,computeState,processTargetOptions,
-  rowsToCSV,rowsToJSON,unitLabel
+  rowsToCSV,rowsToJSON,saturationWarning,unitLabel
 } from "./coolprop-core.js";
 import {getCoolProp} from "../vendor/coolprop-runtime.js";
 import {mountCoolPropDiagram} from "./coolprop-diagram-view.js";
+import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -165,7 +166,7 @@ export function coolPropToolHTML(state={}){
       <div><span class="project-kicker">Thermodynamics tool</span><h1>CoolProp</h1>
       <p>Local WebAssembly property engine with the legacy state, batch, process and explore workflows.</p>
       <div class="tool-parity-banner"><strong>Migration in progress:</strong> calculations, units, book basis, batch, process, explore and exports are now being run through the shared v2 core. Advanced diagrams remain available in the <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">full legacy tool ↗</a>.</div></div>
-      <div class="coolprop-engine-status" id="coolprop-status">Engine not loaded</div>
+      <div class="coolprop-header-actions"><div class="coolprop-engine-status" id="coolprop-status">Engine not loaded</div><button class="btn" id="cp-help-open">Help</button></div>
     </header>
 
     ${globalSettingsHTML(s)}
@@ -196,6 +197,17 @@ export function coolPropToolHTML(state={}){
       </div>
       <div id="cp-diagram-stage" class="coolprop-diagram-stage"></div>
     </section>
+
+    <dialog id="cp-help-dialog" class="coolprop-help-dialog">
+      <div class="coolprop-help-shell">
+        <header><div><span class="project-kicker">CoolProp reference</span><h2>Help</h2></div><button class="btn" id="cp-help-close">Close</button></header>
+        <input id="cp-help-search" type="search" placeholder="Search units, saturation, diagrams…">
+        <div class="coolprop-help-layout">
+          <nav id="cp-help-nav"></nav>
+          <article id="cp-help-body"></article>
+        </div>
+      </div>
+    </dialog>
 
     <section class="settings-card coolprop-export">
       <strong>Export last result</strong>
@@ -346,6 +358,57 @@ export function bindCoolPropTool(root,state,onState){
     await mountDiagram(s.diagram);
   };
 
+  const helpDialog=root.querySelector("#cp-help-dialog");
+  const helpNav=root.querySelector("#cp-help-nav");
+  const helpBody=root.querySelector("#cp-help-body");
+  const helpSearch=root.querySelector("#cp-help-search");
+  let selectedHelpId="overview";
+
+  const renderHelp=(query="")=>{
+    const topics=searchCoolPropHelp(query);
+    helpNav.replaceChildren();
+    for(const topic of topics){
+      const button=document.createElement("button");
+      button.type="button";
+      button.className=topic.id===selectedHelpId?"active":"";
+      const title=document.createElement("strong");
+      title.textContent=topic.title;
+      const description=document.createElement("small");
+      description.textContent=topic.description;
+      button.append(title,description);
+      button.addEventListener("click",()=>{
+        selectedHelpId=topic.id;
+        renderHelp(helpSearch.value);
+      });
+      helpNav.append(button);
+    }
+    const selected=topics.find(topic=>topic.id===selectedHelpId)||topics[0]||null;
+    helpBody.replaceChildren();
+    if(!selected){
+      const empty=document.createElement("p");
+      empty.className="muted";
+      empty.textContent="No matching help topics.";
+      helpBody.append(empty);
+      return;
+    }
+    selectedHelpId=selected.id;
+    [...helpNav.children].forEach(button=>button.classList.toggle("active",button.querySelector("strong")?.textContent===selected.title));
+    const h=document.createElement("h3");h.textContent=selected.title;
+    const p=document.createElement("p");p.textContent=selected.body;
+    const extra=document.createElement("div");extra.className="coolprop-help-extra";extra.textContent=selected.extra;
+    helpBody.append(h,p,extra);
+  };
+
+  root.querySelector("#cp-help-open")?.addEventListener("click",()=>{
+    renderHelp("");
+    helpSearch.value="";
+    helpDialog?.showModal();
+    helpSearch?.focus();
+  });
+  root.querySelector("#cp-help-close")?.addEventListener("click",()=>helpDialog?.close());
+  helpDialog?.addEventListener("click",event=>{if(event.target===helpDialog)helpDialog.close()});
+  helpSearch?.addEventListener("input",event=>renderHelp(event.target.value));
+
   root.querySelector("#cp-single-example")?.addEventListener("click",()=>{
     save({...syncGlobal(),tab:"single",single:{input1:"P",value1:1,input2:"T",value2:25}},true);
   });
@@ -362,8 +425,11 @@ export function bindCoolPropTool(root,state,onState){
     target.innerHTML='<div class="viewer-loading">Calculating…</div>';
     try{
       const engine=await getEngine();
-      const result=computeState(engine,{fluid:root.querySelector("#cp-fluid").value,...next,units,bookBasis:root.querySelector("#cp-book-basis").checked});
-      target.innerHTML=resultGrid(result,units);
+      const fluid=root.querySelector("#cp-fluid").value;
+      const warning=saturationWarning(engine,{fluid,...next,units});
+      const result=computeState(engine,{fluid,...next,units,bookBasis:root.querySelector("#cp-book-basis").checked});
+      const warningHtml=warning?`<div class="geometry-warning coolprop-saturation-warning ${warning.severity}"><strong>${warning.severity==="critical"?"Two-phase ambiguity":"Near saturation"}</strong><span>${esc(warning.message)} ΔT = ${warning.deltaK.toFixed(3)} K.</span></div>`:"";
+      target.innerHTML=warningHtml+resultGrid(result,units);
       save({...syncGlobal(),single:next,exportRows:stateRowsForExport(result),exportName:"coolprop-single"},false);
       setDiagramStates([result],"Single");
     }catch(error){

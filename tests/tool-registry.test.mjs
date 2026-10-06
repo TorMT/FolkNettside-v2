@@ -30,10 +30,11 @@ test("unfinished legacy migrations always preserve full legacy access",()=>{
   }
 });
 
-test("CoolProp cannot be marked full until feature parity is complete",()=>{
+test("CoolProp stays in review until side-by-side verification is complete",()=>{
   const tool=toolById("coolprop");
   assert.equal(toolParityComplete(tool),false);
-  assert.equal(tool.parity,"partial");
+  assert.equal(tool.parity,"review");
+  assert.ok(tool.legacyUrl);
 });
 
 

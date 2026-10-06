@@ -29,7 +29,7 @@ export const TOOL_REGISTRY=[
     short:"CP",
     route:"/tools/coolprop",
     status:"prototype",
-    parity:"partial",
+    parity:"review",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html",
     category:"Engineering",
     summary:"Reference-grade thermophysical properties using the local CoolProp WASM engine.",

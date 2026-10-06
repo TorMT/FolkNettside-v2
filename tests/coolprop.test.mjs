@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   DEFAULT_UNITS,PROCESS_TYPES,applyBookBasis,batchFormat,computeBatch,computeProcess,
-  computeState,inputToSI,outputFromSI,parseBatchRows,phaseDescription,
+  computeState,inputToSI,outputFromSI,parseBatchRows,phaseDescription,saturationWarning,
   processTargetOptions,rowsToCSV,rowsToJSON,unitLabel
 } from "../src/tools/coolprop-core.js";
 
@@ -145,4 +145,28 @@ test("CSV and JSON exports serialize result rows",()=>{
 
 test("default units remain the legacy-friendly display defaults",()=>{
   assert.deepEqual(DEFAULT_UNITS,{pressure:"bar",temperature:"C",energy:"kJkg",entropy:"kJkgK"});
+});
+
+
+test("P-T states near saturation preserve the legacy two-phase warning",()=>{
+  const engine={
+    propsSI(out,k1,v1,k2,v2){
+      if(out==="T"&&k1==="P"&&k2==="Q")return 373.15;
+      return 0;
+    }
+  };
+  const critical=saturationWarning(engine,{fluid:"Water",input1:"P",value1:1,input2:"T",value2:100});
+  assert.equal(critical.severity,"critical");
+  assert.ok(critical.deltaK<.5);
+
+  const near=saturationWarning(engine,{fluid:"Water",input1:"T",value1:103,input2:"P",value2:1});
+  assert.equal(near.severity,"warning");
+
+  const far=saturationWarning(engine,{fluid:"Water",input1:"P",value1:1,input2:"T",value2:120});
+  assert.equal(far,null);
+});
+
+test("saturation warning only applies to a P-T input pair",()=>{
+  const engine={propsSI(){throw new Error("should not be called")}};
+  assert.equal(saturationWarning(engine,{fluid:"Water",input1:"P",value1:1,input2:"H",value2:400}),null);
 });
