@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-06T10:54:43.145987+00:00",
+  "generatedAt": "2026-10-06T11:01:39.090478+00:00",
   "source": "examples/semesters",
   "semesters": [
     {
@@ -21,10 +21,50 @@
             "Forelesninger",
             "Kok",
             "Videoer",
+            "Filer og ressurser",
             "Quiz",
             "Modeller"
           ],
           "resources": [
+            {
+              "section": "Filer og ressurser",
+              "folders": [
+                "Office"
+              ],
+              "relativePath": "Filer og ressurser/Office/hydro-data.xlsx",
+              "name": "hydro-data.xlsx",
+              "label": "hydro data",
+              "path": "./examples/semesters/5/TMR4182/Filer og ressurser/Office/hydro-data.xlsx",
+              "kind": "XLSX",
+              "size": 1639,
+              "modified": "2026-10-06T11:01:38.222869+00:00"
+            },
+            {
+              "section": "Filer og ressurser",
+              "folders": [
+                "Office"
+              ],
+              "relativePath": "Filer og ressurser/Office/hydro-notes.docx",
+              "name": "hydro-notes.docx",
+              "label": "hydro notes",
+              "path": "./examples/semesters/5/TMR4182/Filer og ressurser/Office/hydro-notes.docx",
+              "kind": "DOCX",
+              "size": 1013,
+              "modified": "2026-10-06T11:01:38.222932+00:00"
+            },
+            {
+              "section": "Filer og ressurser",
+              "folders": [
+                "Office"
+              ],
+              "relativePath": "Filer og ressurser/Office/hydro-slides.pptx",
+              "name": "hydro-slides.pptx",
+              "label": "hydro slides",
+              "path": "./examples/semesters/5/TMR4182/Filer og ressurser/Office/hydro-slides.pptx",
+              "kind": "PPTX",
+              "size": 1653,
+              "modified": "2026-10-06T11:01:38.222932+00:00"
+            },
             {
               "section": "Forelesninger",
               "folders": [],
@@ -34,7 +74,7 @@
               "path": "./examples/semesters/5/TMR4182/Forelesninger/formulas.tex",
               "kind": "TEX",
               "size": 283,
-              "modified": "2026-10-06T10:54:42.250168+00:00"
+              "modified": "2026-10-06T11:01:38.222932+00:00"
             },
             {
               "section": "Forelesninger",
@@ -45,7 +85,7 @@
               "path": "./examples/semesters/5/TMR4182/Forelesninger/lecture-01.pdf",
               "kind": "PDF",
               "size": 1922,
-              "modified": "2026-10-06T10:54:42.250264+00:00"
+              "modified": "2026-10-06T11:01:38.223028+00:00"
             },
             {
               "section": "Kok",
@@ -56,7 +96,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/formula-demo.html",
               "kind": "HTML",
               "size": 393,
-              "modified": "2026-10-06T10:54:42.250264+00:00"
+              "modified": "2026-10-06T11:01:38.223028+00:00"
             },
             {
               "section": "Kok",
@@ -67,7 +107,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/hydro-data.csv",
               "kind": "CSV",
               "size": 88,
-              "modified": "2026-10-06T10:54:42.250450+00:00"
+              "modified": "2026-10-06T11:01:38.223106+00:00"
             },
             {
               "section": "Kok",
@@ -78,7 +118,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/hydro-demo.ipynb",
               "kind": "IPYNB",
               "size": 498,
-              "modified": "2026-10-06T10:54:42.250450+00:00"
+              "modified": "2026-10-06T11:01:38.223106+00:00"
             },
             {
               "section": "Kok",
@@ -89,7 +129,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/hydro-demo.py",
               "kind": "PY",
               "size": 240,
-              "modified": "2026-10-06T10:54:42.250450+00:00"
+              "modified": "2026-10-06T11:01:38.223106+00:00"
             },
             {
               "section": "Kok",
@@ -100,7 +140,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/kok-example.md",
               "kind": "MD",
               "size": 218,
-              "modified": "2026-10-06T10:54:42.250450+00:00"
+              "modified": "2026-10-06T11:01:38.223106+00:00"
             },
             {
               "section": "Modeller",
@@ -111,7 +151,7 @@
               "path": "./examples/models/assembly-demo.3mf",
               "kind": "3MF",
               "size": 1197,
-              "modified": "2026-10-06T10:54:42.249954+00:00"
+              "modified": "2026-10-06T11:01:38.222765+00:00"
             },
             {
               "section": "Modeller",
@@ -122,7 +162,7 @@
               "path": "./examples/models/wedge.stl",
               "kind": "STL",
               "size": 1179,
-              "modified": "2026-10-06T10:54:42.250025+00:00"
+              "modified": "2026-10-06T11:01:38.222803+00:00"
             },
             {
               "section": "Quiz",
@@ -133,7 +173,7 @@
               "path": "./examples/semesters/5/TMR4182/Quiz/hydro-basics.quiz.json",
               "kind": "QUIZ",
               "size": 524,
-              "modified": "2026-10-06T10:54:42.250450+00:00"
+              "modified": "2026-10-06T11:01:38.223106+00:00"
             },
             {
               "section": "Videoer",
@@ -144,7 +184,7 @@
               "path": "./examples/semesters/5/TMR4182/Videoer/demo.mp4",
               "kind": "VIDEO",
               "size": 2880,
-              "modified": "2026-10-06T10:54:42.250450+00:00"
+              "modified": "2026-10-06T11:01:38.223106+00:00"
             }
           ]
         }
