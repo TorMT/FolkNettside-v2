@@ -6,6 +6,7 @@ import {hydroPanelHTML} from "./engineering/hydro-panel.js";
 import {renderProjectCard,renderProjectDetail} from "./components/project-card.js";
 import {loadModelDocument} from "./model/load-model.js";
 import {mountModelScene} from "./model/model-scene.js";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
 
 initSettings();
 
@@ -20,6 +21,8 @@ let engineeringRenderId=0;
 let selectedComponentId=null;
 let engineeringMode="Model";
 let hydroDraft=Number(model.hydro?.defaultDraft??1.20);
+let hydroTargetTonnes="";
+let hydroCurveCache={model:null,data:null};
 
 function getEngineeringDocument(){
   if(!engineeringDocumentPromise){
@@ -80,7 +83,7 @@ function depthFor(component,list){
   return depth;
 }
 
-function engineeringPage(){
+async function engineeringPage(){
   const renderId=++engineeringRenderId;
   engineeringCleanup?.();
   engineeringCleanup=null;
@@ -117,9 +120,55 @@ function engineeringPage(){
   const selected=uiComponents.find(c=>c.id===selectedComponentId)||uiComponents.find(c=>c.geometry)||uiComponents[0];
   if(selected&&!selectedComponentId)selectedComponentId=selected.id;
 
-  const hydro=engineeringMode==="Hydro"
-    ? hydroPanelHTML(documentModel,{draft:hydroDraft},model.hydro||{})
-    : null;
+  let hydro=null;
+  if(engineeringMode==="Hydro"){
+    const config=model.hydro||{};
+    const minWaterline=Number(config.minDraft??0);
+    const maxWaterline=Number(config.maxDraft??10);
+    const samples=Math.max(3,Number(config.curveSamples??9));
+    try{
+      const analysisPromise=analyzeHydroAsync(documentModel,hydroDraft);
+      let curvePromise;
+      if(hydroCurveCache.model===documentModel&&hydroCurveCache.data){
+        curvePromise=Promise.resolve(hydroCurveCache.data);
+      }else{
+        curvePromise=hydroCurveAsync(documentModel,{minWaterline,maxWaterline,samples});
+      }
+
+      let solvePromise=Promise.resolve(null);
+      const target=Number(hydroTargetTonnes);
+      if(Number.isFinite(target)&&target>0){
+        const density=Number(config.density)||1025;
+        solvePromise=solveHydroDraftAsync(documentModel,target*1000/density,{
+          minWaterline,maxWaterline,tolerance:1e-7,maxIterations:60
+        }).then(value=>({value,error:null})).catch(error=>({value:null,error:String(error?.message||error)}));
+      }
+
+      const [result,curve,solvedState]=await Promise.all([analysisPromise,curvePromise,solvePromise]);
+      if(renderId!==engineeringRenderId)return;
+      hydroCurveCache={model:documentModel,data:curve};
+      hydro=hydroPanelHTML({
+        modelDocument:documentModel,
+        result,
+        curve,
+        solved:solvedState?.value||null,
+        solveError:solvedState?.error||null,
+        draft:hydroDraft,
+        targetDisplacementTonnes:hydroTargetTonnes,
+        config
+      });
+    }catch(error){
+      if(renderId!==engineeringRenderId)return;
+      hydro={
+        inspector:`<h3>Hydro error</h3><p class="hydro-solve-error">${String(error?.message||error)}</p>`,
+        summary:"<strong>Hydro unavailable</strong>",
+        results:"",
+        draft:hydroDraft,
+        density:Number(model.hydro?.density)||1025,
+        waterlinePercent:0
+      };
+    }
+  }
 
   const inspector=hydro?hydro.inspector:`
     <h3>Properties</h3>
@@ -185,6 +234,16 @@ function engineeringPage(){
   });
   app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
   app.querySelector("#hydro-draft")?.addEventListener("change",event=>{hydroDraft=Number(event.target.value)||0;engineeringPage()});
+  app.querySelector("#hydro-solve")?.addEventListener("click",()=>{
+    hydroTargetTonnes=app.querySelector("#hydro-target")?.value??"";
+    engineeringPage();
+  });
+  app.querySelector("#hydro-target")?.addEventListener("keydown",event=>{
+    if(event.key==="Enter"){
+      hydroTargetTonnes=event.currentTarget.value;
+      engineeringPage();
+    }
+  });
 }
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}

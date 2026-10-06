@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {analyzeHydrostatics,analyzeModelDocument} from "../src/hydro/hydrostatics.js";
+import {analyzeHydrostatics,analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "../src/hydro/hydrostatics.js";
 import {boxMesh,reverseWinding,wedgePrismMesh} from "../src/hydro/fixtures.js";
 
 const near=(actual,expected,tol=1e-8)=>assert.ok(Math.abs(actual-expected)<=tol,`expected ${actual} ≈ ${expected}`);
@@ -68,4 +68,22 @@ test("ModelDocument aggregates multiple translated waterplanes",()=>{
   near(r.centerOfBuoyancy[0],0,1e-8);
   near(r.waterplane.area,8,1e-8);
   near(r.waterplane.centroid[0],0,1e-8);
+});
+
+
+test("hydro curve follows analytic box volume",()=>{
+  const model={unitScaleToMeters:1,components:[{id:"hull",name:"Hull",geometry:boxMesh({L:10,B:3,H:2}),metadata:{hydro:true}}]};
+  const curve=hydroCurve(model,{minWaterline:0,maxWaterline:2,samples:5,include:c=>c.metadata.hydro});
+  assert.equal(curve.length,5);
+  near(curve[0].volume,0,1e-8);
+  near(curve[1].volume,15,1e-7);
+  near(curve[2].volume,30,1e-7);
+  near(curve[4].volume,60,1e-7);
+});
+
+test("target displacement volume solves analytic draft",()=>{
+  const model={unitScaleToMeters:1,components:[{id:"hull",name:"Hull",geometry:boxMesh({L:10,B:3,H:2}),metadata:{hydro:true}}]};
+  const solved=solveWaterlineForVolume(model,36,{minWaterline:0,maxWaterline:2,tolerance:1e-9,include:c=>c.metadata.hydro});
+  near(solved.waterline,1.2,1e-8);
+  near(solved.result.volume,36,1e-8);
 });
