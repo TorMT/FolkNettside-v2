@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-06T11:01:39.090478+00:00",
+  "generatedAt": "2026-10-06T11:02:47.375078+00:00",
   "source": "examples/semesters",
   "semesters": [
     {
@@ -19,6 +19,7 @@
           ],
           "sections": [
             "Forelesninger",
+            "Øvinger",
             "Kok",
             "Videoer",
             "Filer og ressurser",
@@ -37,7 +38,7 @@
               "path": "./examples/semesters/5/TMR4182/Filer og ressurser/Office/hydro-data.xlsx",
               "kind": "XLSX",
               "size": 1639,
-              "modified": "2026-10-06T11:01:38.222869+00:00"
+              "modified": "2026-10-06T11:02:46.224982+00:00"
             },
             {
               "section": "Filer og ressurser",
@@ -50,7 +51,7 @@
               "path": "./examples/semesters/5/TMR4182/Filer og ressurser/Office/hydro-notes.docx",
               "kind": "DOCX",
               "size": 1013,
-              "modified": "2026-10-06T11:01:38.222932+00:00"
+              "modified": "2026-10-06T11:02:46.225160+00:00"
             },
             {
               "section": "Filer og ressurser",
@@ -63,7 +64,7 @@
               "path": "./examples/semesters/5/TMR4182/Filer og ressurser/Office/hydro-slides.pptx",
               "kind": "PPTX",
               "size": 1653,
-              "modified": "2026-10-06T11:01:38.222932+00:00"
+              "modified": "2026-10-06T11:02:46.225160+00:00"
             },
             {
               "section": "Forelesninger",
@@ -74,7 +75,7 @@
               "path": "./examples/semesters/5/TMR4182/Forelesninger/formulas.tex",
               "kind": "TEX",
               "size": 283,
-              "modified": "2026-10-06T11:01:38.222932+00:00"
+              "modified": "2026-10-06T11:02:46.225160+00:00"
             },
             {
               "section": "Forelesninger",
@@ -85,7 +86,7 @@
               "path": "./examples/semesters/5/TMR4182/Forelesninger/lecture-01.pdf",
               "kind": "PDF",
               "size": 1922,
-              "modified": "2026-10-06T11:01:38.223028+00:00"
+              "modified": "2026-10-06T11:02:46.225398+00:00"
             },
             {
               "section": "Kok",
@@ -96,7 +97,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/formula-demo.html",
               "kind": "HTML",
               "size": 393,
-              "modified": "2026-10-06T11:01:38.223028+00:00"
+              "modified": "2026-10-06T11:02:46.225398+00:00"
             },
             {
               "section": "Kok",
@@ -107,7 +108,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/hydro-data.csv",
               "kind": "CSV",
               "size": 88,
-              "modified": "2026-10-06T11:01:38.223106+00:00"
+              "modified": "2026-10-06T11:02:46.225551+00:00"
             },
             {
               "section": "Kok",
@@ -118,7 +119,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/hydro-demo.ipynb",
               "kind": "IPYNB",
               "size": 498,
-              "modified": "2026-10-06T11:01:38.223106+00:00"
+              "modified": "2026-10-06T11:02:46.225551+00:00"
             },
             {
               "section": "Kok",
@@ -129,7 +130,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/hydro-demo.py",
               "kind": "PY",
               "size": 240,
-              "modified": "2026-10-06T11:01:38.223106+00:00"
+              "modified": "2026-10-06T11:02:46.225551+00:00"
             },
             {
               "section": "Kok",
@@ -140,7 +141,7 @@
               "path": "./examples/semesters/5/TMR4182/Kok/kok-example.md",
               "kind": "MD",
               "size": 218,
-              "modified": "2026-10-06T11:01:38.223106+00:00"
+              "modified": "2026-10-06T11:02:46.225551+00:00"
             },
             {
               "section": "Modeller",
@@ -151,7 +152,7 @@
               "path": "./examples/models/assembly-demo.3mf",
               "kind": "3MF",
               "size": 1197,
-              "modified": "2026-10-06T11:01:38.222765+00:00"
+              "modified": "2026-10-06T11:02:46.224712+00:00"
             },
             {
               "section": "Modeller",
@@ -162,7 +163,7 @@
               "path": "./examples/models/wedge.stl",
               "kind": "STL",
               "size": 1179,
-              "modified": "2026-10-06T11:01:38.222803+00:00"
+              "modified": "2026-10-06T11:02:46.224820+00:00"
             },
             {
               "section": "Quiz",
@@ -173,7 +174,7 @@
               "path": "./examples/semesters/5/TMR4182/Quiz/hydro-basics.quiz.json",
               "kind": "QUIZ",
               "size": 524,
-              "modified": "2026-10-06T11:01:38.223106+00:00"
+              "modified": "2026-10-06T11:02:46.225551+00:00"
             },
             {
               "section": "Videoer",
@@ -184,7 +185,46 @@
               "path": "./examples/semesters/5/TMR4182/Videoer/demo.mp4",
               "kind": "VIDEO",
               "size": 2880,
-              "modified": "2026-10-06T11:01:38.223106+00:00"
+              "modified": "2026-10-06T11:02:46.225551+00:00"
+            },
+            {
+              "section": "Øvinger",
+              "folders": [
+                "Øving 01"
+              ],
+              "relativePath": "Øvinger/Øving 01/oppgave.pdf",
+              "name": "oppgave.pdf",
+              "label": "oppgave",
+              "path": "./examples/semesters/5/TMR4182/Øvinger/Øving 01/oppgave.pdf",
+              "kind": "PDF",
+              "size": 1922,
+              "modified": "2026-10-06T11:02:46.226150+00:00"
+            },
+            {
+              "section": "Øvinger",
+              "folders": [
+                "Øving 01"
+              ],
+              "relativePath": "Øvinger/Øving 01/plot.py",
+              "name": "plot.py",
+              "label": "plot",
+              "path": "./examples/semesters/5/TMR4182/Øvinger/Øving 01/plot.py",
+              "kind": "PY",
+              "size": 156,
+              "modified": "2026-10-06T11:02:46.226245+00:00"
+            },
+            {
+              "section": "Øvinger",
+              "folders": [
+                "Øving 01"
+              ],
+              "relativePath": "Øvinger/Øving 01/solve.py",
+              "name": "solve.py",
+              "label": "solve",
+              "path": "./examples/semesters/5/TMR4182/Øvinger/Øving 01/solve.py",
+              "kind": "PY",
+              "size": 203,
+              "modified": "2026-10-06T11:02:46.226245+00:00"
             }
           ]
         }
