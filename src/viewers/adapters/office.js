@@ -1,5 +1,5 @@
-import {escapeHTML,extension} from "../utils.js";
-import {getJSZip} from "../../vendor/jszip.js";
+import {escapeHTML,extension} from "../utils.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {getJSZip} from "../../vendor/jszip.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
 
 function parseXML(text){
   const doc=new DOMParser().parseFromString(text,"application/xml");

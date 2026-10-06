@@ -1,15 +1,15 @@
-import {initSettings,getSettings,setSetting} from "./settings.js";
-import {mountViewer} from "./viewer.js";
-import {loadContent} from "./content.js";
-import {renderResourceTree} from "./components/resource-tree.js";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js";
-import {loadModelDocument} from "./model/load-model.js";
-import {mountModelScene} from "./model/model-scene.js";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {mountViewer} from "./viewer.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {loadContent} from "./content.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {renderResourceTree} from "./components/resource-tree.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {loadModelDocument} from "./model/load-model.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {mountModelScene} from "./model/model-scene.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
 
 initSettings();
 

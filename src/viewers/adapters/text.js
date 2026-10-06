@@ -1,5 +1,5 @@
-import {escapeHTML,fetchText,extension} from "../utils.js";
-import {getHighlighter} from "../../vendor/highlight.js";
+import {escapeHTML,fetchText,extension} from "../utils.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
+import {getHighlighter} from "../../vendor/highlight.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
 
 const languageByExtension={
   py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",

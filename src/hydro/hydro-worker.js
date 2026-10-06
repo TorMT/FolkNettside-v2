@@ -1,4 +1,4 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=b034f1e8cf064957feb7535afd5def017b4ecf34";
 
 let modelDocument=null;
 
