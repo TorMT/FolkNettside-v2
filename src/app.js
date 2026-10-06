@@ -2,6 +2,7 @@ import {initSettings,getSettings,setSetting} from "./settings.js";
 import {mountViewer} from "./viewer.js";
 import {loadContent} from "./content.js";
 import {renderResourceTree} from "./components/resource-tree.js";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js";
 
 initSettings();
 
@@ -10,6 +11,8 @@ const content=await loadContent();
 const {site,semesters,model,components,navLabels}=content;
 
 let selectedComponentId=components.find(c=>c.type==="hull")?.id || components[0]?.id;
+let engineeringMode="Model";
+let hydroDraft=1.20;
 
 const vessel='<svg viewBox="0 0 760 380"><path d="M120 236 L560 236 L642 265 L603 305 L184 306 L104 268 Z" fill="#bccbd2" stroke="#eff7fa" stroke-width="3"/><path d="M250 151 L486 151 L541 230 L196 230 Z" fill="#dbe7ec" stroke="#eff7fa" stroke-width="3"/><rect x="292" y="109" width="165" height="39" rx="4" fill="#dbe7ec"/><path d="M326 109V45" stroke="#eff7fa" stroke-width="4"/><g fill="#17384c"><rect x="276" y="168" width="35" height="17" rx="3"/><rect x="321" y="168" width="35" height="17" rx="3"/><rect x="366" y="168" width="35" height="17" rx="3"/><rect x="411" y="168" width="35" height="17" rx="3"/></g><path d="M160 273 Q370 325 615 274" fill="none" stroke="#6dc6eb" stroke-width="3"/></svg>';
 
@@ -34,8 +37,33 @@ function coursePage(semesterId,code){const course=getCourse(semesterId,code);if(
 function settingsPage(){const s=getSettings(),acc={magenta:"#b3157a",teal:"#0b6e72",blue:"#1f57c9",amber:"#8f5a00",graphite:"#394d5b"};document.documentElement.dataset.lens="study";app.innerHTML=top("")+'<main class="settings"><aside class="side"><div class="side-title">Settings</div><button class="active">Appearance</button><button>Account & connections</button><button>Courses</button><button>Engineering</button><button>Privacy & data</button><button>Advanced</button></aside><section class="settings-main"><h1>Appearance</h1><p class="muted">Theme lives here only. Viewers and workspaces inherit the same global state.</p><div class="settings-card"><div class="setting-row"><div><strong>Mode</strong><small>Follow system, or force light/dark.</small></div><div class="segment">'+["system","light","dark"].map(v=>'<button data-setting="mode" data-value="'+v+'" class="'+(s.mode===v?"active":"")+'">'+v+'</button>').join("")+'</div></div><div class="setting-row"><div><strong>Accent</strong><small>Shared UI accent. Analysis colormaps remain independent.</small></div><div class="swatches">'+Object.entries(acc).map(([k,v])=>'<button class="swatch '+(s.accent===k?"active":"")+'" data-setting="accent" data-value="'+k+'" style="background:'+v+'" title="'+k+'"></button>').join("")+'</div></div></div><div class="settings-card"><div class="setting-row"><div><strong>Google</strong><small>Optional; only needed for Drive/cloud features.</small></div><button class="btn">Not connected</button></div><div class="setting-row"><div><strong>Autodesk</strong><small>Optional; future Fusion/APS connection.</small></div><button class="btn">Not connected</button></div></div></section></main><div class="preview-badge">Public by default · auth optional</div>';bindNav();app.querySelectorAll("[data-setting]").forEach(b=>b.onclick=()=>{setSetting(b.dataset.setting,b.dataset.value);settingsPage()})}
 
 function depthFor(component){const byId=new Map(components.map(c=>[c.id,c]));let d=0,current=component;while(current?.parentId&&d<20){d++;current=byId.get(current.parentId)}return d}
-function engineeringPage(){document.documentElement.dataset.lens="workspace";const selected=components.find(c=>c.id===selectedComponentId)||components[0];app.innerHTML=top("engineering")+'<main class="workspace"><div class="workspace-bar"><strong>'+model.name+'</strong><div class="mode-tabs">'+["Model","Hydro","Structure","Resistance","Propulsion"].map((m,i)=>'<button class="'+(i===0?"active":"")+'">'+m+'</button>').join("")+'</div></div><aside class="tree"><input placeholder="Filter components"><div class="tree-label">Components</div>'+components.map(c=>'<div class="tree-row '+(c.id===selectedComponentId?"selected":selectedComponentId&&depthFor(c)>1?"dim":"")+'" data-component="'+c.id+'" style="padding-left:'+(8+depthFor(c)*16)+'px">'+(c.type==="assembly"?"▾":"○")+' '+c.name+'</div>').join("")+'</aside><section class="viewport"><div class="hud">Selected: '+selected.name+' · Esc clears focus</div>'+vessel+'</section><aside class="inspector"><h3>Properties</h3><div class="readout"><span>Component</span><strong>'+selected.name+'</strong></div><div class="readout"><span>Role</span><strong>'+selected.type+'</strong></div><div class="readout"><span>Source ID</span><strong>'+selected.id+'</strong></div></aside><section class="results"><div class="results-summary"><strong>Model summary</strong><div class="readout"><span>Components</span><strong>'+components.length+'</strong></div><div class="readout"><span>Format</span><strong>'+model.format+'</strong></div></div><div class="chart"><svg viewBox="0 0 700 170"><path d="M20 135 C90 132 122 80 190 92 S315 60 372 82 S502 35 675 46" fill="none" stroke="var(--accent)" stroke-width="3"/><path d="M20 145H680M20 20V145" stroke="var(--line-strong)"/></svg></div></section><footer class="statusbar"><span>Units SI</span><span>Water 1025 kg/m³</span><span>Quality Auto</span><span class="top-spacer"></span><span>Ready</span></footer></main><div class="preview-badge">Component model loaded from data</div>';bindNav();app.querySelectorAll("[data-component]").forEach(r=>r.onclick=()=>{selectedComponentId=r.dataset.component;engineeringPage()})}
+function engineeringPage(){
+  document.documentElement.dataset.lens="workspace";
+  const selected=components.find(c=>c.id===selectedComponentId)||components[0];
+  const hydro=engineeringMode==="Hydro"?hydroPanelHTML({draft:hydroDraft}):null;
+  const inspector=hydro?hydro.inspector:`<h3>Properties</h3><div class="readout"><span>Component</span><strong>${selected.name}</strong></div><div class="readout"><span>Role</span><strong>${selected.type}</strong></div><div class="readout"><span>Source ID</span><strong>${selected.id}</strong></div>`;
+  const summary=hydro?hydro.summary:`<strong>Model summary</strong><div class="readout"><span>Components</span><strong>${components.length}</strong></div><div class="readout"><span>Format</span><strong>${model.format}</strong></div>`;
+  const resultContent=hydro?hydro.results:`<div class="chart"><svg viewBox="0 0 700 170"><path d="M20 135 C90 132 122 80 190 92 S315 60 372 82 S502 35 675 46" fill="none" stroke="var(--accent)" stroke-width="3"/><path d="M20 145H680M20 20V145" stroke="var(--line-strong)"/></svg></div>`;
+  const waterline=hydro?`<div class="workspace-waterline" style="bottom:${hydro.waterlinePercent}%"><span>WL ${hydroDraft.toFixed(2)} m</span></div>`:"";
 
+  app.innerHTML=top("engineering")+`<main class="workspace">
+    <div class="workspace-bar"><strong>${model.name}</strong><div class="mode-tabs">
+      ${["Model","Hydro","Structure","Resistance","Propulsion"].map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
+    </div></div>
+    <aside class="tree"><input placeholder="Filter components"><div class="tree-label">Components</div>
+      ${components.map(c=>`<div class="tree-row ${c.id===selectedComponentId?"selected":selectedComponentId&&depthFor(c)>1?"dim":""}" data-component="${c.id}" style="padding-left:${8+depthFor(c)*16}px">${c.type==="assembly"?"▾":"○"} ${c.name}</div>`).join("")}
+    </aside>
+    <section class="viewport"><div class="hud">${engineeringMode==="Hydro"?"Hydro analytic fixture":"Selected: "+selected.name+" · Esc clears focus"}</div>${vessel}${waterline}</section>
+    <aside class="inspector">${inspector}</aside>
+    <section class="results"><div class="results-summary">${summary}</div>${resultContent}</section>
+    <footer class="statusbar"><span>Units SI</span><span>Water ${hydro?.density||1025} kg/m³</span><span>Mode ${engineeringMode}</span><span class="top-spacer"></span><span>Ready</span></footer>
+  </main><div class="preview-badge">${engineeringMode==="Hydro"?"Hydro engine · analytic fixture":"Component model loaded from data"}</div>`;
+
+  bindNav();
+  app.querySelectorAll("[data-component]").forEach(row=>row.onclick=()=>{selectedComponentId=row.dataset.component;engineeringPage()});
+  app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>{engineeringMode=button.dataset.engineeringMode;engineeringPage()});
+  app.querySelector("#hydro-draft")?.addEventListener("change",event=>{hydroDraft=Number(event.target.value)||0;engineeringPage()});
+}
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
 
