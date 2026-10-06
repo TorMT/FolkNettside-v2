@@ -48,20 +48,20 @@ test("migrating legacy tools stay registered with fallback until full parity",()
   }
 });
 
-test("crystal migration is partial while advanced legacy features are missing",()=>{
+test("crystal stays in review until side-by-side verification is complete",()=>{
   const tool=toolById("crystal");
-  assert.equal(tool.parity,"partial");
+  assert.equal(tool.parity,"review");
   assert.ok(tool.legacyUrl?.includes("KrystallStrukturer"));
 });
 
 
-test("retired theme tools are intentionally excluded from v2 parity work",()=>{
-  const theme=toolById("theme-creator");
-  const imageTheme=toolById("image-theme");
-  assert.equal(theme.status,"retired");
-  assert.equal(theme.parity,"retired");
-  assert.equal(imageTheme.status,"retired");
-  assert.equal(imageTheme.parity,"retired");
-  assert.ok(!visibleTools().some(tool=>tool.id==="theme-creator"||tool.id==="image-theme"));
-  assert.ok(!toolsNeedingParityReview().some(tool=>tool.id==="theme-creator"||tool.id==="image-theme"));
+test("theme authoring tools remain visible until v2 migration preserves their functions",()=>{
+  for(const id of ["theme-creator","image-theme"]){
+    const tool=toolById(id);
+    assert.equal(tool.status,"legacy");
+    assert.equal(tool.parity,"partial");
+    assert.ok(tool.legacyUrl?.startsWith("https://"));
+    assert.ok(visibleTools().some(item=>item.id===id));
+    assert.ok(toolsNeedingParityReview().some(item=>item.id===id));
+  }
 });
