@@ -72,14 +72,18 @@ Migrated:
 - selectable property display
 - element detail
 
-Legacy behavior still to verify/migrate:
+Now migrated:
 - one-click quick filters: metals, non-metals, STP gases, BCC, FCC, radioactive
 - explicit reset filters
 - clear selected element
-- property tabs matching legacy set, including atomic radius and first ionization/electron affinity presentation
-- legacy info panel behavior and Wikipedia link
+- the legacy property set, including atomic radius, first ionization and electron affinity
+- element summary/detail panel
+- source/Wikipedia link
 
-Status stays `partial` until these are covered.
+Remaining:
+- final side-by-side visual/behavior verification.
+
+Status: `review`. Legacy fallback remains until `full`.
 
 ## Crystal structures
 

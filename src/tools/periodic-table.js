@@ -26,9 +26,10 @@ export function periodicTableHTML(elements,state={}){
   const group=state.group||"all";
   const crystal=state.crystal||"all";
   const property=state.property||"atomic_mass";
+  const quick=state.quick||"";
   const temperature=Number(state.temperature)||298;
   const selectedNumber=Number(state.selected)||null;
-  const filtered=filterElements(elements,{search,phase,category,material,period,group,crystal});
+  const filtered=filterElements(elements,{search,phase,category,material,period,group,crystal,quick});
   const visible=new Set(filtered.map(item=>item.number));
   const selected=elements.find(item=>item.number===selectedNumber)||null;
   const cats=categories(elements);
@@ -54,12 +55,20 @@ export function periodicTableHTML(elements,state={}){
       <div class="periodic-detail-symbol">${esc(selected.symbol)}</div>
       <div><h2>${esc(selected.name)}</h2><p class="muted">Atomic number ${selected.number} · ${esc(selected.category)} · ${esc(selected.crystal_structure)}</p></div>
       <div class="hydro-grid">
-        <div><span class="muted">Atomic mass</span><strong>${propertyValue(selected,"atomic_mass")??"—"} u</strong></div>
-        <div><span class="muted">Density</span><strong>${propertyValue(selected,"density")??"—"} g/cm³</strong></div>
-        <div><span class="muted">Melting point</span><strong>${propertyValue(selected,"melt")??"—"} K</strong></div>
-        <div><span class="muted">Boiling point</span><strong>${propertyValue(selected,"boil")??"—"} K</strong></div>
-        <div><span class="muted">Electronegativity</span><strong>${propertyValue(selected,"electronegativity_pauling")??"—"}</strong></div>
+        <div><span class="muted">Atomic mass</span><strong>${esc(formattedProperty(selected,"atomic_mass"))}</strong></div>
+        <div><span class="muted">Density</span><strong>${esc(formattedProperty(selected,"density"))}</strong></div>
+        <div><span class="muted">Atomic radius</span><strong>${esc(formattedProperty(selected,"atomic_radius"))}</strong></div>
+        <div><span class="muted">Melting point</span><strong>${esc(formattedProperty(selected,"melt"))}</strong></div>
+        <div><span class="muted">Boiling point</span><strong>${esc(formattedProperty(selected,"boil"))}</strong></div>
+        <div><span class="muted">Electronegativity</span><strong>${esc(formattedProperty(selected,"electronegativity_pauling"))}</strong></div>
+        <div><span class="muted">1st ionization</span><strong>${esc(formattedProperty(selected,"first_ionization"))}</strong></div>
+        <div><span class="muted">Electron affinity</span><strong>${esc(formattedProperty(selected,"electron_affinity"))}</strong></div>
         <div><span class="muted">Electron configuration</span><strong>${esc(selected.electron_configuration||"—")}</strong></div>
+      </div>
+      ${selected.summary?`<p class="periodic-summary">${esc(selected.summary)}</p>`:""}
+      <div class="periodic-detail-actions">
+        <button class="btn" id="periodic-clear-selection">Clear selection</button>
+        ${selected.source?`<a class="btn" href="${esc(selected.source)}" target="_blank" rel="noopener">Source / Wikipedia ↗</a>`:""}
       </div>
     </aside>`:"";
 
@@ -68,6 +77,17 @@ export function periodicTableHTML(elements,state={}){
     <header class="tool-header">
       <div><span class="project-kicker">Chemistry tool</span><h1>Periodic table</h1><p>Data-driven table with local fixture data, filtering and temperature-dependent phase indication.</p></div>
     </header>
+    <section class="periodic-quickbar" aria-label="Quick filters">
+      ${[
+        ["metal","Metals"],
+        ["nonmetal","Non-metals"],
+        ["stp-gas","STP gases"],
+        ["bcc","BCC"],
+        ["fcc","FCC"],
+        ["radioactive","Radioactive"]
+      ].map(([value,label])=>`<button data-periodic-quick="${value}" class="${quick===value?"active":""}">${label}</button>`).join("")}
+      <button id="periodic-reset">Reset filters</button>
+    </section>
     <section class="periodic-controls">
       <label class="field"><span>Search</span><input id="periodic-search" value="${esc(search)}" placeholder="Name, symbol, category..."></label>
       <label class="field"><span>Property</span><select id="periodic-property">${Object.entries(PROPERTY_DEFINITIONS).map(([key,definition])=>`<option value="${key}" ${key===property?"selected":""}>${esc(definition.label)}</option>`).join("")}</select></label>

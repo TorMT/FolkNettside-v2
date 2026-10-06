@@ -17,7 +17,7 @@ export const TOOL_REGISTRY=[
     short:"PT",
     route:"/tools/periodic",
     status:"prototype",
-    parity:"partial",
+    parity:"review",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/PeriodicTable/periodic-table.html",
     category:"Chemistry",
     summary:"Local periodic-table data with search, filtering, crystal metadata and temperature-dependent phase.",

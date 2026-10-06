@@ -45,7 +45,7 @@ let propulsionDiameter=1.5;
 let propulsionInitialized=false;
 let fluidToolState={fluid:"air",temperature:20,unit:"C"};
 let coolPropState={fluid:"Air",input1:"P",value1:1,input2:"T",value2:25};
-let periodicToolState={search:"",phase:"all",category:"all",material:"all",period:"all",group:"all",crystal:"all",property:"atomic_mass",temperature:298,selected:null};
+let periodicToolState={search:"",phase:"all",category:"all",material:"all",period:"all",group:"all",crystal:"all",property:"atomic_mass",quick:"",temperature:298,selected:null};
 let crystalToolState={type:"bcc",preset:"",nx:1,ny:1,nz:1,a:1,c:"",showTetra:false,showOcta:false,measure:false};
 let crystalCleanup=null;
 let workspaceDrawerCleanup=null;
@@ -166,6 +166,7 @@ async function periodicToolPage(){
         phase:app.querySelector("#periodic-phase")?.value||"all",
         crystal:app.querySelector("#periodic-crystal")?.value||"all",
         property:app.querySelector("#periodic-property")?.value||"atomic_mass",
+        quick:periodicToolState.quick||"",
         temperature:Number(app.querySelector("#periodic-temperature")?.value)||298
       };
       periodicToolPage();
@@ -180,6 +181,18 @@ async function periodicToolPage(){
     app.querySelector("#periodic-phase")?.addEventListener("change",rerender);
     app.querySelector("#periodic-crystal")?.addEventListener("change",rerender);
     app.querySelector("#periodic-temperature")?.addEventListener("change",rerender);
+    app.querySelectorAll("[data-periodic-quick]").forEach(button=>button.onclick=()=>{
+      periodicToolState={...periodicToolState,quick:periodicToolState.quick===button.dataset.periodicQuick?"":button.dataset.periodicQuick};
+      periodicToolPage();
+    });
+    app.querySelector("#periodic-reset")?.addEventListener("click",()=>{
+      periodicToolState={search:"",phase:"all",category:"all",material:"all",period:"all",group:"all",crystal:"all",property:"atomic_mass",quick:"",temperature:298,selected:null};
+      periodicToolPage();
+    });
+    app.querySelector("#periodic-clear-selection")?.addEventListener("click",()=>{
+      periodicToolState={...periodicToolState,selected:null};
+      periodicToolPage();
+    });
     app.querySelectorAll("[data-element]").forEach(button=>button.onclick=()=>{
       periodicToolState={...periodicToolState,selected:Number(button.dataset.element)};
       periodicToolPage();

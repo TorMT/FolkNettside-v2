@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {enrichElement,filterElements,stateAtTemperature,propertyValue,formattedProperty} from "../src/tools/periodic-table-core.js";
+import {enrichElement,filterElements,stateAtTemperature,propertyValue,formattedProperty,matchesQuickFilter} from "../src/tools/periodic-table-core.js";
 
 const iron=enrichElement({number:26,symbol:"Fe",name:"Iron",category:"transition metal",phase:"Solid",melt:1811,boil:3134,ionization_energies:[7.9]});
 const helium=enrichElement({number:2,symbol:"He",name:"Helium",category:"noble gas",phase:"Gas",melt:.95,boil:4.22});
@@ -48,4 +48,22 @@ test("period group material and crystal filters compose",()=>{
 test("formatted properties include units and fallback",()=>{
   assert.equal(formattedProperty({atomic_mass:55.845},"atomic_mass"),"55.845 u");
   assert.equal(formattedProperty({},"density"),"—");
+});
+
+
+test("legacy quick filters remain available",()=>{
+  const metal=enrichElement({number:26,symbol:"Fe",name:"Iron",category:"transition metal",phase:"Solid"});
+  const gas=enrichElement({number:8,symbol:"O",name:"Oxygen",category:"nonmetal",phase:"Gas"});
+  const radioactive=enrichElement({number:92,symbol:"U",name:"Uranium",category:"actinide",phase:"Solid"});
+  assert.equal(matchesQuickFilter(metal,"metal"),true);
+  assert.equal(matchesQuickFilter(gas,"stp-gas"),true);
+  assert.equal(matchesQuickFilter(metal,"bcc"),true);
+  assert.equal(matchesQuickFilter(radioactive,"radioactive"),true);
+  assert.equal(filterElements([metal,gas,radioactive],{quick:"stp-gas"}).length,1);
+});
+
+test("atomic radius falls back to bundled atomic_radii data",()=>{
+  const element={atomic_radii:{empirical:[125],calculated:[130]}};
+  assert.equal(propertyValue(element,"atomic_radius"),125);
+  assert.equal(formattedProperty(element,"atomic_radius"),"125 pm");
 });
