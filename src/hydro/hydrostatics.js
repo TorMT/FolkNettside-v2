@@ -224,3 +224,54 @@ export function analyzeModelDocument(modelDocument,waterline=0,{include=()=>true
     components:perComponent
   };
 }
+
+
+export function hydroCurve(modelDocument,{
+  minWaterline=0,
+  maxWaterline=1,
+  samples=11,
+  include=()=>true
+}={}){
+  const count=Math.max(2,Math.floor(samples));
+  const span=maxWaterline-minWaterline;
+  return Array.from({length:count},(_,index)=>{
+    const t=index/(count-1);
+    const waterline=minWaterline+span*t;
+    const result=analyzeModelDocument(modelDocument,waterline,{include});
+    return {waterline,...result};
+  });
+}
+
+export function solveWaterlineForVolume(modelDocument,targetVolume,{
+  minWaterline=0,
+  maxWaterline=1,
+  tolerance=1e-6,
+  maxIterations=60,
+  include=()=>true
+}={}){
+  const target=Number(targetVolume);
+  if(!Number.isFinite(target)||target<0)throw new Error("targetVolume must be a finite non-negative number");
+  let low=Number(minWaterline),high=Number(maxWaterline);
+  if(!(high>low))throw new Error("maxWaterline must be greater than minWaterline");
+
+  let lowResult=analyzeModelDocument(modelDocument,low,{include});
+  let highResult=analyzeModelDocument(modelDocument,high,{include});
+  if(target<lowResult.volume-tolerance||target>highResult.volume+tolerance){
+    throw new Error(`Target volume ${target} m^3 is outside the bracket [${lowResult.volume}, ${highResult.volume}]`);
+  }
+  if(Math.abs(lowResult.volume-target)<=tolerance)return {waterline:low,result:lowResult,iterations:0};
+  if(Math.abs(highResult.volume-target)<=tolerance)return {waterline:high,result:highResult,iterations:0};
+
+  let mid=(low+high)/2,midResult;
+  for(let iteration=1;iteration<=maxIterations;iteration++){
+    mid=(low+high)/2;
+    midResult=analyzeModelDocument(modelDocument,mid,{include});
+    const error=midResult.volume-target;
+    if(Math.abs(error)<=tolerance||Math.abs(high-low)<=tolerance){
+      return {waterline:mid,result:midResult,iterations:iteration};
+    }
+    if(error<0){low=mid;lowResult=midResult}
+    else{high=mid;highResult=midResult}
+  }
+  return {waterline:mid,result:midResult,iterations:maxIterations};
+}
