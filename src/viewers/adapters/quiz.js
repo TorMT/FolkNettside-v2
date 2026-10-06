@@ -1,0 +1,9 @@
+import {escapeHTML,fetchJSON} from "../utils.js";
+export async function render(container,resource){
+  const data=await fetchJSON(resource.path),questions=Array.isArray(data.questions)?data.questions:[];let index=0,score=0,answered=false;
+  function draw(){
+    if(index>=questions.length){container.innerHTML=`<div class="quiz-view"><h2>${escapeHTML(data.title||"Quiz")}</h2><div class="quiz-result">Score: <strong>${score}/${questions.length}</strong></div><button class="btn primary" id="quiz-restart">Restart</button></div>`;container.querySelector("#quiz-restart").onclick=()=>{index=0;score=0;answered=false;draw()};return}
+    const q=questions[index];container.innerHTML=`<div class="quiz-view"><div class="muted">Question ${index+1} of ${questions.length}</div><h2>${escapeHTML(q.prompt)}</h2><div class="quiz-options">${(q.choices||[]).map((choice,i)=>`<button class="quiz-option" data-choice="${i}">${escapeHTML(choice)}</button>`).join("")}</div><div id="quiz-feedback"></div></div>`;
+    container.querySelectorAll("[data-choice]").forEach(button=>button.onclick=()=>{if(answered)return;answered=true;const selected=Number(button.dataset.choice),correct=Number(q.answer);if(selected===correct)score++;container.querySelectorAll("[data-choice]").forEach(option=>{const value=Number(option.dataset.choice);option.disabled=true;if(value===correct)option.dataset.correct="true";else if(value===selected)option.dataset.wrong="true"});const feedback=container.querySelector("#quiz-feedback");feedback.innerHTML=`<p><strong>${selected===correct?"Correct":"Not quite"}</strong> ${escapeHTML(q.explanation||"")}</p><button class="btn primary" id="quiz-next">${index+1===questions.length?"Results":"Next"}</button>`;feedback.querySelector("#quiz-next").onclick=()=>{index++;answered=false;draw()}})}
+  draw();return {info:`${questions.length} quiz questions`};
+}

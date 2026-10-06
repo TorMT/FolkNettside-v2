@@ -68,6 +68,9 @@ def rel_web(path: Path) -> str:
     return path.resolve().relative_to(ROOT.resolve()).as_posix()
 
 def detect_kind(path: Path) -> str:
+    lower = path.name.lower()
+    if lower.endswith(".quiz.json"):
+        return "QUIZ"
     return KIND_BY_SUFFIX.get(path.suffix.lower(), path.suffix.lstrip(".").upper() or "FILE")
 
 def prettify(name: str) -> str:
