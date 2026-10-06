@@ -1,6 +1,6 @@
-import {extension} from "../viewers/utils.js?v=94d12bc5f13f9102e6d9b0b90ae4c5e46dabc090";
-import {parse3MF} from "./parsers/three-mf.js?v=94d12bc5f13f9102e6d9b0b90ae4c5e46dabc090";
-import {parseSTL} from "./parsers/stl.js?v=94d12bc5f13f9102e6d9b0b90ae4c5e46dabc090";
+import {extension} from "../viewers/utils.js?v=6c2f4986e635a040dd0ce80033ff58b471f172b6";
+import {parse3MF} from "./parsers/three-mf.js?v=6c2f4986e635a040dd0ce80033ff58b471f172b6";
+import {parseSTL} from "./parsers/stl.js?v=6c2f4986e635a040dd0ce80033ff58b471f172b6";
 
 function applyRules(documentModel,rules=[]){
   for(const component of documentModel.components){
