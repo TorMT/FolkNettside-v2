@@ -46,7 +46,7 @@ let propulsionInitialized=false;
 let fluidToolState={fluid:"air",temperature:20,unit:"C"};
 let coolPropState={fluid:"Air",input1:"P",value1:1,input2:"T",value2:25};
 let periodicToolState={search:"",phase:"all",category:"all",material:"all",period:"all",group:"all",crystal:"all",property:"atomic_mass",temperature:298,selected:null};
-let crystalToolState={type:"bcc",a:1,c:""};
+let crystalToolState={type:"bcc",preset:"",nx:1,ny:1,nz:1,a:1,c:"",showTetra:false,showOcta:false,measure:false};
 let crystalCleanup=null;
 let workspaceDrawerCleanup=null;
 
@@ -197,17 +197,44 @@ async function crystalToolPage(){
   app.innerHTML=top("courses")+crystalToolHTML(crystalToolState);
   bindNav();
 
-  const rerender=()=>{
-    crystalToolState={
-      type:app.querySelector("#crystal-type")?.value||"bcc",
-      a:Number(app.querySelector("#crystal-a")?.value)||1,
-      c:app.querySelector("#crystal-c")?.value||""
-    };
-    crystalToolPage();
-  };
+  const readState=()=>({
+    ...crystalToolState,
+    type:app.querySelector("#crystal-type")?.value||"bcc",
+    preset:app.querySelector("#crystal-preset")?.value||"",
+    nx:Number(app.querySelector("#crystal-nx")?.value)||1,
+    ny:Number(app.querySelector("#crystal-ny")?.value)||1,
+    nz:Number(app.querySelector("#crystal-nz")?.value)||1,
+    a:Number(app.querySelector("#crystal-a")?.value)||1,
+    c:app.querySelector("#crystal-c")?.value||""
+  });
+  const rerender=()=>{crystalToolState=readState();crystalToolPage()};
   app.querySelector("#crystal-type")?.addEventListener("change",rerender);
-  app.querySelector("#crystal-a")?.addEventListener("change",rerender);
-  app.querySelector("#crystal-c")?.addEventListener("change",rerender);
+  app.querySelector("#crystal-preset")?.addEventListener("change",event=>{
+    const value=event.target.value;
+    if(value){
+      const preset={Na:"sc",Fe:"bcc",Cu:"fcc",Al:"fcc",Ni:"fcc",Si:"diamond",C:"diamond",MgAl2O4:"spinel",Fe3O4:"spinel"}[value];
+      crystalToolState={...readState(),preset:value,type:preset||crystalToolState.type};
+      crystalToolPage();
+    }else{
+      crystalToolState={...readState(),preset:""};
+      crystalToolPage();
+    }
+  });
+  for(const id of ["#crystal-nx","#crystal-ny","#crystal-nz","#crystal-a","#crystal-c"]){
+    app.querySelector(id)?.addEventListener("change",rerender);
+  }
+  app.querySelector("#crystal-tetra")?.addEventListener("click",()=>{
+    crystalToolState={...readState(),showTetra:!crystalToolState.showTetra};
+    crystalToolPage();
+  });
+  app.querySelector("#crystal-octa")?.addEventListener("click",()=>{
+    crystalToolState={...readState(),showOcta:!crystalToolState.showOcta};
+    crystalToolPage();
+  });
+  app.querySelector("#crystal-measure")?.addEventListener("click",()=>{
+    crystalToolState={...readState(),measure:!crystalToolState.measure};
+    crystalToolPage();
+  });
 
   try{
     const handle=await mountCrystalViewer(app.querySelector("#crystal-stage"),crystalToolState);
