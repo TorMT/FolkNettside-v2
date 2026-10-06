@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {analyzeHydrostatics,analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "../src/hydro/hydrostatics.js";
 import {boxMesh,reverseWinding,wedgePrismMesh} from "../src/hydro/fixtures.js";
+import {createHydroInclude} from "../src/hydro/hydro-selection.js";
 
 const near=(actual,expected,tol=1e-8)=>assert.ok(Math.abs(actual-expected)<=tol,`expected ${actual} ≈ ${expected}`);
 
@@ -86,4 +87,35 @@ test("target displacement volume solves analytic draft",()=>{
   const solved=solveWaterlineForVolume(model,36,{minWaterline:0,maxWaterline:2,tolerance:1e-9,include:c=>c.metadata.hydro});
   near(solved.waterline,1.2,1e-8);
   near(solved.result.volume,36,1e-8);
+});
+
+
+test("explicit hydro flags exclude non-hydro geometry",()=>{
+  const hull=boxMesh({L:10,B:3,H:2});
+  const thruster=boxMesh({L:2,B:2,H:2,origin:[0,0,0]});
+  const model={
+    unitScaleToMeters:1,
+    components:[
+      {id:"hull",name:"Hull",geometry:hull,metadata:{hydro:true}},
+      {id:"thruster",name:"Thruster",geometry:thruster,metadata:{hydro:false}}
+    ]
+  };
+  const include=createHydroInclude(model);
+  const r=analyzeModelDocument(model,1.2,{include});
+  near(r.volume,36,1e-7);
+  assert.equal(r.components.length,1);
+  assert.equal(r.components[0].componentId,"hull");
+});
+
+test("hydro selection defaults to all geometry when no explicit flags exist",()=>{
+  const model={
+    unitScaleToMeters:1,
+    components:[
+      {id:"a",geometry:boxMesh({L:2,B:2,H:2}),metadata:{}},
+      {id:"b",geometry:boxMesh({L:2,B:2,H:2,origin:[4,0,0]}),metadata:{}}
+    ]
+  };
+  const r=analyzeModelDocument(model,1,{include:createHydroInclude(model)});
+  near(r.volume,8,1e-8);
+  assert.equal(r.components.length,2);
 });
