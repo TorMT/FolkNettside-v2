@@ -22,7 +22,10 @@
       "semantic": {
         "role": "hull",
         "subsystem": "hydro",
-        "tags": ["source-geometry", "hydro-unvalidated"]
+        "tags": [
+          "source-geometry",
+          "hydro-unvalidated"
+        ]
       },
       "hydro": false
     },
@@ -32,7 +35,11 @@
         "role": "thruster",
         "subtype": "azimuth",
         "subsystem": "propulsion",
-        "tags": ["port", "stern", "sourced-identity"]
+        "tags": [
+          "port",
+          "stern",
+          "sourced-identity"
+        ]
       },
       "hydro": false,
       "propulsion": {
@@ -47,7 +54,11 @@
         "role": "thruster",
         "subtype": "azimuth",
         "subsystem": "propulsion",
-        "tags": ["starboard", "stern", "sourced-identity"]
+        "tags": [
+          "starboard",
+          "stern",
+          "sourced-identity"
+        ]
       },
       "hydro": false,
       "propulsion": {
@@ -62,7 +73,10 @@
         "role": "thruster",
         "subtype": "tunnel",
         "subsystem": "propulsion",
-        "tags": ["bow", "sourced-identity"]
+        "tags": [
+          "bow",
+          "sourced-identity"
+        ]
       },
       "hydro": false,
       "propulsion": {
@@ -73,11 +87,51 @@
     }
   ],
   "analysisCapabilities": {
-    "model": "sourced",
-    "hydro": "blocked-until-hull-validation",
-    "propulsion": "component-identity-only",
-    "structure": "visual-only",
-    "resistance": "not-configured"
+    "model": {
+      "enabled": true,
+      "status": "sourced",
+      "reason": "Pinned NTNU/Shiplab Gunnerus geometry and semantic part metadata."
+    },
+    "hydro": {
+      "enabled": false,
+      "status": "awaiting hull validation",
+      "reason": "The published lightweight glTF combines hull and structure and is intended for visualisation/teaching, not validated hydrostatics.",
+      "requirements": [
+        "validated watertight external hull surface",
+        "known loading-condition displacement",
+        "known KG/LCG/TCG for stability work"
+      ]
+    },
+    "propulsion": {
+      "enabled": false,
+      "status": "identity only",
+      "reason": "Thruster identity and rated power are sourced, but thrust maps, actuator diameter and local thrust axes are not yet configured.",
+      "requirements": [
+        "sourced or explicitly assumed thrust model",
+        "actuator diameter",
+        "local thrust-axis convention and transforms"
+      ]
+    },
+    "structure": {
+      "enabled": false,
+      "status": "visual only",
+      "reason": "The open glTF is a visual assembly and does not contain a validated beam/shell/solid FE idealisation.",
+      "requirements": [
+        "structural idealisation or FE mesh",
+        "material properties and section/shell thickness",
+        "supports, connections and load cases"
+      ]
+    },
+    "resistance": {
+      "enabled": false,
+      "status": "not configured",
+      "reason": "A resistance calculation needs a validated wetted surface/loading condition and a declared method scope.",
+      "requirements": [
+        "validated wetted surface for the selected draft",
+        "water properties and reference length",
+        "chosen resistance method or experimental/CFD source"
+      ]
+    }
   },
   "hydro": {
     "density": 1025,
