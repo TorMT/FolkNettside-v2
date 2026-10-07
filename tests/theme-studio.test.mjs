@@ -39,3 +39,20 @@ test("theme exports preserve all legacy output types",()=>{
   assert.equal(json.name,"harbor");
   assert.equal(json.colors.primary,"#b3157a");
 });
+
+
+test("flat color regions yield distinct deterministic palette colors",()=>{
+  const colors=[
+    ...Array.from({length:100},()=>({r:179,g:21,b:122})),
+    ...Array.from({length:20},()=>({r:47,g:127,b:164})),
+    ...Array.from({length:10},()=>({r:143,g:90,b:0})),
+    ...Array.from({length:8},()=>({r:244,g:248,b:250}))
+  ];
+  const palette=kMeansPalette(colors,5);
+  assert.equal(new Set(palette).size,palette.length);
+  assert.equal(palette.length,4);
+  assert.ok(palette.includes("#b3157a"));
+  assert.ok(palette.includes("#2f7fa4"));
+  assert.ok(palette.includes("#8f5a00"));
+  assert.ok(palette.includes("#f4f8fa"));
+});

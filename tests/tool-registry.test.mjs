@@ -68,11 +68,11 @@ test("browser-verified parity tools are marked full",()=>{
   }
 });
 
-test("image theme and CoolProp remain review until their final numeric/browser checks are complete",()=>{
+test("CoolProp and Image-to-Theme are full after deployed numeric/browser verification",()=>{
   for(const id of ["image-theme","coolprop"]){
     const tool=toolById(id);
-    assert.equal(tool.parity,"review");
-    assert.equal(toolParityComplete(tool),false);
+    assert.equal(tool.parity,"full");
+    assert.equal(toolParityComplete(tool),true);
     assert.ok(tool.legacyUrl?.startsWith("https://"));
   }
 });

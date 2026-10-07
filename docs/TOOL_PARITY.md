@@ -45,7 +45,12 @@ Now also migrated:
 Remaining:
 - final side-by-side functional and visual verification
 
-Status: `review`. Functional browser parity is confirmed, but numerical calibration/saturation verification is still required before `full`.
+Verified numerically in deployed v2:
+- Air book basis at 1000 K / 1 bar gives H = 1046.04 kJ/kg and U = 758.94 kJ/kg exactly;
+- both legacy Air and Water Table 4 presets calculate all six rows successfully;
+- Single-mode Water at 100 °C / 1.01325 bar raises the expected two-phase ambiguity warning.
+
+Status: `full`. Legacy fallback remains temporarily for safety.
 
 The legacy Table 4 mode is now explicitly migrated and regression-tested. Fully custom process input remains an optional improvement rather than a parity blocker.
 
@@ -224,7 +229,7 @@ Manual Theme Creator verified:
 
 Status:
 - manual Theme Creator: `full`
-- Image→Theme: `review` until real browser file upload/palette extraction is verified.
+- Image→Theme: `full` after deployed in-browser sample-image verification of file decoding, palette extraction, auto-assign, preview and exports.
 
 Both legacy fallbacks remain temporarily for safety.
 
