@@ -1,6 +1,7 @@
-import {extension} from "../viewers/utils.js?v=45d683c4f79c842373f0f39292dbfea7076dc49e";
-import {parse3MF} from "./parsers/three-mf.js?v=45d683c4f79c842373f0f39292dbfea7076dc49e";
-import {parseSTL} from "./parsers/stl.js?v=45d683c4f79c842373f0f39292dbfea7076dc49e";
+import {extension} from "../viewers/utils.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
+import {parse3MF} from "./parsers/three-mf.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
+import {parseSTL} from "./parsers/stl.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
+import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
 
 function applyRules(documentModel,rules=[]){
   for(const component of documentModel.components){
@@ -27,6 +28,8 @@ export async function loadModelDocument(config){
   let documentModel;
   if(ext==="3mf")documentModel=await parse3MF(buffer,config.name);
   else if(ext==="stl")documentModel=parseSTL(buffer,config.name);
+  else if(ext==="f3z")documentModel=await parseFusionArchive(buffer,config.name);
+  else if(ext==="f3d")documentModel=nativeFusionPlaceholder({name:config.name,format:"F3D"});
   else throw new Error(`Unsupported engineering model format: .${ext}`);
   return applyRules(documentModel,config.componentRules);
 }
