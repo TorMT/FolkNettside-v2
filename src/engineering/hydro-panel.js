@@ -200,11 +200,16 @@ export function hydroPanelHTML({
           ${gzSVG(gz)}
           ${hydrostaticCurvesHTML(curveRows,{hasKg})}
           ${hydrostaticTableHTML(curveRows,{hasKg})}
+          <div class="hydro-export-row">
+            <button class="btn" id="hydro-export-table" ${curveRows.length?"":"disabled"}>Export hydro CSV</button>
+            <button class="btn" id="hydro-export-gz" ${gz?.length?"":"disabled"}>Export GZ CSV</button>
+          </div>
         </div>
       </div>
     `,
     particulars,
     curveRows,
+    gzSummary,
     draft:clamped,
     density,
     waterlinePercent:((clamped-minDraft)/span)*100
