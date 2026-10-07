@@ -14,7 +14,7 @@ export async function render(container,resource){
   wrap.append(video,resume);
   container.replaceChildren(wrap);
 
-  const saved=localVideoProgress.read(resource);
+  let saved=localVideoProgress.read(resource);
   let lastWrite=0;
 
   const duration=await new Promise(resolve=>{
@@ -47,7 +47,17 @@ export async function render(container,resource){
     resume.textContent="Watched";
   });
 
-  return {info:duration?`Video · ${formatTime(duration)} · local progress enabled`:"Video · local progress enabled"};
+  return {
+    info:duration?`Video · ${formatTime(duration)} · local progress enabled`:"Video · local progress enabled",
+    actions:{
+      resetProgress(){
+        localVideoProgress.clear(resource);
+        saved={};
+        try{video.currentTime=0}catch{}
+        resume.textContent="Progress reset";
+      }
+    }
+  };
 }
 
 function formatTime(seconds){
