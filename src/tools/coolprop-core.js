@@ -98,6 +98,8 @@ export const TABLE_REFERENCE_PROFILES={
     shortLabel:"Air A-22",
     source:"Course Table A-22 · Ideal Gas Properties of Air",
     calibration:{
+      T:1000,
+      P:1e5,
       inputs:["T",1000,"P",1e5],
       H:1046.04e3,
       U:758.94e3,
@@ -117,6 +119,8 @@ export const TABLE_REFERENCE_PROFILES={
     shortLabel:"Ammonia A-13–A-15",
     source:"Course Tables A-13 to A-15 · Saturated and Superheated Ammonia",
     calibration:{
+      T:243.15,
+      P:1e5,
       inputs:["T",243.15,"P",1e5],
       H:1406.44e3,
       U:1290.71e3,
