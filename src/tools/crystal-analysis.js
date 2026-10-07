@@ -1,4 +1,4 @@
-import {crystalPreset,crystalType,distance3} from "./crystal-structures-core.js?v=9b10a5208cab21508aaf459572f641924ac7e89a";
+import {crystalPreset,crystalType,distance3} from "./crystal-structures-core.js?v=73652eb6800cc048b595e897ff33a9cab9872478";
 
 export const MANUAL_ATOMS={
   fe:{label:"Fe",species:"Fe",radius:.14,color:"#9aa6ad"},
@@ -420,6 +420,36 @@ export function sitesNearPlane(sites,plane,tolerance=.08){
     }))
     .filter(item=>item.site?.active!==false&&item.distance<=limit)
     .sort((a,b)=>a.distance-b.distance||a.index-b.index);
+}
+
+export function planeContactNetwork(sites,plane,tolerance=.08,{distanceTolerance=.10,duplicateTolerance=1e-8}={}){
+  const near=sitesNearPlane(sites,plane,tolerance);
+  const layer=[];
+  for(const item of near){
+    if(layer.some(existing=>distance3(existing.site.pos,item.site.pos)<=duplicateTolerance))continue;
+    layer.push(item);
+  }
+  if(layer.length<2)return {siteIndices:layer.map(item=>item.index),contacts:[],nearestDistance:null};
+
+  let nearestDistance=Infinity;
+  const pairs=[];
+  for(let i=0;i<layer.length;i++){
+    for(let j=i+1;j<layer.length;j++){
+      const distance=distance3(layer[i].site.pos,layer[j].site.pos);
+      if(distance<=duplicateTolerance)continue;
+      nearestDistance=Math.min(nearestDistance,distance);
+      pairs.push({a:layer[i].index,b:layer[j].index,distance});
+    }
+  }
+  if(!Number.isFinite(nearestDistance)){
+    return {siteIndices:layer.map(item=>item.index),contacts:[],nearestDistance:null};
+  }
+  const maxDistance=nearestDistance*(1+Math.max(0,Number(distanceTolerance)||0));
+  return {
+    siteIndices:layer.map(item=>item.index),
+    contacts:pairs.filter(pair=>pair.distance<=maxDistance+1e-12),
+    nearestDistance
+  };
 }
 
 function boxEdges(bounds){
