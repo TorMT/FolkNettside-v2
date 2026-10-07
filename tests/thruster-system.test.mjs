@@ -81,3 +81,27 @@ test("ModelDocument thruster metadata uses world transform and unit scale",()=>{
   assert.deepEqual(thruster.position,[5,2,0]);
   assert.deepEqual(thruster.axis,[1,0,0]);
 });
+
+
+test("semantic thruster metadata supports azimuth and disabled components",()=>{
+  const model={
+    unitScaleToMeters:1,
+    components:[
+      {
+        id:"az",name:"Azimuth",transform:null,
+        metadata:{semantic:{role:"thruster",subtype:"azimuth",subsystem:"propulsion",tags:["stern"],thruster:{thrust:12000,azimuthDeg:90,diameter:1.1}}}
+      },
+      {
+        id:"off",name:"Disabled",transform:null,
+        metadata:{semantic:{role:"thruster",subtype:"tunnel",thruster:{thrust:5000,axis:[0,1,0],enabled:false}}}
+      }
+    ]
+  };
+  const thrusters=thrustersFromModelDocument(model);
+  assert.equal(thrusters.length,1);
+  assert.equal(thrusters[0].type,"azimuth");
+  assert.equal(thrusters[0].subsystem,"propulsion");
+  assert.deepEqual(thrusters[0].tags,["stern"]);
+  near(thrusters[0].axis[0],0,1e-12);
+  near(thrusters[0].axis[1],1,1e-12);
+});
