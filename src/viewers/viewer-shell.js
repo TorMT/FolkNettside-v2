@@ -1,5 +1,5 @@
-import {loadAdapter} from "./registry.js?v=31c7594ef49b8ed5d3821cebc6fe48b18a791e98";
-import {escapeHTML} from "./utils.js?v=31c7594ef49b8ed5d3821cebc6fe48b18a791e98";
+import {loadAdapter} from "./registry.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d";
+import {escapeHTML} from "./utils.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d";
 
 export async function mountViewer(root,resource,onBack){
   root.__viewerCleanup?.();
@@ -24,6 +24,7 @@ export async function mountViewer(root,resource,onBack){
       </div>
       <button data-action="fit" hidden>Fit</button>
       <button data-action="resetZoom" hidden>Reset view</button>
+      <button data-action="resetProgress" hidden>Reset progress</button>
       <span class="top-spacer"></span>
       <button id="viewer-full">Fullscreen</button>
     </div>
@@ -65,6 +66,7 @@ export async function mountViewer(root,resource,onBack){
   const findCount=findWrap.querySelector(".viewer-find-count");
   const fitButton=toolbar.querySelector('[data-action="fit"]');
   const resetButton=toolbar.querySelector('[data-action="resetZoom"]');
+  const resetProgressButton=toolbar.querySelector('[data-action="resetProgress"]');
 
   const panelButtons=[...root.querySelectorAll("[data-viewer-panel]")];
   const panelContents=[...root.querySelectorAll("[data-viewer-panel-content]")];
@@ -147,6 +149,10 @@ export async function mountViewer(root,resource,onBack){
     if(typeof actions.resetZoom==="function"){
       resetButton.hidden=false;
       resetButton.onclick=()=>actions.resetZoom();
+    }
+    if(typeof actions.resetProgress==="function"){
+      resetProgressButton.hidden=false;
+      resetProgressButton.onclick=()=>actions.resetProgress();
     }
   }catch(error){
     const message=escapeHTML(error?.message||error);
