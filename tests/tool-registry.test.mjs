@@ -31,10 +31,10 @@ test("unfinished legacy migrations always preserve full legacy access",()=>{
   }
 });
 
-test("CoolProp stays in review until side-by-side verification is complete",()=>{
+test("CoolProp is full after deployed reference-state and phase verification",()=>{
   const tool=toolById("coolprop");
-  assert.equal(toolParityComplete(tool),false);
-  assert.equal(tool.parity,"review");
+  assert.equal(toolParityComplete(tool),true);
+  assert.equal(tool.parity,"full");
   assert.ok(tool.legacyUrl);
 });
 
@@ -59,7 +59,7 @@ test("Theme Studio shares one Settings architecture while manual mode is verifie
 
 
 test("browser-verified parity tools are marked full",()=>{
-  for(const id of ["fluid","periodic","crystal","chemdraw","stl-advanced","theme-creator"]){
+  for(const id of ["fluid","periodic","crystal","chemdraw","stl-advanced","theme-creator","coolprop"]){
     const tool=toolById(id);
     assert.ok(tool,id+" missing");
     assert.equal(tool.parity,"full",id+" should be full after deployed browser verification");
@@ -68,11 +68,9 @@ test("browser-verified parity tools are marked full",()=>{
   }
 });
 
-test("CoolProp and Image-to-Theme remain review until their final verification gates pass",()=>{
-  for(const id of ["image-theme","coolprop"]){
-    const tool=toolById(id);
-    assert.equal(tool.parity,"review");
-    assert.equal(toolParityComplete(tool),false);
-    assert.ok(tool.legacyUrl?.startsWith("https://"));
-  }
+test("Image-to-Theme remains review until deployed browser verification",()=>{
+  const tool=toolById("image-theme");
+  assert.equal(tool.parity,"review");
+  assert.equal(toolParityComplete(tool),false);
+  assert.ok(tool.legacyUrl?.startsWith("https://"));
 });
