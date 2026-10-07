@@ -23,6 +23,7 @@ import {componentSemantic,semanticComponents,semanticSummary} from "./model/sema
 import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js";
+import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js";
 import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js";
 import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js";
 import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js";
@@ -136,12 +137,37 @@ function bindEngineeringModelSelector(){
   });
 }
 
+function engineeringExportButtonHTML(enabled=true){
+  return `<button class="engineering-export-case" id="engineering-export-case" ${enabled?"":"disabled"}>Export case</button>`;
+}
+
+function bindEngineeringCaseExport(report){
+  const button=app.querySelector("#engineering-export-case");
+  if(!button||!report)return;
+  button.disabled=false;
+  button.addEventListener("click",()=>downloadEngineeringCase(report));
+}
+
+function blockedEngineeringReport(documentModel,mode,capability){
+  return engineeringCaseReport({
+    modelConfig:model,
+    modelDocument:documentModel,
+    mode,
+    capability,
+    method:{name:"capability gate",scope:"no numerical analysis executed"},
+    inputs:{},
+    results:{status:"blocked"},
+    assumptions:[],
+    warnings:[capability.reason||"Analysis capability is not configured."]
+  });
+}
+
 function blockedEngineeringWorkspaceHTML(documentModel,mode,capability){
   const requirements=capability.requirements?.length
     ?`<div class="engineering-requirements"><strong>Required before analysis</strong><ul>${capability.requirements.map(item=>`<li>${item}</li>`).join("")}</ul></div>`
     :"";
   return `<main class="workspace">
-    <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
+    <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
       ${["Model","Hydro","Structure","Resistance","Propulsion"].map(item=>`<button data-engineering-mode="${item}" class="${mode===item?"active":""}">${item}</button>`).join("")}
     </div></div>
     <aside class="tree">
@@ -168,6 +194,7 @@ function blockedEngineeringWorkspaceHTML(documentModel,mode,capability){
 function bindBlockedEngineeringWorkspace(documentModel,renderId){
   bindNav();
   bindEngineeringModelSelector();
+  bindEngineeringCaseExport(blockedEngineeringReport(documentModel,mode,capability));
   app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
   mountModelScene(app.querySelector("#engineering-scene"),documentModel,{
     showSidebar:false,selectedComponentId
