@@ -1,4 +1,4 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=456370d97d6fc90af984e942db5e7683ef5c8d00";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=a74d6e80c206c18560d176157cc5752b2144f976";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
