@@ -87,6 +87,7 @@ test("target displacement volume solves analytic draft",()=>{
   const solved=solveWaterlineForVolume(model,36,{minWaterline:0,maxWaterline:2,tolerance:1e-9,include:c=>c.metadata.hydro});
   near(solved.waterline,1.2,1e-8);
   near(solved.result.volume,36,1e-8);
+  assert.ok(solved.iterations<=3,`analytic box draft should converge quickly, got ${solved.iterations} iterations`);
 });
 
 
