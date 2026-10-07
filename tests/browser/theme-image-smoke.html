@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Theme Studio image browser smoke</title></head>
+<body data-status="running">
+<div id="app"></div>
+<pre id="result">running</pre>
+<script type="module">
+import {bindThemeStudio,themeStudioHTML} from "../../src/settings/theme-studio.js";
+import {THEME_ROLES,themeJSON} from "../../src/settings/theme-studio-core.js";
+
+const result=document.querySelector("#result");
+const app=document.querySelector("#app");
+const fail=error=>{
+  document.body.dataset.status="fail";
+  result.textContent=String(error?.stack||error);
+};
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+const waitFor=async(predicate,label,timeout=8000)=>{
+  const deadline=performance.now()+timeout;
+  while(performance.now()<deadline){
+    if(predicate())return;
+    await new Promise(resolve=>setTimeout(resolve,25));
+  }
+  throw new Error("Timed out waiting for "+label);
+};
+
+let state={mode:"image",name:"browser-smoke",colors:{},palette:[],imageSrc:""};
+let cleanup=null;
+const render=()=>{
+  cleanup?.cleanup?.();
+  app.innerHTML=themeStudioHTML(state);
+  cleanup=bindThemeStudio(app,state,(next,rerender)=>{
+    state=next;
+    if(rerender)queueMicrotask(render);
+  });
+};
+
+try{
+  render();
+  const sample=app.querySelector("#theme-sample-image");
+  assert(sample,"sample image button missing");
+  sample.click();
+
+  await waitFor(
+    ()=>state.palette?.length===5&&state.imageSrc?.startsWith("data:image/png")&&app.querySelector(".theme-image-preview"),
+    "five-color decoded sample image"
+  );
+
+  assert(new Set(state.palette).size===5,"palette must contain five distinct colors");
+  for(const role of THEME_ROLES){
+    assert(/^#[0-9a-f]{6}$/i.test(state.colors?.[role]||""),"missing auto-assigned role "+role);
+  }
+
+  const css=app.querySelector("#theme-css-output")?.textContent||"";
+  const js=app.querySelector("#theme-js-output")?.textContent||"";
+  assert(css.includes('[data-theme="browser-smoke"]'),"CSS output missing theme selector");
+  assert(css.includes("--navbar-bg:"),"CSS output missing navbar role");
+  assert(js.includes('"browser-smoke"'),"registry JS output missing theme name");
+
+  const preview=app.querySelector(".theme-live-preview");
+  assert(preview,"live preview missing after image decode");
+  assert(preview.querySelector(".theme-preview-navbar")?.getAttribute("style")?.includes(state.colors.navbar1),"preview did not consume assigned navbar color");
+
+  const assign=app.querySelector('[data-theme-assign="primary"]');
+  assert(assign,"manual palette-to-role control missing");
+  const assigned=assign.dataset.themeColor;
+  assign.click();
+  await waitFor(()=>state.colors.primary===assigned,"manual palette role assignment");
+
+  let downloaded="";
+  const originalClick=HTMLAnchorElement.prototype.click;
+  HTMLAnchorElement.prototype.click=function(){downloaded=this.download||""};
+  try{
+    app.querySelector("#theme-download-json")?.click();
+  }finally{
+    HTMLAnchorElement.prototype.click=originalClick;
+  }
+  assert(downloaded==="browser-smoke.json","JSON download filename mismatch: "+downloaded);
+  const json=JSON.parse(themeJSON({name:state.name,colors:state.colors}));
+  assert(json.colors.primary===state.colors.primary,"JSON export lost assigned primary color");
+
+  document.body.dataset.status="pass";
+  result.textContent=JSON.stringify({
+    palette:state.palette,
+    colors:state.colors,
+    imageDecoded:true,
+    autoAssign:true,
+    livePreview:true,
+    cssExport:true,
+    jsExport:true,
+    jsonExport:true
+  });
+}catch(error){
+  fail(error);
+}
+</script>
+</body>
+</html>
