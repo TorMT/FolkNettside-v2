@@ -174,6 +174,32 @@ jobs:
             exit 1
           }
           grep '<pre id="result">' /tmp/diverse-dive-smoke-dom.html || true
+      - name: Brewing v2 browser smoke
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          python -m http.server 4182 --bind 127.0.0.1 >/tmp/brewing-v2-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python - <<'PY'
+          import time, urllib.request
+          for _ in range(50):
+              try:
+                  urllib.request.urlopen("http://127.0.0.1:4182/tests/browser/brewing-v2-smoke.html", timeout=1).read(32)
+                  break
+              except Exception:
+                  time.sleep(.1)
+          else:
+              raise SystemExit("Brewing v2 smoke server did not start")
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=1400,900 --virtual-time-budget=8000 \
+            --dump-dom http://127.0.0.1:4182/tests/browser/brewing-v2-smoke.html \
+            >/tmp/brewing-v2-smoke-dom.html
+          grep -q 'data-status="pass"' /tmp/brewing-v2-smoke-dom.html || {
+            cat /tmp/brewing-v2-smoke-dom.html
+            exit 1
+          }
+          grep '<pre id="result">' /tmp/brewing-v2-smoke-dom.html || true
       - name: Settings app browser smoke
         run: |
           browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
