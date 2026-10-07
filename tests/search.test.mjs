@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {buildSearchIndex,searchIndex} from "../src/search/search-index.js";
 
 const fixture=buildSearchIndex({
+  diverse:[{id:"diving",title:"Dykkekart",short:"DIVE",category:"Outdoor",summary:"Dykkesteder, vrak og fauna",status:"native",route:"/diverse/diving"}],
   tools:[{id:"fluid",title:"Fluid properties",category:"Engineering",summary:"Density and viscosity calculator",keywords:["Prandtl"],route:"/tools/fluid"}],
   projects:[{
     slug:"mount-project",
@@ -43,7 +44,7 @@ const fixture=buildSearchIndex({
 });
 
 test("search indexes all entity types",()=>{
-  assert.equal(fixture.length,5);
+  assert.equal(fixture.length,6);
   assert.equal(searchIndex(fixture,"TMR4182")[0].type,"course");
   assert.equal(searchIndex(fixture,"solve")[0].route,"/viewer/5/TMR4182/0");
   assert.equal(searchIndex(fixture,"printing")[0].route,"/projects/mount-project");
@@ -65,4 +66,12 @@ test("tools are searchable from the same global index",()=>{
   const result=searchIndex(fixture,"Prandtl");
   assert.equal(result[0].type,"tool");
   assert.equal(result[0].route,"/tools/fluid");
+});
+
+
+test("Diverse modules share the global search index",()=>{
+  const result=searchIndex(fixture,"dykkesteder vrak");
+  assert.equal(result.length,1);
+  assert.equal(result[0].type,"diverse");
+  assert.equal(result[0].route,"/diverse/diving");
 });
