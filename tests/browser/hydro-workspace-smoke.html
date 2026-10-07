@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hydro workspace smoke</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/engineering.css">
+</head>
+<body data-status="running">
+<div id="app"></div>
+<pre id="result">running</pre>
+<script type="module">
+import {hydroPanelHTML} from "../../src/engineering/hydro-panel.js";
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+try{
+  const curve=[.5,.75,1,1.25,1.5].map(draft=>({
+    waterline:draft,
+    volume:40*draft,
+    centerOfBuoyancy:[0,0,draft/2],
+    components:[{componentId:"hull"}],
+    waterplane:{area:40,centroid:[0,0],ixx:53.333333,iyy:333.333333,ixy:0}
+  }));
+  const gz=[
+    {heelDeg:-10,gz:-.12,rightingMoment:-47072,waterline:1.02,displacementMass:40000},
+    {heelDeg:-5,gz:-.08,rightingMoment:-31381,waterline:1.01,displacementMass:40000},
+    {heelDeg:0,gz:0,rightingMoment:0,waterline:1,displacementMass:40000},
+    {heelDeg:5,gz:.08,rightingMoment:31381,waterline:1.01,displacementMass:40000},
+    {heelDeg:10,gz:.12,rightingMoment:47072,waterline:1.02,displacementMass:40000}
+  ];
+  const rendered=hydroPanelHTML({
+    modelDocument:{name:"Hydro browser fixture"},
+    result:{
+      volume:40,
+      centerOfBuoyancy:[0,0,.5],
+      components:[{componentId:"hull"}],
+      waterplane:{area:40,centroid:[0,0],ixx:53.333333,iyy:333.333333,ixy:0}
+    },
+    curve,
+    draft:1,
+    targetDisplacementTonnes:40,
+    kg:.6,lcg:0,tcg:0,heel:0,trim:0,
+    gz,
+    geometryWarnings:[],
+    config:{density:1000,minDraft:0,maxDraft:2}
+  });
+  document.querySelector("#app").innerHTML=`<main class="hydro-browser-fixture"><aside class="inspector">${rendered.inspector}</aside><section class="results"><div class="results-summary">${rendered.summary}</div>${rendered.results}</section></main>`;
+
+  for(const id of ["hydro-draft","hydro-target","hydro-lcg","hydro-tcg","hydro-kg","hydro-heel","hydro-trim","hydro-attitude","hydro-gz","hydro-equilibrium-heel","hydro-equilibrium-trim","hydro-export-table","hydro-export-gz"]){
+    assert(document.getElementById(id),id+" missing");
+  }
+  assert(!document.getElementById("hydro-gz").disabled,"GZ must be available when KG is set");
+  assert(!document.getElementById("hydro-export-table").disabled,"hydro CSV export must be available");
+  assert(!document.getElementById("hydro-export-gz").disabled,"GZ CSV export must be available");
+  assert(document.querySelectorAll(".hydro-particular-curve svg").length===4,"four hydrostatic key curves expected");
+  assert(document.querySelector(".gz-curve svg"),"GZ curve missing");
+  assert(document.querySelector(".hydro-table tbody tr"),"hydrostatic table missing");
+  assert(rendered.particulars.gmTransverse!==null,"GM transverse missing");
+  assert(rendered.gzSummary.valid&&rendered.gzSummary.maxGz>0,"GZ summary invalid");
+
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent=JSON.stringify({
+    curves:document.querySelectorAll(".hydro-particular-curve svg").length,
+    tableRows:document.querySelectorAll(".hydro-table tbody tr").length,
+    gmTransverse:rendered.particulars.gmTransverse,
+    maxGz:rendered.gzSummary.maxGz
+  });
+}catch(error){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script>
+</body>
+</html>
