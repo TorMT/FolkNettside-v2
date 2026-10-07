@@ -91,6 +91,8 @@
 .hydro-action-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.hydro-action-grid .btn{padding:7px 8px;font-size:10px}
 .hydro-attitude-result{display:grid;gap:3px;margin-top:9px;padding:9px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:7px;background:var(--accent-soft);font-size:10px;line-height:1.35}.hydro-attitude-result strong{color:var(--accent-ink)}.hydro-attitude-result span{color:var(--ink-2)}
 .engineering-empty-analysis{display:grid;place-content:center;min-height:150px;padding:22px;text-align:center;color:var(--ink-2)}.engineering-empty-analysis strong{color:var(--ink);font-size:15px}.engineering-empty-analysis p{max-width:620px;line-height:1.55;margin:8px auto 0;font-size:12px}
+.engineering-requirements{margin-top:12px;padding:10px;border:1px solid var(--line);border-radius:7px;background:var(--surface-sunk);font-size:10px}.engineering-requirements strong{font-size:10px}.engineering-requirements ul{margin:7px 0 0 17px;padding:0;color:var(--ink-2);line-height:1.5}.engineering-requirements li+li{margin-top:3px}
+
 .hydro-solver .field{margin-bottom:8px}.hydro-solve-result{font-size:12px;color:var(--ok)}.hydro-solve-error{font-size:12px;color:var(--danger)}
 .hydro-results-wrap{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(320px,1.2fr);gap:12px;padding:12px}.hydro-results-wrap .hydro-grid{padding:0}.hydro-curve{border:1px solid var(--line);background:var(--surface-sunk);border-radius:8px;padding:10px}.hydro-curve-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}.hydro-curve svg{width:100%;height:130px}
 @media(max-width:900px){.hydro-results-wrap{grid-template-columns:1fr}}
