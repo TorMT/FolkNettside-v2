@@ -1,10 +1,10 @@
-import {getThreeRuntime} from "../model/three-runtime.js?v=3c539a7465792e092560a6e49b4ddab262f3a9b6";
-import {crystalEditorPanelHTML} from "./crystal-editor-panel.js?v=3c539a7465792e092560a6e49b4ddab262f3a9b6";
+import {getThreeRuntime} from "../model/three-runtime.js?v=d315816c859e0718c106f69ade1724785806956e";
+import {crystalEditorPanelHTML} from "./crystal-editor-panel.js?v=d315816c859e0718c106f69ade1724785806956e";
 import {
   cellEdges,crystalPreset,crystalType,distance3,idealHoleCenters,
   listCrystalPresets,listCrystalTypes,replicateCrystal
-} from "./crystal-structures-core.js?v=3c539a7465792e092560a6e49b4ddab262f3a9b6";
-import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,contactTriangles,coordinationPolyhedron,interstitialVoidPolyhedron,millerPlane,periodicImageSites,planeBoxPolygon,planeContactNetwork,polyhedronEdges,sitesNearPlane} from "./crystal-analysis.js?v=3c539a7465792e092560a6e49b4ddab262f3a9b6";
+} from "./crystal-structures-core.js?v=d315816c859e0718c106f69ade1724785806956e";
+import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,contactTriangles,coordinationPolyhedron,interstitialVoidPolyhedron,millerPlane,periodicImageSites,planeBoxPolygon,planeContactNetwork,polyhedronEdges,sitesNearPlane} from "./crystal-analysis.js?v=d315816c859e0718c106f69ade1724785806956e";
 
 const SPECIES_COLORS={
   A:0xb3157a,B:0x2f7fa4,O:0xd9e7ed,
