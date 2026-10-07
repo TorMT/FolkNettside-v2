@@ -18,7 +18,7 @@
 .diverse-architecture-note{margin:0 max(26px,calc((100vw - 1280px)/2)) 50px;padding:15px 17px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:9px;background:var(--surface)}
 .diverse-architecture-note p{margin:4px 0 0;color:var(--ink-2);font-size:12px;line-height:1.5}
 .dive-hero .btn{flex:0 0 auto}
-.dive-controls{display:grid;grid-template-columns:minmax(220px,1.7fr) repeat(4,minmax(120px,.7fr));gap:10px;padding:18px max(20px,calc((100vw - 1380px)/2)) 12px}
+.dive-controls{display:grid;grid-template-columns:minmax(220px,1.7fr) repeat(5,minmax(110px,.65fr));gap:10px;padding:18px max(20px,calc((100vw - 1380px)/2)) 12px}
 .dive-controls label{display:grid;gap:5px;min-width:0}.dive-controls label>span{font-size:9px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
 .dive-controls input,.dive-controls select{width:100%;min-width:0;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 10px;border-radius:8px;outline:0}
 .dive-controls input:focus,.dive-controls select:focus{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 12%,transparent)}
