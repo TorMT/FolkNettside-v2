@@ -122,7 +122,7 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
     context.beginPath();
     points.forEach((point,index)=>{
       const x=sx(point.x,w),y=sy(point.y,h);
-      if(index===0)context.moveTo(x,y);else context.lineTo(x,y);
+      if(index===0||point.breakBefore)context.moveTo(x,y);else context.lineTo(x,y);
     });
     if(dataset.kind!=="states")context.stroke();
 
