@@ -1,24 +1,24 @@
-import {extension} from "./utils.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf";
+import {extension} from "./utils.js?v=a9b99ee88974141a595afc683db34eea2547479f";
 const adapterLoaders={
-  pdf:()=>import("./adapters/pdf.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),docx:()=>import("./adapters/office.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),xlsx:()=>import("./adapters/office.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),pptx:()=>import("./adapters/office.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),csv:()=>import("./adapters/csv.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),
-  html:()=>import("./adapters/html.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),htm:()=>import("./adapters/html.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),
-  ipynb:()=>import("./adapters/notebook.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),tex:()=>import("./adapters/latex.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),
-  mp4:()=>import("./adapters/video.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),webm:()=>import("./adapters/video.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),mkv:()=>import("./adapters/video.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),
-  stl:()=>import("./adapters/stl.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),"3mf":()=>import("./adapters/three-mf.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),
-  md:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),txt:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),py:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),
-  js:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),mjs:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),ts:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),
-  tsx:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),jsx:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),json:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),
-  yaml:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),yml:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),c:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),
-  cpp:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),h:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),hpp:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),
-  cs:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf"),java:()=>import("./adapters/text.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf")
+  pdf:()=>import("./adapters/pdf.js?v=a9b99ee88974141a595afc683db34eea2547479f"),docx:()=>import("./adapters/office.js?v=a9b99ee88974141a595afc683db34eea2547479f"),xlsx:()=>import("./adapters/office.js?v=a9b99ee88974141a595afc683db34eea2547479f"),pptx:()=>import("./adapters/office.js?v=a9b99ee88974141a595afc683db34eea2547479f"),csv:()=>import("./adapters/csv.js?v=a9b99ee88974141a595afc683db34eea2547479f"),
+  html:()=>import("./adapters/html.js?v=a9b99ee88974141a595afc683db34eea2547479f"),htm:()=>import("./adapters/html.js?v=a9b99ee88974141a595afc683db34eea2547479f"),
+  ipynb:()=>import("./adapters/notebook.js?v=a9b99ee88974141a595afc683db34eea2547479f"),tex:()=>import("./adapters/latex.js?v=a9b99ee88974141a595afc683db34eea2547479f"),
+  mp4:()=>import("./adapters/video.js?v=a9b99ee88974141a595afc683db34eea2547479f"),webm:()=>import("./adapters/video.js?v=a9b99ee88974141a595afc683db34eea2547479f"),mkv:()=>import("./adapters/video.js?v=a9b99ee88974141a595afc683db34eea2547479f"),
+  stl:()=>import("./adapters/stl.js?v=a9b99ee88974141a595afc683db34eea2547479f"),"3mf":()=>import("./adapters/three-mf.js?v=a9b99ee88974141a595afc683db34eea2547479f"),
+  md:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),txt:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),py:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),
+  js:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),mjs:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),ts:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),
+  tsx:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),jsx:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),json:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),
+  yaml:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),yml:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),c:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),
+  cpp:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),h:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),hpp:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),
+  cs:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f"),java:()=>import("./adapters/text.js?v=a9b99ee88974141a595afc683db34eea2547479f")
 };
 export async function loadAdapter(resource){
   if(resource.kind==="YOUTUBE"){
-    const module=await import("./adapters/youtube.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf");
+    const module=await import("./adapters/youtube.js?v=a9b99ee88974141a595afc683db34eea2547479f");
     return {extension:"youtube",render:module.render};
   }
   if(resource.kind==="QUIZ"){
-    const module=await import("./adapters/quiz.js?v=8a5f8a927bb65c6ed52fc0eeebe0eeba4ee1dfaf");
+    const module=await import("./adapters/quiz.js?v=a9b99ee88974141a595afc683db34eea2547479f");
     return {extension:"quiz",render:module.render};
   }
   const ext=extension(resource.path),loader=adapterLoaders[ext]||adapterLoaders.txt,module=await loader();
