@@ -1,7 +1,7 @@
-import {extension} from "../viewers/utils.js?v=4919690a518f8ded39c5116aac403a61323a3929";
-import {parse3MF} from "./parsers/three-mf.js?v=4919690a518f8ded39c5116aac403a61323a3929";
-import {parseSTL} from "./parsers/stl.js?v=4919690a518f8ded39c5116aac403a61323a3929";
-import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=4919690a518f8ded39c5116aac403a61323a3929";
+import {extension} from "../viewers/utils.js?v=75fbdffb940bc6705719c3bee8680f3dcd4fa419";
+import {parse3MF} from "./parsers/three-mf.js?v=75fbdffb940bc6705719c3bee8680f3dcd4fa419";
+import {parseSTL} from "./parsers/stl.js?v=75fbdffb940bc6705719c3bee8680f3dcd4fa419";
+import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=75fbdffb940bc6705719c3bee8680f3dcd4fa419";
 
 function applyRules(documentModel,rules=[]){
   for(const component of documentModel.components){
