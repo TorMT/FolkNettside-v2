@@ -304,14 +304,25 @@ export function solvePreparedWaterlineForVolume(prepared,targetVolume,{
 
   let mid=(low+high)/2,midResult;
   for(let iteration=1;iteration<=maxIterations;iteration++){
-    mid=(low+high)/2;
     midResult=analyzePreparedHydro(prepared,mid);
     const error=midResult.volume-target;
     if(Math.abs(error)<=tolerance||Math.abs(high-low)<=tolerance){
       return {waterline:mid,result:midResult,iterations:iteration};
     }
+
     if(error<0){low=mid;lowResult=midResult}
     else{high=mid;highResult=midResult}
+
+    // dV/dz equals the instantaneous waterplane area. Use that derivative
+    // for a Newton step, but only while it stays safely inside the current
+    // monotonic bracket. Otherwise retain guaranteed bisection convergence.
+    const area=Number(midResult.waterplane?.area)||0;
+    const newton=area>EPS?mid-error/area:NaN;
+    const span=high-low;
+    const guard=span*.05;
+    mid=Number.isFinite(newton)&&newton>low+guard&&newton<high-guard
+      ?newton
+      :(low+high)/2;
   }
   return {waterline:mid,result:midResult,iterations:maxIterations};
 }
