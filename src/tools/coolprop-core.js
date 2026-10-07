@@ -174,7 +174,21 @@ export const COURSE_TABLE_LABELS=Object.fromEntries(
 );
 
 export function courseTableConfig(fluid){
-  return COURSE_TABLE_CONFIGS[fluid]||null;
+  if(COURSE_TABLE_CONFIGS[fluid])return COURSE_TABLE_CONFIGS[fluid];
+  if(!DEFAULT_FLUIDS.includes(fluid))return null;
+  return {
+    label:`${fluid} · native CoolProp basis`,
+    native:true,
+    tables:[
+      {
+        id:"Native-TP",
+        label:"Native T-P property table",
+        mode:"native-tp",
+        defaultRows:"0,1\n25,1\n100,5\n200,10",
+        inputHint:"Temperature, pressure per line"
+      }
+    ]
+  };
 }
 
 export function courseTableLabel(fluid){
@@ -212,7 +226,7 @@ export function courseTableDefaultRows(fluid,tableId,units=DEFAULT_UNITS){
   if(table.mode==="ideal-gas")return raw.join("\n");
   if(table.mode==="sat-T")return raw.map(value=>presetNumber(convertPresetTemperature(value,units))).join("\n");
   if(table.mode==="sat-P")return raw.map(value=>presetNumber(convertPresetPressure(value,units))).join("\n");
-  if(table.mode==="superheated"||table.mode==="compressed"){
+  if(table.mode==="superheated"||table.mode==="compressed"||table.mode==="native-tp"){
     return raw.map(line=>{
       const [temperature,pressure]=line.split(/[,;\s]+/);
       return presetNumber(convertPresetTemperature(temperature,units))+","+presetNumber(convertPresetPressure(pressure,units));
