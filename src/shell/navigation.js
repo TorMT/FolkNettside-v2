@@ -27,9 +27,12 @@ function navButton(item,active,{mobile=false,coursesLabel="Courses"}={}){
   return `<button data-go="${item.route}" class="${activeClass}">${label}</button>`;
 }
 
-export function renderTopShell(active,{coursesLabel="Courses"}={}){
+export function renderTopShell(active,{coursesLabel="Courses",account={}}={}){
   const desktopPrimary=PRIMARY_NAV.map(item=>navButton(item,active,{coursesLabel})).join("");
   const mobile=MOBILE_NAV.map(item=>navButton(item,active,{mobile:true,coursesLabel})).join("");
+  const signedIn=account?.status==="signed-in";
+  const accountName=signedIn?(account?.profile?.name||account?.profile?.email||"Google"):"Sign in";
+  const accountInitial=signedIn?String(accountName).trim().slice(0,1).toUpperCase():"○";
 
   return `<header class="topbar">
     <div class="brand" id="home"><span class="brand-mark"></span>FolkNettside</div>
@@ -38,6 +41,7 @@ export function renderTopShell(active,{coursesLabel="Courses"}={}){
     <nav class="nav"><button data-go="/courses" class="${active==="courses"?"active":""}">${coursesLabel}</button></nav>
     <div class="top-actions">
       <button class="icon-btn" data-search-open aria-label="Search">⌕</button>
+      <button class="account-chip ${signedIn?"signed-in":""}" data-go="/settings/connections" aria-label="${signedIn?`Account: ${accountName}`:"Sign in"}"><span>${accountInitial}</span><em>${accountName}</em></button>
       <button class="icon-btn" data-go="/settings" aria-label="Settings">⚙</button>
     </div>
   </header>

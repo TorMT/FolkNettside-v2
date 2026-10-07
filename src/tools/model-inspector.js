@@ -1,5 +1,5 @@
-import {mountModelScene} from "../model/model-scene.js?v=b9c0af1a4d833d1780a2ae3145fcc5bb411adef4";
-import {modelHydroSummaryAtAttitude,parseModelBuffer} from "./model-inspector-core.js?v=b9c0af1a4d833d1780a2ae3145fcc5bb411adef4";
+import {mountModelScene} from "../model/model-scene.js?v=0d0ab8c80faf9cbe25c501977a4ae78255b6379f";
+import {modelHydroSummaryAtAttitude,parseModelBuffer} from "./model-inspector-core.js?v=0d0ab8c80faf9cbe25c501977a4ae78255b6379f";
 
 function fmt(value,digits=4){
   const n=Number(value);
