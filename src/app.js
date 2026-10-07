@@ -258,8 +258,10 @@ function coursesPage(requestedSemester){
   document.documentElement.dataset.lens="study";
   const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;
   const semester=getSemester(semesterId)||semesters[0];
-  const semesterOptions=semesters.map(s=>`<option value="${s.id}" ${Number(s.id)===Number(semester.id)?"selected":""}>${s.label} · ${s.courses.length} fag</option>`).join("");
-  const semesterTabs=semesters.map(s=>`<button class="${Number(s.id)===Number(semester.id)?"active":""}" data-semester="${s.id}">${s.label}</button>`).join("");
+  const semesterTabs=semesters.map(s=>`<button class="${Number(s.id)===Number(semester.id)?"active":""}" data-semester="${s.id}" aria-label="${s.label}" title="${s.label}">
+    <span class="semester-label-long">${s.label}</span>
+    <span class="semester-label-short">S${s.id}</span>
+  </button>`).join("");
   const courseCards=semester.courses.map(course=>{
     const resourceCount=course.resources?.length||0;
     const sectionCount=course.sections?.length||0;
@@ -288,10 +290,6 @@ function coursesPage(requestedSemester){
     </section>
 
     <div class="semester-navigation">
-      <label class="semester-select-wrap">
-        <span>Semester</span>
-        <select id="semester-select">${semesterOptions}</select>
-      </label>
       <div class="semester-tabs" aria-label="Semester navigation">${semesterTabs}</div>
     </div>
 
@@ -311,7 +309,8 @@ function coursesPage(requestedSemester){
 
   bindNav();
   app.querySelectorAll("[data-semester]").forEach(button=>button.onclick=()=>go("/courses/"+button.dataset.semester));
-  app.querySelector("#semester-select")?.addEventListener("change",event=>go("/courses/"+event.currentTarget.value));
+  const activeSemester=app.querySelector(".semester-tabs .active");
+  activeSemester?.scrollIntoView?.({behavior:"instant",block:"nearest",inline:"center"});
   app.querySelectorAll("[data-course]").forEach(card=>{
     const open=()=>go(courseRoute(semester.id,card.dataset.course));
     card.onclick=open;
