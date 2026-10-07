@@ -672,7 +672,7 @@ async function engineeringPage(){
   if(!engineeringDocument){
     const fallback=configuredComponents||[];
     app.innerHTML=top("engineering")+`<main class="workspace">
-      <div class="workspace-bar"><strong>${model.name}</strong><div class="mode-tabs">
+      <div class="workspace-bar"><strong>${model.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
         ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
       </div></div>
       <aside class="tree"><div class="tree-label">Components</div>
@@ -684,6 +684,7 @@ async function engineeringPage(){
       <footer class="statusbar"><span>Units SI</span><span class="top-spacer"></span><span>Loading model…</span></footer>
     </main>`;
     bindNav();
+    bindEngineeringModelSelector();
     app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
     getEngineeringDocument()
       .then(()=>{if(renderId===engineeringRenderId)engineeringPage()})
@@ -859,7 +860,7 @@ async function engineeringPage(){
   const waterline=hydro?`<div class="workspace-waterline" style="bottom:${hydro.waterlinePercent}%"><span>WL ${hydro.draft.toFixed(2)} m</span></div>`:"";
 
   app.innerHTML=top("engineering")+`<main class="workspace">
-    <div class="workspace-bar"><strong>${documentModel.name}</strong><div class="mode-tabs">
+    <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
       ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
     </div></div>
     <aside class="tree"><input id="component-filter" placeholder="Filter name, role or subsystem"><div class="tree-label">Semantic assembly</div>
@@ -877,6 +878,7 @@ async function engineeringPage(){
   </main><div class="preview-badge">${engineeringMode==="Hydro"?"Hydro · stability workspace":"Semantic ModelDocument"}</div>`;
 
   bindNav();
+  bindEngineeringModelSelector();
   let sceneHandle=null;
   const updateSelection=component=>{
     if(!component)return;
