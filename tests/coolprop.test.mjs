@@ -204,8 +204,8 @@ test("unmapped course fluids get an explicitly native TP table",()=>{
     fluid:"Propane",tableId:"Native-TP",rows:"25,1",units:DEFAULT_UNITS
   });
   assert.equal(rows[0].Status,"OK");
-  assert.equal(rows[0].T,26.85);
-  assert.equal(rows[0].P,2);
+  assert.equal(rows[0].T,25);
+  assert.equal(rows[0].P,1);
 });
 
 test("Ammonia table basis calibrates H U and S to Table A-15 reference",()=>{
