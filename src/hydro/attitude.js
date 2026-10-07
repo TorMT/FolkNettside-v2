@@ -1,6 +1,6 @@
-import {prepareHydroModel,solvePreparedWaterlineForVolume} from "./hydrostatics.js?v=ebcd155fb5dfa51dd627ef238ea454f599e226ba";
-import {createHydroInclude} from "./hydro-selection.js?v=ebcd155fb5dfa51dd627ef238ea454f599e226ba";
-import {attitudeMatrix,transformPoint,transformedModelDocument} from "../model/transforms.js?v=ebcd155fb5dfa51dd627ef238ea454f599e226ba";
+import {prepareHydroModel,solvePreparedWaterlineForVolume} from "./hydrostatics.js?v=b9115450f3cd4659e350430ebcfd9d1c06807407";
+import {createHydroInclude} from "./hydro-selection.js?v=b9115450f3cd4659e350430ebcfd9d1c06807407";
+import {attitudeMatrix,transformPoint,transformedModelDocument} from "../model/transforms.js?v=b9115450f3cd4659e350430ebcfd9d1c06807407";
 
 function preparedZBounds(prepared){
   let min=Infinity,max=-Infinity;
@@ -115,4 +115,74 @@ export function attitudeCurve(modelDocument,{
     }));
   }
   return values;
+}
+
+
+export function solveAttitudeEquilibrium(modelDocument,{
+  axis="trim",
+  minAngle=-15,
+  maxAngle=15,
+  angleTolerance=1e-5,
+  leverTolerance=1e-7,
+  maxIterations=50,
+  ...options
+}={}){
+  if(!["heel","trim"].includes(axis))throw new Error("axis must be heel or trim");
+  let low=Number(minAngle),high=Number(maxAngle);
+  if(!(high>low))throw new Error("maxAngle must be greater than minAngle");
+
+  const evaluate=angle=>{
+    const result=attitudeHydro(modelDocument,{
+      ...options,
+      heelDeg:axis==="heel"?angle:(options.heelDeg||0),
+      trimDeg:axis==="trim"?angle:(options.trimDeg||0)
+    });
+    return {
+      angle,
+      residual:axis==="heel"?result.rollLever:result.pitchLever,
+      result
+    };
+  };
+
+  let a=evaluate(low),b=evaluate(high);
+  if(Math.abs(a.residual)<=leverTolerance)return {...a.result,axis,equilibriumAngle:a.angle,residual:a.residual,equilibriumIterations:0};
+  if(Math.abs(b.residual)<=leverTolerance)return {...b.result,axis,equilibriumAngle:b.angle,residual:b.residual,equilibriumIterations:0};
+  if(Math.sign(a.residual)===Math.sign(b.residual)){
+    const error=new Error(
+      `No ${axis} equilibrium bracketed between ${low}° and ${high}°; residuals are ${a.residual} m and ${b.residual} m`
+    );
+    error.code="EQUILIBRIUM_NOT_BRACKETED";
+    error.low=a;
+    error.high=b;
+    throw error;
+  }
+
+  let mid=null;
+  for(let iteration=1;iteration<=maxIterations;iteration++){
+    const angle=(low+high)/2;
+    mid=evaluate(angle);
+    if(Math.abs(mid.residual)<=leverTolerance||Math.abs(high-low)<=angleTolerance){
+      return {
+        ...mid.result,
+        axis,
+        equilibriumAngle:angle,
+        residual:mid.residual,
+        equilibriumIterations:iteration
+      };
+    }
+    if(Math.sign(mid.residual)===Math.sign(a.residual)){
+      low=angle;
+      a=mid;
+    }else{
+      high=angle;
+      b=mid;
+    }
+  }
+  return {
+    ...mid.result,
+    axis,
+    equilibriumAngle:mid.angle,
+    residual:mid.residual,
+    equilibriumIterations:maxIterations
+  };
 }

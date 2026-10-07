@@ -1,7 +1,7 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=ebcd155fb5dfa51dd627ef238ea454f599e226ba";
-import {createHydroInclude} from "./hydro-selection.js?v=ebcd155fb5dfa51dd627ef238ea454f599e226ba";
-import {gzCurve} from "./gz.js?v=ebcd155fb5dfa51dd627ef238ea454f599e226ba";
-import {attitudeCurve,attitudeHydro} from "./attitude.js?v=ebcd155fb5dfa51dd627ef238ea454f599e226ba";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=b9115450f3cd4659e350430ebcfd9d1c06807407";
+import {createHydroInclude} from "./hydro-selection.js?v=b9115450f3cd4659e350430ebcfd9d1c06807407";
+import {gzCurve} from "./gz.js?v=b9115450f3cd4659e350430ebcfd9d1c06807407";
+import {attitudeCurve,attitudeHydro} from "./attitude.js?v=b9115450f3cd4659e350430ebcfd9d1c06807407";
 
 let worker=null;
 let currentModel=null;
@@ -10,7 +10,7 @@ const pending=new Map();
 
 function ensureWorker(){
   if(worker||typeof Worker==="undefined")return worker;
-  worker=new Worker(new URL("./hydro-worker.js?v=ebcd155fb5dfa51dd627ef238ea454f599e226ba",import.meta.url),{type:"module"});
+  worker=new Worker(new URL("./hydro-worker.js?v=b9115450f3cd4659e350430ebcfd9d1c06807407",import.meta.url),{type:"module"});
   worker.onmessage=event=>{
     const {id,ok,result,error}=event.data||{};
     const entry=pending.get(id);
