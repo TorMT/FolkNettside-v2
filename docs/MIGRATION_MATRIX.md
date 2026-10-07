@@ -13,9 +13,9 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`, `full`.
 | Notebook | ViewerShell notebook adapter | IPYNB + browser matrix | full | Source/output rendering and Find browser-verified |
 | LaTeX | dedicated adapter | TEX + browser matrix | full | Lazy KaTeX preview, source fallback and Find browser-verified |
 | Office | shared OOXML adapter | DOCX/XLSX/PPTX + browser matrix | full | Lazy ZIP/XML parser, provider-free baseline and Find browser-verified |
-| Video | shared local/YouTube adapters + progress store | MP4 + YouTube | prototype | One progress model, local resume/watched state, externalResources manifest support; cloud sync later |
-| STL | shared Three.js ModelScene | ASCII STL | prototype | Render-on-demand; binary parser; real Fit/Reset controls |
-| 3MF | ModelDocument + shared Three.js scene | 3MF geometry assembly | prototype | Object/build identity, units, transforms, selection and real Fit/Reset controls |
+| Local video | ViewerShell video adapter + progress store | MP4 + browser matrix | full | Resume/watched state, explicit reset progress and ViewerShell rendering browser-verified; cloud sync remains optional future work |\n| YouTube | ViewerShell YouTube adapter + shared progress store | URL/parser + progress tests | prototype | Resume/watched/reset workflow implemented; external YouTube IFrame API is intentionally not a deploy-critical browser gate |
+| STL | shared Three.js ModelScene | ASCII STL + browser matrix | full | Parse, WebGL render, finite bounds, Fit/Reset and cleanup browser-verified |
+| 3MF | ModelDocument + shared Three.js scene | 3MF assembly + browser matrix | full | Object/build identity, units, transforms, WebGL render, finite bounds, selection and Fit/Reset browser-verified |
 | Fusion F3D/F3Z | semantic ModelDocument import pipeline | archive-selection + semantic-sidecar tests | prototype | F3Z consumes embedded 3MF/STL with provenance and optional semantic sidecar metadata for hull/thruster/subsystem roles; native F3D/F3Z emits APS_REQUIRED until Autodesk conversion is connected |
 | STEP/IGES | shared CAD import | pending | planned | Keep component/source identity where possible |
 | Hydrostatics | exact clipped-triangle integrals + stability/GZ | box/wedge/multi-component + GZ + attitude/equilibrium + perf fixtures | prototype | Prepared geometry caches triangle z-bounds; draft solve uses safeguarded waterplane-Newton acceleration; BM/KM/GM, constant-displacement GZ, heel/trim attitude and hydrostatic equilibrium are regression-tested through worker/service paths |
