@@ -4,7 +4,7 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`, `full`.
 
 | Legacy capability | v2 target | Fixture | Status | Notes |
 |---|---|---:|---|---|
-| Course/semester indexing | `scripts/update_site.py` + one manifest | yes | prototype | One-purpose updater; no HTML patching |
+| Course/semester indexing | `scripts/update_site.py` + one manifest | CI updater/check + validator | full | Metadata-only indexing is rebuilt, freshness-checked and validated on every deploy; no HTML patching or large-file reads |
 | Theme picker | Settings + `src/settings.js` | n/a | prototype | No floating theme control |
 | PDF viewer | ViewerShell adapter | PDF + browser matrix | full | Native browser renderer browser-verified; unsupported toolbar actions hidden |
 | Code/text/Python | ViewerShell code adapter | MD, PY + browser matrix | full | Lazy highlighting, line numbers, copy and in-viewer Find browser-verified |
@@ -13,7 +13,8 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`, `full`.
 | Notebook | ViewerShell notebook adapter | IPYNB + browser matrix | full | Source/output rendering and Find browser-verified |
 | LaTeX | dedicated adapter | TEX + browser matrix | full | Lazy KaTeX preview, source fallback and Find browser-verified |
 | Office | shared OOXML adapter | DOCX/XLSX/PPTX + browser matrix | full | Lazy ZIP/XML parser, provider-free baseline and Find browser-verified |
-| Local video | ViewerShell video adapter + progress store | MP4 + browser matrix | full | Resume/watched state, explicit reset progress and ViewerShell rendering browser-verified; cloud sync remains optional future work |\n| YouTube | ViewerShell YouTube adapter + shared progress store | URL/parser + progress tests | prototype | Resume/watched/reset workflow implemented; external YouTube IFrame API is intentionally not a deploy-critical browser gate |
+| Local video | ViewerShell video adapter + progress store | MP4 + browser matrix | full | Resume/watched state, explicit reset progress and ViewerShell rendering browser-verified; cloud sync remains optional future work |
+| YouTube | ViewerShell YouTube adapter + shared progress store | URL/parser + progress tests | prototype | Resume/watched/reset workflow implemented; external YouTube IFrame API is intentionally not a deploy-critical browser gate |
 | STL | shared Three.js ModelScene | ASCII STL + browser matrix | full | Parse, WebGL render, finite bounds, Fit/Reset and cleanup browser-verified |
 | 3MF | ModelDocument + shared Three.js scene | 3MF assembly + browser matrix | full | Object/build identity, units, transforms, WebGL render, finite bounds, selection and Fit/Reset browser-verified |
 | Fusion F3D/F3Z | semantic ModelDocument import pipeline | archive-selection + semantic-sidecar tests | prototype | F3Z consumes embedded 3MF/STL with provenance and optional semantic sidecar metadata for hull/thruster/subsystem roles; native F3D/F3Z emits APS_REQUIRED until Autodesk conversion is connected |
@@ -28,7 +29,7 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`, `full`.
 | Crystal structures | shared Three.js Tools module | full legacy structure set + interactive browser verification | full | Full legacy functional parity verified; next work is beyond-legacy hole polyhedra and close-packed-plane visualization |
 | Periodic table | data-driven Tools module | full local dataset + test fixture + deployed browser verification | full | Search, quick filters, dropdown filters, temperature phase, property display, reset/clear, details and Wikipedia link browser-verified |
 | Quiz | shared course module | quiz JSON + study browser smoke | full | Validated data, persistent attempts, feedback, navigation, review, keyboard controls and browser-verified ViewerShell integration |
-| Karakterweb | shared course capability | course code | prototype | External fallback always available |
+| Karakterweb | shared course capability | validated course-code URL tests | full | Course-code normalization and deterministic HTTPS fallback are tested; external site availability is not a deploy dependency |
 | Google Drive/login | Settings connection service | n/a | planned | Optional auth only |
 | Autodesk login | Settings connection service | n/a | planned | Optional auth only |
 
