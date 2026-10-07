@@ -6,12 +6,18 @@ import {diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveStats,filterDiv
 const dataset=JSON.parse(await readFile(new URL("../data/diving/trondheim-sites.geojson",import.meta.url),"utf8"));
 const features=dataset.features;
 
-test("dive dataset snapshot has sourced point geometry",()=>{
-  assert.ok(features.length>=28);
+test("dive dataset snapshot preserves the DG-enriched canonical master",()=>{
+  assert.ok(features.length>=88);
+  const located=features.filter(feature=>feature.geometry?.type==="Point");
+  const unlocated=features.filter(feature=>feature.geometry===null);
+  assert.ok(located.length>=60);
+  assert.ok(unlocated.length>0);
   for(const feature of features){
-    assert.equal(feature.geometry?.type,"Point");
-    const [lon,lat]=feature.geometry.coordinates;
-    assert.ok(Number.isFinite(lon)&&Number.isFinite(lat));
+    if(feature.geometry){
+      const [lon,lat]=feature.geometry.coordinates;
+      assert.ok(Number.isFinite(lon)&&Number.isFinite(lat));
+      assert.notDeepEqual([lon,lat],[0,0]);
+    }
     assert.ok(feature.properties?.Navn);
     assert.ok(Array.isArray(feature.properties?.source_urls));
   }
@@ -48,6 +54,7 @@ test("dive sorting and stats are deterministic",()=>{
   assert.deepEqual(known,[...known].sort((a,b)=>a-b));
   const stats=diveStats(features);
   assert.equal(stats.total,features.length);
-  assert.equal(stats.withCoordinates,features.length);
+  assert.ok(stats.withCoordinates<features.length);
+  assert.ok(stats.withCoordinates>=60);
   assert.equal(stats.wrecks+stats.nature,features.length);
 });
