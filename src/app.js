@@ -1,32 +1,32 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {mountViewer} from "./viewer.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {loadContent} from "./content.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {renderResourceTree} from "./components/resource-tree.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {buildSearchIndex} from "./search/search-index.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {createSearchController} from "./components/search-dialog.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {activeTools} from "./tools/tool-registry.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {loadModelDocument} from "./model/load-model.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {mountModelScene} from "./model/model-scene.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=e26a8be364148308481765cdcfc55597812e79d3";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=e26a8be364148308481765cdcfc55597812e79d3";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {mountViewer} from "./viewer.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {loadContent} from "./content.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {renderResourceTree} from "./components/resource-tree.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {buildSearchIndex} from "./search/search-index.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {createSearchController} from "./components/search-dialog.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {activeTools} from "./tools/tool-registry.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {loadModelDocument} from "./model/load-model.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {mountModelScene} from "./model/model-scene.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=2932231072c157aa2dc69ccbcc92858f67e0a18c";
 
 initSettings();
 
@@ -530,6 +530,65 @@ async function engineeringPage(){
       const sourceThruster=thrusters.find(component=>component.id===selectedComponentId)||thrusters[0]||null;
       const sourceSemantic=sourceThruster?componentSemantic(sourceThruster):null;
       const sourceCase=sourceSemantic?.thruster||{};
+      const hasForceModel=!sourceThruster||(
+        sourceCase.forceModel!=="unset"
+        &&sourceCase.thrust!==null&&sourceCase.thrust!==undefined&&sourceCase.thrust!==""
+        &&Number.isFinite(Number(sourceCase.thrust))
+        &&Number(sourceCase.diameter)>0
+      );
+
+      if(sourceThruster&&!hasForceModel){
+        const ratedPower=Number(sourceCase.ratedPowerKw);
+        app.innerHTML=top("engineering")+`<main class="workspace">
+          <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
+            ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
+          </div></div>
+          <aside class="tree">
+            <div class="tree-label">Sourced thruster components</div>
+            ${thrusters.map(component=>{const semantic=componentSemantic(component);return `<div class="tree-row ${component.id===sourceThruster.id?"selected":""}" data-propulsion-component="${component.id}"><span>◎</span><span class="tree-row-copy">${component.name}<small>${semantic.subtype||semantic.role}</small></span></div>`}).join("")}
+          </aside>
+          <section class="viewport"><div id="engineering-scene" class="engineering-scene"></div><div class="hud">Propulsion · sourced geometry</div></section>
+          <aside class="inspector">
+            <h3>${sourceThruster.name}</h3>
+            <div class="readout"><span>Type</span><strong>${sourceSemantic?.subtype||"thruster"}</strong></div>
+            <div class="readout"><span>Rated power</span><strong>${Number.isFinite(ratedPower)?ratedPower+" kW":"—"}</strong></div>
+            <div class="readout"><span>Source node</span><strong>${sourceThruster.sourceObjectId||"—"}</strong></div>
+            <div class="readout"><span>Force model</span><strong class="status-warn">Not configured</strong></div>
+            <p class="muted hydro-note">Geometry and component identity are sourced. Thrust, actuator diameter and local thrust axis are intentionally not inferred from rated power or appearance.</p>
+          </aside>
+          <section class="results"><div class="results-summary"><strong>Propulsion analysis blocked</strong><div class="readout"><span>Reason</span><strong>Missing force model</strong></div></div>
+            <div class="engineering-empty-analysis"><strong>No fabricated thrust result</strong><p>Add sourced or explicitly assumed thrust/diameter/axis metadata before actuator-disk and rigid-body force/moment analysis is enabled.</p></div>
+          </section>
+          <footer class="statusbar"><span>Units SI</span><span>Sourced identity</span><span>No thrust assumption</span><span class="top-spacer"></span><span>ModelDocument</span></footer>
+        </main><div class="preview-badge">Propulsion · sourced identity only</div>`;
+
+        bindNav();
+        bindEngineeringModelSelector();
+        app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
+        app.querySelectorAll("[data-propulsion-component]").forEach(row=>row.onclick=()=>{
+          selectedComponentId=row.dataset.propulsionComponent;
+          propulsionInitialized=false;
+          engineeringPage();
+        });
+        mountModelScene(app.querySelector("#engineering-scene"),documentModel,{
+          showSidebar:false,selectedComponentId:sourceThruster.id,
+          onSelect:component=>{
+            if(componentSemantic(component||{}).role==="thruster"){
+              selectedComponentId=component.id;
+              propulsionInitialized=false;
+              engineeringPage();
+            }
+          }
+        }).then(handle=>{
+          if(renderId!==engineeringRenderId){handle.cleanup();return}
+          engineeringCleanup=handle.cleanup;
+        }).catch(error=>{
+          const target=app.querySelector("#engineering-scene");
+          if(target)target.innerHTML=`<pre class="code-view">3D render error: ${String(error?.message||error)}</pre>`;
+        });
+        return;
+      }
+
       if(!propulsionInitialized){
         propulsionThrustKn=Number(sourceCase.thrust??fixture.thrust)/1000;
         propulsionInflow=Number(sourceCase.inflowSpeed??fixture.inflowSpeed);
@@ -565,7 +624,7 @@ async function engineeringPage(){
       );
 
       app.innerHTML=top("engineering")+`<main class="workspace">
-        <div class="workspace-bar"><strong>${sourceThruster?.name||fixture.name}</strong><div class="mode-tabs">
+        <div class="workspace-bar"><strong>${sourceThruster?.name||fixture.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
           ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
         </div></div>
         <aside class="tree">
@@ -586,6 +645,7 @@ async function engineeringPage(){
       </main><div class="preview-badge">Propulsion · component-linked actuator disk</div>`;
 
       bindNav();
+      bindEngineeringModelSelector();
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       app.querySelectorAll("[data-propulsion-component]").forEach(row=>row.onclick=()=>{
         selectedComponentId=row.dataset.propulsionComponent;
