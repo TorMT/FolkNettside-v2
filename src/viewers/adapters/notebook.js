@@ -1,5 +1,5 @@
-import {escapeHTML,fetchJSON} from "../utils.js?v=265bfc29198bb03040739f1a09ecc8a5ec4f71d9";
-import {createDomFinder} from "../dom-search.js?v=265bfc29198bb03040739f1a09ecc8a5ec4f71d9";
+import {escapeHTML,fetchJSON} from "../utils.js?v=67ea320d9bffe172348689ae49c8ae2cb153db50";
+import {createDomFinder} from "../dom-search.js?v=67ea320d9bffe172348689ae49c8ae2cb153db50";
 
 function renderOutput(output){
   if(Array.isArray(output?.text)) return `<pre>${escapeHTML(output.text.join(""))}</pre>`;
