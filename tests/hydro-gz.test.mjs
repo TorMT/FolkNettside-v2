@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {boxMesh} from "../src/hydro/fixtures.js";
 import {analyzeModelDocument} from "../src/hydro/hydrostatics.js";
-import {gzAtHeel,gzCurve} from "../src/hydro/gz.js";
+import {gzAtHeel,gzCurve,gzMetrics} from "../src/hydro/gz.js";
 import {initialStability} from "../src/hydro/stability.js";
 
 const near=(a,b,tol=1e-6)=>assert.ok(Math.abs(a-b)<=tol,`${a} != ${b}`);
@@ -50,4 +50,30 @@ test("zero heel returns zero GZ",()=>{
   const point=gzAtHeel(model,{heelDeg:0,targetVolume:upright.volume,kg:.5});
   near(point.gz,0,1e-12);
   near(point.waterline,1,1e-6);
+});
+
+
+test("GZ metrics summarize maximum, positive area and first-point GM estimate",()=>{
+  const curve=[
+    {heelDeg:-10,gz:.20,rightingMoment:10},
+    {heelDeg:0,gz:0,rightingMoment:0},
+    {heelDeg:5,gz:.10,rightingMoment:5},
+    {heelDeg:10,gz:.16,rightingMoment:8},
+    {heelDeg:15,gz:.12,rightingMoment:6}
+  ];
+  const metrics=gzMetrics(curve);
+  assert.equal(metrics.valid,true);
+  near(metrics.maxGz,.20);
+  near(metrics.angleAtMaxGz,-10);
+  near(metrics.initialGmEstimate,.10/Math.sin(5*Math.PI/180),1e-12);
+  const expectedArea=((0+.10)/2*5+(.10+.16)/2*5+(.16+.12)/2*5)*Math.PI/180;
+  near(metrics.areaPositiveMrad,expectedArea,1e-12);
+  assert.equal(metrics.positiveHeelMin,5);
+  assert.equal(metrics.positiveHeelMax,15);
+});
+
+test("GZ metrics reject an empty curve cleanly",()=>{
+  const metrics=gzMetrics([]);
+  assert.equal(metrics.valid,false);
+  assert.match(metrics.reason,/No finite GZ/i);
 });
