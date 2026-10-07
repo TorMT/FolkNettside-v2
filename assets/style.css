@@ -646,3 +646,8 @@
 
 .settings-shortcuts{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 @media(max-width:760px){.settings-shortcuts{justify-content:stretch}.settings-shortcuts .btn{flex:1}}
+
+.coolprop-table4-note{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0;padding:10px 12px;border:1px solid var(--line);background:var(--surface-sunk);border-radius:8px;font-size:12px;color:var(--ink-2)}
+.coolprop-table4-note strong{color:var(--ink)}
+.coolprop-table4-note[hidden]{display:none}
+@media(max-width:760px){.coolprop-table4-note{display:grid;gap:3px}}

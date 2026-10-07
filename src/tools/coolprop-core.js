@@ -26,6 +26,14 @@ export const OUTPUTS=[
 
 export const DEFAULT_FLUIDS=["Air","Water","Ammonia","Propane","CO2","Nitrogen","Oxygen","R134a"];
 
+export const TABLE4_R_SPEC={
+  Air:287.058,
+  Water:461.526,
+  Nitrogen:296.803,
+  CO2:188.924,
+  CarbonDioxide:188.924
+};
+
 export const DEFAULT_UNITS={
   pressure:"bar",
   temperature:"C",
@@ -263,6 +271,51 @@ export function computeBatch(engine,{
         values,
         state,
         status:"OK"
+      };
+    }catch(error){
+      return {...parsed,status:"FAIL",error:String(error?.message||error)};
+    }
+  });
+}
+
+export function computeTable4(engine,{
+  fluid,
+  format="TP",
+  rows="",
+  units=DEFAULT_UNITS
+}){
+  if(!engine?.propsSI)throw new Error("CoolProp engine is not ready");
+  if(!["TP","PT"].includes(format))throw new Error("Table 4 requires T/P or P/T input");
+  const R=TABLE4_R_SPEC[fluid];
+  if(!Number.isFinite(R))throw new Error(`Missing legacy R_spec for ${fluid}`);
+
+  return parseBatchRows(rows).map(parsed=>{
+    if(parsed.status!=="OK")return parsed;
+    const temperatureRaw=format==="TP"?parsed.value1:parsed.value2;
+    const pressureRaw=format==="TP"?parsed.value2:parsed.value1;
+    try{
+      const temperatureK=inputToSI("T",temperatureRaw,units);
+      const pressurePa=inputToSI("P",pressureRaw,units);
+      if(!(temperatureK>0)||!(pressurePa>0))throw new Error("Invalid T/P");
+      const vIdeal=R*temperatureK/pressurePa;
+      const density=engine.propsSI("D","T",temperatureK,"P",pressurePa,fluid);
+      if(!(Number.isFinite(density)&&density>0))throw new Error("Invalid density");
+      const vReal=1/density;
+      const diffPercent=Math.abs(vReal-vIdeal)/vIdeal*100;
+      const Z=vReal/vIdeal;
+      return {
+        ...parsed,
+        status:"OK",
+        fluid,
+        temperatureRaw,
+        pressureRaw,
+        temperatureK,
+        pressurePa,
+        density,
+        vIdeal,
+        vReal,
+        diffPercent,
+        Z
       };
     }catch(error){
       return {...parsed,status:"FAIL",error:String(error?.message||error)};

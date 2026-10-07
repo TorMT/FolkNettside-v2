@@ -1,11 +1,11 @@
 import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,
-  computeBatch,computeProcess,computeState,processTargetOptions,
+  computeBatch,computeProcess,computeState,computeTable4,processTargetOptions,
   rowsToCSV,rowsToJSON,saturationWarning,unitLabel
-} from "./coolprop-core.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
-import {getCoolProp} from "../vendor/coolprop-runtime.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
-import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
-import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+} from "./coolprop-core.js?v=0bd0e012b4fc3482a8857b97b28f5d3962b4145e";
+import {getCoolProp} from "../vendor/coolprop-runtime.js?v=0bd0e012b4fc3482a8857b97b28f5d3962b4145e";
+import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=0bd0e012b4fc3482a8857b97b28f5d3962b4145e";
+import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=0bd0e012b4fc3482a8857b97b28f5d3962b4145e";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -41,6 +41,7 @@ function normalizedState(state={}){
       value2:state.single?.value2??state.value2??25
     },
     batch:{
+      mode:state.batch?.mode||"multi",
       format:state.batch?.format||"TP",
       rows:state.batch?.rows??"25,1\n100,5\n200,10",
       outputs:state.batch?.outputs||["H","S","Phase"]
@@ -101,14 +102,16 @@ function batchHTML(s){
   const outputChoices=[...OUTPUTS.map(([key])=>key),"Phase"];
   return `<section class="coolprop-mode" data-mode="batch" ${s.tab==="batch"?"":"hidden"}>
     <div class="coolprop-input-grid">
-      <label class="field"><span>Batch format</span><select id="cp-batch-format">${selectOptions(["TP","PT","PH","PU"],x.format)}</select></label>
-      <label class="field coolprop-span-3"><span>Input rows · one state per line</span><textarea id="cp-batch-rows" rows="8">${esc(x.rows)}</textarea></label>
+      <label class="field"><span>Batch mode</span><select id="cp-batch-mode">${selectOptions(["multi","table4"],x.mode)}</select></label>
+      <label class="field"><span>Batch format</span><select id="cp-batch-format">${selectOptions(x.mode==="table4"?["TP","PT"]:["TP","PT","PH","PU"],x.format)}</select></label>
+      <label class="field coolprop-span-2"><span>Input rows · one state per line</span><textarea id="cp-batch-rows" rows="8">${esc(x.rows)}</textarea></label>
     </div>
-    <div class="coolprop-output-pills">
+    <div class="coolprop-table4-note" ${x.mode==="table4"?"":"hidden"}><strong>Legacy Table 4</strong><span>v ideal = R T / P · v real = 1/ρ · diff % · Z</span></div>
+    <div class="coolprop-output-pills" ${x.mode==="table4"?"hidden":""}>
       ${outputChoices.map(key=>`<label><input type="checkbox" data-cp-batch-output="${key}" ${x.outputs.includes(key)?"checked":""}><span>${key}</span></label>`).join("")}
     </div>
     <div class="coolprop-actions"><button class="btn primary" id="cp-batch-run">Run batch</button><button class="btn" id="cp-batch-example">Load example</button><button class="btn" id="cp-batch-diagram">Show diagram</button></div>
-    <div id="cp-batch-results" class="coolprop-results"><div class="tool-result-card"><span>Batch</span><strong>TP / PT / PH / PU</strong><p>Select outputs and calculate multiple states with the same engine.</p></div></div>
+    <div id="cp-batch-results" class="coolprop-results"><div class="tool-result-card"><span>Batch</span><strong>Multi-output + legacy Table 4</strong><p>Table 4 reproduces the legacy ideal-vs-real specific-volume comparison.</p></div></div>
   </section>`;
 }
 
@@ -439,11 +442,18 @@ export function bindCoolPropTool(root,state,onState){
   });
 
   root.querySelector("#cp-batch-example")?.addEventListener("click",()=>{
-    save({...syncGlobal(),tab:"batch",batch:{format:"TP",rows:"25,1\n100,5\n200,10",outputs:["H","S","Phase"]}},true);
+    save({...syncGlobal(),tab:"batch",batch:{mode:s.batch.mode||"multi",format:"TP",rows:"25,1\n100,5\n200,10",outputs:["H","S","Phase"]}},true);
+  });
+
+  root.querySelector("#cp-batch-mode")?.addEventListener("change",event=>{
+    const mode=event.target.value;
+    const format=mode==="table4"&& !["TP","PT"].includes(s.batch.format)?"TP":s.batch.format;
+    save({...syncGlobal(),tab:"batch",batch:{...s.batch,mode,format}},true);
   });
 
   root.querySelector("#cp-batch-run")?.addEventListener("click",async()=>{
     const batch={
+      mode:root.querySelector("#cp-batch-mode")?.value||"multi",
       format:root.querySelector("#cp-batch-format")?.value||"TP",
       rows:root.querySelector("#cp-batch-rows")?.value||"",
       outputs:[...root.querySelectorAll("[data-cp-batch-output]:checked")].map(input=>input.dataset.cpBatchOutput)
@@ -452,11 +462,32 @@ export function bindCoolPropTool(root,state,onState){
     target.innerHTML='<div class="viewer-loading">Calculating batch…</div>';
     try{
       const engine=await getEngine();
-      const rows=computeBatch(engine,{fluid:root.querySelector("#cp-fluid").value,...batch,units:readUnits(root),bookBasis:root.querySelector("#cp-book-basis").checked});
-      const flat=batchRowsForExport(rows);
-      target.innerHTML=genericTable(flat);
-      save({...syncGlobal(),batch,exportRows:flat,exportName:"coolprop-batch"},false);
-      setDiagramStates(rows.filter(row=>row.status==="OK").map(row=>row.state),"Batch");
+      if(batch.mode==="table4"){
+        const rows=computeTable4(engine,{fluid:root.querySelector("#cp-fluid").value,format:batch.format,rows:batch.rows,units:readUnits(root)});
+        const flat=rows.map((row,index)=>row.status==="OK"?{
+          "#":index+1,
+          Fluid:row.fluid,
+          "T input":row.temperatureRaw,
+          "P input":row.pressureRaw,
+          "v ideal (m³/kg)":row.vIdeal,
+          "v real (m³/kg)":row.vReal,
+          "diff %":row.diffPercent,
+          Z:row.Z,
+          Status:"OK"
+        }:{
+          "#":index+1,
+          Status:"FAIL: "+(row.error||"unknown error")
+        });
+        target.innerHTML=genericTable(flat);
+        save({...syncGlobal(),batch,exportRows:flat,exportName:"coolprop-table4"},false);
+        setDiagramStates([],"Table 4");
+      }else{
+        const rows=computeBatch(engine,{fluid:root.querySelector("#cp-fluid").value,...batch,units:readUnits(root),bookBasis:root.querySelector("#cp-book-basis").checked});
+        const flat=batchRowsForExport(rows);
+        target.innerHTML=genericTable(flat);
+        save({...syncGlobal(),batch,exportRows:flat,exportName:"coolprop-batch"},false);
+        setDiagramStates(rows.filter(row=>row.status==="OK").map(row=>row.state),"Batch");
+      }
     }catch(error){
       target.innerHTML=`<div class="geometry-warning"><strong>Batch error</strong><span>${esc(error?.message||error)}</span></div>`;
     }
