@@ -165,7 +165,7 @@ export function computeStateSI(engine,{
 
   for(const [key] of OUTPUTS){
     try{
-      const raw=engine.propsSI(key,input1,value1SI,input2,value2SI,fluid);
+      const {value:raw}=propsSIOutput(engine,key,input1,value1SI,input2,value2SI,fluid);
       const adjusted=applyBookBasis(engine,fluid,key,raw,bookBasis);
       valuesSI[key]=adjusted;
       values[key]=outputFromSI(key,adjusted,units);

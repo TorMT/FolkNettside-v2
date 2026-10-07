@@ -231,3 +231,39 @@ test("Table 4 presets reproduce the legacy calibration points",()=>{
   assert.match(TABLE4_PRESETS.Water.rows,/880,300/);
   assert.deepEqual(TABLE4_PRESETS.Air.units,{pressure:"bar",temperature:"C"});
 });
+
+
+test("CoolProp output aliases fall back to canonical WASM keys",()=>{
+  const calls=[];
+  const engine={
+    propsSI(key){
+      calls.push(key);
+      if(key==="Cp")throw new Error("unknown output");
+      if(key==="Cpmass")return 1005;
+      throw new Error("unexpected");
+    }
+  };
+  const result=propsSIOutput(engine,"Cp","P",1e5,"T",298.15,"Air");
+  assert.equal(result.value,1005);
+  assert.equal(result.key,"Cpmass");
+  assert.deepEqual(calls,["Cp","Cpmass"]);
+});
+
+test("CoolProp output aliases skip non-finite primary values",()=>{
+  const engine={
+    propsSI(key){
+      if(key==="speed_sound")return NaN;
+      if(key==="speed_of_sound")return 343;
+      throw new Error("unexpected");
+    }
+  };
+  const result=propsSIOutput(engine,"speed_sound","P",1e5,"T",298.15,"Air");
+  assert.equal(result.value,343);
+  assert.equal(result.key,"speed_of_sound");
+});
+
+test("known alias sets include mass heat capacities and speed of sound",()=>{
+  assert.ok(COOLPROP_OUTPUT_ALIASES.Cp.includes("Cpmass"));
+  assert.ok(COOLPROP_OUTPUT_ALIASES.Cv.includes("Cvmass"));
+  assert.ok(COOLPROP_OUTPUT_ALIASES.speed_sound.includes("A"));
+});
