@@ -58,3 +58,12 @@ test("CoolProp diagram states declare their fixed engineering axis units",()=>{
   const ts=coolPropToolHTML({diagram:{visible:true,type:"ts",states:[{valuesSI:{T:300,S:1000}}]}});
   assert.match(ts,/Axes: s in kJ\/\(kg·K\) · T in °C/);
 });
+
+
+test("unmapped course fluids expose an explicitly native property table",()=>{
+  const propane=coolPropToolHTML({fluid:"Propane",tab:"reference"});
+  assert.match(propane,/Native property table/);
+  assert.match(propane,/Native-TP · Native T-P property table/);
+  assert.match(propane,/native CoolProp basis/i);
+  assert.doesNotMatch(propane,/No course-specific reference-table configuration/);
+});
