@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Semester rail mobile smoke</title>
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-status="running">
+<section class="study">
+  <div class="semester-navigation">
+    <nav class="semester-tabs" aria-label="Semesters">
+      <button class=""><span class="semester-label-long">Semester 1</span><span class="semester-label-short">S1</span></button><button class=""><span class="semester-label-long">Semester 2</span><span class="semester-label-short">S2</span></button><button class=""><span class="semester-label-long">Semester 3</span><span class="semester-label-short">S3</span></button><button class=""><span class="semester-label-long">Semester 4</span><span class="semester-label-short">S4</span></button><button class="active"><span class="semester-label-long">Semester 5</span><span class="semester-label-short">S5</span></button><button class=""><span class="semester-label-long">Semester 6</span><span class="semester-label-short">S6</span></button><button class=""><span class="semester-label-long">Semester 7</span><span class="semester-label-short">S7</span></button><button class=""><span class="semester-label-long">Semester 8</span><span class="semester-label-short">S8</span></button><button class=""><span class="semester-label-long">Semester 9</span><span class="semester-label-short">S9</span></button><button class=""><span class="semester-label-long">Semester 10</span><span class="semester-label-short">S10</span></button>
+    </nav>
+  </div>
+</section>
+<pre id="result">running</pre>
+<script>
+const rail=document.querySelector(".semester-tabs");
+const active=rail.querySelector(".active");
+active.scrollIntoView({block:"nearest",inline:"center"});
+requestAnimationFrame(()=>{
+  const cs=getComputedStyle(rail);
+  const activeShort=getComputedStyle(active.querySelector(".semester-label-short"));
+  const activeLong=getComputedStyle(active.querySelector(".semester-label-long"));
+  const checks={
+    mobile:innerWidth<=760,
+    horizontalOverflow:rail.scrollWidth>rail.clientWidth,
+    overflowX:cs.overflowX==="auto"||cs.overflowX==="scroll",
+    overflowY:cs.overflowY==="hidden",
+    noBottomGutter:parseFloat(cs.paddingBottom)===0,
+    shortLabels:activeShort.display!=="none"&&activeLong.display==="none",
+    activeVisible:active.getBoundingClientRect().left>=-1&&active.getBoundingClientRect().right<=innerWidth+1
+  };
+  const pass=Object.values(checks).every(Boolean);
+  document.body.dataset.status=pass?"pass":"fail";
+  document.querySelector("#result").textContent=JSON.stringify({...checks,scrollLeft:rail.scrollLeft,scrollWidth:rail.scrollWidth,clientWidth:rail.clientWidth});
+});
+</script>
+</body>
+</html>
