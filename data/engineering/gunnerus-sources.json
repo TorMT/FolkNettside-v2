@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "vessel": {
+    "name": "R/V GUNNERUS",
+    "owner": "Norwegian University of Science and Technology (NTNU)",
+    "deliveryYear": 2006,
+    "prolongedYear": 2019,
+    "portOfRegistry": "Trondheim, Norway"
+  },
+  "principalDimensions": {
+    "sourceStatus": "sourced",
+    "loa_m": 36.25,
+    "lpp_m": 33.90,
+    "lwl_m": 24.90,
+    "breadthMoulded_m": 9.60,
+    "breadthExtreme_m": 9.90,
+    "depthMouldedMainDeck_m": 4.20,
+    "draughtMoulded_m": 2.70,
+    "deadweight_t": 72
+  },
+  "powerAndPropulsion": {
+    "sourceStatus": "sourced",
+    "mainPropulsion": {
+      "count": 2,
+      "ratedPowerEach_kW": 500,
+      "totalRatedPower_kW": 1000,
+      "configuration": "azimuth",
+      "currentFamily": "rim-drive azimuth"
+    },
+    "bowTunnelThruster": {
+      "count": 1,
+      "manufacturer": "Brunvoll",
+      "ratedPower_kW": 200
+    },
+    "mainGenerators": {
+      "count": 3,
+      "ratedPowerEach_kW": 450
+    }
+  },
+  "thrusterIdentity": {
+    "sourceStatus": "sourced-secondary-procurement",
+    "azimuthModel": "RDAZ1900",
+    "manufacturer": "Kongsberg Maritime",
+    "installationYear": 2015,
+    "notes": "Current two stern azimuth units are identified as RDAZ1900 in the 2025 NTNU service procurement. Exact component transforms/positions must come from sourced geometry or drawings before numerical force/moment demos use them."
+  },
+  "semanticTarget": [
+    {"id":"gunnerus","role":"assembly","name":"Gunnerus"},
+    {"id":"hull","role":"hull","subsystem":"hydro","name":"Hull"},
+    {"id":"azimuth-ps","role":"thruster","subtype":"azimuth","subsystem":"propulsion","name":"Azimuth PS"},
+    {"id":"azimuth-sb","role":"thruster","subtype":"azimuth","subsystem":"propulsion","name":"Azimuth SB"},
+    {"id":"tunnel-bow","role":"thruster","subtype":"tunnel","subsystem":"propulsion","name":"Bow tunnel thruster"},
+    {"id":"superstructure","role":"superstructure","name":"Superstructure"}
+  ],
+  "unknownsRequiredBeforeNumericalDemo": [
+    "exact thruster component transforms / x-y-z positions",
+    "exact azimuth local zero-direction convention in imported model",
+    "hydrostatic displacement/loading condition for a chosen demonstration case",
+    "KG/LCG/TCG for a chosen loading condition",
+    "validated watertight hull geometry and geometry licence/provenance"
+  ],
+  "sources": [
+    {
+      "id": "ntnu-spec-2023",
+      "type": "primary",
+      "title": "Specifications RV GUNNERUS 2023",
+      "publisher": "NTNU",
+      "updated": "2023-06-29",
+      "url": "https://www.ntnu.edu/documents/1262202806/0/Specifications%2BRV%2BGUNNERUS_2023.pdf/34b1999c-3989-a92b-1403-e149fd6296b7?t=1688024895398",
+      "supports": [
+        "principal dimensions",
+        "2019 prolongation",
+        "2 x 500 kW main propulsion",
+        "3 x 450 kW generators",
+        "1 x Brunvoll 200 kW bow tunnel thruster"
+      ]
+    },
+    {
+      "id": "kongsberg-rim-drive-2025",
+      "type": "primary",
+      "title": "Celebrating 10 years of rim-drive thruster innovation",
+      "publisher": "Kongsberg Maritime",
+      "year": 2025,
+      "url": "https://www.kongsbergmaritime.com/news-and-events/news-archive/2025/celebrating-10-years-of-rim-drive-thruster-innovation/",
+      "supports": [
+        "first rim-drive azimuth installation on RV Gunnerus in 2015"
+      ]
+    },
+    {
+      "id": "ntnu-procurement-ansk-25-0202",
+      "type": "secondary-mirror-of-public-procurement",
+      "title": "10-year service on the thrusters of FF Gunnerus",
+      "buyer": "NTNU",
+      "procurementId": "ANSK-25-0202",
+      "year": 2025,
+      "url": "https://sokfirma.no/anbud/2025-112358/intensjonskunngjoring-10-ars-service-pa-thrusterne-til-ff-gunnerus",
+      "supports": [
+        "two installed rim-drive azimuth thrusters are Kongsberg RDAZ1900"
+      ]
+    }
+  ]
+}
