@@ -1,3 +1,4 @@
+import {initialStability} from "../hydro/stability.js";
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
 }
@@ -25,6 +26,7 @@ export function hydroPanelHTML({
   solveError=null,
   draft,
   targetDisplacementTonnes="",
+  kg="",
   geometryWarnings=[],
   config={}
 }){
@@ -36,6 +38,7 @@ export function hydroPanelHTML({
   const displacementTonnes=result.volume*density/1000;
   const span=Math.max(maxDraft-minDraft,1e-9);
   const solvedText=solved?`${solved.waterline.toFixed(4)} m (${solved.iterations} iterations)`:null;
+  const stability=initialStability(result,{kg});
 
   return {
     inspector:`
@@ -45,6 +48,7 @@ export function hydroPanelHTML({
       <div class="readout"><span>Source</span><strong>${esc(modelDocument.name)}</strong></div>
       <div class="readout"><span>Included geometry</span><strong>${result.components.length} component(s)</strong></div>
       <div class="hydro-solver">
+        <label class="field"><span>KG for initial stability</span><div><input id="hydro-kg" type="number" step="0.01" value="${esc(kg)}" placeholder="optional"><span> m</span></div></label>
         <label class="field"><span>Target displacement</span><div><input id="hydro-target" type="number" min="0" step="0.1" value="${esc(targetDisplacementTonnes)}"><span> t</span></div></label>
         <button class="btn" id="hydro-solve">Solve draft</button>
         ${solvedText?`<p class="hydro-solve-result">Draft: <strong>${solvedText}</strong></p>`:""}
@@ -65,7 +69,15 @@ export function hydroPanelHTML({
         <div><span class="muted">Waterplane area</span><strong>${result.waterplane.area.toFixed(3)} m²</strong></div>
         <div><span class="muted">Ixx</span><strong>${result.waterplane.ixx.toFixed(3)} m⁴</strong></div>
         <div><span class="muted">Iyy</span><strong>${result.waterplane.iyy.toFixed(3)} m⁴</strong></div>
-      </div>${curveSVG(curve)}</div>
+        ${stability.valid?`
+          <div><span class="muted">BM transverse</span><strong>${stability.bmTransverse.toFixed(3)} m</strong></div>
+          <div><span class="muted">BM longitudinal</span><strong>${stability.bmLongitudinal.toFixed(3)} m</strong></div>
+          <div><span class="muted">KM transverse</span><strong>${stability.kmTransverse.toFixed(3)} m</strong></div>
+          <div><span class="muted">KM longitudinal</span><strong>${stability.kmLongitudinal.toFixed(3)} m</strong></div>
+          ${stability.gmTransverse===null?"":`<div><span class="muted">GM transverse</span><strong>${stability.gmTransverse.toFixed(3)} m</strong></div>`}
+          ${stability.gmLongitudinal===null?"":`<div><span class="muted">GM longitudinal</span><strong>${stability.gmLongitudinal.toFixed(3)} m</strong></div>`}
+        `:""}
+      </div><p class="muted hydro-stability-note">BM/KM/GM are initial small-angle stability values from the current waterplane. Full GZ/righting-arm analysis is separate.</p>${curveSVG(curve)}</div>
     `,
     draft:clamped,
     density,

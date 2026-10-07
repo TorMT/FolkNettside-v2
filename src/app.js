@@ -41,6 +41,7 @@ let selectedComponentId=null;
 let engineeringMode="Model";
 let hydroDraft=Number(model.hydro?.defaultDraft??1.20);
 let hydroTargetTonnes="";
+let hydroKg="";
 let hydroCurveCache={model:null,data:null};
 let structureLoadKn=-20;
 let resistanceSpeedKn=10;
@@ -616,6 +617,7 @@ async function engineeringPage(){
         solveError:solvedState?.error||null,
         draft:hydroDraft,
         targetDisplacementTonnes:hydroTargetTonnes,
+        kg:hydroKg,
         geometryWarnings,
         config
       });
@@ -699,6 +701,7 @@ async function engineeringPage(){
   });
   app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
   app.querySelector("#hydro-draft")?.addEventListener("change",event=>{hydroDraft=Number(event.target.value)||0;engineeringPage()});
+  app.querySelector("#hydro-kg")?.addEventListener("change",event=>{hydroKg=event.target.value;engineeringPage()});
   app.querySelector("#hydro-solve")?.addEventListener("click",()=>{
     hydroTargetTonnes=app.querySelector("#hydro-target")?.value??"";engineeringPage();
   });
