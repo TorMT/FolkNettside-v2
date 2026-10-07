@@ -572,12 +572,21 @@ async function engineeringPage(){
 
   if(engineeringMode==="Structure"){
     try{
+      const capability=analysisCapability(model,"structure");
+      if(!capability.enabled){
+        const documentModel=await getEngineeringDocument();
+        if(renderId!==engineeringRenderId)return;
+        app.innerHTML=top("engineering")+blockedEngineeringWorkspaceHTML(documentModel,"Structure",capability);
+        bindBlockedEngineeringWorkspace(documentModel,renderId);
+        return;
+      }
+
       const fixture=await loadStructureFixture();
       if(renderId!==engineeringRenderId)return;
       const structure=structurePanelHTML(fixture,{loadFy:structureLoadKn*1000});
       const caseModel=structure.model;
       app.innerHTML=top("engineering")+`<main class="workspace">
-        <div class="workspace-bar"><strong>${caseModel.name}</strong><div class="mode-tabs">
+        <div class="workspace-bar"><strong>${caseModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
           ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
         </div></div>
         <aside class="tree">
@@ -585,13 +594,16 @@ async function engineeringPage(){
           ${caseModel.nodes.map(node=>`<div class="tree-row"><span>○</span>${node.id} <span class="muted">(${node.x}, ${node.y})</span></div>`).join("")}
           <div class="tree-label">Elements</div>
           ${caseModel.elements.map(element=>`<div class="tree-row"><span>─</span>${element.id} <span class="muted">${element.n1}→${element.n2}</span></div>`).join("")}
+          <div class="tree-label">Capability</div>
+          <div class="tree-row selected"><span>✓</span><span class="tree-row-copy">Structure<small>${capabilityLabel(capability)}</small></span></div>
         </aside>
         <section class="viewport">${structure.viewport}<div class="hud">2D frame FEM · Euler–Bernoulli</div></section>
         <aside class="inspector">${structure.inspector}</aside>
         <section class="results"><div class="results-summary">${structure.summary}</div>${structure.results}</section>
-        <footer class="statusbar"><span>Units SI</span><span>2D frame</span><span>Mode Structure</span><span class="top-spacer"></span><span>Linear static</span></footer>
+        <footer class="statusbar"><span>Units SI</span><span>2D frame</span><span>${capabilityLabel(capability)}</span><span class="top-spacer"></span><span>Linear static</span></footer>
       </main><div class="preview-badge">Structure · tested frame FEM</div>`;
       bindNav();
+      bindEngineeringModelSelector();
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       app.querySelector("#structure-load")?.addEventListener("change",event=>{
         structureLoadKn=Number(event.target.value)||0;
@@ -607,11 +619,20 @@ async function engineeringPage(){
 
   if(engineeringMode==="Resistance"){
     try{
+      const capability=analysisCapability(model,"resistance");
+      if(!capability.enabled){
+        const documentModel=await getEngineeringDocument();
+        if(renderId!==engineeringRenderId)return;
+        app.innerHTML=top("engineering")+blockedEngineeringWorkspaceHTML(documentModel,"Resistance",capability);
+        bindBlockedEngineeringWorkspace(documentModel,renderId);
+        return;
+      }
+
       const fixture=await loadResistanceFixture();
       if(renderId!==engineeringRenderId)return;
       const resistance=resistancePanelHTML(fixture,{speedKnots:resistanceSpeedKn});
       app.innerHTML=top("engineering")+`<main class="workspace">
-        <div class="workspace-bar"><strong>${fixture.name}</strong><div class="mode-tabs">
+        <div class="workspace-bar"><strong>${fixture.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
           ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
         </div></div>
         <aside class="tree">
@@ -620,13 +641,16 @@ async function engineeringPage(){
           <div class="tree-label">Inputs</div>
           <div class="tree-row"><span>L</span>Length <span class="muted">${fixture.length} m</span></div>
           <div class="tree-row"><span>S</span>Wetted surface <span class="muted">${fixture.wettedSurface} m²</span></div>
+          <div class="tree-label">Capability</div>
+          <div class="tree-row selected"><span>✓</span><span class="tree-row-copy">Resistance<small>${capabilityLabel(capability)}</small></span></div>
         </aside>
         <section class="viewport">${resistance.viewport}<div class="hud">Resistance · friction baseline</div></section>
         <aside class="inspector">${resistance.inspector}</aside>
         <section class="results"><div class="results-summary">${resistance.summary}</div>${resistance.results}</section>
-        <footer class="statusbar"><span>Units SI</span><span>ITTC-1957</span><span>Mode Resistance</span><span class="top-spacer"></span><span>Not total resistance</span></footer>
+        <footer class="statusbar"><span>Units SI</span><span>ITTC-1957</span><span>${capabilityLabel(capability)}</span><span class="top-spacer"></span><span>Not total resistance</span></footer>
       </main><div class="preview-badge">Resistance · ITTC friction baseline</div>`;
       bindNav();
+      bindEngineeringModelSelector();
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       app.querySelector("#resistance-speed")?.addEventListener("change",event=>{
         resistanceSpeedKn=Number(event.target.value)||0;
