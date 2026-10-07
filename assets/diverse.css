@@ -48,3 +48,25 @@
 .dive-stats-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 max(20px,calc((100vw - 1380px)/2)) 11px}
 .dive-stats-row .dive-stats{padding:0;min-width:0}.dive-export-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.dive-export-actions .btn{padding:7px 9px;font-size:10px}
 @media(max-width:760px){.dive-stats-row{display:grid;padding:0 12px 9px}.dive-export-actions{justify-content:start}.dive-export-actions .btn{flex:1 1 auto}}
+
+
+/* Sandalen Gård migration bridge */
+.sandalen-hero .btn{flex:0 0 auto}
+.sandalen-link-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:24px max(26px,calc((100vw - 1280px)/2)) 14px}
+.sandalen-link-card{display:grid;gap:6px;padding:17px;border:1px solid var(--line);border-radius:11px;background:var(--surface);color:var(--ink);text-decoration:none}
+.sandalen-link-card:hover{border-color:var(--accent);background:var(--accent-soft)}
+.sandalen-link-card span{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}.sandalen-link-card strong{font-size:16px}.sandalen-link-card em{font-style:normal;font-size:10px;color:var(--accent);font-weight:750}
+.sandalen-tools-shell{margin:0 max(26px,calc((100vw - 1280px)/2)) 42px;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.sandalen-tools-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;padding:17px;border-bottom:1px solid var(--line)}.sandalen-tools-head h2{margin:3px 0 5px}.sandalen-tools-head p{margin:0;max-width:760px;color:var(--ink-2);font-size:12px;line-height:1.5}
+.sandalen-tools-frame{display:block;width:100%;height:min(72vh,760px);min-height:520px;border:0;background:white}
+.sandalen-tools-fallback{margin:0;padding:10px 14px;border-top:1px solid var(--line);color:var(--ink-3);font-size:10px}.sandalen-tools-fallback a{color:var(--accent)}
+@media(max-width:760px){.sandalen-hero .btn{justify-self:start}.sandalen-link-grid{grid-template-columns:1fr;padding:14px 12px 10px}.sandalen-tools-shell{margin:0 12px 24px}.sandalen-tools-head{display:grid}.sandalen-tools-frame{min-height:520px;height:68dvh}}
+
+
+/* Preserved Diverse migration bridges */
+.legacy-diverse-hero .legacy-diverse-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.legacy-diverse-shell{margin:22px max(18px,calc((100vw - 1380px)/2)) 36px;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.legacy-diverse-note{display:flex;gap:10px;align-items:baseline;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--surface-sunk);font-size:11px}.legacy-diverse-note span{color:var(--ink-2)}
+.legacy-diverse-frame{display:block;width:100%;height:calc(100dvh - 220px);min-height:620px;border:0;background:white}
+.legacy-diverse-fallback{margin:0;padding:9px 14px;border-top:1px solid var(--line);color:var(--ink-3);font-size:10px}.legacy-diverse-fallback a{color:var(--accent)}
+@media(max-width:760px){.legacy-diverse-hero .legacy-diverse-actions{justify-content:start}.legacy-diverse-shell{margin:12px 10px 24px}.legacy-diverse-note{display:grid}.legacy-diverse-frame{height:72dvh;min-height:520px}}
