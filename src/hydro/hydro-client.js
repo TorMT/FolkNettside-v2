@@ -1,6 +1,6 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=7ea08d0085c534c25fb0281f80c7c3108001d876";
-import {createHydroInclude} from "./hydro-selection.js?v=7ea08d0085c534c25fb0281f80c7c3108001d876";
-import {gzCurve} from "./gz.js?v=7ea08d0085c534c25fb0281f80c7c3108001d876";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=ad1fad991cf1a403893eab9eee1791e5d4420a10";
+import {createHydroInclude} from "./hydro-selection.js?v=ad1fad991cf1a403893eab9eee1791e5d4420a10";
+import {gzCurve} from "./gz.js?v=ad1fad991cf1a403893eab9eee1791e5d4420a10";
 
 let worker=null;
 let currentModel=null;
@@ -9,7 +9,7 @@ const pending=new Map();
 
 function ensureWorker(){
   if(worker||typeof Worker==="undefined")return worker;
-  worker=new Worker(new URL("./hydro-worker.js?v=7ea08d0085c534c25fb0281f80c7c3108001d876",import.meta.url),{type:"module"});
+  worker=new Worker(new URL("./hydro-worker.js?v=ad1fad991cf1a403893eab9eee1791e5d4420a10",import.meta.url),{type:"module"});
   worker.onmessage=event=>{
     const {id,ok,result,error}=event.data||{};
     const entry=pending.get(id);
