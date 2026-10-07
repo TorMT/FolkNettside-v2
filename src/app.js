@@ -254,7 +254,70 @@ function projectPage(slug){
   bindNav();
 }
 
-function coursesPage(requestedSemester){document.documentElement.dataset.lens="study";const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;const semester=getSemester(semesterId)||semesters[0];app.innerHTML=top("courses")+'<main class="study"><section class="study-hero"><h1>Courses</h1><p>Semester, fag og ressurser — inkludert Kok, øvinger, videoer, quiz og verktøy.</p><div class="hero-actions"><button class="btn dark" data-go="/tools">Open Tools</button></div></section><div class="semester-tabs">'+semesters.map(s=>'<button class="'+(Number(s.id)===Number(semester.id)?"active":"")+'" data-semester="'+s.id+'">'+s.label+'</button>').join("")+'</div><section class="study-main"><div class="title-row"><div><h2>'+semester.label+'</h2><div class="muted">'+semester.courses.length+' fag i manifestet</div></div></div>'+(semester.courses.length?'<div class="course-grid">'+semester.courses.map(c=>'<article class="course-card" data-course="'+c.code+'"><span class="course-code">'+c.code+'</span><h3>'+c.title+'</h3><p>'+c.description+'</p><div class="tags">'+c.tags.map(t=>'<span class="tag">'+t+'</span>').join("")+'</div></article>').join("")+'</div>':'<div class="course-header"><h3>Ingen eksempeldata i dette semesteret ennå.</h3><p>Legg inn en fagmappe og kjør <code>python scripts/update_site.py</code>.</p></div>')+'</section></main><div class="preview-badge">Courses exposes Kok; Portfolio does not</div>';bindNav();app.querySelectorAll("[data-semester]").forEach(b=>b.onclick=()=>go("/courses/"+b.dataset.semester));app.querySelectorAll("[data-course]").forEach(c=>c.onclick=()=>go(courseRoute(semester.id,c.dataset.course)))}
+function coursesPage(requestedSemester){
+  document.documentElement.dataset.lens="study";
+  const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;
+  const semester=getSemester(semesterId)||semesters[0];
+  const semesterOptions=semesters.map(s=>`<option value="${s.id}" ${Number(s.id)===Number(semester.id)?"selected":""}>${s.label} · ${s.courses.length} fag</option>`).join("");
+  const semesterTabs=semesters.map(s=>`<button class="${Number(s.id)===Number(semester.id)?"active":""}" data-semester="${s.id}">${s.label}</button>`).join("");
+  const courseCards=semester.courses.map(course=>{
+    const resourceCount=course.resources?.length||0;
+    const sectionCount=course.sections?.length||0;
+    return `<article class="course-card" data-course="${course.code}" tabindex="0">
+      <div class="course-card-top">
+        <span class="course-code">${course.code}</span>
+        <span class="course-count">${resourceCount} ressurs${resourceCount===1?"":"er"}</span>
+      </div>
+      <h3>${course.title}</h3>
+      <p>${course.description}</p>
+      <div class="course-card-bottom">
+        <div class="tags">${(course.tags||[]).slice(0,3).map(tag=>`<span class="tag">${tag}</span>`).join("")}</div>
+        <span class="course-sections">${sectionCount} seksjon${sectionCount===1?"":"er"} <span aria-hidden="true">→</span></span>
+      </div>
+    </article>`;
+  }).join("");
+
+  app.innerHTML=top("courses")+`<main class="study courses-overview">
+    <section class="study-hero courses-hero">
+      <div>
+        <span class="project-kicker">Study archive</span>
+        <h1>Courses</h1>
+        <p>Fag, ressurser, Kok, øvinger, videoer, quiz og verktøy — organisert per semester.</p>
+      </div>
+      <button class="btn dark courses-tools-button" data-go="/tools">Open Tools</button>
+    </section>
+
+    <div class="semester-navigation">
+      <label class="semester-select-wrap">
+        <span>Semester</span>
+        <select id="semester-select">${semesterOptions}</select>
+      </label>
+      <div class="semester-tabs" aria-label="Semester navigation">${semesterTabs}</div>
+    </div>
+
+    <section class="study-main courses-main">
+      <div class="title-row courses-title-row">
+        <div>
+          <span class="project-kicker">Selected semester</span>
+          <h2>${semester.label}</h2>
+          <div class="muted">${semester.courses.length} fag · ${semester.courses.reduce((sum,course)=>sum+(course.resources?.length||0),0)} ressurser</div>
+        </div>
+      </div>
+      ${semester.courses.length
+        ?`<div class="course-grid">${courseCards}</div>`
+        :'<div class="course-header"><h3>Ingen eksempeldata i dette semesteret ennå.</h3><p>Legg inn en fagmappe og kjør <code>python scripts/update_site.py</code>.</p></div>'}
+    </section>
+  </main><div class="preview-badge">Courses exposes Kok; Portfolio does not</div>`;
+
+  bindNav();
+  app.querySelectorAll("[data-semester]").forEach(button=>button.onclick=()=>go("/courses/"+button.dataset.semester));
+  app.querySelector("#semester-select")?.addEventListener("change",event=>go("/courses/"+event.currentTarget.value));
+  app.querySelectorAll("[data-course]").forEach(card=>{
+    const open=()=>go(courseRoute(semester.id,card.dataset.course));
+    card.onclick=open;
+    card.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();open()}};
+  });
+}
 
 function coursePage(semesterId,code){
   const course=getCourse(semesterId,code);
