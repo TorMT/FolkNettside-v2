@@ -263,7 +263,7 @@ export function coolPropToolHTML(state={}){
 
     <section class="settings-card coolprop-diagram-section" id="cp-diagram-section" ${s.diagram.visible?"":"hidden"}>
       <div class="coolprop-diagram-head">
-        <div><strong>Thermodynamic diagram</strong><small id="cp-diagram-source">${esc(s.diagram.source||"State points")}</small></div>
+        <div><strong>Thermodynamic diagram</strong><small id="cp-diagram-source">${esc(s.diagram.source||"State points")}</small><small id="cp-diagram-units">${esc(diagramUnitSummary(s.diagram.type))}</small></div>
         <div class="coolprop-diagram-controls">
           <select id="cp-diagram-type">
             ${[["log-ph","log P-h"],["ph","P-h"],["ts","T-s"],["pv","P-v"]].map(([value,label])=>`<option value="${value}" ${s.diagram.type===value?"selected":""}>${label}</option>`).join("")}
@@ -295,6 +295,13 @@ export function coolPropToolHTML(state={}){
       <div class="coolprop-export-actions"><button class="btn" id="cp-export-csv" ${s.exportRows.length?"":"disabled"}>CSV</button><button class="btn" id="cp-export-json" ${s.exportRows.length?"":"disabled"}>JSON</button></div>
     </section>
   </main>`;
+}
+
+function diagramUnitSummary(type){
+  if(type==="ts")return "Axes: s in kJ/(kg·K) · T in °C";
+  if(type==="pv")return "Axes: v in m³/kg · P in bar (log)";
+  if(type==="ph")return "Axes: h in kJ/kg · P in bar";
+  return "Axes: h in kJ/kg · P in bar (log)";
 }
 
 function numericInput(element){
@@ -379,10 +386,26 @@ export function bindCoolPropTool(root,state,onState){
   root.querySelector("#cp-fluid")?.addEventListener("change",()=>{
     const next=syncGlobal();
     if(!tableReferenceProfile(next.fluid))next.bookBasis=false;
+    next.reference={tableId:"",rows:""};
+    next.exportRows=[];
+    next.exportName="coolprop-results";
+    next.diagram={...s.diagram,visible:false,states:[],source:""};
     save(next,true);
   });
+
+  const invalidateComputedResults=()=>{
+    diagramHandle?.cleanup?.();
+    diagramHandle=null;
+    const section=root.querySelector("#cp-diagram-section");
+    if(section)section.hidden=true;
+    for(const id of ["cp-single-results","cp-batch-results","cp-process-results","cp-reference-results","cp-explore-results"]){
+      const target=root.querySelector("#"+id);
+      if(target)target.innerHTML='<div class="tool-result-card"><span>Settings changed</span><strong>Recalculate</strong><p>Previous values were cleared so units/reference basis cannot be confused with stale results.</p></div>';
+    }
+    save({...syncGlobal(),exportRows:[],exportName:"coolprop-results",diagram:{...s.diagram,visible:false,states:[],source:""}},false);
+  };
   for(const selector of ["#cp-pressure-unit","#cp-temperature-unit","#cp-energy-unit","#cp-entropy-unit","#cp-book-basis"]){
-    root.querySelector(selector)?.addEventListener("change",()=>save(syncGlobal(),false));
+    root.querySelector(selector)?.addEventListener("change",invalidateComputedResults);
   }
 
   root.querySelectorAll("[data-cp-tab]").forEach(button=>button.addEventListener("click",()=>{
@@ -413,6 +436,10 @@ export function bindCoolPropTool(root,state,onState){
     const stage=root.querySelector("#cp-diagram-stage");
     if(!section||!stage)return;
     section.hidden=false;
+    const sourceLabel=root.querySelector("#cp-diagram-source");
+    const unitLabelNode=root.querySelector("#cp-diagram-units");
+    if(sourceLabel)sourceLabel.textContent=diagram.source||"State points";
+    if(unitLabelNode)unitLabelNode.textContent=diagramUnitSummary(diagram.type||"log-ph");
     diagramHandle?.cleanup?.();
     const engine=lastEngine||await getEngine();
     diagramHandle=mountCoolPropDiagram(stage,{
