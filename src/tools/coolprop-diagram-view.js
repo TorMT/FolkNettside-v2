@@ -1,4 +1,4 @@
-import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js?v=9e61ba286b76ef5509eb7bad6b1da964c80c5f68";
+import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js?v=7f81d63463d242e3870c629107545db3e05e4889";
 
 function css(name,fallback){
   const value=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -7,6 +7,7 @@ function css(name,fallback){
 
 function datasetStyle(kind){
   if(kind==="states")return {stroke:css("--accent","#b3157a"),width:2.2,dash:[],point:true};
+  if(kind==="critical")return {stroke:css("--danger","#b42318"),width:2.2,dash:[],point:true};
   if(kind==="saturation")return {stroke:css("--ink","#163041"),width:2,dash:[],point:false};
   if(kind==="quality")return {stroke:css("--warn","#8f5a00"),width:1,dash:[4,4],point:false};
   if(kind==="isotherm")return {stroke:css("--ink-3","#82939e"),width:1,dash:[6,5],point:false};
@@ -29,7 +30,14 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
   container.replaceChildren();
   const canvas=document.createElement("canvas");
   canvas.className="coolprop-diagram-canvas";
-  container.append(canvas);
+  const overlay=document.createElement("div");
+  overlay.className="coolprop-diagram-overlay";
+  const legend=document.createElement("div");
+  legend.className="coolprop-diagram-legend";
+  const readout=document.createElement("div");
+  readout.className="coolprop-diagram-readout";
+  overlay.append(legend,readout);
+  container.append(canvas,overlay);
   const context=canvas.getContext("2d");
   const meta=diagramType(type);
   const datasets=diagramDatasets(engine,fluid,type,states,options);
@@ -81,6 +89,7 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
       const x=view.xmin+(view.xmax-view.xmin)*i/5;
       const px=sx(x,w);
       context.strokeStyle=line;
+      context.beginPath();context.moveTo(px,pad.top);context.lineTo(px,h-pad.bottom);context.stroke();
       context.beginPath();context.moveTo(px,h-pad.bottom);context.lineTo(px,h-pad.bottom+5);context.stroke();
       context.fillStyle=muted;context.fillText(formatTick(x),px,h-pad.bottom+8);
     }
@@ -92,6 +101,7 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
       const value=meta.logY?10**ty:ty;
       const py=h-pad.bottom-(i/5)*(h-pad.top-pad.bottom);
       context.strokeStyle=line;
+      context.beginPath();context.moveTo(pad.left,py);context.lineTo(w-pad.right,py);context.stroke();
       context.beginPath();context.moveTo(pad.left-5,py);context.lineTo(pad.left,py);context.stroke();
       context.fillStyle=muted;context.fillText(formatTick(value),pad.left-8,py);
     }
@@ -124,7 +134,14 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
       const x=sx(point.x,w),y=sy(point.y,h);
       if(index===0||point.breakBefore)context.moveTo(x,y);else context.lineTo(x,y);
     });
-    if(dataset.kind!=="states")context.stroke();
+    if(dataset.kind!=="states"&&dataset.kind!=="critical")context.stroke();
+
+    if(dataset.kind==="critical"){
+      context.setLineDash([]);
+      const point=points[0],x=sx(point.x,w),y=sy(point.y,h);
+      context.beginPath();context.arc(x,y,5.5,0,Math.PI*2);context.fill();
+      context.font="10px system-ui,sans-serif";context.textAlign="left";context.textBaseline="bottom";context.fillText("Critical",x+7,y-5);
+    }
 
     if(dataset.kind==="states"){
       context.setLineDash([]);
@@ -210,6 +227,27 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
   canvas.addEventListener("pointerup",onPointerUp);
   canvas.addEventListener("pointercancel",onPointerUp);
 
+  const legendKinds=[
+    ["saturation","Saturation"],["quality","Quality"],["isotherm","Isotherms"],["isobar","Isobars"],["states","States"],["critical","Critical"]
+  ].filter(([kind])=>datasets.some(dataset=>dataset.kind===kind));
+  legend.innerHTML=legendKinds.map(([kind,label])=>`<span data-kind="${kind}"><i></i>${label}</span>`).join("");
+
+  function onPointerReadout(event){
+    const rect=canvas.getBoundingClientRect();
+    const {width,height}=dims();
+    const px=event.clientX-rect.left,py=event.clientY-rect.top;
+    if(px<pad.left||px>width-pad.right||py<pad.top||py>height-pad.bottom){
+      readout.textContent="";
+      return;
+    }
+    const x=invX(px,width);
+    const rawY=invY(py,height);
+    const y=meta.logY?10**rawY:rawY;
+    readout.textContent=`${meta.xLabel.split(" (")[0]} ${formatTick(x)} · ${meta.yLabel.split(" (")[0]} ${formatTick(y)}`;
+  }
+  canvas.addEventListener("pointermove",onPointerReadout);
+  canvas.addEventListener("pointerleave",()=>{readout.textContent=""});
+
   const observer=new ResizeObserver(draw);
   observer.observe(container);
   draw();
@@ -233,6 +271,7 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
       canvas.removeEventListener("pointermove",onPointerMove);
       canvas.removeEventListener("pointerup",onPointerUp);
       canvas.removeEventListener("pointercancel",onPointerUp);
+      canvas.removeEventListener("pointermove",onPointerReadout);
     }
   };
 }
