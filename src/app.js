@@ -522,7 +522,7 @@ async function engineeringPage(){
     try{
       const [fixture,documentModel]=await Promise.all([
         loadPropulsionFixture(),
-        getEngineeringDocument().catch(()=>null)
+        getEngineeringDocument()
       ]);
       if(renderId!==engineeringRenderId)return;
 
