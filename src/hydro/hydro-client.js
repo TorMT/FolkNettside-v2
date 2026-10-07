@@ -1,6 +1,7 @@
 import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js";
 import {createHydroInclude} from "./hydro-selection.js";
 import {gzCurve} from "./gz.js";
+import {attitudeCurve,attitudeHydro} from "./attitude.js";
 
 let worker=null;
 let currentModel=null;
@@ -64,6 +65,20 @@ export async function solveHydroDraftAsync(modelDocument,targetVolume,options){
   const queued=request("solve",{targetVolume,...options});
   if(queued)return queued;
   return solveWaterlineForVolume(modelDocument,targetVolume,{...options,include:createHydroInclude(modelDocument)});
+}
+
+export async function attitudeHydroAsync(modelDocument,options){
+  await ensureModel(modelDocument);
+  const queued=request("attitude",options);
+  if(queued)return queued;
+  return attitudeHydro(modelDocument,{...options,include:createHydroInclude(modelDocument)});
+}
+
+export async function attitudeCurveAsync(modelDocument,options){
+  await ensureModel(modelDocument);
+  const queued=request("attitudeCurve",options);
+  if(queued)return queued;
+  return attitudeCurve(modelDocument,{...options,include:createHydroInclude(modelDocument)});
 }
 
 export async function gzCurveAsync(modelDocument,options){
