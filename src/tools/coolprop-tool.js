@@ -340,7 +340,8 @@ export function bindCoolPropTool(root,state,onState){
       options:{
         isotherms:diagram.isotherms,
         isobars:diagram.isobars,
-        quality:diagram.quality
+        quality:diagram.quality,
+        bookBasis:s.bookBasis
       }
     });
   };
