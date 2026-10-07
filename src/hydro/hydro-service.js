@@ -1,7 +1,7 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=b9115450f3cd4659e350430ebcfd9d1c06807407";
-import {createHydroInclude} from "./hydro-selection.js?v=b9115450f3cd4659e350430ebcfd9d1c06807407";
-import {gzCurve} from "./gz.js?v=b9115450f3cd4659e350430ebcfd9d1c06807407";
-import {attitudeCurve,attitudeHydro} from "./attitude.js?v=b9115450f3cd4659e350430ebcfd9d1c06807407";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=d106ea86f48645e34739613dfedefbaa817698fb";
+import {createHydroInclude} from "./hydro-selection.js?v=d106ea86f48645e34739613dfedefbaa817698fb";
+import {gzCurve} from "./gz.js?v=d106ea86f48645e34739613dfedefbaa817698fb";
+import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js?v=d106ea86f48645e34739613dfedefbaa817698fb";
 
 export function executeHydroRequest(modelDocument,type,payload={}){
   if(!modelDocument)throw new Error("Hydro service has no model loaded");
@@ -32,6 +32,9 @@ export function executeHydroRequest(modelDocument,type,payload={}){
   }
   if(type==="attitudeCurve"){
     return attitudeCurve(modelDocument,{...payload,include});
+  }
+  if(type==="equilibrium"){
+    return solveAttitudeEquilibrium(modelDocument,{...payload,include});
   }
   if(type==="gz"){
     return gzCurve(modelDocument,{
