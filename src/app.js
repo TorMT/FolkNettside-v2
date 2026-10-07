@@ -167,8 +167,85 @@ function projectPage(slug){
 
 function coursesPage(requestedSemester){document.documentElement.dataset.lens="study";const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;const semester=getSemester(semesterId)||semesters[0];app.innerHTML=top("courses")+'<main class="study"><section class="study-hero"><h1>Courses</h1><p>Semester, fag og ressurser — inkludert Kok, øvinger, videoer, quiz og verktøy.</p><div class="hero-actions"><button class="btn dark" data-go="/tools">Open Tools</button></div></section><div class="semester-tabs">'+semesters.map(s=>'<button class="'+(Number(s.id)===Number(semester.id)?"active":"")+'" data-semester="'+s.id+'">'+s.label+'</button>').join("")+'</div><section class="study-main"><div class="title-row"><div><h2>'+semester.label+'</h2><div class="muted">'+semester.courses.length+' fag i manifestet</div></div></div>'+(semester.courses.length?'<div class="course-grid">'+semester.courses.map(c=>'<article class="course-card" data-course="'+c.code+'"><span class="course-code">'+c.code+'</span><h3>'+c.title+'</h3><p>'+c.description+'</p><div class="tags">'+c.tags.map(t=>'<span class="tag">'+t+'</span>').join("")+'</div></article>').join("")+'</div>':'<div class="course-header"><h3>Ingen eksempeldata i dette semesteret ennå.</h3><p>Legg inn en fagmappe og kjør <code>python scripts/update_site.py</code>.</p></div>')+'</section></main><div class="preview-badge">Courses exposes Kok; Portfolio does not</div>';bindNav();app.querySelectorAll("[data-semester]").forEach(b=>b.onclick=()=>go("/courses/"+b.dataset.semester));app.querySelectorAll("[data-course]").forEach(c=>c.onclick=()=>go(courseRoute(semester.id,c.dataset.course)))}
 
-function coursePage(semesterId,code){const course=getCourse(semesterId,code);if(!course)return notFoundPage("Course "+code+" was not found in semester "+semesterId);document.documentElement.dataset.lens="study";const grouped=course.resources.reduce((a,r)=>((a[r.section]??=[]).push(r),a),{});const navItems=["Oversikt",...course.sections,"Karakterweb"];app.innerHTML=top("courses")+'<main class="layout"><aside class="side"><div class="side-title">'+course.code+'</div>'+[...new Set(navItems)].map((x,i)=>'<button class="'+(i===0?"active":"")+'">'+x+'</button>').join("")+'</aside><section class="content"><div class="crumbs">Courses / '+getSemester(semesterId).label+' / '+course.code+'</div><header class="course-header"><span class="course-code">'+course.code+'</span><h1>'+course.title+'</h1><p>'+course.description+'</p></header>'+course.sections.map(section=>{const items=grouped[section]||[];if(!items.length)return"";return'<section class="resource-section"><h2>'+section+'</h2><div class="resource-list">'+renderResourceTree(items,item=>course.resources.indexOf(item))+'</div></section>'}).join("")+'<section class="resource-section"><h2>Karakterweb</h2><div class="resource-list"><div class="resource-row" id="karakterweb"><span class="file-icon">KW</span><div><strong>Karakterweb</strong><div class="muted">karakterweb.no/ntnu/'+course.code+'</div></div><span class="muted">Open ↗</span></div></div></section></section></main><div class="preview-badge">Manifest-driven Course layout</div>';bindNav();app.querySelectorAll("[data-resource]").forEach(e=>e.onclick=()=>go(viewerRoute(semesterId,course.code,e.dataset.resource)));app.querySelector("#karakterweb").onclick=()=>open("https://karakterweb.no/ntnu/"+course.code,"_blank","noopener")}
+function coursePage(semesterId,code){
+  const course=getCourse(semesterId,code);
+  if(!course)return notFoundPage("Course "+code+" was not found in semester "+semesterId);
+  document.documentElement.dataset.lens="study";
 
+  const grouped=course.resources.reduce((groups,resource)=>{
+    (groups[resource.section]??=[]).push(resource);
+    return groups;
+  },{});
+  const sections=course.sections
+    .map((label,index)=>({label,index,items:grouped[label]||[]}))
+    .filter(section=>section.items.length);
+  const karakterwebUrl="https://karakterweb.no/ntnu/"+encodeURIComponent(course.code);
+  const resourceCount=course.resources.length;
+
+  app.innerHTML=top("courses")+`<main class="layout">
+    <aside class="side course-side">
+      <div class="side-title">${course.code}</div>
+      <button class="active" data-course-nav="overview"><span>Overview</span><small>${resourceCount} resources</small></button>
+      ${sections.map(section=>`<button data-course-nav="section-${section.index}"><span>${section.label}</span><small>${section.items.length}</small></button>`).join("")}
+      <button data-course-nav="karakterweb"><span>Karakterweb</span><small>external ↗</small></button>
+    </aside>
+    <section class="content">
+      <div class="crumbs">Courses / ${getSemester(semesterId).label} / ${course.code}</div>
+      <header class="course-header" id="course-overview">
+        <div class="course-header-meta"><span class="course-code">${course.code}</span><span>${resourceCount} resources · ${sections.length} sections</span></div>
+        <h1>${course.title}</h1>
+        <p>${course.description}</p>
+      </header>
+      ${sections.map(section=>`<section class="resource-section" id="course-section-${section.index}" data-course-section="section-${section.index}">
+        <div class="resource-section-head"><h2>${section.label}</h2><span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
+        <div class="resource-list">${renderResourceTree(section.items,item=>course.resources.indexOf(item))}</div>
+      </section>`).join("")}
+      <section class="resource-section" id="course-karakterweb" data-course-section="karakterweb">
+        <div class="resource-section-head"><h2>Karakterweb</h2><span>external course statistics</span></div>
+        <div class="resource-list">
+          <button class="resource-row resource-row-button" id="karakterweb">
+            <span class="file-icon">KW</span>
+            <div><strong>Open ${course.code} on Karakterweb</strong><div class="muted">karakterweb.no/ntnu/${course.code}</div></div>
+            <span class="muted">Open ↗</span>
+          </button>
+        </div>
+      </section>
+    </section>
+  </main><div class="preview-badge">Manifest-driven course workspace</div>`;
+
+  bindNav();
+  app.querySelectorAll("[data-resource]").forEach(element=>{
+    element.onclick=()=>go(viewerRoute(semesterId,course.code,element.dataset.resource));
+  });
+  app.querySelector("#karakterweb")?.addEventListener("click",()=>{
+    window.open(karakterwebUrl,"_blank","noopener");
+  });
+
+  const navButtons=[...app.querySelectorAll("[data-course-nav]")];
+  const activate=id=>navButtons.forEach(button=>button.classList.toggle("active",button.dataset.courseNav===id));
+  const scrollToTarget=id=>{
+    const target=id==="overview"
+      ?app.querySelector("#course-overview")
+      :app.querySelector(id==="karakterweb"?"#course-karakterweb":"#course-"+id);
+    target?.scrollIntoView({behavior:"smooth",block:"start"});
+    activate(id);
+  };
+  navButtons.forEach(button=>button.addEventListener("click",()=>scrollToTarget(button.dataset.courseNav)));
+
+  const observed=[
+    {element:app.querySelector("#course-overview"),id:"overview"},
+    ...sections.map(section=>({element:app.querySelector("#course-section-"+section.index),id:"section-"+section.index})),
+    {element:app.querySelector("#course-karakterweb"),id:"karakterweb"}
+  ].filter(item=>item.element);
+  const observer=new IntersectionObserver(entries=>{
+    const visible=entries.filter(entry=>entry.isIntersecting)
+      .sort((a,b)=>Math.abs(a.boundingClientRect.top)-Math.abs(b.boundingClientRect.top))[0];
+    const match=visible&&observed.find(item=>item.element===visible.target);
+    if(match)activate(match.id);
+  },{rootMargin:"-15% 0px -70% 0px",threshold:[0,0.05]});
+  observed.forEach(item=>observer.observe(item.element));
+  app.__courseObserver=observer;
+}
 function toolsPage(){
   document.documentElement.dataset.lens="study";
   app.innerHTML=top("courses")+toolsIndexHTML();
@@ -991,5 +1068,5 @@ async function engineeringPage(){
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
 
-async function render(){const path=route();if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}const viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/tools")return toolsPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/model-inspector")return modelInspectorPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings/theme-studio/manual")return themeStudioPage("manual");if(path==="/settings/theme-studio/image")return themeStudioPage("image");if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
+async function render(){app.__courseObserver?.disconnect();app.__courseObserver=null;const path=route();if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}const viewer=parseViewerRoute(path);if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/tools")return toolsPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/model-inspector")return modelInspectorPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings/theme-studio/manual")return themeStudioPage("manual");if(path==="/settings/theme-studio/image")return themeStudioPage("image");if(path==="/settings")return settingsPage();const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
 window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();globalSearch.open()}});window.addEventListener("hashchange",render);render();
