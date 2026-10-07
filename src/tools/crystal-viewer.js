@@ -4,7 +4,7 @@ import {
   cellEdges,crystalPreset,crystalType,distance3,idealHoleCenters,
   listCrystalPresets,listCrystalTypes,replicateCrystal
 } from "./crystal-structures-core.js";
-import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,coordinationPolyhedron,millerPlane,planeBoxPolygon,planeContactNetwork,polyhedronEdges,sitesNearPlane} from "./crystal-analysis.js";
+import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,coordinationPolyhedron,millerPlane,periodicImageSites,planeBoxPolygon,planeContactNetwork,polyhedronEdges,sitesNearPlane} from "./crystal-analysis.js";
 
 const SPECIES_COLORS={
   A:0xb3157a,B:0x2f7fa4,O:0xd9e7ed,
@@ -137,6 +137,23 @@ export async function mountCrystalViewer(container,state={}){
   const baseSites=replicateCrystal(type,{nx,ny,nz,a,c,preset});
   const edited=applyCrystalEdits(baseSites,state.edits||[]);
   const atomSites=edited.sites.filter(site=>site.active!==false);
+
+  // Interstitial geometry is defined by the host packing lattice. For the
+  // FCC-derived compounds, use the FCC framework so occupied tetra/octa
+  // sites do not accidentally become vertices of their own hole polyhedra.
+  const fccHost=["fcc","diamond","nacl","zns","caf2","spinel"].includes(type);
+  const holeHostType=fccHost?"fcc":type;
+  const holeHostSites=replicateCrystal(holeHostType,{nx,ny,nz,a,c,preset:fccHost?null:preset});
+  const cScale=c||a*(crystal?.idealCA||1);
+  const periodicVectors=crystal?.cell==="hexagonal"
+    ?[
+      [1.5*nx*a,(nx%2)*Math.sqrt(3)*a/2,0],
+      [0,nz*Math.sqrt(3)*a,0],
+      [0,0,ny*cScale]
+    ]
+    :[[nx*a,0,0],[0,ny*a,0],[0,0,nz*a]];
+  const holeNeighbourSites=periodicImageSites(holeHostSites,periodicVectors,{range:1});
+
   const atomGeometry=new THREE.SphereGeometry(.11*Math.max(.55,Math.min(1.4,a)),24,16);
   const materialCache=new Map();
 
@@ -226,41 +243,50 @@ export async function mountCrystalViewer(container,state={}){
 
   const addHole=(position,kind)=>{
     const neighbourCount=kind==="tetra"?4:6;
-    const polyhedron=coordinationPolyhedron(atomSites,position,neighbourCount);
-    if(polyhedron.points.length<neighbourCount||!polyhedron.faces.length)return;
-    const geometry=polyhedronGeometry(polyhedron);
-    const material=new THREE.MeshStandardMaterial({
-      color:kind==="tetra"?0xd36b59:0x4b88c6,
-      transparent:true,opacity:.28,wireframe:false,roughness:.5,metalness:.02,
-      side:THREE.DoubleSide,depthWrite:false
-    });
-    const mesh=new THREE.Mesh(geometry,material);
-    mesh.visible=visibility!=="atoms";
-    mesh.userData.holeKind=kind;
-    mesh.userData.coordination=polyhedron.siteIndices;
-    group.add(mesh);
-    holeObjects.push(mesh);
+    const polyhedron=coordinationPolyhedron(holeNeighbourSites,position,neighbourCount,{distanceTolerance:.07});
 
-    const edgeMaterial=new THREE.LineBasicMaterial({
-      color:kind==="tetra"?0xffa08f:0x7bc7eb,
-      transparent:true,opacity:.9
-    });
-    for(const [left,right] of polyhedronEdges(polyhedron.faces)){
-      const line=addLine(THREE,group,polyhedron.points[left],polyhedron.points[right],edgeMaterial);
-      line.visible=visibility!=="atoms";
-      line.userData.sharedHoleEdgeMaterial=edgeMaterial;
-      holeObjects.push(line);
+    if(polyhedron.valid){
+      const geometry=polyhedronGeometry(polyhedron);
+      const material=new THREE.MeshStandardMaterial({
+        color:kind==="tetra"?0xd36b59:0x4b88c6,
+        emissive:kind==="tetra"?0x3b120d:0x0c2c3a,
+        emissiveIntensity:.18,
+        transparent:true,opacity:.34,wireframe:false,roughness:.45,metalness:.02,
+        side:THREE.DoubleSide,depthWrite:false
+      });
+      const mesh=new THREE.Mesh(geometry,material);
+      mesh.visible=visibility!=="atoms";
+      mesh.userData.holeKind=kind;
+      mesh.userData.coordination=polyhedron.sourceIndices;
+      mesh.userData.shellDistance=polyhedron.distances[0]??null;
+      group.add(mesh);
+      holeObjects.push(mesh);
+
+      const edgeMaterial=new THREE.LineBasicMaterial({
+        color:kind==="tetra"?0xffa08f:0x7bc7eb,
+        transparent:true,opacity:.95
+      });
+      for(const [left,right] of polyhedronEdges(polyhedron.faces)){
+        const line=addLine(THREE,group,polyhedron.points[left],polyhedron.points[right],edgeMaterial);
+        line.visible=visibility!=="atoms";
+        line.userData.sharedHoleEdgeMaterial=edgeMaterial;
+        holeObjects.push(line);
+      }
     }
 
-    const centerGeometry=new THREE.SphereGeometry(.035*Math.max(.55,Math.min(1.4,a)),12,8);
+    // Keep the legacy center cue even when a legacy "hole" label does not
+    // have the requested tetra/octa coordination (for example SC body centre).
+    const centerGeometry=new THREE.SphereGeometry(.028*Math.max(.55,Math.min(1.4,a)),12,8);
     const centerMaterial=new THREE.MeshBasicMaterial({
       color:kind==="tetra"?0xffd0c7:0xb7e7fb,
-      transparent:true,opacity:.95
+      transparent:true,opacity:polyhedron.valid?.72:.35
     });
     const centerMarker=new THREE.Mesh(centerGeometry,centerMaterial);
     centerMarker.position.set(...position);
     centerMarker.visible=visibility!=="atoms";
     centerMarker.userData.holeKind=kind;
+    centerMarker.userData.coordinationValid=polyhedron.valid;
+    centerMarker.userData.shellSize=polyhedron.shellSize;
     group.add(centerMarker);
     holeObjects.push(centerMarker);
   };
@@ -371,8 +397,9 @@ export async function mountCrystalViewer(container,state={}){
 
     const tolerance=Math.max(.04*a,span*.015);
     const planeForSites={normal:spec.normal,point};
-    const near=sitesNearPlane(atomSites,planeForSites,tolerance);
-    const network=planeContactNetwork(atomSites,planeForSites,tolerance,{distanceTolerance:.10});
+    const layerSites=state.planeFamily==="close"?holeHostSites:atomSites;
+    const near=sitesNearPlane(layerSites,planeForSites,tolerance);
+    const network=planeContactNetwork(layerSites,planeForSites,tolerance,{distanceTolerance:.10});
     planeMetrics.push({
       label:spec.label,
       atoms:network.siteIndices.length,
@@ -380,18 +407,38 @@ export async function mountCrystalViewer(container,state={}){
       nearestDistance:network.nearestDistance
     });
 
+    const diskRadius=state.planeFamily==="close"&&network.nearestDistance
+      ?network.nearestDistance*.49
+      :.135*a;
     for(const item of near){
-      const site=atomSites[item.index];
-      const ringGeometry=new THREE.RingGeometry(.12*a,.155*a,24);
+      const site=layerSites[item.index];
+      if(!site)continue;
+      const diskGeometry=new THREE.CircleGeometry(diskRadius,32);
+      const diskMaterial=new THREE.MeshBasicMaterial({
+        color:index%2?0x69b6d9:0xe062b3,
+        transparent:true,
+        opacity:state.planeFamily==="close"?.25:.12,
+        side:THREE.DoubleSide,
+        depthWrite:false
+      });
+      const disk=new THREE.Mesh(diskGeometry,diskMaterial);
+      disk.position.set(...site.pos);
+      disk.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),n);
+      disk.renderOrder=18;
+      disk.userData.planeAtom=true;
+      group.add(disk);
+      planeObjects.push(disk);
+
+      const ringGeometry=new THREE.RingGeometry(diskRadius*.92,diskRadius,32);
       const ringMaterial=new THREE.MeshBasicMaterial({
         color:index%2?0x69b6d9:0xe062b3,
-        transparent:true,opacity:.9,
+        transparent:true,opacity:.92,
         side:THREE.DoubleSide,
         depthTest:false
       });
       const ring=new THREE.Mesh(ringGeometry,ringMaterial);
       ring.position.set(...site.pos);
-      ring.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),n);
+      ring.quaternion.copy(disk.quaternion);
       ring.renderOrder=20;
       ring.userData.planeAtom=true;
       group.add(ring);
@@ -405,7 +452,7 @@ export async function mountCrystalViewer(container,state={}){
         depthTest:false
       });
       for(const contact of network.contacts){
-        const left=atomSites[contact.a],right=atomSites[contact.b];
+        const left=layerSites[contact.a],right=layerSites[contact.b];
         if(!left||!right)continue;
         const line=addLine(THREE,group,left.pos,right.pos,contactMaterial);
         line.renderOrder=19;
