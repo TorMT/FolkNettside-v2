@@ -10,16 +10,16 @@ test("glTF Y-up coordinates map to Engineering Z-up",()=>{
 });
 
 test("Gunnerus published part ids map to semantic engineering roles",()=>{
-  assert.deepEqual(gltfPartSemantic({node:"part19"}),{
-    role:"thruster",subtype:"azimuth",subsystem:"propulsion",tags:["port","stern"]
+  assert.deepEqual(gltfPartSemantic({node:"part19",label:"PM azimuth drive, port"}),{
+    role:"thruster",subtype:"azimuth",subsystem:"propulsion",tags:["stern","port"]
   });
-  assert.deepEqual(gltfPartSemantic({node:"part20"}),{
-    role:"thruster",subtype:"azimuth",subsystem:"propulsion",tags:["starboard","stern"]
+  assert.deepEqual(gltfPartSemantic({node:"part20",label:"PM azimuth drive, starboard"}),{
+    role:"thruster",subtype:"azimuth",subsystem:"propulsion",tags:["stern","starboard"]
   });
-  assert.deepEqual(gltfPartSemantic({node:"part23"}),{
+  assert.deepEqual(gltfPartSemantic({node:"part23",label:"Bow tunnel thruster 200 kW"}),{
     role:"thruster",subtype:"tunnel",subsystem:"propulsion",tags:["bow"]
   });
-  assert.equal(gltfPartSemantic({node:"part00"}).role,"hull");
+  assert.equal(gltfPartSemantic({node:"part00",group_key:"hull"}).role,"hull");
 });
 
 test("glTF part descriptor retains published SFI provenance",()=>{
