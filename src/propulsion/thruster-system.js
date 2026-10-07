@@ -44,7 +44,8 @@ export function azimuthAxis(angleDeg,{vertical=0}={}){
 }
 
 export function thrusterDirection({axis=[1,0,0],azimuthDeg=null}={}){
-  return Number.isFinite(Number(azimuthDeg))?azimuthAxis(azimuthDeg):normalize(axis);
+  const hasAzimuth=azimuthDeg!==null&&azimuthDeg!==undefined&&azimuthDeg!==""&&Number.isFinite(Number(azimuthDeg));
+  return hasAzimuth?azimuthAxis(Number(azimuthDeg)):normalize(axis);
 }
 
 export function thrusterForce({thrust,axis=[1,0,0],azimuthDeg=null}){
@@ -103,7 +104,8 @@ export function thrustersFromModelDocument(modelDocument){
       inflowSpeed:Number(propulsion.inflowSpeed)||0,
       density:Number(propulsion.density)||1025,
       axis:transformDirection(component.transform,propulsion.axis||[1,0,0]),
-      azimuthDeg:Number.isFinite(Number(propulsion.azimuthDeg))?Number(propulsion.azimuthDeg):null,
+      azimuthDeg:propulsion.azimuthDeg!==null&&propulsion.azimuthDeg!==undefined&&propulsion.azimuthDeg!==""&&Number.isFinite(Number(propulsion.azimuthDeg))
+        ?Number(propulsion.azimuthDeg):null,
       position:transformPoint(component.transform,propulsion.position||[0,0,0],scale)
     });
   }
