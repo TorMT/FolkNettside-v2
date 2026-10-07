@@ -13,6 +13,23 @@ test("azimuth axes follow vessel x-y convention",()=>{
   near(a90[0],0,1e-12);near(a90[1],1);
 });
 
+test("null azimuth never overrides an explicit tunnel axis",()=>{
+  const r=thrusterContribution({
+    thrust:10000,axis:[0,1,0],azimuthDeg:null,position:[0,0,0]
+  });
+  assert.deepEqual(r.axis,[0,1,0]);
+  assert.deepEqual(r.force,[0,10000,0]);
+});
+
+test("undefined or empty azimuth preserves explicit axis",()=>{
+  for(const azimuthDeg of [undefined,""]){
+    const r=thrusterContribution({
+      thrust:1000,axis:[0,1,0],azimuthDeg,position:[0,0,0]
+    });
+    assert.deepEqual(r.axis,[0,1,0]);
+  }
+});
+
 test("offset lateral thruster creates yaw moment r cross F",()=>{
   const r=thrusterContribution({
     thrust:10000,axis:[0,1,0],position:[5,0,0],reference:[0,0,0]
