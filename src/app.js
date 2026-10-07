@@ -1215,6 +1215,8 @@ async function engineeringPage(){
         },
         results:{
           hydro:result,
+          particulars:hydro.particulars||null,
+          hydrostaticCurve:hydro.curveRows||[],
           solvedDraft:solvedState?.value||null,
           gz:gzState?.value||null,
           attitude:attitudeState?.value||null
