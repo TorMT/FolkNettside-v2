@@ -12,16 +12,26 @@ export function diveFeatureKind(feature){
   return category.includes("vrak")||category.includes("lekter")?"wreck":"nature";
 }
 export function diveFeatureMaxDepth(feature){
-  const value=Number(feature?.properties?.Dybde_max_m);
+  const raw=feature?.properties?.Dybde_max_m;
+  if(raw===null||raw===undefined||raw==="")return null;
+  const value=Number(raw);
   return Number.isFinite(value)?value:null;
 }
-export function filterDiveFeatures(features,{query="",level="all",kind="all",maxDepth=""}={}){
+export function diveFeatureQuality(feature){
+  const raw=String(feature?.properties?.Datakvalitet||"").trim().toUpperCase();
+  if(raw.startsWith("A"))return "A";
+  if(raw.startsWith("B"))return "B";
+  if(raw.startsWith("C"))return "C";
+  return "UNKNOWN";
+}
+export function filterDiveFeatures(features,{query="",level="all",kind="all",quality="all",maxDepth=""}={}){
   const q=text(query).trim();
   const depthLimit=maxDepth===""?null:Number(maxDepth);
   return (features||[]).filter(feature=>{
     const p=feature.properties||{};
     if(level!=="all"&&diveFeatureLevel(feature)!==level)return false;
     if(kind!=="all"&&diveFeatureKind(feature)!==kind)return false;
+    if(quality!=="all"&&diveFeatureQuality(feature)!==quality)return false;
     const depth=diveFeatureMaxDepth(feature);
     if(Number.isFinite(depthLimit)&&depthLimit>=0&&depth!==null&&depth>depthLimit)return false;
     if(q){
