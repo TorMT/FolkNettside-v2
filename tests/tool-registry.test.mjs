@@ -40,26 +40,26 @@ test("CoolProp is full after deployed and real-WASM numerical verification",()=>
 
 
 
-test("Theme Studio shares one Settings architecture while manual mode is verified and image mode remains review",()=>{
+test("Theme Studio manual and image modes share one verified Settings architecture",()=>{
   const manual=toolById("theme-creator");
   const image=toolById("image-theme");
   assert.equal(manual.status,"prototype");
   assert.equal(manual.parity,"full");
   assert.equal(image.status,"prototype");
-  assert.equal(image.parity,"review");
+  assert.equal(image.parity,"full");
   for(const tool of [manual,image]){
     assert.ok(tool.route?.startsWith("/settings/theme-studio/"));
     assert.ok(tool.legacyUrl?.startsWith("https://"));
     assert.ok(visibleTools().some(item=>item.id===tool.id));
   }
   assert.equal(toolsNeedingParityReview().some(item=>item.id==="theme-creator"),false);
-  assert.equal(toolsNeedingParityReview().some(item=>item.id==="image-theme"),true);
+  assert.equal(toolsNeedingParityReview().some(item=>item.id==="image-theme"),false);
   assert.notEqual(manual.route,image.route);
 });
 
 
 test("browser-verified parity tools are marked full",()=>{
-  for(const id of ["fluid","periodic","crystal","chemdraw","stl-advanced","theme-creator","coolprop"]){
+  for(const id of ["fluid","periodic","crystal","chemdraw","stl-advanced","theme-creator","image-theme","coolprop"]){
     const tool=toolById(id);
     assert.ok(tool,id+" missing");
     assert.equal(tool.parity,"full",id+" should be full after deployed browser verification");
@@ -68,9 +68,9 @@ test("browser-verified parity tools are marked full",()=>{
   }
 });
 
-test("Image-to-Theme remains review until deployed browser verification",()=>{
+test("Image-to-Theme is full after deployed browser verification",()=>{
   const tool=toolById("image-theme");
-  assert.equal(tool.parity,"review");
-  assert.equal(toolParityComplete(tool),false);
+  assert.equal(tool.parity,"full");
+  assert.equal(toolParityComplete(tool),true);
   assert.ok(tool.legacyUrl?.startsWith("https://"));
 });
