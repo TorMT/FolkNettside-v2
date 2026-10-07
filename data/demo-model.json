@@ -1,4 +1,6 @@
 {
+  "id": "fixture",
+  "label": "Analytic fixture",
   "name": "Hydro Assembly Fixture",
   "format": "3MF",
   "sourcePath": "./examples/models/assembly-demo.3mf",
