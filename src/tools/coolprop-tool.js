@@ -1,5 +1,5 @@
 import {
-  DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,
+  DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,TABLE4_PRESETS,
   computeBatch,computeProcess,computeState,computeTable4,processTargetOptions,
   rowsToCSV,rowsToJSON,saturationWarning,unitLabel
 } from "./coolprop-core.js";
@@ -110,7 +110,7 @@ function batchHTML(s){
     <div class="coolprop-output-pills" ${x.mode==="table4"?"hidden":""}>
       ${outputChoices.map(key=>`<label><input type="checkbox" data-cp-batch-output="${key}" ${x.outputs.includes(key)?"checked":""}><span>${key}</span></label>`).join("")}
     </div>
-    <div class="coolprop-actions"><button class="btn primary" id="cp-batch-run">Run batch</button><button class="btn" id="cp-batch-example">Load example</button><button class="btn" id="cp-batch-diagram">Show diagram</button></div>
+    <div class="coolprop-actions"><button class="btn primary" id="cp-batch-run">Run batch</button><button class="btn" id="cp-batch-example">Load example</button><button class="btn" id="cp-table4-air" ${x.mode==="table4"?"":"hidden"}>Air Table 4</button><button class="btn" id="cp-table4-water" ${x.mode==="table4"?"":"hidden"}>Water Table 4</button><button class="btn" id="cp-batch-diagram">Show diagram</button></div>
     <div id="cp-batch-results" class="coolprop-results"><div class="tool-result-card"><span>Batch</span><strong>Multi-output + legacy Table 4</strong><p>Table 4 reproduces the legacy ideal-vs-real specific-volume comparison.</p></div></div>
   </section>`;
 }
@@ -444,6 +444,21 @@ export function bindCoolPropTool(root,state,onState){
   root.querySelector("#cp-batch-example")?.addEventListener("click",()=>{
     save({...syncGlobal(),tab:"batch",batch:{mode:s.batch.mode||"multi",format:"TP",rows:"25,1\n100,5\n200,10",outputs:["H","S","Phase"]}},true);
   });
+
+  const loadTable4Preset=name=>{
+    const preset=TABLE4_PRESETS[name];
+    if(!preset)return;
+    const global=syncGlobal();
+    save({
+      ...global,
+      fluid:preset.fluid,
+      units:{...global.units,...preset.units},
+      tab:"batch",
+      batch:{mode:"table4",format:preset.format,rows:preset.rows,outputs:[]}
+    },true);
+  };
+  root.querySelector("#cp-table4-air")?.addEventListener("click",()=>loadTable4Preset("Air"));
+  root.querySelector("#cp-table4-water")?.addEventListener("click",()=>loadTable4Preset("Water"));
 
   root.querySelector("#cp-batch-mode")?.addEventListener("change",event=>{
     const mode=event.target.value;

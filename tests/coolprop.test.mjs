@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  DEFAULT_UNITS,PROCESS_TYPES,TABLE4_R_SPEC,applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,
+  DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,
   computeState,inputToSI,outputFromSI,parseBatchRows,phaseDescription,saturationWarning,
   processTargetOptions,rowsToCSV,rowsToJSON,unitLabel
 } from "../src/tools/coolprop-core.js";
@@ -218,4 +218,16 @@ test("Table 4 supports PT ordering and rejects unsupported legacy fluids",()=>{
 test("Table 4 rejects PH and PU because legacy equation needs T and P",()=>{
   const engine={propsSI(){return 1}};
   assert.throws(()=>computeTable4(engine,{fluid:"Air",format:"PH",rows:"1,100"}),/requires T\/P/);
+});
+
+
+test("Table 4 presets reproduce the legacy calibration points",()=>{
+  assert.equal(TABLE4_PRESETS.Air.fluid,"Air");
+  assert.equal(TABLE4_PRESETS.Air.format,"TP");
+  assert.match(TABLE4_PRESETS.Air.rows,/25,1/);
+  assert.match(TABLE4_PRESETS.Air.rows,/390,40/);
+  assert.equal(TABLE4_PRESETS.Water.fluid,"Water");
+  assert.match(TABLE4_PRESETS.Water.rows,/90,0\.5/);
+  assert.match(TABLE4_PRESETS.Water.rows,/880,300/);
+  assert.deepEqual(TABLE4_PRESETS.Air.units,{pressure:"bar",temperature:"C"});
 });
