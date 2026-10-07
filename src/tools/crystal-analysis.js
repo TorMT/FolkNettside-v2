@@ -462,6 +462,78 @@ export function polyhedronEdges(faces){
   return [...edges.values()];
 }
 
+export function interstitialVoidPolyhedron(polyhedron,{tolerance=1e-10}={}){
+  if(!polyhedron?.valid||!Array.isArray(polyhedron.points)||polyhedron.points.length<4){
+    return {valid:false,center:polyhedron?.center?[...polyhedron.center]:[0,0,0],points:[],faces:[],hostRadius:null,holeRadius:null};
+  }
+  const center=polyhedron.center.map(Number);
+  const points=polyhedron.points.map(point=>point.map(Number));
+  let nearestPair=Infinity;
+  for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++){
+    const d=distance3(points[i],points[j]);
+    if(d>tolerance)nearestPair=Math.min(nearestPair,d);
+  }
+  const centerDistance=Math.min(...points.map(point=>distance3(point,center)));
+  if(!Number.isFinite(nearestPair)||!Number.isFinite(centerDistance)){
+    return {valid:false,center:[...center],points:[],faces:[],hostRadius:null,holeRadius:null};
+  }
+
+  // In a close-packed coordination shell the nearest host-host distance is
+  // twice the touching host radius. The remaining radial gap is the
+  // interstitial-hole radius (tetra: ~0.225 R, octa: ~0.414 R).
+  const hostRadius=nearestPair/2;
+  const holeRadius=centerDistance-hostRadius;
+  if(!(holeRadius>tolerance)){
+    return {valid:false,center:[...center],points:[],faces:[],hostRadius,holeRadius};
+  }
+
+  const voidPoints=points.map(point=>{
+    const direction=[point[0]-center[0],point[1]-center[1],point[2]-center[2]];
+    const length=Math.hypot(...direction);
+    return [
+      center[0]+direction[0]/length*holeRadius,
+      center[1]+direction[1]/length*holeRadius,
+      center[2]+direction[2]/length*holeRadius
+    ];
+  });
+  const faces=convexHullTriangles(voidPoints);
+  return {
+    valid:faces.length>0,
+    center:[...center],
+    points:voidPoints,
+    faces,
+    hostRadius,
+    holeRadius,
+    radiusRatio:holeRadius/hostRadius
+  };
+}
+
+export function contactTriangles(network){
+  const contacts=network?.contacts||[];
+  const adjacency=new Map();
+  for(const {a,b} of contacts){
+    if(!adjacency.has(a))adjacency.set(a,new Set());
+    if(!adjacency.has(b))adjacency.set(b,new Set());
+    adjacency.get(a).add(b);
+    adjacency.get(b).add(a);
+  }
+  const triangles=[];
+  const seen=new Set();
+  for(const [a,neighbors] of adjacency){
+    for(const b of neighbors){
+      if(b<=a)continue;
+      const bNeighbors=adjacency.get(b);
+      if(!bNeighbors)continue;
+      for(const c of neighbors){
+        if(c<=b||!bNeighbors.has(c))continue;
+        const key=`${a}:${b}:${c}`;
+        if(!seen.has(key)){seen.add(key);triangles.push([a,b,c])}
+      }
+    }
+  }
+  return triangles;
+}
+
 export function pointPlaneDistance(point,normal,planePoint=[0,0,0]){
   const n=normal.map(Number);
   const length=Math.hypot(...n);
