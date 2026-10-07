@@ -23,14 +23,14 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`, `full`.
 | FEM | engineering workspace Structure mode | cantilever frame JSON | prototype | Tested 2D Euler–Bernoulli frame solver; shell/solid later |
 | CFD/resistance | Resistance workspace baseline | ITTC friction JSON | prototype | ITTC-1957 friction only; total resistance/OpenFOAM later |
 | Thruster flow | actuator-disk + rigid-body thruster system | actuator-disk JSON + semantic ModelDocument thrusters | prototype | Semantic azimuth/tunnel components, world-space force, resultant thrust, roll/pitch/yaw moments and ideal power regression-tested; OpenFOAM later |
-| CoolProp | lazy local WASM Tools module | hashed legacy WASM + unit tests + deployed browser + real-WASM CI verifier | full | Fluid-specific course-table workspace includes Water A-2/A-3/A-4/A-5 and Ammonia A-13/A-14/A-15; Air A-22 conversion is bidirectional, Ammonia basis drift is CI-gated, and P-h/T-s/P-v diagrams plus phase/saturation cases are numerically verified |
+| CoolProp | lazy local WASM Tools module | hashed legacy WASM + unit tests + deployed browser + real-WASM CI verifier | full core / UI polish | Numerical core is verified. Course tables are fluid-specific; A-22 is temperature-driven at the calibrated 1-bar basis, table presets follow display units, stale results are invalidated on fluid/unit/basis changes, and diagram axes state their fixed engineering units. Further UI polish remains open. |
 | Fluid calculator | shared Tools calculator | legacy polynomial fixture + deployed browser comparison | full | Browser-verified against legacy for all 6 fluids/gases, C/F/K, all 8 properties, warnings and responsive layout |
 | ChemDraw | lazy Kekule chemistry editor | live runtime | full | Browser-verified New/Import/MOL/SMILES/Undo/Redo/Clean 2D/Copy SMILES |
 | Crystal structures | shared Three.js Tools module | full legacy structure set + interactive browser verification | full | Full legacy functional parity verified; next work is beyond-legacy hole polyhedra and close-packed-plane visualization |
 | Periodic table | data-driven Tools module | full local dataset + test fixture + deployed browser verification | full | Search, quick filters, dropdown filters, temperature phase, property display, reset/clear, details and Wikipedia link browser-verified |
 | Quiz | shared course module | quiz JSON + study browser smoke | full | Validated data, persistent attempts, feedback, navigation, review, keyboard controls and browser-verified ViewerShell integration |
 | Karakterweb | shared course capability | validated course-code URL tests | full | Course-code normalization and deterministic HTTPS fallback are tested; external site availability is not a deploy dependency |
-| Google Drive/login | Settings connection service | n/a | planned | Optional auth only |
+| Google Drive/login | shared Settings-owned Google session | Brewing Drive consumer + shared account gate | prototype | One site-level GIS session; Brewing reuses it without a second OAuth prompt. Signed-out modules stay local. Dive-log consumers must use the same gate; no source-controlled dive-log sync implementation exists yet. |
 | Autodesk login | Settings connection service | n/a | planned | Optional auth only |
 
 Every row gets a deterministic fixture before being considered migrated.
