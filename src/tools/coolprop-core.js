@@ -185,6 +185,42 @@ export function courseTableById(fluid,tableId){
   return courseTableConfig(fluid)?.tables?.find(table=>table.id===tableId)||null;
 }
 
+function convertPresetTemperature(value,units={}){
+  const selected=unitsWithDefaults(units).temperature;
+  return selected==="K"?Number(value)+273.15:Number(value);
+}
+
+function convertPresetPressure(value,units={}){
+  const selected=unitsWithDefaults(units).pressure;
+  const pa=Number(value)*1e5;
+  if(selected==="Pa")return pa;
+  if(selected==="kPa")return pa/1e3;
+  if(selected==="MPa")return pa/1e6;
+  return Number(value);
+}
+
+function presetNumber(value){
+  const number=Number(value);
+  if(!Number.isFinite(number))return String(value);
+  return Number(number.toFixed(6)).toString();
+}
+
+export function courseTableDefaultRows(fluid,tableId,units=DEFAULT_UNITS){
+  const table=courseTableById(fluid,tableId);
+  if(!table)return "";
+  const raw=String(table.defaultRows||"").split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+  if(table.mode==="ideal-gas")return raw.join("\n");
+  if(table.mode==="sat-T")return raw.map(value=>presetNumber(convertPresetTemperature(value,units))).join("\n");
+  if(table.mode==="sat-P")return raw.map(value=>presetNumber(convertPresetPressure(value,units))).join("\n");
+  if(table.mode==="superheated"||table.mode==="compressed"){
+    return raw.map(line=>{
+      const [temperature,pressure]=line.split(/[,;\s]+/);
+      return presetNumber(convertPresetTemperature(temperature,units))+","+presetNumber(convertPresetPressure(pressure,units));
+    }).join("\n");
+  }
+  return raw.join("\n");
+}
+
 function parseReferenceScalars(text){
   return String(text||"").split(/\r?\n/).map(line=>line.trim()).filter(Boolean).map((line,index)=>{
     const value=Number(line.split(/[,;\s]+/)[0]);
