@@ -59,9 +59,9 @@ try{
 
     // A reference-state conversion should preserve the CoolProp model while
     // keeping it close to the course ideal-gas table over the teaching range.
-    assert.ok(Math.abs(row.errors.H)<=2000,`Air A-22 H mismatch at ${row.T} K: ${row.errors.H} J/kg`);
-    assert.ok(Math.abs(row.errors.U)<=2000,`Air A-22 U mismatch at ${row.T} K: ${row.errors.U} J/kg`);
-    assert.ok(Math.abs(row.errors.S)<=10,`Air A-22 S mismatch at ${row.T} K: ${row.errors.S} J/(kg K)`);
+    assert.ok(Math.abs(row.errors.H)<=500,`Air A-22 H mismatch at ${row.T} K: ${row.errors.H} J/kg`);
+    assert.ok(Math.abs(row.errors.U)<=500,`Air A-22 U mismatch at ${row.T} K: ${row.errors.U} J/kg`);
+    assert.ok(Math.abs(row.errors.S)<=1.2,`Air A-22 S mismatch at ${row.T} K: ${row.errors.S} J/(kg K)`);
   }
 
   const calibration=report.find(row=>row.T===profile.calibration.T);
