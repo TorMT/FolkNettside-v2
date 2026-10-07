@@ -122,6 +122,58 @@ jobs:
             exit 1
           }
           grep '<pre id="result">' /tmp/study-workspace-smoke-dom.html || true
+      - name: Mobile semester rail browser smoke
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          python -m http.server 4180 --bind 127.0.0.1 >/tmp/semester-mobile-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python - <<'PY'
+          import time, urllib.request
+          for _ in range(50):
+              try:
+                  urllib.request.urlopen("http://127.0.0.1:4180/tests/browser/semester-mobile-smoke.html", timeout=1).read(32)
+                  break
+              except Exception:
+                  time.sleep(.1)
+          else:
+              raise SystemExit("Semester mobile smoke server did not start")
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=390,844 --virtual-time-budget=5000 \
+            --dump-dom http://127.0.0.1:4180/tests/browser/semester-mobile-smoke.html \
+            >/tmp/semester-mobile-smoke-dom.html
+          grep -q 'data-status="pass"' /tmp/semester-mobile-smoke-dom.html || {
+            cat /tmp/semester-mobile-smoke-dom.html
+            exit 1
+          }
+          grep '<pre id="result">' /tmp/semester-mobile-smoke-dom.html || true
+      - name: Diverse dive browser smoke
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          python -m http.server 4181 --bind 127.0.0.1 >/tmp/diverse-dive-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python - <<'PY'
+          import time, urllib.request
+          for _ in range(50):
+              try:
+                  urllib.request.urlopen("http://127.0.0.1:4181/tests/browser/diverse-dive-smoke.html", timeout=1).read(32)
+                  break
+              except Exception:
+                  time.sleep(.1)
+          else:
+              raise SystemExit("Diverse dive smoke server did not start")
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=1400,900 --virtual-time-budget=7000 \
+            --dump-dom http://127.0.0.1:4181/tests/browser/diverse-dive-smoke.html \
+            >/tmp/diverse-dive-smoke-dom.html
+          grep -q 'data-status="pass"' /tmp/diverse-dive-smoke-dom.html || {
+            cat /tmp/diverse-dive-smoke-dom.html
+            exit 1
+          }
+          grep '<pre id="result">' /tmp/diverse-dive-smoke-dom.html || true
       - name: Settings app browser smoke
         run: |
           browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
