@@ -1,5 +1,5 @@
-import {accessState,getSession} from "../platform/session.js?v=b039753dac8ba3a2d07f198464d774a501f5ab06";
-import {DIVERSE_MODULES} from "./diverse-registry.js?v=b039753dac8ba3a2d07f198464d774a501f5ab06";
+import {accessState,getSession} from "../platform/session.js?v=83ad0451cf225e3bc6d18ce2d39a30083efa1140";
+import {DIVERSE_MODULES} from "./diverse-registry.js?v=83ad0451cf225e3bc6d18ce2d39a30083efa1140";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -9,6 +9,8 @@ function statusLabel(status){
   if(status==="native")return "Native v2";
   if(status==="superseded")return "Moved into v2";
   if(status==="migration")return "Migrating";
+  if(status==="preserved")return "Preserved demo";
+  if(status==="repair")return "Repair needed";
   return "Review";
 }
 
@@ -39,7 +41,7 @@ export function diversePageHTML(){
           </div>
           <div class="diverse-card-actions">
             ${module.route?`<button class="btn primary" data-go="${module.route}">Open v2</button>`:""}
-            ${module.legacyUrl?`<a class="btn" href="${module.legacyUrl}" target="_blank" rel="noopener">Legacy reference</a>`:""}
+            ${module.legacyUrl?`<a class="btn" href="${module.legacyUrl}" target="_blank" rel="noopener">${module.status==="preserved"?"Open demo":module.status==="repair"?"Inspect legacy files":"Legacy reference"}</a>`:""}
           </div>
         </article>`;
       }).join("")}

@@ -52,6 +52,32 @@ export const DIVERSE_MODULES=[
     sync:"optional-account"
   },
   {
+    id:"matpris",
+    title:"Matprissøk",
+    short:"PRICE",
+    route:null,
+    status:"repair",
+    access:"public",
+    category:"Utility",
+    summary:"Legacy-mappen har fortsatt API/cache-data, men den tidligere inview-siden svarer ikke og skal ikke eksponeres som fungerende app.",
+    legacyUrl:"https://tormt.folk.ntnu.no/diverse/Matprissok/",
+    storage:"legacy-api",
+    sync:"none"
+  },
+  {
+    id:"leseravnen",
+    title:"LeseRavnen demo",
+    short:"READ",
+    route:null,
+    status:"preserved",
+    access:"public",
+    category:"Prototype",
+    summary:"Fullskjerm testdemo for leseglede, fokus og progresjon. Demoen skal forbli stabil og datainnsamlingen urørt mens videre utvikling skjer separat.",
+    legacyUrl:"https://tormt.folk.ntnu.no/diverse/LeseRavnen-v0.9.0-demo/",
+    storage:"legacy-app",
+    sync:"separate-demo"
+  },
+  {
     id:"medisin",
     title:"MedisinTimer",
     short:"TIME",

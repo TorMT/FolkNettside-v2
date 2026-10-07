@@ -1,4 +1,4 @@
-import {getThreeRuntime} from "./three-runtime.js?v=b039753dac8ba3a2d07f198464d774a501f5ab06";
+import {getThreeRuntime} from "./three-runtime.js?v=83ad0451cf225e3bc6d18ce2d39a30083efa1140";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;

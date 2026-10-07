@@ -1,6 +1,6 @@
-import {prepareHydroModel,solvePreparedWaterlineForVolume} from "./hydrostatics.js?v=b039753dac8ba3a2d07f198464d774a501f5ab06";
-import {createHydroInclude} from "./hydro-selection.js?v=b039753dac8ba3a2d07f198464d774a501f5ab06";
-import {attitudeMatrix,transformPoint,transformedModelDocument} from "../model/transforms.js?v=b039753dac8ba3a2d07f198464d774a501f5ab06";
+import {prepareHydroModel,solvePreparedWaterlineForVolume} from "./hydrostatics.js?v=83ad0451cf225e3bc6d18ce2d39a30083efa1140";
+import {createHydroInclude} from "./hydro-selection.js?v=83ad0451cf225e3bc6d18ce2d39a30083efa1140";
+import {attitudeMatrix,transformPoint,transformedModelDocument} from "../model/transforms.js?v=83ad0451cf225e3bc6d18ce2d39a30083efa1140";
 
 function zBounds(prepared){
   let min=Infinity,max=-Infinity;
@@ -83,4 +83,41 @@ export function gzCurve(modelDocument,{
     }));
   }
   return values;
+}
+
+
+export function gzMetrics(curve){
+  const points=(curve||[])
+    .map(point=>({heelDeg:Number(point.heelDeg),gz:Number(point.gz),rightingMoment:Number(point.rightingMoment)}))
+    .filter(point=>Number.isFinite(point.heelDeg)&&Number.isFinite(point.gz))
+    .sort((a,b)=>a.heelDeg-b.heelDeg);
+  if(!points.length)return {valid:false,reason:"No finite GZ points"};
+
+  const maxPoint=points.reduce((best,point)=>point.gz>best.gz?point:best,points[0]);
+  const minPoint=points.reduce((best,point)=>point.gz<best.gz?point:best,points[0]);
+  const positive=points.filter(point=>point.heelDeg>=0);
+  let areaPositiveMrad=0;
+  for(let i=1;i<positive.length;i++){
+    const a=positive[i-1],b=positive[i];
+    const dphi=(b.heelDeg-a.heelDeg)*Math.PI/180;
+    areaPositiveMrad+=Math.max(0,(Math.max(a.gz,0)+Math.max(b.gz,0))*.5*dphi);
+  }
+  const firstPositive=positive.find(point=>point.heelDeg>0&&Math.abs(point.gz)>1e-12);
+  const initialGmEstimate=firstPositive
+    ?firstPositive.gz/Math.sin(firstPositive.heelDeg*Math.PI/180)
+    :null;
+  const positiveRange=positive.filter(point=>point.gz>0);
+
+  return {
+    valid:true,
+    maxGz:maxPoint.gz,
+    angleAtMaxGz:maxPoint.heelDeg,
+    minGz:minPoint.gz,
+    angleAtMinGz:minPoint.heelDeg,
+    areaPositiveMrad,
+    initialGmEstimate:Number.isFinite(initialGmEstimate)?initialGmEstimate:null,
+    positiveHeelMin:positiveRange.length?positiveRange[0].heelDeg:null,
+    positiveHeelMax:positiveRange.length?positiveRange[positiveRange.length-1].heelDeg:null,
+    samples:points.length
+  };
 }
