@@ -66,3 +66,24 @@ test("Hydro panel renders standard hydrostatic particulars and curve table",()=>
   assert.equal(rendered.curveRows.length,3);
   assert.ok(rendered.particulars.tonnesPerCm>0);
 });
+
+
+test("Hydro panel exposes CSV exports and GZ summary when stability curve exists",()=>{
+  const curve=[.5,1,1.5].map(draft=>({
+    waterline:draft,volume:40*draft,centerOfBuoyancy:[0,0,draft/2],
+    components:[{componentId:"hull"}],
+    waterplane:{area:40,centroid:[0,0],ixx:53.333333,iyy:333.333333,ixy:0}
+  }));
+  const gz=[
+    {heelDeg:0,gz:0,rightingMoment:0,waterline:1,displacementMass:40000},
+    {heelDeg:5,gz:.08,rightingMoment:31381,waterline:1.01,displacementMass:40000},
+    {heelDeg:10,gz:.12,rightingMoment:47072,waterline:1.02,displacementMass:40000}
+  ];
+  const rendered=panel({curve,kg:.6,gz});
+  assert.match(rendered.results,/id="hydro-export-table"/);
+  assert.match(rendered.results,/id="hydro-export-gz"/);
+  assert.match(rendered.results,/Max GZ/);
+  assert.match(rendered.results,/Area \+heel/);
+  assert.equal(rendered.gzSummary.valid,true);
+  assert.equal(rendered.gzSummary.angleAtMaxGz,10);
+});
