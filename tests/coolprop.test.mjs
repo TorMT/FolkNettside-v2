@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   COOLPROP_OUTPUT_ALIASES,COOLPROP_PHASE_INDEX,COURSE_TABLE_CONFIGS,COURSE_TABLE_LABELS,DEFAULT_FLUIDS,DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,TABLE_REFERENCE_PROFILES,
-  applyBookBasis,batchFormat,computeBatch,computeCourseReferenceTable,computeProcess,computeTable4,computeState,courseTableConfig,courseTableLabel,inputToSI,outputFromSI,
+  applyBookBasis,batchFormat,computeBatch,computeCourseReferenceTable,computeProcess,computeTable4,computeState,courseTableConfig,courseTableDefaultRows,courseTableLabel,inputToSI,outputFromSI,
   parseBatchRows,phaseDescription,propsSIOutput,removeBookBasis,saturationWarning,tableReferenceOffsets,tableReferenceProfile,
   processTargetOptions,rowsToCSV,rowsToJSON,unitLabel,verifyTableReference
 } from "../src/tools/coolprop-core.js";
@@ -168,6 +168,32 @@ test("course table labels and profiles follow the selected working fluid",()=>{
   assert.equal(tableReferenceProfile("Ammonia"),TABLE_REFERENCE_PROFILES.Ammonia);
   assert.equal(tableReferenceProfile("Water"),null);
   assert.equal(COURSE_TABLE_LABELS.Ammonia,"Ammonia · Tables A-13 / A-14 / A-15");
+});
+
+test("course table presets follow selected display units",()=>{
+  assert.equal(courseTableDefaultRows("Water","A-2",{temperature:"C"}).split("\n")[1],"20");
+  assert.equal(courseTableDefaultRows("Water","A-2",{temperature:"K"}).split("\n")[1],"293.15");
+  assert.equal(courseTableDefaultRows("Water","A-3",{pressure:"bar"}).split("\n")[1],"1");
+  assert.equal(courseTableDefaultRows("Water","A-3",{pressure:"kPa"}).split("\n")[1],"100");
+  assert.equal(courseTableDefaultRows("Ammonia","A-15",{temperature:"K",pressure:"MPa"}).split("\n")[0],"253.15,0.1");
+  assert.equal(courseTableDefaultRows("Air","A-22",{temperature:"C"}).split("\n")[0],"300");
+});
+
+test("Air A-22 reference rows are temperature-only and evaluated at 1 bar",()=>{
+  const engine=fakeEngine();
+  const rows=computeCourseReferenceTable(engine,{
+    fluid:"Air",
+    tableId:"A-22",
+    rows:"300\n400",
+    units:DEFAULT_UNITS,
+    bookBasis:false
+  });
+  assert.equal(rows.length,2);
+  assert.equal(rows[0].T_K,300);
+  assert.equal(rows[1].T_K,400);
+  assert.equal(rows[0].Status,"OK");
+  assert.ok(engine.calls.some(call=>call[1]==="T"&&call[2]===300&&call[3]==="P"&&call[4]===100000));
+  assert.ok(!Object.hasOwn(rows[0],"P"));
 });
 
 test("Ammonia table basis calibrates H U and S to Table A-15 reference",()=>{
