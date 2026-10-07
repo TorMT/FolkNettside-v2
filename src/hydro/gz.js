@@ -21,7 +21,7 @@ export function gzAtHeel(modelDocument,{
   targetVolume,
   kg,
   density=1025,
-  tolerance=1e-7,
+  tolerance=1e-9,
   maxIterations=60,
   include=createHydroInclude(modelDocument)
 }){
@@ -69,7 +69,7 @@ export function gzCurve(modelDocument,{
   minHeel=-30,
   maxHeel=30,
   step=5,
-  tolerance=1e-7,
+  tolerance=1e-9,
   maxIterations=60,
   include=createHydroInclude(modelDocument)
 }={}){
