@@ -24,6 +24,30 @@ export const OUTPUTS=[
   ["Q","Quality"]
 ];
 
+export const COOLPROP_OUTPUT_ALIASES={
+  Cp:["Cp","Cpmass","C","CPMASS"],
+  Cv:["Cv","Cvmass","O","CVMASS"],
+  speed_sound:["speed_sound","speed_of_sound","A","SPEED_OF_SOUND"],
+  viscosity:["viscosity","V","VISCOSITY"],
+  conductivity:["conductivity","L","CONDUCTIVITY"],
+  Prandtl:["Prandtl","PRANDTL"]
+};
+
+export function propsSIOutput(engine,key,input1,value1SI,input2,value2SI,fluid){
+  const candidates=COOLPROP_OUTPUT_ALIASES[key]||[key];
+  let lastError=null;
+  for(const candidate of candidates){
+    try{
+      const value=engine.propsSI(candidate,input1,value1SI,input2,value2SI,fluid);
+      if(Number.isFinite(Number(value)))return {value:Number(value),key:candidate};
+      lastError=new Error(`${candidate} returned a non-finite value`);
+    }catch(error){
+      lastError=error;
+    }
+  }
+  throw lastError||new Error(`CoolProp output unavailable: ${key}`);
+}
+
 export const DEFAULT_FLUIDS=["Air","Water","Ammonia","Propane","CO2","Nitrogen","Oxygen","R134a"];
 
 export const TABLE4_R_SPEC={

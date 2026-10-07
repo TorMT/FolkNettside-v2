@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,
-  computeState,inputToSI,outputFromSI,parseBatchRows,phaseDescription,saturationWarning,
+  COOLPROP_OUTPUT_ALIASES,DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,
+  computeState,inputToSI,outputFromSI,parseBatchRows,phaseDescription,propsSIOutput,saturationWarning,
   processTargetOptions,rowsToCSV,rowsToJSON,unitLabel
 } from "../src/tools/coolprop-core.js";
 
