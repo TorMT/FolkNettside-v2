@@ -44,3 +44,7 @@
 @media(max-width:760px){.diverse-page,.dive-page{min-height:calc(100vh - 52px)}.diverse-hero,.dive-hero{display:grid;gap:14px;padding:24px 16px 20px}.diverse-hero h1,.dive-hero h1{font-size:32px}.diverse-hero p,.dive-hero p{font-size:12.5px;line-height:1.5}.diverse-session-card{min-width:0;max-width:none}.diverse-grid{grid-template-columns:1fr;gap:10px;padding:16px 12px 20px}.diverse-card{min-height:0;padding:15px}.diverse-architecture-note{margin:0 12px 28px}.dive-hero .btn{justify-self:start}.dive-controls{grid-template-columns:1fr 1fr;gap:8px;padding:13px 12px 9px}.dive-search{grid-column:1/-1}.dive-controls label:last-child{grid-column:1/-1}.dive-stats{padding:0 12px 9px}.dive-workspace{grid-template-columns:1fr;gap:9px;padding:0 12px 24px;min-height:0}.dive-map-panel{min-height:46vh;height:46vh}.dive-list-panel{min-height:0;max-height:340px}.dive-inspector{max-height:none;padding:12px}.dive-detail-head strong{font-size:15px}}
 
 @media(max-width:760px){.mobile-nav{grid-template-columns:repeat(5,1fr)}}
+
+.dive-stats-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 max(20px,calc((100vw - 1380px)/2)) 11px}
+.dive-stats-row .dive-stats{padding:0;min-width:0}.dive-export-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.dive-export-actions .btn{padding:7px 9px;font-size:10px}
+@media(max-width:760px){.dive-stats-row{display:grid;padding:0 12px 9px}.dive-export-actions{justify-content:start}.dive-export-actions .btn{flex:1 1 auto}}

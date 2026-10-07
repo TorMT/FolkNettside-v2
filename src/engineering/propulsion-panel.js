@@ -1,4 +1,4 @@
-import {actuatorDisk,actuatorDiskCurve} from "../propulsion/actuator-disk.js?v=d7a77dcc434279c45f086b67d5851f5fccc8c890";
+import {actuatorDisk,actuatorDiskCurve} from "../propulsion/actuator-disk.js?v=16b56f584df4a49cc3339da01884f6355feee37d";
 
 let fixturePromise;
 function esc(value){
