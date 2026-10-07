@@ -1,10 +1,20 @@
+import {componentSemantic} from "../model/semantic-assembly.js?v=b05c486c413758f85c7939d5eb40bc55c4305fe4";
 export function createHydroInclude(modelDocument){
   const components=modelDocument?.components||[];
-  const hasExplicitHydro=components.some(component=>
-    Object.prototype.hasOwnProperty.call(component.metadata||{},"hydro")
-  );
+  const hasExplicitHydro=components.some(component=>{
+    const metadata=component.metadata||{};
+    const semantic=componentSemantic(component);
+    return Object.prototype.hasOwnProperty.call(metadata,"hydro")
+      ||semantic.hydro!==null&&semantic.hydro!==undefined;
+  });
   return component=>{
     if(!component?.geometry)return false;
-    return hasExplicitHydro?component.metadata?.hydro===true:true;
+    if(!hasExplicitHydro)return true;
+    const metadata=component.metadata||{};
+    if(Object.prototype.hasOwnProperty.call(metadata,"hydro"))return metadata.hydro===true;
+    const semantic=componentSemantic(component);
+    if(typeof semantic.hydro==="boolean")return semantic.hydro;
+    if(semantic.hydro&&typeof semantic.hydro==="object")return semantic.hydro.include!==false;
+    return false;
   };
 }

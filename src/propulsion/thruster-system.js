@@ -1,4 +1,5 @@
-import {actuatorDisk} from "./actuator-disk.js?v=dead2c323df1d9c1379ab35a26c762e4b5520fac";
+import {componentSemantic} from "../model/semantic-assembly.js?v=b05c486c413758f85c7939d5eb40bc55c4305fe4";
+import {actuatorDisk} from "./actuator-disk.js?v=b05c486c413758f85c7939d5eb40bc55c4305fe4";
 
 const EPS=1e-12;
 const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
@@ -95,10 +96,14 @@ export function thrustersFromModelDocument(modelDocument){
   const scale=Number(modelDocument?.unitScaleToMeters)||1;
   const thrusters=[];
   for(const component of modelDocument?.components||[]){
-    const propulsion=component.metadata?.propulsion;
-    if(!propulsion)continue;
+    const semantic=componentSemantic(component);
+    const propulsion=semantic.thruster;
+    if(!propulsion||propulsion.enabled===false)continue;
     thrusters.push({
       id:component.id,name:component.name,
+      type:semantic.subtype||propulsion.type||"thruster",
+      subsystem:semantic.subsystem,
+      tags:semantic.tags,
       thrust:Number(propulsion.thrust)||0,
       diameter:Number(propulsion.diameter)||null,
       inflowSpeed:Number(propulsion.inflowSpeed)||0,
