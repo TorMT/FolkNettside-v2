@@ -21,6 +21,7 @@ import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js";
 import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js";
 import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
+import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js";
 import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js";
 import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js";
 import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js";
@@ -117,6 +118,50 @@ function selectEngineeringModel(id){
 function bindEngineeringModelSelector(){
   app.querySelector("#engineering-model-select")?.addEventListener("change",event=>{
     if(selectEngineeringModel(event.currentTarget.value))engineeringPage();
+  });
+}
+
+function blockedEngineeringWorkspaceHTML(documentModel,mode,capability){
+  const requirements=capability.requirements?.length
+    ?`<div class="engineering-requirements"><strong>Required before analysis</strong><ul>${capability.requirements.map(item=>`<li>${item}</li>`).join("")}</ul></div>`
+    :"";
+  return `<main class="workspace">
+    <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
+      ${["Model","Hydro","Structure","Resistance","Propulsion"].map(item=>`<button data-engineering-mode="${item}" class="${mode===item?"active":""}">${item}</button>`).join("")}
+    </div></div>
+    <aside class="tree">
+      <div class="tree-label">Analysis capability</div>
+      <div class="tree-row selected"><span>!</span><span class="tree-row-copy">${mode}<small>${capabilityLabel(capability)}</small></span></div>
+      <div class="tree-label">Model source</div>
+      <div class="tree-row"><span>◇</span><span class="tree-row-copy">${model.name}<small>${model.source?.datasetVersion?"dataset "+model.source.datasetVersion:"configured model"}</small></span></div>
+    </aside>
+    <section class="viewport"><div id="engineering-scene" class="engineering-scene"></div><div class="hud">${mode} · sourced geometry only</div></section>
+    <aside class="inspector">
+      <h3>${mode} unavailable</h3>
+      <div class="readout"><span>Status</span><strong class="status-warn">${capabilityLabel(capability)}</strong></div>
+      <p class="muted hydro-note">${capability.reason||"This analysis is not configured for the selected model."}</p>
+      ${requirements}
+    </aside>
+    <section class="results">
+      <div class="results-summary"><strong>No fabricated result</strong><div class="readout"><span>Model</span><strong>${documentModel.name}</strong></div></div>
+      <div class="engineering-empty-analysis"><strong>${mode} is capability-gated</strong><p>${capability.reason||"Required analysis inputs are not available."}</p></div>
+    </section>
+    <footer class="statusbar"><span>Units SI</span><span>${capabilityLabel(capability)}</span><span>Mode ${mode}</span><span class="top-spacer"></span><span>Sourced geometry</span></footer>
+  </main><div class="preview-badge">${mode} · capability gated</div>`;
+}
+
+function bindBlockedEngineeringWorkspace(documentModel,renderId){
+  bindNav();
+  bindEngineeringModelSelector();
+  app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
+  mountModelScene(app.querySelector("#engineering-scene"),documentModel,{
+    showSidebar:false,selectedComponentId
+  }).then(handle=>{
+    if(renderId!==engineeringRenderId){handle.cleanup();return}
+    engineeringCleanup=handle.cleanup;
+  }).catch(error=>{
+    const target=app.querySelector("#engineering-scene");
+    if(target)target.innerHTML=`<pre class="code-view">3D render error: ${String(error?.message||error)}</pre>`;
   });
 }
 
