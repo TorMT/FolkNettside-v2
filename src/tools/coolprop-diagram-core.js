@@ -89,10 +89,29 @@ function stateTP(engine,fluid,T,P,bookBasis=false){
     const raw=engine.propsSI(key,"T",T,"P",P,fluid);
     valuesSI[key]=applyBookBasis(engine,fluid,key,raw,bookBasis);
   }
-  return {valuesSI};
+  let phase="";
+  try{
+    phase=String(engine.phaseSI?.("T",T,"P",P,fluid)??engine.propsSI("Phase","T",T,"P",P,fluid));
+  }catch{}
+  return {valuesSI,phase};
 }
 
-export function generateIsotherms(engine,fluid,type="log-ph",{lines=7,points=28,bookBasis=false}={}){
+function appendContinuousPoint(data,point,phase,lastState){
+  if(!point)return {phase,lastPoint:null};
+  const normalized=String(phase||"").toLowerCase();
+  const previousPhase=String(lastState?.phase||"").toLowerCase();
+  const changedPhase=previousPhase&&normalized&&previousPhase!==normalized;
+  const previous=lastState?.lastPoint||null;
+  const dx=previous?Math.abs(point.x-previous.x):0;
+  const dy=previous?Math.abs(point.y-previous.y):0;
+  const xScale=previous?Math.max(1,Math.abs(previous.x),Math.abs(point.x)):1;
+  const yScale=previous?Math.max(1,Math.abs(previous.y),Math.abs(point.y)):1;
+  const jumped=Boolean(previous)&&(dx/xScale>1.5||dy/yScale>1.5);
+  data.push({...point,breakBefore:Boolean(lastState?.gap||changedPhase||jumped)});
+  return {phase,lastPoint:point,gap:false};
+}
+
+export function generateIsotherms(engine,fluid,type="log-ph",{lines=7,points=36,bookBasis=false}={}){
   const {Tcrit,Pcrit,Ttriple}=criticalData(engine,fluid);
   const output=[];
   const Tmin=Ttriple*1.02,Tmax=Tcrit*1.45;
@@ -100,20 +119,24 @@ export function generateIsotherms(engine,fluid,type="log-ph",{lines=7,points=28,
   for(let i=0;i<lines;i++){
     const T=Tmin+(Tmax-Tmin)*(i/(Math.max(1,lines-1)));
     const data=[];
+    let continuity={phase:"",lastPoint:null,gap:false};
     for(let j=0;j<points;j++){
       const f=j/(Math.max(1,points-1));
       const P=Pmin*Math.pow(Pmax/Pmin,f);
       try{
-        const p=stateToDiagramPoint(stateTP(engine,fluid,T,P,bookBasis),type);
-        if(p)data.push(p);
-      }catch{}
+        const state=stateTP(engine,fluid,T,P,bookBasis);
+        const p=stateToDiagramPoint(state,type);
+        continuity=appendContinuousPoint(data,p,state.phase,continuity);
+      }catch{
+        continuity={...continuity,gap:true};
+      }
     }
-    if(data.length)output.push({label:`T=${(T-273.15).toFixed(0)} °C`,points:data});
+    if(data.length>1)output.push({label:`T=${(T-273.15).toFixed(0)} °C`,points:data});
   }
   return output;
 }
 
-export function generateIsobars(engine,fluid,type="log-ph",{lines=7,points=28,bookBasis=false}={}){
+export function generateIsobars(engine,fluid,type="log-ph",{lines=7,points=36,bookBasis=false}={}){
   const {Tcrit,Pcrit,Ttriple}=criticalData(engine,fluid);
   const output=[];
   const Pmin=Math.max(1e3,Pcrit*1e-4),Pmax=Pcrit*2;
@@ -121,14 +144,18 @@ export function generateIsobars(engine,fluid,type="log-ph",{lines=7,points=28,bo
   for(let i=0;i<lines;i++){
     const P=Pmin*Math.pow(Pmax/Pmin,i/(Math.max(1,lines-1)));
     const data=[];
+    let continuity={phase:"",lastPoint:null,gap:false};
     for(let j=0;j<points;j++){
       const T=Tmin+(Tmax-Tmin)*(j/(Math.max(1,points-1)));
       try{
-        const p=stateToDiagramPoint(stateTP(engine,fluid,T,P,bookBasis),type);
-        if(p)data.push(p);
-      }catch{}
+        const state=stateTP(engine,fluid,T,P,bookBasis);
+        const p=stateToDiagramPoint(state,type);
+        continuity=appendContinuousPoint(data,p,state.phase,continuity);
+      }catch{
+        continuity={...continuity,gap:true};
+      }
     }
-    if(data.length)output.push({label:`P=${(P/1e5).toFixed(2)} bar`,points:data});
+    if(data.length>1)output.push({label:`P=${(P/1e5).toFixed(2)} bar`,points:data});
   }
   return output;
 }
@@ -137,27 +164,30 @@ export function diagramDatasets(engine,fluid,type,states=[],options={}){
   const datasets=[];
   const bookBasis=Boolean(options.bookBasis);
   const saturation=generateSaturationCurve(engine,fluid,type,{points:options.saturationPoints||60,bookBasis});
-  if(saturation.liquid.length)datasets.push({kind:"saturation",label:"Saturated liquid",points:saturation.liquid});
-  if(saturation.vapor.length)datasets.push({kind:"saturation",label:"Saturated vapour",points:saturation.vapor});
+  if(saturation.liquid.length)datasets.push({kind:"saturation",label:"Saturated liquid",points:saturation.liquid,affectsBounds:true});
+  if(saturation.vapor.length)datasets.push({kind:"saturation",label:"Saturated vapour",points:saturation.vapor,affectsBounds:true});
   if(options.quality!==false){
-    for(const line of generateQualityLines(engine,fluid,type,{bookBasis}))datasets.push({kind:"quality",...line});
+    for(const line of generateQualityLines(engine,fluid,type,{bookBasis}))datasets.push({kind:"quality",affectsBounds:false,...line});
   }
   if(options.isotherms!==false){
-    for(const line of generateIsotherms(engine,fluid,type,{bookBasis}))datasets.push({kind:"isotherm",...line});
+    for(const line of generateIsotherms(engine,fluid,type,{bookBasis}))datasets.push({kind:"isotherm",affectsBounds:false,...line});
   }
   if(options.isobars!==false){
-    for(const line of generateIsobars(engine,fluid,type,{bookBasis}))datasets.push({kind:"isobar",...line});
+    for(const line of generateIsobars(engine,fluid,type,{bookBasis}))datasets.push({kind:"isobar",affectsBounds:false,...line});
   }
   const statePoints=states.map((state,index)=>{
     const point=stateToDiagramPoint(state,type);
     return point?{...point,label:String(index+1)}:null;
   }).filter(Boolean);
-  if(statePoints.length)datasets.push({kind:"states",label:"State points",points:statePoints});
+  if(statePoints.length)datasets.push({kind:"states",label:"State points",points:statePoints,affectsBounds:true});
   return datasets;
 }
 
 export function dataBounds(datasets,{logY=false}={}){
-  const points=datasets.flatMap(dataset=>dataset.points||[]).filter(p=>
+  const bounded=datasets.some(dataset=>dataset.affectsBounds!==false)
+    ?datasets.filter(dataset=>dataset.affectsBounds!==false)
+    :datasets;
+  const points=bounded.flatMap(dataset=>dataset.points||[]).filter(p=>
     Number.isFinite(p.x)&&Number.isFinite(p.y)&&(!logY||p.y>0)
   );
   if(!points.length)return {xmin:0,xmax:1,ymin:logY?.1:0,ymax:1};
