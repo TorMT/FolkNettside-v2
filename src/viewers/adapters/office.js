@@ -1,6 +1,6 @@
-import {escapeHTML,extension} from "../utils.js?v=fbba8f74c8f04f8b78381cb3dc4b30bc59589ee9";
-import {getJSZip} from "../../vendor/jszip.js?v=fbba8f74c8f04f8b78381cb3dc4b30bc59589ee9";
-import {createDomFinder} from "../dom-search.js?v=fbba8f74c8f04f8b78381cb3dc4b30bc59589ee9";
+import {escapeHTML,extension} from "../utils.js?v=2537e12ee4dd65bbcec0a37f598b5f92e6660b22";
+import {getJSZip} from "../../vendor/jszip.js?v=2537e12ee4dd65bbcec0a37f598b5f92e6660b22";
+import {createDomFinder} from "../dom-search.js?v=2537e12ee4dd65bbcec0a37f598b5f92e6660b22";
 
 function parseXML(text){
   const doc=new DOMParser().parseFromString(text,"application/xml");
