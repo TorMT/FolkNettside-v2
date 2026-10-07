@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
-import {diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveStats,filterDiveFeatures,sortDiveFeatures} from "../src/diverse/dive-core.js";
+import {diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeatureQuality,diveStats,filterDiveFeatures,sortDiveFeatures} from "../src/diverse/dive-core.js";
 
 const dataset=JSON.parse(await readFile(new URL("../data/diving/trondheim-sites.geojson",import.meta.url),"utf8"));
 const features=dataset.features;
@@ -27,9 +27,13 @@ test("dive level and wreck classification follow source metadata",()=>{
   const korsvika=features.find(f=>f.properties.Navn==="Korsvika");
   const vangshylla=features.find(f=>f.properties.Navn==="Vangshylla");
   const hercules=features.find(f=>f.properties.Navn==="Herkules");
+  const hundhammeren=features.find(f=>f.properties.Navn==="Hundhammeren");
+  const tautrarevet=features.find(f=>f.properties.Navn==="Tautrarevet");
   assert.equal(diveFeatureLevel(korsvika),"P1");
   assert.equal(diveFeatureLevel(vangshylla),"P3");
   assert.equal(diveFeatureLevel(hercules),"TECH");
+  assert.equal(diveFeatureLevel(hundhammeren),"P3");
+  assert.equal(diveFeatureLevel(tautrarevet),"TECH");
   assert.equal(diveFeatureKind(hercules),"wreck");
 });
 
@@ -57,4 +61,16 @@ test("dive sorting and stats are deterministic",()=>{
   assert.ok(stats.withCoordinates<features.length);
   assert.ok(stats.withCoordinates>=60);
   assert.equal(stats.wrecks+stats.nature,features.length);
+});
+
+
+test("DG additions and data-quality filtering are preserved",()=>{
+  assert.ok(features.some(f=>f.properties.Navn==="Ladekaia"));
+  assert.ok(features.some(f=>f.properties.Navn==="Hundhammeren"));
+  assert.ok(features.some(f=>f.properties.Navn==="Tautrarevet"));
+  const strongest=filterDiveFeatures(features,{quality:"A"});
+  assert.ok(strongest.length>0);
+  assert.ok(strongest.every(f=>diveFeatureQuality(f)==="A"));
+  const verify=filterDiveFeatures(features,{quality:"C"});
+  assert.ok(verify.some(f=>String(f.properties.Datakvalitet).startsWith("C")));
 });
