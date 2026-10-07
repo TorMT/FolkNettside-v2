@@ -10,20 +10,20 @@ export const DIVERSE_MODULES=[
     summary:"Kart, dykkesteder, vrak, dybde, fauna, adkomst, farer og kildeproveniens.",
     legacyUrl:null,
     storage:"local",
-    sync:"optional-account"
+    sync:"site-google-session"
   },
   {
     id:"brewing",
     title:"Brygging",
     short:"BREW",
     route:"/diverse/brewing",
-    status:"migration",
+    status:"native",
     access:"optional",
     category:"Data",
-    summary:"Hydrometerdata, bryggelogger, oppskrifter og gjæringsanalyse bygges om til shared v2 UI.",
+    summary:"Native v2 Brewing UI for hydrometerdata, bryggelogger, oppskrifter og gjæringsanalyse. Google Drive reuses the site-level account session.",
     legacyUrl:"https://tormt.folk.ntnu.no/diverse/Brygging/",
-    storage:"local",
-    sync:"optional-account"
+    storage:"local+google-drive",
+    sync:"site-google-session"
   },
   {
     id:"njord",
@@ -60,8 +60,8 @@ export const DIVERSE_MODULES=[
     access:"public",
     category:"Utility",
     summary:"Rekonstruert native v2-klient for Kassalapp-søk, EAN-basert butikkprissammenligning og lokal handleliste; API-nøkkelen ligger kun i serverproxyen.",
-    legacyUrl:"https://tormt.folk.ntnu.no/diverse/Matprissok/",
-    storage:"legacy-api",
+    legacyUrl:null,
+    storage:"local+server-proxy",
     sync:"none"
   },
   {
