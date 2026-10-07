@@ -1,5 +1,5 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=7fd0b6051ba8d09371ee3c9ce6dd8d2247513c8b";
-import {gzMetrics} from "../hydro/gz.js?v=7fd0b6051ba8d09371ee3c9ce6dd8d2247513c8b";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=d7a77dcc434279c45f086b67d5851f5fccc8c890";
+import {gzMetrics} from "../hydro/gz.js?v=d7a77dcc434279c45f086b67d5851f5fccc8c890";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -180,6 +180,10 @@ export function hydroPanelHTML({
           <div><span class="muted">TPC</span><strong>${particulars.tonnesPerCm.toFixed(3)} t/cm</strong></div>
           <div><span class="muted">Ixx</span><strong>${particulars.ixx.toFixed(3)} m⁴</strong></div>
           <div><span class="muted">Iyy</span><strong>${particulars.iyy.toFixed(3)} m⁴</strong></div>
+          <div><span class="muted">Ixy</span><strong>${particulars.ixy.toFixed(3)} m⁴</strong></div>
+          <div><span class="muted">Principal I max / min</span><strong>${particulars.principalMomentMajor.toFixed(3)} / ${particulars.principalMomentMinor.toFixed(3)} m⁴</strong></div>
+          <div><span class="muted">Principal axis</span><strong>${particulars.principalAxisDeg.toFixed(2)}° from +x</strong></div>
+          <div><span class="muted">Principal BM max / min</span><strong>${particulars.principalBmMajor.toFixed(3)} / ${particulars.principalBmMinor.toFixed(3)} m</strong></div>
           ${particulars.valid?`
             <div><span class="muted">BM transverse</span><strong>${particulars.bmTransverse.toFixed(3)} m</strong></div>
             <div><span class="muted">BM longitudinal</span><strong>${particulars.bmLongitudinal.toFixed(3)} m</strong></div>
@@ -190,7 +194,7 @@ export function hydroPanelHTML({
           `:""}
         </div>
         <div class="hydro-curves-column">
-          <p class="muted hydro-stability-note">LCF/TCF are the waterplane centroid. TPC is tonnes per centimetre immersion. BM/KM/GM are initial small-angle values; GZ resolves a new waterline at constant displacement for every heel angle.</p>
+          <p class="muted hydro-stability-note">LCF/TCF are the waterplane centroid. TPC is tonnes per centimetre immersion. Principal waterplane moments account for non-zero Ixy on asymmetric waterplanes. BM/KM/GM are initial small-angle values; GZ resolves a new waterline at constant displacement for every heel angle.</p>
           ${gzSummary.valid?`<div class="gz-metrics">
             <div><span>Max GZ</span><strong>${fmt(gzSummary.maxGz,3)} m</strong></div>
             <div><span>Angle @ max</span><strong>${fmt(gzSummary.angleAtMaxGz,1)}°</strong></div>
