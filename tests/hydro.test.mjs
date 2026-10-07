@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {analyzeHydrostatics,analyzeModelDocument,analyzePreparedHydro,hydroCurve,prepareHydroModel,solveWaterlineForVolume} from "../src/hydro/hydrostatics.js";
+import {analyzeHydrostatics,analyzeModelDocument,analyzePreparedHydro,hydroCurve,prepareHydroModel,solveWaterlineForVolume,triangleZBounds} from "../src/hydro/hydrostatics.js";
 import {boxMesh,reverseWinding,wedgePrismMesh} from "../src/hydro/fixtures.js";
 import {createHydroInclude} from "../src/hydro/hydro-selection.js";
 
@@ -145,4 +145,41 @@ test("prepared hydro model is numerically identical to direct ModelDocument anal
   near(cached.waterplane.area,direct.waterplane.area,1e-10);
   near(cached.waterplane.ixx,direct.waterplane.ixx,1e-10);
   near(cached.waterplane.iyy,direct.waterplane.iyy,1e-10);
+});
+
+
+test("triangle z-bounds fast path is numerically identical to generic clipping",()=>{
+  const mesh=wedgePrismMesh({L:8,B:2,H0:.5,H1:2});
+  const bounds=triangleZBounds(mesh);
+  assert.equal(bounds.length,mesh.indices.length/3*2);
+  for(const waterline of [-.2,0,.25,.75,1.5,3]){
+    const generic=analyzeHydrostatics(mesh,waterline);
+    const fast=analyzeHydrostatics(mesh,waterline,bounds);
+    near(fast.volume,generic.volume,1e-10);
+    near(fast.centerOfBuoyancy[0],generic.centerOfBuoyancy[0],1e-10);
+    near(fast.centerOfBuoyancy[1],generic.centerOfBuoyancy[1],1e-10);
+    near(fast.centerOfBuoyancy[2],generic.centerOfBuoyancy[2],1e-10);
+    near(fast.waterplane.area,generic.waterplane.area,1e-10);
+  }
+});
+
+test("prepared hydro caches per-triangle z bounds",()=>{
+  const model={unitScaleToMeters:1,components:[{id:"hull",geometry:boxMesh({L:10,B:3,H:2}),metadata:{hydro:true}}]};
+  const prepared=prepareHydroModel(model,{include:createHydroInclude(model)});
+  assert.equal(prepared.components.length,1);
+  assert.equal(prepared.components[0].triangleZBounds.length,24);
+});
+
+test("semantic hydro metadata can include hull and exclude appendages",()=>{
+  const model={
+    unitScaleToMeters:1,
+    components:[
+      {id:"hull",geometry:boxMesh({L:10,B:3,H:2}),metadata:{semantic:{role:"hull",hydro:{include:true}}}},
+      {id:"thruster",geometry:boxMesh({L:2,B:2,H:2}),metadata:{semantic:{role:"thruster",hydro:{include:false}}}}
+    ]
+  };
+  const include=createHydroInclude(model);
+  const result=analyzeModelDocument(model,1.2,{include});
+  near(result.volume,36,1e-7);
+  assert.deepEqual(result.components.map(component=>component.componentId),["hull"]);
 });
