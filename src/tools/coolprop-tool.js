@@ -1,7 +1,7 @@
 import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,TABLE4_PRESETS,
-  computeBatch,computeProcess,computeState,computeTable4,courseTableLabel,processTargetOptions,
-  rowsToCSV,rowsToJSON,saturationWarning,tableReferenceProfile,unitLabel
+  computeBatch,computeProcess,computeState,computeTable4,processTargetOptions,
+  rowsToCSV,rowsToJSON,saturationWarning,unitLabel
 } from "./coolprop-core.js";
 import {getCoolProp} from "../vendor/coolprop-runtime.js";
 import {mountCoolPropDiagram} from "./coolprop-diagram-view.js";
@@ -71,23 +71,15 @@ function normalizedState(state={}){
 }
 
 function globalSettingsHTML(s){
-  const profile=tableReferenceProfile(s.fluid);
-  const tableLabel=courseTableLabel(s.fluid);
-  return `<section class="coolprop-global">
-    <div class="coolprop-fluid-control">
-      <span class="coolprop-control-kicker">Working fluid</span>
-      <label class="coolprop-select-field"><select id="cp-fluid">${DEFAULT_FLUIDS.map(name=>`<option ${name===s.fluid?"selected":""}>${name}</option>`).join("")}</select></label>
+  return `<section class="coolprop-global settings-card">
+    <div class="coolprop-global-grid">
+      <label class="field"><span>Fluid</span><select id="cp-fluid">${DEFAULT_FLUIDS.map(name=>`<option ${name===s.fluid?"selected":""}>${name}</option>`).join("")}</select></label>
+      <label class="field"><span>Pressure unit</span><select id="cp-pressure-unit">${selectOptions(["Pa","kPa","MPa","bar"],s.units.pressure)}</select></label>
+      <label class="field"><span>Temperature unit</span><select id="cp-temperature-unit">${selectOptions(["K","C"],s.units.temperature)}</select></label>
+      <label class="field"><span>H/U unit</span><select id="cp-energy-unit">${selectOptions(["Jkg","kJkg"],s.units.energy)}</select></label>
+      <label class="field"><span>S/Cp/Cv unit</span><select id="cp-entropy-unit">${selectOptions(["JkgK","kJkgK"],s.units.entropy)}</select></label>
+      <label class="coolprop-book-toggle"><input id="cp-book-basis" type="checkbox" ${s.bookBasis?"checked":""}><span>Table reference · Air A-22</span><small>Align H/U/S reference to course Table A-22 · off = CoolProp default</small></label>
     </div>
-    <div class="coolprop-unit-controls">
-      <span class="coolprop-control-kicker">Display units</span>
-      <div class="coolprop-unit-grid">
-        <label><span>P</span><select id="cp-pressure-unit">${selectOptions(["Pa","kPa","MPa","bar"],s.units.pressure)}</select></label>
-        <label><span>T</span><select id="cp-temperature-unit">${selectOptions(["K","C"],s.units.temperature)}</select></label>
-        <label><span>H / U</span><select id="cp-energy-unit">${selectOptions(["Jkg","kJkg"],s.units.energy)}</select></label>
-        <label><span>S / C</span><select id="cp-entropy-unit">${selectOptions(["JkgK","kJkgK"],s.units.entropy)}</select></label>
-      </div>
-    </div>
-    <label class="coolprop-book-toggle ${profile?"":"disabled"}"><input id="cp-book-basis" type="checkbox" ${s.bookBasis&&profile?"checked":""} ${profile?"":"disabled"}><span><strong>${esc(tableLabel)}</strong><small>${profile?"Shift H/U/S to the selected course-table reference":"No calibrated course-table reference yet"}</small></span></label>
   </section>`;
 }
 
@@ -100,7 +92,7 @@ function singleHTML(s){
       <label class="field"><span>Input 2</span><select id="cp-single-i2">${inputOptions(x.input2)}</select></label>
       <label class="field"><span>Value 2</span><input id="cp-single-v2" type="number" step="any" value="${esc(x.value2)}"></label>
     </div>
-    <div class="coolprop-actions"><button class="btn primary" id="cp-single-run">Calculate state</button><button class="btn" id="cp-single-example">1 bar · 25 °C</button><button class="btn" id="cp-single-diagram">Show diagram</button></div>
+    <div class="coolprop-actions"><button class="btn primary" id="cp-single-run">Calculate state</button><button class="btn" id="cp-single-example">Air · 1 bar · 25 °C</button><button class="btn" id="cp-single-diagram">Show diagram</button></div>
     <div id="cp-single-results" class="coolprop-results"><div class="tool-result-card"><span>Ready</span><strong>Choose a state</strong><p>The WASM engine loads only when calculation starts.</p></div></div>
   </section>`;
 }
@@ -173,24 +165,18 @@ export function coolPropToolHTML(state={}){
   const s=normalizedState(state);
   return `<main class="tool-page coolprop-page">
     <div class="crumbs">Courses / Tools / CoolProp</div>
-    <header class="tool-header coolprop-header">
-      <div class="coolprop-title-copy">
-        <div class="coolprop-title-meta"><span class="project-kicker">Thermodynamics</span><span class="coolprop-verified-badge">Real-WASM verified</span></div>
-        <h1>CoolProp</h1>
-        <p>Thermophysical states, processes and diagrams from the local CoolProp engine.</p>
-        <details class="coolprop-verification">
-          <summary>Numerical verification</summary>
-          <span>Air A-22 is CI-checked at 300 / 400 / 1000 / 1200 K with inverse P-h, plus Water saturation and R134a two-phase references. <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">Legacy reference ↗</a></span>
-        </details>
-      </div>
-      <div class="coolprop-header-actions"><div class="coolprop-engine-status" id="coolprop-status">Engine offline</div><button class="btn coolprop-help-button" id="cp-help-open">Help</button></div>
+    <header class="tool-header">
+      <div><span class="project-kicker">Thermodynamics tool</span><h1>CoolProp</h1>
+      <p>Local WebAssembly property engine with the legacy state, batch, process and explore workflows.</p>
+      <div class="tool-parity-banner"><strong>Full parity · real-WASM verified:</strong> Air A-22 reference conversion is numerically CI-checked at 300/400/1000/1200 K, including inverse P-h handling, with representative Water saturation and R134a two-phase checks. Off = native CoolProp reference basis. The <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">legacy tool ↗</a> remains available as a safety reference.</div></div>
+      <div class="coolprop-header-actions"><div class="coolprop-engine-status" id="coolprop-status">Engine not loaded</div><button class="btn" id="cp-help-open">Help</button></div>
     </header>
 
     ${globalSettingsHTML(s)}
 
-    <div class="coolprop-workspace-head"><span>Workspace</span><nav class="coolprop-tabs">
+    <nav class="coolprop-tabs">
       ${[["single","Single"],["batch","Batch"],["process","Process"],["explore","All data"]].map(([id,label])=>`<button data-cp-tab="${id}" class="${s.tab===id?"active":""}">${label}</button>`).join("")}
-    </nav></div>
+    </nav>
 
     ${singleHTML(s)}
     ${batchHTML(s)}
@@ -226,9 +212,9 @@ export function coolPropToolHTML(state={}){
       </div>
     </dialog>
 
-    <section class="coolprop-export">
-      <span>Last result</span>
-      <div class="coolprop-export-actions"><button class="btn" id="cp-export-csv" ${s.exportRows.length?"":"disabled"}>CSV</button><button class="btn" id="cp-export-json" ${s.exportRows.length?"":"disabled"}>JSON</button></div>
+    <section class="settings-card coolprop-export">
+      <strong>Export last result</strong>
+      <div class="coolprop-actions"><button class="btn" id="cp-export-csv" ${s.exportRows.length?"":"disabled"}>Export CSV</button><button class="btn" id="cp-export-json" ${s.exportRows.length?"":"disabled"}>Export JSON</button></div>
     </section>
   </main>`;
 }
@@ -312,12 +298,7 @@ export function bindCoolPropTool(root,state,onState){
     root.querySelector("#cp-export-json")?.toggleAttribute("disabled",!s.exportRows.length);
   };
 
-  root.querySelector("#cp-fluid")?.addEventListener("change",()=>{
-    const next=syncGlobal();
-    if(!tableReferenceProfile(next.fluid))next.bookBasis=false;
-    save(next,true);
-  });
-  for(const selector of ["#cp-pressure-unit","#cp-temperature-unit","#cp-energy-unit","#cp-entropy-unit","#cp-book-basis"]){
+  for(const selector of ["#cp-fluid","#cp-pressure-unit","#cp-temperature-unit","#cp-energy-unit","#cp-entropy-unit","#cp-book-basis"]){
     root.querySelector(selector)?.addEventListener("change",()=>save(syncGlobal(),false));
   }
 
