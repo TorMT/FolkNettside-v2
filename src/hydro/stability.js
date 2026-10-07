@@ -47,6 +47,26 @@ export function rectangularBargeStability({L,B,T,kg=null}){
 }
 
 
+export function waterplanePrincipalAxes(waterplane={}){
+  const ixx=Number(waterplane.ixx)||0;
+  const iyy=Number(waterplane.iyy)||0;
+  const ixy=Number(waterplane.ixy)||0;
+  const mean=(ixx+iyy)/2;
+  const radius=Math.hypot((ixx-iyy)/2,ixy);
+  const major=mean+radius;
+  const minor=mean-radius;
+  const angleRad=.5*Math.atan2(2*ixy,iyy-ixx);
+  return {
+    major,
+    minor:Math.max(0,minor),
+    angleRad,
+    angleDeg:angleRad*180/Math.PI,
+    ixx,
+    iyy,
+    ixy
+  };
+}
+
 export function hydrostaticParticulars(hydroResult,{density=1025,kg=null}={}){
   const volume=Number(hydroResult?.volume);
   const waterplane=hydroResult?.waterplane||{};
@@ -55,6 +75,7 @@ export function hydrostaticParticulars(hydroResult,{density=1025,kg=null}={}){
   const centroid=Array.isArray(waterplane.centroid)?waterplane.centroid:[0,0];
   const rho=Number(density)||1025;
   const stability=initialStability(hydroResult,{kg});
+  const principal=waterplanePrincipalAxes(waterplane);
 
   return {
     valid:volume>0,
@@ -69,6 +90,12 @@ export function hydrostaticParticulars(hydroResult,{density=1025,kg=null}={}){
     tonnesPerCm:area>0?rho*area*0.01/1000:0,
     ixx:Number(waterplane.ixx)||0,
     iyy:Number(waterplane.iyy)||0,
+    ixy:Number(waterplane.ixy)||0,
+    principalMomentMajor:principal.major,
+    principalMomentMinor:principal.minor,
+    principalAxisDeg:principal.angleDeg,
+    principalBmMajor:volume>0?principal.major/volume:0,
+    principalBmMinor:volume>0?principal.minor/volume:0,
     ...stability
   };
 }
