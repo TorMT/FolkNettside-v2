@@ -1,35 +1,35 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {mountViewer} from "./viewer.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {loadContent} from "./content.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {renderResourceTree} from "./components/resource-tree.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {karakterwebUrl} from "./courses/external-links.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {buildSearchIndex} from "./search/search-index.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {createSearchController} from "./components/search-dialog.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {activeTools} from "./tools/tool-registry.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {loadModelDocument} from "./model/load-model.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {mountModelScene} from "./model/model-scene.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=0aba8c960174fa7200b9ea7c1d6018ccc60fb7fd";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {mountViewer} from "./viewer.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {loadContent} from "./content.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {renderResourceTree} from "./components/resource-tree.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {karakterwebUrl} from "./courses/external-links.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {buildSearchIndex} from "./search/search-index.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {createSearchController} from "./components/search-dialog.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {activeTools} from "./tools/tool-registry.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {loadModelDocument} from "./model/load-model.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {mountModelScene} from "./model/model-scene.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=27a0fb06f71c8133a9653948797dba9f1a98a00a";
 
 initSettings();
 
@@ -957,6 +957,7 @@ async function engineeringPage(){
   if(selected&&!selectedComponentId)selectedComponentId=selected.id;
 
   let hydro=null;
+  let engineeringReport=null;
   if(engineeringMode==="Hydro"){
     const config=model.hydro||{};
     const capability=analysisCapability(model,"hydro");
@@ -965,6 +966,16 @@ async function engineeringPage(){
       const requirements=capability.requirements?.length
         ?`<div class="engineering-requirements"><strong>Required before analysis</strong><ul>${capability.requirements.map(item=>`<li>${item}</li>`).join("")}</ul></div>`
         :"";
+      engineeringReport=engineeringCaseReport({
+        modelConfig:model,
+        modelDocument:documentModel,
+        mode:"Hydro",
+        capability,
+        method:{name:"capability gate",scope:"no hydrostatic solve executed"},
+        inputs:{draft:Number(config.defaultDraft)||0,density:Number(config.density)||1025},
+        results:{status:"blocked"},
+        warnings:[reason]
+      });
       hydro={
         inspector:`<h3>Hydro validation required</h3>
           <div class="geometry-warning"><strong>${capabilityLabel(capability)}</strong><span>${reason}</span></div>
@@ -1092,6 +1103,32 @@ async function engineeringPage(){
         geometryWarnings,
         config
       });
+      engineeringReport=engineeringCaseReport({
+        modelConfig:model,
+        modelDocument:documentModel,
+        mode:"Hydro",
+        capability,
+        method:{
+          name:"clipped-triangle hydrostatics",
+          scope:"world-space ModelDocument geometry with constant-displacement stability"
+        },
+        inputs:{
+          draft:hydroDraft,
+          targetDisplacementTonnes:hydroTargetTonnes===""?null:Number(hydroTargetTonnes),
+          density,
+          centerOfGravity:hasKg?centerOfGravity:null,
+          heelDeg:Number(hydroHeel)||0,
+          trimDeg:Number(hydroTrim)||0
+        },
+        results:{
+          hydro:result,
+          solvedDraft:solvedState?.value||null,
+          gz:gzState?.value||null,
+          attitude:attitudeState?.value||null
+        },
+        assumptions:["rigid body","constant water density","hydro geometry selected by semantic metadata"],
+        warnings:geometryWarnings.map(item=>`${item.name||item.componentId}: geometry is not watertight`)
+      });
     }catch(error){
       if(renderId!==engineeringRenderId)return;
       hydro={
@@ -1101,6 +1138,27 @@ async function engineeringPage(){
       };
     }
     }
+  }
+
+  if(!engineeringReport){
+    const capability=analysisCapability(model,"model");
+    engineeringReport=engineeringCaseReport({
+      modelConfig:model,
+      modelDocument:documentModel,
+      mode:engineeringMode,
+      capability,
+      method:{name:"semantic ModelDocument inspection",scope:"geometry and metadata inspection only"},
+      inputs:{selectedComponentId:selected?.id||null},
+      results:{
+        components:semanticInfo.components,
+        geometryComponents:semanticInfo.geometryComponents,
+        roles:semanticInfo.roles,
+        triangles:diagnostics.triangles,
+        watertight:diagnostics.watertight,
+        bounds:diagnostics.bounds
+      },
+      warnings:diagnostics.watertight?[]:["Model topology requires review before geometry-dependent engineering analysis."]
+    });
   }
 
   const semanticRoleText=Object.entries(semanticInfo.roles)
@@ -1132,7 +1190,7 @@ async function engineeringPage(){
   const waterline=hydro?`<div class="workspace-waterline" style="bottom:${hydro.waterlinePercent}%"><span>WL ${hydro.draft.toFixed(2)} m</span></div>`:"";
 
   app.innerHTML=top("engineering")+`<main class="workspace">
-    <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
+    <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
       ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
     </div></div>
     <aside class="tree"><input id="component-filter" placeholder="Filter name, role or subsystem"><div class="tree-label">Semantic assembly</div>
@@ -1151,6 +1209,7 @@ async function engineeringPage(){
 
   bindNav();
   bindEngineeringModelSelector();
+  bindEngineeringCaseExport(engineeringReport);
   let sceneHandle=null;
   const updateSelection=component=>{
     if(!component)return;
