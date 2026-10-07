@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Diverse dive smoke</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/diverse.css">
+</head>
+<body data-status="running">
+<div id="app"></div>
+<pre id="result">running</pre>
+<script type="module">
+import {diveMapHTML} from "../../src/diverse/dive-map.js";
+import {diveFeatureLevel,diveStats,filterDiveFeatures} from "../../src/diverse/dive-core.js";
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+try{
+  document.querySelector("#app").innerHTML=diveMapHTML();
+  const data=await fetch("../../data/diving/trondheim-sites.geojson").then(r=>r.json());
+  const features=data.features||[];
+  const stats=diveStats(features);
+  assert(features.length>=88,"canonical dive master missing rows");
+  assert(stats.withCoordinates>=60&&stats.withCoordinates<features.length,"coordinate coverage must preserve unknown positions");
+  assert(features.some(f=>f.properties?.Navn==="Ladekaia"),"DG Ladekaia addition missing");
+  assert(features.some(f=>f.properties?.Navn==="Tautrarevet"),"DG Tautrarevet addition missing");
+  assert(diveFeatureLevel(features.find(f=>f.properties?.Navn==="Hundhammeren"))==="P3","mixed P2-3 must map conservatively to P3");
+  assert(diveFeatureLevel(features.find(f=>f.properties?.Navn==="Tautrarevet"))==="TECH","technical label missing");
+  assert(filterDiveFeatures(features,{query:"hummer"}).length>0,"wildlife search failed");
+  assert(filterDiveFeatures(features,{quality:"C"}).length>0,"quality filter failed");
+  for(const id of ["dive-query","dive-level","dive-kind","dive-quality","dive-depth","dive-sort","dive-map-canvas","dive-list","dive-inspector"]){
+    assert(document.getElementById(id),id+" missing");
+  }
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent=JSON.stringify({records:features.length,mapped:stats.withCoordinates,unmapped:features.length-stats.withCoordinates});
+}catch(error){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script>
+</body>
+</html>
