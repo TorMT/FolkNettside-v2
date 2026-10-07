@@ -139,32 +139,32 @@ export const COURSE_TABLE_CONFIGS={
   Air:{
     label:"Air · Table A-22",
     tables:[
-      {id:"A-22",label:"Ideal-gas properties of air",mode:"ideal-gas"}
+      {id:"A-22",label:"Ideal-gas properties of air",mode:"ideal-gas",defaultRows:"300\n400\n600\n800\n1000\n1200",inputHint:"One temperature per line",temperatureBasis:"K",pressurePa:1e5}
     ]
   },
   Water:{
     label:"Water · Tables A-2 / A-3 / A-4 / A-5",
     tables:[
-      {id:"A-2",label:"Saturated water · temperature table",mode:"sat-T"},
-      {id:"A-3",label:"Saturated water · pressure table",mode:"sat-P"},
-      {id:"A-4",label:"Superheated water vapour",mode:"superheated"},
-      {id:"A-5",label:"Compressed liquid water",mode:"compressed"}
+      {id:"A-2",label:"Saturated water · temperature table",mode:"sat-T",defaultRows:"0\n20\n50\n100",inputHint:"One temperature per line"},
+      {id:"A-3",label:"Saturated water · pressure table",mode:"sat-P",defaultRows:"0.5\n1\n5\n10",inputHint:"One pressure per line"},
+      {id:"A-4",label:"Superheated water vapour",mode:"superheated",defaultRows:"150,1\n200,5\n400,10",inputHint:"Temperature, pressure per line"},
+      {id:"A-5",label:"Compressed liquid water",mode:"compressed",defaultRows:"25,50\n100,100\n200,200",inputHint:"Temperature, pressure per line"}
     ]
   },
   Ammonia:{
     label:"Ammonia · Tables A-13 / A-14 / A-15",
     tables:[
-      {id:"A-13",label:"Saturated ammonia · temperature table",mode:"sat-T"},
-      {id:"A-14",label:"Saturated ammonia · pressure table",mode:"sat-P"},
-      {id:"A-15",label:"Superheated ammonia vapour",mode:"superheated"}
+      {id:"A-13",label:"Saturated ammonia · temperature table",mode:"sat-T",defaultRows:"-40\n-20\n0\n20",inputHint:"One temperature per line"},
+      {id:"A-14",label:"Saturated ammonia · pressure table",mode:"sat-P",defaultRows:"1\n5\n10\n15",inputHint:"One pressure per line"},
+      {id:"A-15",label:"Superheated ammonia vapour",mode:"superheated",defaultRows:"-20,1\n20,5\n100,10",inputHint:"Temperature, pressure per line"}
     ]
   },
   R134a:{
     label:"R134a · Tables A-10 / A-11 / A-12",
     tables:[
-      {id:"A-10",label:"Saturated R134a · temperature table",mode:"sat-T"},
-      {id:"A-11",label:"Saturated R134a · pressure table",mode:"sat-P"},
-      {id:"A-12",label:"Superheated R134a vapour",mode:"superheated"}
+      {id:"A-10",label:"Saturated R134a · temperature table",mode:"sat-T",defaultRows:"-30\n-10\n10\n30",inputHint:"One temperature per line"},
+      {id:"A-11",label:"Saturated R134a · pressure table",mode:"sat-P",defaultRows:"1\n3\n6\n10",inputHint:"One pressure per line"},
+      {id:"A-12",label:"Superheated R134a vapour",mode:"superheated",defaultRows:"-10,2\n20,5\n60,10",inputHint:"Temperature, pressure per line"}
     ]
   }
 };
@@ -232,6 +232,35 @@ export function computeCourseReferenceTable(engine,{
   if(!engine?.propsSI)throw new Error("CoolProp engine is not ready");
   const table=courseTableById(fluid,tableId);
   if(!table)throw new Error(`Reference table ${tableId||""} is not configured for ${fluid||"this fluid"}`);
+
+  if(table.mode==="ideal-gas"){
+    return parseReferenceScalars(rows).map(parsed=>{
+      if(parsed.status!=="OK")return {Row:parsed.index,Status:"FAIL",Error:parsed.error};
+      try{
+        const temperatureK=table.temperatureBasis==="K"
+          ?Number(parsed.value)
+          :inputToSI("T",parsed.value,units);
+        if(!(temperatureK>0))throw new Error("Temperature must be above 0 K");
+        const pressurePa=Number(table.pressurePa||1e5);
+        const state=computeStateSI(engine,{
+          fluid,input1:"T",value1SI:temperatureK,input2:"P",value2SI:pressurePa,units,bookBasis
+        });
+        return {
+          Row:parsed.index,
+          T_K:temperatureK,
+          H:state.values.H,
+          U:state.values.U,
+          S:state.values.S,
+          Cp:state.values.Cp,
+          Cv:state.values.Cv,
+          Phase:state.phase,
+          Status:"OK"
+        };
+      }catch(error){
+        return {Row:parsed.index,Status:"FAIL",Error:String(error?.message||error)};
+      }
+    });
+  }
 
   if(table.mode==="sat-T"||table.mode==="sat-P"){
     const inputKey=table.mode==="sat-T"?"T":"P";
