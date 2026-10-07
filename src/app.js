@@ -32,7 +32,11 @@ initSettings();
 
 const app=document.querySelector("#app");
 const content=await loadContent();
-const {site,semesters,model,components:configuredComponents,navLabels,projects}=content;
+const {site,semesters,navLabels,projects}=content;
+const engineeringModels=content.models?.length?content.models:[content.model];
+let engineeringModelId=engineeringModels[0]?.id||"fixture";
+let model=engineeringModels.find(item=>item.id===engineeringModelId)||engineeringModels[0]||content.model;
+let configuredComponents=model?.components||[];
 
 let engineeringDocument=null;
 let engineeringDocumentPromise=null;
@@ -80,6 +84,40 @@ function getEngineeringDocument(){
     });
   }
   return engineeringDocumentPromise;
+}
+
+function engineeringModelSelectHTML(){
+  if(engineeringModels.length<2)return "";
+  return `<label class="engineering-model-select"><span>Model</span><select id="engineering-model-select">${engineeringModels.map(item=>`<option value="${item.id}" ${item.id===engineeringModelId?"selected":""}>${item.label||item.name}</option>`).join("")}</select></label>`;
+}
+
+function selectEngineeringModel(id){
+  const next=engineeringModels.find(item=>item.id===id);
+  if(!next||next===model)return false;
+  model=next;
+  engineeringModelId=next.id;
+  configuredComponents=model.components||[];
+  engineeringDocument=null;
+  engineeringDocumentPromise=null;
+  selectedComponentId=null;
+  hydroDraft=Number(model.hydro?.defaultDraft??1.2);
+  hydroTargetTonnes="";
+  hydroKg="";
+  hydroLcg="";
+  hydroTcg="";
+  hydroHeel=0;
+  hydroTrim=0;
+  hydroGzRequested=false;
+  hydroAttitudeAction="";
+  hydroCurveCache={model:null,data:null};
+  propulsionInitialized=false;
+  return true;
+}
+
+function bindEngineeringModelSelector(){
+  app.querySelector("#engineering-model-select")?.addEventListener("change",event=>{
+    if(selectEngineeringModel(event.currentTarget.value))engineeringPage();
+  });
 }
 
 const vessel='<svg viewBox="0 0 760 380"><path d="M120 236 L560 236 L642 265 L603 305 L184 306 L104 268 Z" fill="#bccbd2" stroke="#eff7fa" stroke-width="3"/><path d="M250 151 L486 151 L541 230 L196 230 Z" fill="#dbe7ec" stroke="#eff7fa" stroke-width="3"/><rect x="292" y="109" width="165" height="39" rx="4" fill="#dbe7ec"/><path d="M326 109V45" stroke="#eff7fa" stroke-width="4"/><g fill="#17384c"><rect x="276" y="168" width="35" height="17" rx="3"/><rect x="321" y="168" width="35" height="17" rx="3"/><rect x="366" y="168" width="35" height="17" rx="3"/><rect x="411" y="168" width="35" height="17" rx="3"/></g><path d="M160 273 Q370 325 615 274" fill="none" stroke="#6dc6eb" stroke-width="3"/></svg>';
