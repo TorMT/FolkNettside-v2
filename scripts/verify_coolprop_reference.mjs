@@ -88,6 +88,9 @@ try{
     for(const prop of ["H","U","S"]){
       assert.ok(Number.isFinite(row.values[prop]),`Ammonia ${prop} is not finite at ${label}`);
     }
+    assert.ok(Math.abs(row.errors.H)<=500,`Ammonia table H mismatch at ${label}: ${row.errors.H} J/kg`);
+    assert.ok(Math.abs(row.errors.U)<=500,`Ammonia table U mismatch at ${label}: ${row.errors.U} J/kg`);
+    assert.ok(Math.abs(row.errors.S)<=2,`Ammonia table S mismatch at ${label}: ${row.errors.S} J/(kg K)`);
     console.log(
       label.padEnd(29),
       row.errors.H.toFixed(2).padStart(12),
