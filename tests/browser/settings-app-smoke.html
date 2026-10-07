@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Settings app browser smoke</title></head>
+<body data-status="running">
+<iframe id="app-frame" src="../../index.html#/settings" style="width:1200px;height:800px"></iframe>
+<pre id="result">running</pre>
+<script type="module">
+const frame=document.querySelector("#app-frame");
+const result=document.querySelector("#result");
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+const waitFor=async(predicate,label,timeout=15000)=>{
+  const started=performance.now();
+  while(performance.now()-started<timeout){
+    try{if(predicate())return}catch{}
+    await new Promise(resolve=>setTimeout(resolve,50));
+  }
+  throw new Error("Timed out waiting for "+label);
+};
+
+try{
+  await waitFor(()=>frame.contentDocument?.querySelector('[data-settings-panel="appearance"]'),"Settings appearance panel");
+  const doc=frame.contentDocument;
+  const win=frame.contentWindow;
+
+  doc.querySelector('[data-settings-section="privacy"]').click();
+  await waitFor(()=>frame.contentDocument?.querySelector('[data-settings-panel="privacy"]'),"Privacy panel");
+
+  win.localStorage.setItem("folk-v2-video:smoke","{}");
+  win.localStorage.setItem("folknet:quiz:smoke","{}");
+  const settingsBefore=win.localStorage.getItem("folk-v2-settings");
+  frame.contentDocument.querySelector("#settings-clear-study-progress").click();
+  assert(win.localStorage.getItem("folk-v2-video:smoke")===null,"Video progress was not cleared");
+  assert(win.localStorage.getItem("folknet:quiz:smoke")===null,"Quiz progress was not cleared");
+  assert(win.localStorage.getItem("folk-v2-settings")===settingsBefore,"Settings were cleared with study progress");
+
+  frame.contentDocument.querySelector('[data-settings-section="appearance"]').click();
+  await waitFor(()=>frame.contentDocument?.querySelector('[data-settings-panel="appearance"]'),"Appearance panel after navigation");
+  const compact=frame.contentDocument.querySelector('[data-setting="density"][data-value="compact"]');
+  assert(compact,"Compact density control missing");
+  compact.click();
+  await waitFor(()=>frame.contentDocument.documentElement.dataset.density==="compact","compact density apply");
+  assert(frame.contentDocument.querySelector('[data-setting="density"][data-value="compact"]').classList.contains("active"),"Compact density did not stay active");
+
+  frame.contentDocument.querySelector('[data-setting="density"][data-value="comfortable"]').click();
+  await waitFor(()=>frame.contentDocument.documentElement.dataset.density==="comfortable","density restore");
+
+  document.body.dataset.status="pass";
+  result.textContent="settings-app-smoke: pass";
+}catch(error){
+  document.body.dataset.status="fail";
+  result.textContent=String(error?.stack||error);
+}
+</script>
+</body>
+</html>
