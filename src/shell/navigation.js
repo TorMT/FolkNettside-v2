@@ -11,7 +11,8 @@ export const MOBILE_NAV=[
   {id:"portfolio",label:"Projects",route:"/portfolio",icon:"◇"},
   {id:"courses",label:"Courses",route:"/courses",icon:"▤"},
   {id:"engineering",label:"Engineering",route:"/engineering",icon:"⌁"},
-  {id:"diverse",label:"Diverse",route:"/diverse",icon:"•••"}
+  {id:"diverse",label:"Diverse",route:"/diverse",icon:"•••"},
+  {id:"search",label:"Search",action:"search",icon:"⌕"}
 ];
 
 function navButton(item,active,{mobile=false,coursesLabel="Courses"}={}){
