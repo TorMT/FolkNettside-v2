@@ -1,10 +1,10 @@
 function text(value){return String(value??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
 export function diveFeatureLevel(feature){
   const raw=String(feature?.properties?.Kilde_nivå||"").toLowerCase();
-  if(raw.includes("nivå 1")||raw.includes("niva 1"))return "P1";
+  if(raw.includes("trimix")||raw.includes("teknisk")||raw.includes("technical"))return "TECH";
+  if(raw.includes("nivå 3")||raw.includes("niva 3")||/[23]\s*[–-]\s*3/.test(raw))return "P3";
   if(raw.includes("nivå 2")||raw.includes("niva 2"))return "P2";
-  if(raw.includes("nivå 3")||raw.includes("niva 3"))return "P3";
-  if(raw.includes("trimix"))return "TECH";
+  if(raw.includes("nivå 1")||raw.includes("niva 1"))return "P1";
   return "UNKNOWN";
 }
 export function diveFeatureKind(feature){
