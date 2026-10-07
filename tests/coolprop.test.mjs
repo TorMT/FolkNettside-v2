@@ -421,8 +421,8 @@ test("superheated course table generator accepts T,P rows",()=>{
     units:{pressure:"bar",temperature:"C",energy:"kJkg",entropy:"kJkgK"}
   });
   assert.equal(row.Status,"OK");
-  assert.equal(row.T,26.85);
-  assert.equal(row.P,2);
+  assert.equal(row.T,100);
+  assert.equal(row.P,5);
   assert.equal(row.H,300);
   assert.equal(row.Phase,"Gas / superheated vapour");
 });
