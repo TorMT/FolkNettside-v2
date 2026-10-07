@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<base href="../../">
+<title>Brewing v2 smoke</title>
+<link rel="stylesheet" href="./assets/style.css">
+<link rel="stylesheet" href="./assets/diverse.css">
+<link rel="stylesheet" href="./assets/brewing.css">
+</head>
+<body data-status="running">
+<div id="app"></div>
+<pre id="result">running</pre>
+<script type="module">
+import {brewingPageHTML,mountBrewing} from "./src/diverse/brewing-page.js";
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+const realFetch=window.fetch.bind(window);
+const jsonResponse=value=>new Response(JSON.stringify(value),{status:200,headers:{"Content-Type":"application/json"}});
+window.FolkGoogleSession={
+  isSignedIn:()=>false,
+  getAccessToken:async()=>{throw new Error("AUTH_REQUIRED")},
+  snapshot:()=>({status:"signed-out"})
+};
+window.fetch=async(input,init)=>{
+  const url=String(typeof input==="string"?input:input?.url||"");
+  if(url.includes("/includes/rapt/api/dashboard.php")){
+    return jsonResponse({devices:[],username:"browser-fixture",generatedAt:"2026-10-07T18:00:00Z"});
+  }
+  if(url.includes("/includes/brewing/api/logs.php")){
+    return new Response(JSON.stringify({logs:[],storageConfig:{defaultMode:"local",googleDrive:{}},storageOptions:[]}),{status:200,headers:{"Content-Type":"application/json"}});
+  }
+  if(url.includes("/includes/brewing/api/storage.php")){
+    return new Response(JSON.stringify({config:{defaultMode:"local",googleDrive:{}},storageOptions:[],googleDriveAuth:{enabled:false}}),{status:200,headers:{"Content-Type":"application/json"}});
+  }
+  if(url.includes("/includes/brewing/api/recipes.php")){
+    return jsonResponse({recipes:[],providers:[],catalogs:{},storageOptions:[]});
+  }
+  if(url.includes("/includes/brewing/api/reference.php")){
+    return jsonResponse({references:[],providers:[],storageOptions:[]});
+  }
+  return realFetch(input,init);
+};
+
+try{
+  const root=document.querySelector("#app");
+  root.innerHTML=brewingPageHTML({account:{status:"signed-out"}});
+  assert(document.querySelector(".brewing-page"),"native Brewing page missing");
+  assert(document.getElementById("viewTabs"),"view tabs missing");
+  assert(document.getElementById("deviceList"),"hydrometer device list missing");
+  assert(document.getElementById("brewLogList"),"brew-log list missing");
+  assert(document.getElementById("recipeList"),"recipe list missing");
+  assert(!document.getElementById("connectGoogleDriveBtn"),"module-specific Google connect button must not exist");
+  assert(!document.getElementById("syncSelectedDriveBtn"),"signed-out user must not see Drive sync");
+  assert([...document.querySelectorAll("#storageModeSelect option")].map(x=>x.value).join(",")==="local","signed-out storage must be local only");
+
+  const cleanup=await mountBrewing(root,{account:{status:"signed-out"}});
+  await new Promise(resolve=>setTimeout(resolve,350));
+  assert(window.BrewingApp,"Brewing runtime did not initialise");
+  assert(document.querySelectorAll("#viewTabs .view-tab").length===5,"Brewing tabs incomplete");
+  const logs=document.querySelector('#viewTabs [data-view="logs"]');
+  logs.click();
+  assert(document.querySelector('.view-panel[data-view="logs"]').classList.contains("active"),"logs tab did not activate");
+  const recipes=document.querySelector('#viewTabs [data-view="recipes"]');
+  recipes.click();
+  assert(document.querySelector('.view-panel[data-view="recipes"]').classList.contains("active"),"recipes tab did not activate");
+  assert(document.documentElement.scrollWidth<=window.innerWidth+2,"Brewing UI causes page-level horizontal overflow");
+
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent=JSON.stringify({
+    tabs:document.querySelectorAll("#viewTabs .view-tab").length,
+    drivePrompt:!!document.getElementById("connectGoogleDriveBtn"),
+    storageModes:[...document.querySelectorAll("#storageModeSelect option")].map(x=>x.value),
+    runtime:!!window.BrewingApp
+  });
+  cleanup?.();
+}catch(error){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script>
+</body>
+</html>
