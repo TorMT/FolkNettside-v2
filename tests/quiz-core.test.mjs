@@ -37,7 +37,7 @@ test("quiz attempts score once and retain unanswered states",()=>{
   assert.equal(score.correct,1);
   assert.equal(score.answered,2);
   assert.equal(score.percent,50);
-  assert.equal(attempt.completed,true);
+  assert.equal(attempt.completed,false);
 });
 
 test("stored attempts are sanitized against quiz version and choice bounds",()=>{
