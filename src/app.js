@@ -1,30 +1,31 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {mountViewer} from "./viewer.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {loadContent} from "./content.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {renderResourceTree} from "./components/resource-tree.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {buildSearchIndex} from "./search/search-index.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {createSearchController} from "./components/search-dialog.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {activeTools} from "./tools/tool-registry.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {loadModelDocument} from "./model/load-model.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {mountModelScene} from "./model/model-scene.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=34a76fa874f6edaaa9b852eb7247f8bbbc8e686c";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {mountViewer} from "./viewer.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {loadContent} from "./content.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {renderResourceTree} from "./components/resource-tree.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {buildSearchIndex} from "./search/search-index.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {createSearchController} from "./components/search-dialog.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {activeTools} from "./tools/tool-registry.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {loadModelDocument} from "./model/load-model.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {mountModelScene} from "./model/model-scene.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=099cde899d35cd7dab76d3d7d0cafd768af8ee17";
 
 initSettings();
 
@@ -480,6 +481,17 @@ async function engineeringPage(){
         propulsionInitialized=true;
       }
 
+      const systemThrusters=documentModel?thrustersFromModelDocument(documentModel):[];
+      const selectedSystemThrusters=systemThrusters.map(item=>item.id===sourceThruster?.id?{
+        ...item,
+        thrust:propulsionThrustKn*1000,
+        inflowSpeed:propulsionInflow,
+        diameter:propulsionDiameter
+      }:item);
+      const system=selectedSystemThrusters.length
+        ?analyzeThrusterSystem(selectedSystemThrusters,{reference:[0,0,0]})
+        :null;
+
       const propulsion=propulsionPanelHTML(
         {
           ...fixture,
@@ -491,7 +503,8 @@ async function engineeringPage(){
         {
           thrustKn:propulsionThrustKn,
           inflowSpeed:propulsionInflow,
-          diameter:propulsionDiameter
+          diameter:propulsionDiameter,
+          system
         }
       );
 
@@ -504,6 +517,7 @@ async function engineeringPage(){
           ${thrusters.length?thrusters.map(component=>`<div class="tree-row ${component.id===sourceThruster?.id?"selected":""}" data-propulsion-component="${component.id}"><span>◎</span>${component.name}</div>`).join(""):'<div class="tree-row"><span>○</span>No tagged thruster</div>'}
           <div class="tree-label">Method</div>
           <div class="tree-row selected"><span>≈</span>Ideal actuator disk</div>
+          <div class="tree-row"><span>Σ</span>Rigid-body force/moment <span class="muted">${system?.thrusters.length||0} thruster(s)</span></div>
           <div class="tree-label">Source metadata</div>
           <div class="tree-row"><span>D</span>Diameter <span class="muted">${sourceCase.diameter??"fixture"} m</span></div>
           <div class="tree-row"><span>→</span>Axis <span class="muted">${Array.isArray(sourceCase.axis)?sourceCase.axis.join(", "):"not set"}</span></div>
