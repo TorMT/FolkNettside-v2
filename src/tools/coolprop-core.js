@@ -181,6 +181,8 @@ export function phaseDescription(raw){
     String(raw||"").toLowerCase();
   if(normalized.includes("twophase"))return "Two-phase";
   if(normalized.includes("critical_point"))return "Critical point";
+  if(normalized.includes("supercritical_gas"))return "Supercritical gas";
+  if(normalized.includes("supercritical_liquid"))return "Supercritical liquid";
   if(normalized.includes("supercritical"))return "Supercritical";
   if(normalized.includes("gas"))return "Gas / superheated vapour";
   if(normalized.includes("liquid"))return "Liquid / subcooled";

@@ -1,7 +1,7 @@
 import {
   THEME_ROLES,autoAssignTheme,kMeansPalette,normalizeTheme,
   themeCss,themeJSON,themeRegistrySnippet
-} from "./theme-studio-core.js?v=67ea320d9bffe172348689ae49c8ae2cb153db50";
+} from "./theme-studio-core.js?v=85f7c490bbea07c20086f2a5ed32d3cc4d8c752a";
 
 const ROLE_LABELS={
   primary:"Primary",
@@ -97,12 +97,14 @@ function pixelsFromImage(img){
   const colors=[];
   for(let i=0;i<data.length;i+=16){
     const r=data[i],g=data[i+1],b=data[i+2],a=data[i+3];
-    if(a>200&&r>18&&g>18&&b>18&&!(r>242&&g>242&&b>242))colors.push({r,g,b});
+    const nearBlack=r<18&&g<18&&b<18;
+    const nearWhite=r>242&&g>242&&b>242;
+    if(a>200&&!nearBlack&&!nearWhite)colors.push({r,g,b});
   }
   return colors;
 }
 
-async function imageFileToPalette(file){
+export async function imageFileToPalette(file){
   if(!file?.type?.startsWith("image/"))throw new Error("Choose an image file");
   const url=URL.createObjectURL(file);
   try{
@@ -225,11 +227,11 @@ export function bindThemeStudio(root,state,onState){
     canvas.width=240;
     canvas.height=160;
     const ctx=canvas.getContext("2d");
-    ctx.fillStyle="#142c3b";ctx.fillRect(0,0,240,160);
-    ctx.fillStyle="#b3157a";ctx.fillRect(0,0,95,160);
-    ctx.fillStyle="#2f7fa4";ctx.fillRect(95,0,70,160);
-    ctx.fillStyle="#8f5a00";ctx.fillRect(165,0,75,80);
-    ctx.fillStyle="#f4f8fa";ctx.fillRect(165,80,75,80);
+    const sampleColors=["#b3157a","#142c3b","#2f7fa4","#8f5a00","#dce7ec"];
+    sampleColors.forEach((color,index)=>{
+      ctx.fillStyle=color;
+      ctx.fillRect(index*48,0,48,160);
+    });
     const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
     if(!blob){
       upload?.setAttribute("data-error","Could not create sample image");

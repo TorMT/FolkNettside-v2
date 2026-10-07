@@ -29,10 +29,10 @@ export const TOOL_REGISTRY=[
     short:"CP",
     route:"/tools/coolprop",
     status:"prototype",
-    parity:"review",
+    parity:"full",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html",
     category:"Engineering",
-    summary:"Reference-grade thermophysical properties using the local CoolProp WASM engine; book/table reference calibration remains under numerical review.",
+    summary:"Reference-grade thermophysical properties using the local CoolProp WASM engine with CI-verified Air A-22 reference conversion and phase/saturation checks.",
     keywords:["coolprop","thermodynamics","fluid","properties","process","batch","diagram"]
   },
   {
