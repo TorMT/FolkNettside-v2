@@ -1,10 +1,4 @@
 export const LEGACY_DIVERSE_BRIDGES={
-  brewing:{
-    title:"Brygging",
-    kicker:"Diverse / Data",
-    description:"Hydrometers, fermentation analysis, brewing logs, recipes and the existing SandalenTools integration remain available while the data and UI are migrated to native v2 modules.",
-    legacyUrl:"https://tormt.folk.ntnu.no/diverse/Brygging/"
-  },
   medisin:{
     title:"MedisinTimer",
     kicker:"Diverse / Utility",

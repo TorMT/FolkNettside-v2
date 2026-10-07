@@ -76,6 +76,7 @@
     const els = config.elements || {};
     const state = config.state || {};
     const tools = config.tools;
+    const session = config.session || global.FolkGoogleSession || null;
     const moduleState = {
       authConfig: null,
       storageConfig: null,
@@ -94,8 +95,12 @@
         els.driveAuthPill.classList.toggle('offline', !moduleState.connected);
       }
       if (els.connectGoogleDriveBtn) {
-        els.connectGoogleDriveBtn.disabled = !isConfigured() || moduleState.busy;
-        els.connectGoogleDriveBtn.textContent = moduleState.connected ? 'Bytt Google-konto' : 'Koble Google-konto';
+        if (session) {
+          els.connectGoogleDriveBtn.hidden = true;
+        } else {
+          els.connectGoogleDriveBtn.disabled = !isConfigured() || moduleState.busy;
+          els.connectGoogleDriveBtn.textContent = moduleState.connected ? 'Bytt Google-konto' : 'Koble Google-konto';
+        }
       }
       if (els.syncSelectedDriveBtn) {
         els.syncSelectedDriveBtn.disabled = moduleState.busy || !isConfigured();
@@ -118,6 +123,9 @@
     }
 
     function isConfigured() {
+      if (session) {
+        return !!(moduleState.authConfig && safeTrim(moduleState.authConfig.clientId));
+      }
       return !!(moduleState.authConfig
         && safeTrim(moduleState.authConfig.clientId)
         && safeTrim(moduleState.authConfig.projectNumber));
@@ -133,6 +141,11 @@
 
       if (!isConfigured()) {
         setStatus('Google Drive: mangler OAuth-oppsett', false);
+        return;
+      }
+
+      if (session && session.isSignedIn && session.isSignedIn()) {
+        setStatus('Google Drive: bruker sidens innlogging', true);
         return;
       }
 
@@ -174,6 +187,15 @@
     async function ensureAccessToken(interactive) {
       if (!isConfigured()) {
         throw new Error('Google Drive OAuth er ikke konfigurert ennå.');
+      }
+
+      if (session) {
+        if (!(session.isSignedIn && session.isSignedIn())) {
+          throw new Error('Logg inn via Account & connections før Google Drive brukes.');
+        }
+        const token = await session.getAccessToken({ interactive: false });
+        setStatus('Google Drive: bruker sidens innlogging', true);
+        return token;
       }
 
       if (hasFreshToken()) {
@@ -218,6 +240,9 @@
       const headers = new Headers(requestOptions.headers || {});
       headers.set('Authorization', 'Bearer ' + token);
       const response = await fetch(url, Object.assign({}, requestOptions, { headers: headers }));
+      if (response.status === 401 && session) {
+        return response;
+      }
       if (response.status === 401 && retryOnce !== false) {
         moduleState.accessToken = '';
         moduleState.accessTokenExpiresAt = 0;
@@ -435,8 +460,8 @@
 
     async function connect(interactive) {
       try {
-        setBusy(true, 'Google Drive: kobler til konto...');
-        await ensureAccessToken(interactive !== false);
+        setBusy(true, session ? 'Google Drive: bruker sidens innlogging...' : 'Google Drive: kobler til konto...');
+        await ensureAccessToken(session ? false : interactive !== false);
         setStatus('Google Drive: konto koblet', true);
         return true;
       } catch (error) {
@@ -516,7 +541,8 @@
 
     function shouldAutoSync(mode) {
       const normalized = safeTrim(mode);
-      return isConfigured() && (normalized === 'hybrid' || normalized === 'google-drive');
+      const sessionReady = !session || (session.isSignedIn && session.isSignedIn());
+      return isConfigured() && sessionReady && (normalized === 'hybrid' || normalized === 'google-drive');
     }
 
     setConfig(config.authConfig || null, config.storageConfig || null);

@@ -4,6 +4,11 @@
   const tools = global.BrewingLogTools;
   const renderApi = global.BrewingHydrometerRender;
   const driveApi = global.BrewingGoogleDrive;
+  const siteSession = global.FolkGoogleSession || null;
+
+  function driveSignedIn() {
+    return !siteSession || !!(siteSession.isSignedIn && siteSession.isSignedIn());
+  }
 
   function escapeHtml(value) {
     return renderApi.escapeHtml(value);
@@ -14,9 +19,10 @@
   }
 
   function normalizeStorageMode(mode) {
-    return ['local', 'hybrid', 'google-drive'].indexOf(String(mode || '')) !== -1
+    const normalized = ['local', 'hybrid', 'google-drive'].indexOf(String(mode || '')) !== -1
       ? String(mode || '')
       : 'local';
+    return driveSignedIn() ? normalized : 'local';
   }
 
   function storageModeLabel(mode) {
@@ -81,7 +87,7 @@
       return '<div class="empty-state">Ingen lagringsmetadata er lagret ennå.</div>';
     }
 
-    const driveUrl = storage.googleDrive && storage.googleDrive.shareUrl ? storage.googleDrive.shareUrl : '';
+    const driveUrl = driveSignedIn() && storage.googleDrive && storage.googleDrive.shareUrl ? storage.googleDrive.shareUrl : '';
     const localUrl = storage.local && storage.local.folderUrl ? storage.local.folderUrl : folderUrl;
     const lastSyncedAt = storage.googleDrive && storage.googleDrive.lastSyncedAt ? storage.googleDrive.lastSyncedAt : '';
     const syncLine = lastSyncedAt
@@ -100,7 +106,7 @@
 
   function buildImageGrid(images, storage) {
     const safeImages = Array.isArray(images) ? images : [];
-    const driveUrl = storage && storage.googleDrive && storage.googleDrive.shareUrl ? storage.googleDrive.shareUrl : '';
+    const driveUrl = driveSignedIn() && storage && storage.googleDrive && storage.googleDrive.shareUrl ? storage.googleDrive.shareUrl : '';
 
     if (!safeImages.length) {
       if (driveUrl) {
@@ -283,7 +289,8 @@
       ? driveApi.createModule({
         elements: els,
         state: state,
-        tools: tools
+        tools: tools,
+        session: siteSession
       })
       : null;
 
