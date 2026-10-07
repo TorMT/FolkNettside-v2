@@ -1,5 +1,5 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=2daeaf56cf8685ab0a64f2af5f12d1ddcc032e97";
-import {gzMetrics} from "../hydro/gz.js?v=2daeaf56cf8685ab0a64f2af5f12d1ddcc032e97";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=7d2427e98343c840de7ed0c1f7aa454d4631164e";
+import {gzMetrics} from "../hydro/gz.js?v=7d2427e98343c840de7ed0c1f7aa454d4631164e";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -200,11 +200,16 @@ export function hydroPanelHTML({
           ${gzSVG(gz)}
           ${hydrostaticCurvesHTML(curveRows,{hasKg})}
           ${hydrostaticTableHTML(curveRows,{hasKg})}
+          <div class="hydro-export-row">
+            <button class="btn" id="hydro-export-table" ${curveRows.length?"":"disabled"}>Export hydro CSV</button>
+            <button class="btn" id="hydro-export-gz" ${gz?.length?"":"disabled"}>Export GZ CSV</button>
+          </div>
         </div>
       </div>
     `,
     particulars,
     curveRows,
+    gzSummary,
     draft:clamped,
     density,
     waterlinePercent:((clamped-minDraft)/span)*100
