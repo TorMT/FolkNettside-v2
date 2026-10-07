@@ -2,6 +2,7 @@ import {initSettings,getSettings,setSetting} from "./settings.js";
 import {mountViewer} from "./viewer.js";
 import {loadContent} from "./content.js";
 import {renderResourceTree} from "./components/resource-tree.js";
+import {karakterwebUrl} from "./courses/external-links.js";
 import {hydroPanelHTML} from "./engineering/hydro-panel.js";
 import {renderProjectCard,renderProjectDetail} from "./components/project-card.js";
 import {buildSearchIndex} from "./search/search-index.js";
@@ -238,7 +239,7 @@ function coursePage(semesterId,code){
   const sections=course.sections
     .map((label,index)=>({label,index,items:grouped[label]||[]}))
     .filter(section=>section.items.length);
-  const karakterwebUrl="https://karakterweb.no/ntnu/"+encodeURIComponent(course.code);
+  const karakterwebHref=karakterwebUrl(course.code);
   const resourceCount=course.resources.length;
 
   app.innerHTML=top("courses")+`<main class="layout">
@@ -277,7 +278,7 @@ function coursePage(semesterId,code){
     element.onclick=()=>go(viewerRoute(semesterId,course.code,element.dataset.resource));
   });
   app.querySelector("#karakterweb")?.addEventListener("click",()=>{
-    window.open(karakterwebUrl,"_blank","noopener");
+    window.open(karakterwebHref,"_blank","noopener");
   });
 
   const navButtons=[...app.querySelectorAll("[data-course-nav]")];
