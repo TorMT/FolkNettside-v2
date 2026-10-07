@@ -26,7 +26,7 @@ try{
   assert(diveFeatureLevel(features.find(f=>f.properties?.Navn==="Tautrarevet"))==="TECH","technical label missing");
   assert(filterDiveFeatures(features,{query:"hummer"}).length>0,"wildlife search failed");
   assert(filterDiveFeatures(features,{quality:"C"}).length>0,"quality filter failed");
-  for(const id of ["dive-query","dive-level","dive-kind","dive-quality","dive-depth","dive-sort","dive-map-canvas","dive-list","dive-inspector"]){
+  for(const id of ["dive-query","dive-level","dive-kind","dive-quality","dive-depth","dive-sort","dive-export-csv","dive-export-geojson","dive-map-canvas","dive-list","dive-inspector"]){
     assert(document.getElementById(id),id+" missing");
   }
   document.body.dataset.status="pass";
