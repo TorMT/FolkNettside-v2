@@ -1,4 +1,4 @@
-import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js?v=3ff657a614118f56baf85028da874e0367774ebd";
+import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js?v=30774347c923b1a7a56e2dbeb73879d85d87ee22";
 
 function css(name,fallback){
   const value=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -165,6 +165,34 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
     context.setLineDash([]);
   }
 
+  function drawDatasetLabel(dataset,w,h){
+    if(!dataset?.label||!["quality","isotherm","isobar"].includes(dataset.kind))return;
+    const points=(dataset.points||[]).filter(point=>
+      Number.isFinite(point.x)&&Number.isFinite(point.y)&&(!meta.logY||point.y>0)
+    );
+    if(points.length<2)return;
+    const fraction=dataset.kind==="quality"?.58:.72;
+    const point=points[Math.min(points.length-1,Math.max(0,Math.floor((points.length-1)*fraction)))];
+    const x=sx(point.x,w),y=sy(point.y,h);
+    if(x<pad.left+6||x>w-pad.right-6||y<pad.top+6||y>h-pad.bottom-6)return;
+    const label=dataset.label;
+    context.save();
+    context.font="9px system-ui,sans-serif";
+    const metrics=context.measureText(label);
+    const width=metrics.width+8,height=15;
+    const left=Math.min(w-pad.right-width-2,Math.max(pad.left+2,x+4));
+    const top=Math.min(h-pad.bottom-height-2,Math.max(pad.top+2,y-height/2));
+    context.fillStyle=css("--surface","#fff");
+    context.globalAlpha=.88;
+    context.fillRect(left,top,width,height);
+    context.globalAlpha=1;
+    context.fillStyle=datasetStyle(dataset.kind).stroke;
+    context.textAlign="left";
+    context.textBaseline="middle";
+    context.fillText(label,left+4,top+height/2+.5);
+    context.restore();
+  }
+
   function draw(){
     const {width,height}=dims();
     const ratio=Math.min(devicePixelRatio||1,2);
@@ -183,6 +211,14 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
     context.clip();
     for(const dataset of datasets)drawDataset(dataset,width,height);
     context.restore();
+
+    const contourCount={quality:0,isotherm:0,isobar:0};
+    for(const dataset of datasets){
+      if(!(dataset.kind in contourCount))continue;
+      const index=contourCount[dataset.kind]++;
+      if(dataset.kind!=="quality"&&index%2===1)continue;
+      drawDatasetLabel(dataset,width,height);
+    }
   }
 
   function reset(){view={...initial};draw()}
@@ -243,6 +279,17 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
     const x=invX(px,width);
     const rawY=invY(py,height);
     const y=meta.logY?10**rawY:rawY;
+    const stateDataset=datasets.find(dataset=>dataset.kind==="states");
+    let nearest=null;
+    for(const point of stateDataset?.points||[]){
+      const dx=sx(point.x,width)-px,dy=sy(point.y,height)-py;
+      const distance=Math.hypot(dx,dy);
+      if(!nearest||distance<nearest.distance)nearest={point,distance};
+    }
+    if(nearest&&nearest.distance<=18){
+      readout.textContent=`State ${nearest.point.label||""} · ${meta.xLabel.split(" (")[0]} ${formatTick(nearest.point.x)} · ${meta.yLabel.split(" (")[0]} ${formatTick(nearest.point.y)}`;
+      return;
+    }
     readout.textContent=`${meta.xLabel.split(" (")[0]} ${formatTick(x)} · ${meta.yLabel.split(" (")[0]} ${formatTick(y)}`;
   }
   canvas.addEventListener("pointermove",onPointerReadout);
