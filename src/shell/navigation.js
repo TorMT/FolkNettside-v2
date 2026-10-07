@@ -1,6 +1,7 @@
 export const PRIMARY_NAV=[
   {id:"portfolio",label:"Projects",route:"/portfolio"},
   {id:"engineering",label:"Engineering",route:"/engineering"},
+  {id:"diverse",label:"Diverse",route:"/diverse"},
   {id:"about",label:"About",route:"/portfolio"},
   {id:"cv",label:"CV",route:"/portfolio"},
   {id:"contact",label:"Contact",route:"/portfolio"}
@@ -10,7 +11,7 @@ export const MOBILE_NAV=[
   {id:"portfolio",label:"Projects",route:"/portfolio",icon:"◇"},
   {id:"courses",label:"Courses",route:"/courses",icon:"▤"},
   {id:"engineering",label:"Engineering",route:"/engineering",icon:"⌁"},
-  {id:"search",label:"Search",action:"search",icon:"⌕"}
+  {id:"diverse",label:"Diverse",route:"/diverse",icon:"•••"}
 ];
 
 function navButton(item,active,{mobile=false,coursesLabel="Courses"}={}){
