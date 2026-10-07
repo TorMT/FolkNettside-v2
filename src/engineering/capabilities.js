@@ -7,7 +7,16 @@ const DEFAULT_READY={
 
 export function analysisCapability(modelConfig={},name){
   const raw=modelConfig?.analysisCapabilities?.[name];
-  if(raw===undefined||raw===null)return {...DEFAULT_READY,source:"implicit"};
+  if(raw===undefined||raw===null){
+    if(name==="model")return {...DEFAULT_READY,status:"available",source:"implicit"};
+    return {
+      enabled:false,
+      status:"not declared",
+      reason:"This model does not declare the inputs or validation required for this analysis.",
+      requirements:[],
+      source:"implicit"
+    };
+  }
   if(typeof raw==="boolean"){
     return {
       enabled:raw,
