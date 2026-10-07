@@ -99,6 +99,10 @@ export function thrustersFromModelDocument(modelDocument){
     const semantic=componentSemantic(component);
     const propulsion=semantic.thruster;
     if(!propulsion||propulsion.enabled===false)continue;
+    const localDirection=thrusterDirection({
+      axis:propulsion.axis||[1,0,0],
+      azimuthDeg:propulsion.azimuthDeg
+    });
     thrusters.push({
       id:component.id,name:component.name,
       type:semantic.subtype||propulsion.type||"thruster",
@@ -108,9 +112,10 @@ export function thrustersFromModelDocument(modelDocument){
       diameter:Number(propulsion.diameter)||null,
       inflowSpeed:Number(propulsion.inflowSpeed)||0,
       density:Number(propulsion.density)||1025,
-      axis:transformDirection(component.transform,propulsion.axis||[1,0,0]),
-      azimuthDeg:propulsion.azimuthDeg!==null&&propulsion.azimuthDeg!==undefined&&propulsion.azimuthDeg!==""&&Number.isFinite(Number(propulsion.azimuthDeg))
-        ?Number(propulsion.azimuthDeg):null,
+      axis:transformDirection(component.transform,localDirection),
+      // Azimuth is resolved in component-local coordinates before applying
+      // the component transform. Do not apply it a second time downstream.
+      azimuthDeg:null,
       position:transformPoint(component.transform,propulsion.position||[0,0,0],scale)
     });
   }
