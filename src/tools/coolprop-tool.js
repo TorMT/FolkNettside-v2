@@ -1,6 +1,6 @@
 import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,TABLE4_PRESETS,
-  computeBatch,computeProcess,computeState,computeTable4,courseTableConfig,courseTableLabel,processTargetOptions,
+  computeBatch,computeCourseReferenceTable,computeProcess,computeState,computeTable4,courseTableConfig,courseTableLabel,processTargetOptions,
   rowsToCSV,rowsToJSON,saturationWarning,tableReferenceProfile,unitLabel
 } from "./coolprop-core.js";
 import {getCoolProp} from "../vendor/coolprop-runtime.js";
@@ -55,6 +55,10 @@ function normalizedState(state={}){
       value1:state.explore?.value1??25,
       input2:state.explore?.input2||"P",
       value2:state.explore?.value2??1
+    },
+    reference:{
+      tableId:state.reference?.tableId||"",
+      rows:state.reference?.rows??""
     },
     diagram:{
       visible:Boolean(state.diagram?.visible),
@@ -157,6 +161,44 @@ function processHTML(s){
   </section>`;
 }
 
+function referenceDefaults(table){
+  if(!table)return "";
+  if(table.mode==="sat-T")return "0\n20\n50\n100";
+  if(table.mode==="sat-P")return "0.5\n1\n5\n10";
+  return "25,1\n100,5\n200,10";
+}
+
+function referenceHTML(s){
+  const config=courseTableConfig(s.fluid);
+  if(!config?.tables?.length){
+    return `<section class="coolprop-mode" data-mode="reference" ${s.tab==="reference"?"":"hidden"}>
+      <div class="search-empty">No course-specific reference-table configuration is mapped for ${esc(s.fluid)} yet. Native CoolProp calculations remain available in the other workspaces.</div>
+    </section>`;
+  }
+  const selected=config.tables.some(table=>table.id===s.reference.tableId)
+    ?s.reference.tableId
+    :config.tables[0].id;
+  const table=config.tables.find(item=>item.id===selected);
+  const rows=s.reference.rows||referenceDefaults(table);
+  const inputHint=table.mode==="sat-T"
+    ?"One temperature per line"
+    :table.mode==="sat-P"
+      ?"One pressure per line"
+      :"Temperature, pressure per line";
+  return `<section class="coolprop-mode" data-mode="reference" ${s.tab==="reference"?"":"hidden"}>
+    <div class="coolprop-subhead"><strong>Course reference tables</strong><span>Generate the same table layout from the local CoolProp engine. A mapped textbook reference basis is applied only where it has been separately calibrated.</span></div>
+    <div class="coolprop-input-grid">
+      <label class="field coolprop-span-2"><span>Table</span><select id="cp-reference-table">
+        ${config.tables.map(item=>`<option value="${item.id}" ${item.id===selected?"selected":""}>${item.id} · ${esc(item.label)}</option>`).join("")}
+      </select></label>
+      <label class="field coolprop-span-2"><span>${inputHint}</span><textarea id="cp-reference-rows" rows="8">${esc(rows)}</textarea></label>
+    </div>
+    <div class="coolprop-table4-note"><strong>${esc(table.id)}</strong><span>${esc(table.label)} · ${esc(table.mode)}</span></div>
+    <div class="coolprop-actions"><button class="btn primary" id="cp-reference-run">Generate table</button><button class="btn" id="cp-reference-example">Reset rows</button></div>
+    <div id="cp-reference-results" class="coolprop-results"><div class="tool-result-card"><span>Reference</span><strong>${esc(table.id)}</strong><p>${esc(table.label)}</p></div></div>
+  </section>`;
+}
+
 function exploreHTML(s){
   const x=s.explore;
   return `<section class="coolprop-mode" data-mode="explore" ${s.tab==="explore"?"":"hidden"}>
@@ -191,12 +233,13 @@ export function coolPropToolHTML(state={}){
     ${globalSettingsHTML(s)}
 
     <div class="coolprop-workspace-head"><span>Workspace</span><nav class="coolprop-tabs">
-      ${[["single","Single"],["batch","Batch"],["process","Process"],["explore","All data"]].map(([id,label])=>`<button data-cp-tab="${id}" class="${s.tab===id?"active":""}">${label}</button>`).join("")}
+      ${[["single","Single"],["batch","Batch"],["process","Process"],["reference","Tables"],["explore","All data"]].map(([id,label])=>`<button data-cp-tab="${id}" class="${s.tab===id?"active":""}">${label}</button>`).join("")}
     </nav></div>
 
     ${singleHTML(s)}
     ${batchHTML(s)}
     ${processHTML(s)}
+    ${referenceHTML(s)}
     ${exploreHTML(s)}
 
     <section class="settings-card coolprop-diagram-section" id="cp-diagram-section" ${s.diagram.visible?"":"hidden"}>
@@ -527,6 +570,43 @@ export function bindCoolPropTool(root,state,onState){
       }
     }catch(error){
       target.innerHTML=`<div class="geometry-warning"><strong>Batch error</strong><span>${esc(error?.message||error)}</span></div>`;
+    }
+  });
+
+  root.querySelector("#cp-reference-table")?.addEventListener("change",event=>{
+    const table=courseTableConfig(root.querySelector("#cp-fluid")?.value||s.fluid)?.tables?.find(item=>item.id===event.target.value);
+    save({...syncGlobal(),tab:"reference",reference:{tableId:event.target.value,rows:referenceDefaults(table)}},true);
+  });
+
+  root.querySelector("#cp-reference-example")?.addEventListener("click",()=>{
+    const tableId=root.querySelector("#cp-reference-table")?.value||s.reference.tableId;
+    const table=courseTableConfig(root.querySelector("#cp-fluid")?.value||s.fluid)?.tables?.find(item=>item.id===tableId);
+    save({...syncGlobal(),tab:"reference",reference:{tableId,rows:referenceDefaults(table)}},true);
+  });
+
+  root.querySelector("#cp-reference-run")?.addEventListener("click",async()=>{
+    const fluid=root.querySelector("#cp-fluid")?.value||s.fluid;
+    const reference={
+      tableId:root.querySelector("#cp-reference-table")?.value||"",
+      rows:root.querySelector("#cp-reference-rows")?.value||""
+    };
+    const target=root.querySelector("#cp-reference-results");
+    if(!target)return;
+    target.innerHTML='<div class="viewer-loading">Generating reference table…</div>';
+    try{
+      const engine=await getEngine();
+      const rows=computeCourseReferenceTable(engine,{
+        fluid,
+        tableId:reference.tableId,
+        rows:reference.rows,
+        units:readUnits(root),
+        bookBasis:Boolean(root.querySelector("#cp-book-basis")?.checked)
+      });
+      target.innerHTML=genericTable(rows);
+      save({...syncGlobal(),reference,exportRows:rows,exportName:`coolprop-${fluid.toLowerCase()}-${reference.tableId.toLowerCase()}`},false);
+      setDiagramStates([],`Reference ${reference.tableId}`);
+    }catch(error){
+      target.innerHTML=`<div class="geometry-warning"><strong>Reference table error</strong><span>${esc(error?.message||error)}</span></div>`;
     }
   });
 
