@@ -42,15 +42,17 @@ Now also migrated:
 - searchable integrated help/reference notes covering overview, diagrams, phases, units, Air table reference and common errors
 - legacy P-T near-saturation / two-phase ambiguity warning
 
-Pending numerical reference verification:
-- confirm the Air book/table reference basis against the course table reference states, including the intended offsets for the affected thermodynamic properties;
-- verify that Table Reference ON reproduces the course-book values at known reference points while Table Reference OFF leaves native CoolProp values unchanged;
-- verify reverse calculations using shifted properties without corrupting the raw CoolProp basis used internally;
-- verify saturation and phase behavior with representative Water and R134a states, including two-phase inputs.
+Numerically verified against the deployed/hash-locked WASM:
+- Table Reference OFF at Air, 1 bar and 1000 K returns the native CoolProp basis: h = 1172.51675 kJ/kg, u = 885.37842 kJ/kg and s = 5.15711 kJ/(kg·K);
+- Table Reference ON at the same state returns the course A-22 calibration exactly: h = 1046.04 kJ/kg, u = 758.94 kJ/kg and s = 2.96770 kJ/(kg·K);
+- inverse P-h input with 1 bar and h = 1046.04 kJ/kg on the table basis returns 1000 K, while internal process constants remain on the raw CoolProp basis;
+- additional A-22 checks at 300 / 400 / 1200 K remain close to the book while preserving CoolProp as the underlying model: h = 299.82403 / 400.77864 / 1277.73166 kJ/kg versus 300.19 / 400.98 / 1277.79 kJ/kg in the table;
+- Water saturation at 1 atm is 373.12429585 K, Water at 1 bar / 120 °C is gas/superheated vapour, and R134a at 0 °C / Q = 0.5 is two-phase at 2.92803 bar with h = 299.30172 kJ/kg;
+- the same real-WASM numerical checks run in CI after the binary's size and Git-blob hash are verified.
 
-The book/table option must remain a reference-state conversion around the native CoolProp calculation, not a replacement property model. Property differences must therefore remain invariant under the reference shift.
+The table option remains a constant reference-basis conversion around the native CoolProp property model, not a replacement ideal-gas table interpolator. Therefore H/U/S differences are invariant under the conversion, while small deviations from A-22 away from the calibration state reflect the different property models. Table Reference OFF leaves CoolProp's default basis untouched.
 
-Status: `review`. Functional/UI coverage is browser-verified, but mathematical correctness of the course-table/book-basis calibration and representative saturation/phase behavior must be numerically verified before promotion to `full`. Legacy fallback remains temporarily for safety.
+Status: `full`. Functional coverage, bidirectional reference conversion and representative phase/saturation behavior are browser-verified and continuously numerical-regression-tested. Legacy fallback remains temporarily for safety.
 
 The legacy Table 4 mode is now explicitly migrated and regression-tested. Fully custom process input remains an optional improvement rather than a parity blocker.
 
@@ -136,6 +138,12 @@ Analyzer parity added:
 
 Verified:
 - deployed browser test exercised all ten structures, presets, replication, holes, measurement, defects, manual atoms, Miller planes and analyzer updates.
+
+Beyond-legacy geometry improvements:
+- tetrahedral/octahedral faces are built from validated nearest-neighbour coordination shells rather than center markers alone;
+- periodic neighbour images complete hole geometry at cell/supercell boundaries;
+- FCC-derived compounds use the close-packed FCC host framework for interstitial coordination so occupied sites do not become false polyhedron vertices;
+- FCC-family close-packed {111} planes pass through actual lattice layers and display filled near-touching in-plane atom disks plus contact networks.
 
 Status: `full`. Legacy fallback remains temporarily as a safety link.
 
