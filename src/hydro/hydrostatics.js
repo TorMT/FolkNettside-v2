@@ -132,16 +132,39 @@ function waterplaneProperties(segments){
   };
 }
 
-export function analyzeHydrostatics({positions,indices},waterline=0){
+export function triangleZBounds({positions,indices}){
+  if(!positions?.length)return [];
+  const idx=indices?.length?indices:Array.from({length:positions.length/3},(_,i)=>i);
+  const bounds=new Array(Math.floor(idx.length/3)*2);
+  for(let t=0,triangle=0;t+2<idx.length;t+=3,triangle++){
+    const za=positions[idx[t]*3+2],zb=positions[idx[t+1]*3+2],zc=positions[idx[t+2]*3+2];
+    bounds[triangle*2]=Math.min(za,zb,zc);
+    bounds[triangle*2+1]=Math.max(za,zb,zc);
+  }
+  return bounds;
+}
+
+export function analyzeHydrostatics({positions,indices},waterline=0,triangleBounds=null){
   if(!positions?.length)throw new Error("Hydrostatics requires vertex positions");
   const idx=indices?.length?indices:Array.from({length:positions.length/3},(_,i)=>i);
+  const bounds=triangleBounds?.length===Math.floor(idx.length/3)*2?triangleBounds:null;
   let volume=0,mx=0,my=0,mz=0;
   const segments=[];
 
   const vertex=i=>[positions[i*3],positions[i*3+1],positions[i*3+2]];
 
-  for(let t=0;t+2<idx.length;t+=3){
+  for(let t=0,triangleIndex=0;t+2<idx.length;t+=3,triangleIndex++){
+    const minZ=bounds?bounds[triangleIndex*2]:null;
+    const maxZ=bounds?bounds[triangleIndex*2+1]:null;
+    if(bounds&&minZ>waterline+EPS)continue;
+
     const tri=[vertex(idx[t]),vertex(idx[t+1]),vertex(idx[t+2])];
+    if(bounds&&maxZ<waterline-EPS){
+      const integ=triangleSurfaceIntegrals(tri[0],tri[1],tri[2],waterline);
+      volume+=integ.volume;mx+=integ.mx;my+=integ.my;mz+=integ.mz;
+      continue;
+    }
+
     const segment=trianglePlaneSegment(tri,waterline);
     if(segment)segments.push(segment);
     const clipped=clipTriangleBelowPlane(tri,waterline);
@@ -203,10 +226,12 @@ export function prepareHydroModel(modelDocument,{include=()=>true}={}){
   const components=[];
   for(const component of modelDocument?.components||[]){
     if(!component.geometry||!include(component))continue;
+    const geometry=transformGeometryToWorld(component.geometry,component.transform,scale);
     components.push({
       componentId:component.id,
       name:component.name,
-      geometry:transformGeometryToWorld(component.geometry,component.transform,scale)
+      geometry,
+      triangleZBounds:triangleZBounds(geometry)
     });
   }
   return {schemaVersion:1,components};
@@ -219,7 +244,7 @@ export function analyzePreparedHydro(prepared,waterline=0){
   const waterplanes=[];
 
   for(const component of prepared?.components||[]){
-    const result=analyzeHydrostatics(component.geometry,waterline);
+    const result=analyzeHydrostatics(component.geometry,waterline,component.triangleZBounds);
     perComponent.push({componentId:component.componentId,name:component.name,...result});
     totalVolume+=result.volume;
     first[0]+=result.volume*result.centerOfBuoyancy[0];
