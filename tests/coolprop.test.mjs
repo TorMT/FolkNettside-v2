@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   COOLPROP_OUTPUT_ALIASES,COOLPROP_PHASE_INDEX,COURSE_TABLE_CONFIGS,COURSE_TABLE_LABELS,DEFAULT_FLUIDS,DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,TABLE_REFERENCE_PROFILES,
-  applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,computeState,courseTableConfig,courseTableLabel,inputToSI,outputFromSI,
+  applyBookBasis,batchFormat,computeBatch,computeCourseReferenceTable,computeProcess,computeTable4,computeState,courseTableConfig,courseTableLabel,inputToSI,outputFromSI,
   parseBatchRows,phaseDescription,propsSIOutput,removeBookBasis,saturationWarning,tableReferenceOffsets,tableReferenceProfile,
   processTargetOptions,rowsToCSV,rowsToJSON,unitLabel,verifyTableReference
 } from "../src/tools/coolprop-core.js";
@@ -383,6 +383,46 @@ test("full legacy CoolProp working-fluid set is available in v2",()=>{
 test("course table configurations retain distinct saturation and superheated tables",()=>{
   assert.deepEqual(COURSE_TABLE_CONFIGS.Water.tables.map(t=>t.id),["A-2","A-3","A-4","A-5"]);
   assert.deepEqual(COURSE_TABLE_CONFIGS.Ammonia.tables.map(t=>t.id),["A-13","A-14","A-15"]);
+  assert.deepEqual(COURSE_TABLE_CONFIGS.R134a.tables.map(t=>t.id),["A-10","A-11","A-12"]);
   assert.equal(courseTableConfig("Water").tables.find(t=>t.id==="A-5").mode,"compressed");
   assert.equal(courseTableConfig("Propane"),null);
+});
+
+
+test("course saturation-table generator returns liquid and vapour columns",()=>{
+  const engine={
+    propsSI(out,k1,v1,k2,v2){
+      const q=k1==="Q"?v1:k2==="Q"?v2:0;
+      if(out==="P")return 2e5;
+      if(out==="T")return 300;
+      if(out==="D")return q===0?1000:2;
+      if(out==="U")return (100+q*2000)*1000;
+      if(out==="H")return (120+q*2200)*1000;
+      if(out==="S")return (0.4+q*7)*1000;
+      return 0;
+    }
+  };
+  const [row]=computeCourseReferenceTable(engine,{
+    fluid:"Water",tableId:"A-2",rows:"25",
+    units:{pressure:"bar",temperature:"C",energy:"kJkg",entropy:"kJkgK"}
+  });
+  assert.equal(row.Status,"OK");
+  assert.equal(row.T,25);
+  assert.equal(row.P,2);
+  assert.equal(row.vf,.001);
+  assert.equal(row.vg,.5);
+  assert.equal(row.hf,120);
+  assert.equal(row.hg,2320);
+});
+
+test("superheated course table generator accepts T,P rows",()=>{
+  const [row]=computeCourseReferenceTable(fakeEngine(),{
+    fluid:"Ammonia",tableId:"A-15",rows:"100,5",
+    units:{pressure:"bar",temperature:"C",energy:"kJkg",entropy:"kJkgK"}
+  });
+  assert.equal(row.Status,"OK");
+  assert.equal(row.T,26.85);
+  assert.equal(row.P,2);
+  assert.equal(row.H,300);
+  assert.equal(row.Phase,"Gas / superheated vapour");
 });
