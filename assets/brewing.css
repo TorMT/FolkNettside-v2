@@ -62,3 +62,23 @@
 .brewing-drive-panel,.brewing-log-drive{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}.brewing-drive-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.brewing-drive-head>div{display:grid;gap:3px}.brewing-drive-head span{color:var(--ink-2);font-size:10px}.brewing-drive-grid{grid-template-columns:minmax(0,1fr) auto}.brewing-fallback-panel{max-width:760px;margin:0 auto}.brewing-fallback-panel p{color:var(--ink-2);line-height:1.55}
 @media(max-width:1000px){.brewing-page .stat-grid,.brewing-page .metrics-grid,.brewing-page .beer-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.brewing-page .brewing-export-grid,.brewing-page .brewing-recipe-search,.brewing-page .brewing-drive-grid{grid-template-columns:1fr 1fr}.brewing-page .brew-toolbar-card,.brewing-page .sidebar-card{position:static;max-height:none}}
 @media(max-width:760px){.brewing-page{min-height:calc(100vh - 52px)}.brewing-page-hero{display:grid}.brewing-hero-actions{justify-content:start}.brewing-page .brew-shell{padding:12px 10px 0}.brewing-page .view-row{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.brewing-page .view-row::-webkit-scrollbar{display:none}.brewing-page .view-tab{flex:0 0 auto}.brewing-page .split-shell,.brewing-page .brewing-export-grid,.brewing-page .brewing-recipe-search,.brewing-page .brewing-drive-grid{grid-template-columns:1fr}.brewing-page .chart-grid,.brewing-page .metric-mini-grid,.brewing-page .reference-grid,.brewing-page .image-grid{grid-template-columns:1fr}.brewing-drive-head{display:grid}}
+
+/* Dynamic renderer coverage */
+.brewing-page .action-stack{display:flex;align-items:end;gap:7px;flex-wrap:wrap}
+.brewing-page .sidebar-note{color:var(--brew-muted);font-size:10px;line-height:1.45}
+.brewing-page .log-label{display:inline-block;margin-right:5px;color:var(--ink-3);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.045em}
+.brewing-page .chart-footer{margin-top:6px;color:var(--brew-muted);font-size:9px;line-height:1.45}
+.brewing-page .alert-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.brewing-page .alert-link,.brewing-page .relation-link,.brewing-page .reference-action{color:var(--accent);font-size:10px;font-weight:700;text-decoration:none}
+.brewing-page .alert-link:hover,.brewing-page .reference-action:hover{text-decoration:underline}
+.brewing-page .relation-list{display:grid;gap:6px}
+.brewing-page .relation-link{color:var(--ink)}
+.brewing-page .image-link-card{grid-column:1/-1}
+.brewing-page .ingredient-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.brewing-page .ingredient-amount{font-variant-numeric:tabular-nums;color:var(--brew-muted);font-size:10px;text-align:right}
+.brewing-page .reference-chip-row{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0}
+.brewing-page .reference-section{padding-top:8px;margin-top:8px;border-top:1px solid var(--brew-line)}
+.brewing-page .reference-section>strong{font-size:11px}.brewing-page .reference-section p,.brewing-page .reference-section li{color:var(--brew-muted);font-size:10px;line-height:1.5}
+.brewing-page .reference-section ul{margin:6px 0 0;padding-left:18px}
+.brewing-page .subtle{color:var(--brew-muted)}
+@media(max-width:760px){.brewing-page .action-stack{display:grid;grid-template-columns:1fr}.brewing-page .ingredient-row{grid-template-columns:1fr}.brewing-page .ingredient-amount{text-align:left}}
