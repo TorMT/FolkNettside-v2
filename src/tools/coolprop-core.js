@@ -34,6 +34,23 @@ export const TABLE4_R_SPEC={
   CarbonDioxide:188.924
 };
 
+export const TABLE4_PRESETS={
+  Air:{
+    label:"Legacy Air Table 4",
+    fluid:"Air",
+    format:"TP",
+    units:{pressure:"bar",temperature:"C"},
+    rows:"25,1\n790,1\n30,12\n810,12\n-120,40\n390,40"
+  },
+  Water:{
+    label:"Legacy Water-vapour Table 4",
+    fluid:"Water",
+    format:"TP",
+    units:{pressure:"bar",temperature:"C"},
+    rows:"90,0.5\n310,0.5\n150,3\n410,3\n410,300\n880,300"
+  }
+};
+
 export const DEFAULT_UNITS={
   pressure:"bar",
   temperature:"C",
