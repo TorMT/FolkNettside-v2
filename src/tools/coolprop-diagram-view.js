@@ -1,4 +1,4 @@
-import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js?v=c051aa2a3133e01c8d84869ab38e0b81f31960e6";
+import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js?v=9067ffb63940252c410651966c2672298eb6f55e";
 
 function css(name,fallback){
   const value=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
