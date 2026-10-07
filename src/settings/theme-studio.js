@@ -102,7 +102,7 @@ function pixelsFromImage(img){
   return colors;
 }
 
-async function imageFileToPalette(file){
+export async function imageFileToPalette(file){
   if(!file?.type?.startsWith("image/"))throw new Error("Choose an image file");
   const url=URL.createObjectURL(file);
   try{
@@ -225,11 +225,11 @@ export function bindThemeStudio(root,state,onState){
     canvas.width=240;
     canvas.height=160;
     const ctx=canvas.getContext("2d");
-    ctx.fillStyle="#142c3b";ctx.fillRect(0,0,240,160);
-    ctx.fillStyle="#b3157a";ctx.fillRect(0,0,95,160);
-    ctx.fillStyle="#2f7fa4";ctx.fillRect(95,0,70,160);
-    ctx.fillStyle="#8f5a00";ctx.fillRect(165,0,75,80);
-    ctx.fillStyle="#f4f8fa";ctx.fillRect(165,80,75,80);
+    const sampleColors=["#b3157a","#142c3b","#2f7fa4","#8f5a00","#dce7ec"];
+    sampleColors.forEach((color,index)=>{
+      ctx.fillStyle=color;
+      ctx.fillRect(index*48,0,48,160);
+    });
     const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
     if(!blob){
       upload?.setAttribute("data-error","Could not create sample image");
