@@ -45,6 +45,8 @@ jobs:
           assert data[:4] == b"\x00asm"
           print("CoolProp WASM compile input verified:", len(data), "bytes")
           PY
+      - name: Verify CoolProp numerical references
+        run: node scripts/verify_coolprop_reference.mjs
       - name: Build cache-busted Pages tree
         run: |
           python scripts/build_preview.py --version "${GITHUB_SHA}"
