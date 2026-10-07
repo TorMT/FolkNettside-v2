@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  COOLPROP_OUTPUT_ALIASES,DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,TABLE_REFERENCE_PROFILES,
+  COOLPROP_OUTPUT_ALIASES,COOLPROP_PHASE_INDEX,DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,TABLE_REFERENCE_PROFILES,
   applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,computeState,inputToSI,outputFromSI,
   parseBatchRows,phaseDescription,propsSIOutput,removeBookBasis,saturationWarning,tableReferenceOffsets,
   processTargetOptions,rowsToCSV,rowsToJSON,unitLabel,verifyTableReference
@@ -70,6 +70,23 @@ test("duplicate independent variables are rejected",()=>{
 test("phase descriptions are stable",()=>{
   assert.equal(phaseDescription("twophase"),"Two-phase");
   assert.equal(phaseDescription("supercritical_gas"),"Supercritical");
+  assert.equal(phaseDescription("gas"),"Gas / superheated vapour");
+  assert.equal(phaseDescription("liquid"),"Liquid / subcooled");
+  assert.equal(phaseDescription(4),"Critical point");
+  assert.equal(phaseDescription(5),"Gas / superheated vapour");
+  assert.equal(phaseDescription(6),"Two-phase");
+  assert.equal(phaseDescription(7),"Unknown");
+  assert.equal(COOLPROP_PHASE_INDEX[0],"liquid");
+});
+
+test("phase falls back to PropsSI Phase index when PhaseSI is unavailable",()=>{
+  const base=fakeEngine();
+  delete base.phaseSI;
+  const original=base.propsSI;
+  base.propsSI=(out,...args)=>out==="Phase"?5:original(out,...args);
+  const result=computeState(base,{fluid:"Water",input1:"P",value1:1,input2:"T",value2:120});
+  assert.equal(result.phase,"Gas / superheated vapour");
+  assert.equal(result.phaseRaw,5);
 });
 
 test("table basis calibrates Air H U and S and round-trips engine values",()=>{
