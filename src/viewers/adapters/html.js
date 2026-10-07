@@ -1,4 +1,4 @@
-import {fetchText} from "../utils.js?v=de165a6236215eb46d3b396765f5f88ba9e35a83";
+import {fetchText} from "../utils.js?v=2daeaf56cf8685ab0a64f2af5f12d1ddcc032e97";
 
 export async function render(container,resource){
   const source=await fetchText(resource.path);
