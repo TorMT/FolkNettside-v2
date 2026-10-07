@@ -87,9 +87,23 @@ function getEngineeringDocument(){
   return engineeringDocumentPromise;
 }
 
+function engineeringModelReadinessLabel(item){
+  const names=["hydro","structure","resistance","propulsion"];
+  const ready=names.filter(name=>analysisCapability(item,name).enabled).length;
+  if(ready===names.length)return "all analyses ready";
+  if(ready===0)return "visual only";
+  return `${ready}/${names.length} analyses ready`;
+}
+
 function engineeringModelSelectHTML(){
   if(engineeringModels.length<2)return "";
-  return `<label class="engineering-model-select"><span>Model</span><select id="engineering-model-select">${engineeringModels.map(item=>`<option value="${item.id}" ${item.id===engineeringModelId?"selected":""}>${item.label||item.name}</option>`).join("")}</select></label>`;
+  const capability=engineeringMode==="Model"
+    ?analysisCapability(model,"model")
+    :analysisCapability(model,engineeringMode.toLowerCase());
+  return `<div class="engineering-model-control">
+    <label class="engineering-model-select"><span>Model</span><select id="engineering-model-select">${engineeringModels.map(item=>`<option value="${item.id}" ${item.id===engineeringModelId?"selected":""}>${item.label||item.name} · ${engineeringModelReadinessLabel(item)}</option>`).join("")}</select></label>
+    <span class="engineering-mode-capability ${capability.enabled?"ready":"blocked"}">${capabilityLabel(capability)}</span>
+  </div>`;
 }
 
 function selectEngineeringModel(id){
