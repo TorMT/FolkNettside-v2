@@ -1,4 +1,4 @@
-import {initialStability} from "../hydro/stability.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
+import {initialStability} from "../hydro/stability.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
 }
@@ -18,6 +18,26 @@ function curveSVG(curve){
     </svg></div>`;
 }
 
+function gzSVG(curve){
+  if(!curve?.length)return "";
+  const width=420,height=170,pad=28;
+  const xs=curve.map(point=>point.heelDeg);
+  const ys=curve.map(point=>point.gz);
+  const minX=Math.min(...xs),maxX=Math.max(...xs);
+  const maxAbs=Math.max(...ys.map(value=>Math.abs(value)),.01);
+  const sx=x=>pad+(x-minX)/Math.max(maxX-minX,1e-9)*(width-pad*2);
+  const sy=y=>height/2-y/maxAbs*(height/2-pad);
+  const points=curve.map(point=>`${sx(point.heelDeg).toFixed(1)},${sy(point.gz).toFixed(1)}`).join(" ");
+  return `<div class="gz-curve">
+    <div class="hydro-curve-head"><span>GZ / righting arm</span><span class="muted">${curve.length} constant-displacement points</span></div>
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="GZ righting arm curve">
+      <path d="M${pad} ${height/2}H${width-pad}M${sx(0)} ${pad}V${height-pad}" stroke="var(--line-strong)" fill="none"/>
+      <polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="3"/>
+    </svg>
+    <div class="gz-curve-meta"><span>${minX}°</span><span>0°</span><span>${maxX}°</span></div>
+  </div>`;
+}
+
 export function hydroPanelHTML({
   modelDocument,
   result,
@@ -27,6 +47,8 @@ export function hydroPanelHTML({
   draft,
   targetDisplacementTonnes="",
   kg="",
+  gz=null,
+  gzError=null,
   geometryWarnings=[],
   config={}
 }){
@@ -51,8 +73,10 @@ export function hydroPanelHTML({
         <label class="field"><span>KG for initial stability</span><div><input id="hydro-kg" type="number" step="0.01" value="${esc(kg)}" placeholder="optional"><span> m</span></div></label>
         <label class="field"><span>Target displacement</span><div><input id="hydro-target" type="number" min="0" step="0.1" value="${esc(targetDisplacementTonnes)}"><span> t</span></div></label>
         <button class="btn" id="hydro-solve">Solve draft</button>
+        <button class="btn" id="hydro-gz" ${kg===""?"disabled":""}>Compute GZ</button>
         ${solvedText?`<p class="hydro-solve-result">Draft: <strong>${solvedText}</strong></p>`:""}
         ${solveError?`<p class="hydro-solve-error">${esc(solveError)}</p>`:""}
+        ${gzError?`<p class="hydro-solve-error">${esc(gzError)}</p>`:""}
       </div>
       ${geometryWarnings.length?`<div class="geometry-warning"><strong>Geometry warning</strong><span>${geometryWarnings.length} included component(s) are not watertight. Hydro results may be invalid.</span></div>`:""}
       <p class="muted hydro-note">Calculations run in a Web Worker from imported ModelDocument geometry in world-space metres.</p>
@@ -77,7 +101,7 @@ export function hydroPanelHTML({
           ${stability.gmTransverse===null?"":`<div><span class="muted">GM transverse</span><strong>${stability.gmTransverse.toFixed(3)} m</strong></div>`}
           ${stability.gmLongitudinal===null?"":`<div><span class="muted">GM longitudinal</span><strong>${stability.gmLongitudinal.toFixed(3)} m</strong></div>`}
         `:""}
-      </div><p class="muted hydro-stability-note">BM/KM/GM are initial small-angle stability values from the current waterplane. Full GZ/righting-arm analysis is separate.</p>${curveSVG(curve)}</div>
+      </div><p class="muted hydro-stability-note">BM/KM/GM are initial small-angle stability values. GZ solves a new waterline at constant displacement for every heel angle.</p>${gzSVG(gz)}${curveSVG(curve)}</div>
     `,
     draft:clamped,
     density,

@@ -1,31 +1,31 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {mountViewer} from "./viewer.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {loadContent} from "./content.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {renderResourceTree} from "./components/resource-tree.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {buildSearchIndex} from "./search/search-index.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {createSearchController} from "./components/search-dialog.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {activeTools} from "./tools/tool-registry.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {loadModelDocument} from "./model/load-model.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {mountModelScene} from "./model/model-scene.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {mountViewer} from "./viewer.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {loadContent} from "./content.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {renderResourceTree} from "./components/resource-tree.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {buildSearchIndex} from "./search/search-index.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {createSearchController} from "./components/search-dialog.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {activeTools} from "./tools/tool-registry.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {loadModelDocument} from "./model/load-model.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {mountModelScene} from "./model/model-scene.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {analyzeHydroAsync,gzCurveAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
 
 initSettings();
 
@@ -42,6 +42,7 @@ let engineeringMode="Model";
 let hydroDraft=Number(model.hydro?.defaultDraft??1.20);
 let hydroTargetTonnes="";
 let hydroKg="";
+let hydroGzRequested=false;
 let hydroCurveCache={model:null,data:null};
 let structureLoadKn=-20;
 let resistanceSpeedKn=10;
@@ -599,6 +600,31 @@ async function engineeringPage(){
         ? Promise.resolve(hydroCurveCache.data)
         : hydroCurveAsync(documentModel,{minWaterline,maxWaterline,samples});
       let solvePromise=Promise.resolve(null);
+      let gzPromise=Promise.resolve({value:null,error:null});
+      if(hydroGzRequested&&Number.isFinite(Number(hydroKg))){
+        const targetVolume=(Number(hydroTargetTonnes)>0)
+          ?Number(hydroTargetTonnes)*1000/(Number(config.density)||1025)
+          :null;
+        const referenceVolume=targetVolume||null;
+        gzPromise=(async()=>{
+          try{
+            const upright=referenceVolume??(await analysisPromise).volume;
+            const value=await gzCurveAsync(documentModel,{
+              targetVolume:upright,
+              kg:Number(hydroKg),
+              density:Number(config.density)||1025,
+              minHeel:-30,
+              maxHeel:30,
+              step:5,
+              tolerance:1e-9,
+              maxIterations:80
+            });
+            return {value,error:null};
+          }catch(error){
+            return {value:null,error:String(error?.message||error)};
+          }
+        })();
+      }
       const target=Number(hydroTargetTonnes);
       if(Number.isFinite(target)&&target>0){
         const density=Number(config.density)||1025;
@@ -606,7 +632,7 @@ async function engineeringPage(){
           minWaterline,maxWaterline,tolerance:1e-7,maxIterations:60
         }).then(value=>({value,error:null})).catch(error=>({value:null,error:String(error?.message||error)}));
       }
-      const [result,curve,solvedState]=await Promise.all([analysisPromise,curvePromise,solvePromise]);
+      const [result,curve,solvedState,gzState]=await Promise.all([analysisPromise,curvePromise,solvePromise,gzPromise]);
       if(renderId!==engineeringRenderId)return;
       hydroCurveCache={model:documentModel,data:curve};
       const includedIds=new Set(result.components.map(item=>item.componentId));
@@ -618,6 +644,8 @@ async function engineeringPage(){
         draft:hydroDraft,
         targetDisplacementTonnes:hydroTargetTonnes,
         kg:hydroKg,
+        gz:gzState?.value||null,
+        gzError:gzState?.error||null,
         geometryWarnings,
         config
       });
@@ -701,9 +729,15 @@ async function engineeringPage(){
   });
   app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
   app.querySelector("#hydro-draft")?.addEventListener("change",event=>{hydroDraft=Number(event.target.value)||0;engineeringPage()});
-  app.querySelector("#hydro-kg")?.addEventListener("change",event=>{hydroKg=event.target.value;engineeringPage()});
+  app.querySelector("#hydro-kg")?.addEventListener("change",event=>{hydroKg=event.target.value;hydroGzRequested=false;engineeringPage()});
   app.querySelector("#hydro-solve")?.addEventListener("click",()=>{
-    hydroTargetTonnes=app.querySelector("#hydro-target")?.value??"";engineeringPage();
+    hydroTargetTonnes=app.querySelector("#hydro-target")?.value??"";hydroGzRequested=false;engineeringPage();
+  });
+  app.querySelector("#hydro-gz")?.addEventListener("click",()=>{
+    hydroKg=app.querySelector("#hydro-kg")?.value??hydroKg;
+    hydroTargetTonnes=app.querySelector("#hydro-target")?.value??hydroTargetTonnes;
+    hydroGzRequested=true;
+    engineeringPage();
   });
   app.querySelector("#hydro-target")?.addEventListener("keydown",event=>{
     if(event.key==="Enter"){hydroTargetTonnes=event.currentTarget.value;engineeringPage()}
