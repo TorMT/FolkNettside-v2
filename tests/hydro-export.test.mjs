@@ -5,10 +5,11 @@ import {gzCurveCSV,hydrostaticRowsCSV} from "../src/hydro/export.js";
 test("hydrostatic CSV uses stable engineering columns and finite numbers",()=>{
   const csv=hydrostaticRowsCSV([{
     draft:1.2,displacementTonnes:123.45,waterplaneArea:40,lcb:2,tcb:0,kb:.6,lcf:2.1,tcf:0,
-    tonnesPerCm:.41,bmTransverse:1.1,bmLongitudinal:8,kmTransverse:1.7,kmLongitudinal:8.6,
+    tonnesPerCm:.41,ixx:53.3,iyy:333.3,ixy:12,principalMomentMajor:334,principalMomentMinor:52.6,principalAxisDeg:2.45,principalBmMajor:4.2,principalBmMinor:.66,bmTransverse:1.1,bmLongitudinal:8,kmTransverse:1.7,kmLongitudinal:8.6,
     gmTransverse:.7,gmLongitudinal:7.6
   }]);
   assert.match(csv,/draft_m,displacement_t,waterplane_area_m2/);
+  assert.match(csv,/ixx_m4,iyy_m4,ixy_m4,principal_i_major_m4/);
   assert.match(csv,/1.2,123.45,40,2,0,0.6/);
   assert.ok(csv.endsWith("\n"));
 });
