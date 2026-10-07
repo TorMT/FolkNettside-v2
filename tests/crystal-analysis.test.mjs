@@ -4,7 +4,7 @@ import {replicateCrystal} from "../src/tools/crystal-structures-core.js";
 import {
   analyzeCrystal,applyCrystalEdits,bondPairs,bondPlaneCuts,closePackedPlaneSpecs,
   coordinationStats,firstShellCutoff,identifyCrystal,
-  coordinationPolyhedron,convexHullTriangles,nearestSitesToPoint,periodicImageSites,planeBoxPolygon,planeContactNetwork,
+  contactTriangles,coordinationPolyhedron,convexHullTriangles,interstitialVoidPolyhedron,nearestSitesToPoint,periodicImageSites,planeBoxPolygon,planeContactNetwork,
   polyhedronEdges,sitesNearPlane,
   millerPlane,nearestSiteIndex,segmentPlaneIntersection
 } from "../src/tools/crystal-analysis.js";
@@ -264,4 +264,45 @@ test("plane contact network collapses duplicate boundary atoms before linking",(
   assert.equal(network.siteIndices.length,3);
   assert.equal(network.contacts.length,2);
   assert.equal(network.nearestDistance,1);
+});
+
+
+test("FCC tetrahedral void recovers the close-packing hole-radius ratio",()=>{
+  const sites=[
+    {pos:[0,0,0]},{pos:[.5,.5,0]},{pos:[.5,0,.5]},{pos:[0,.5,.5]}
+  ];
+  const shell=coordinationPolyhedron(sites,[.25,.25,.25],4);
+  const hole=interstitialVoidPolyhedron(shell);
+  assert.equal(hole.valid,true);
+  assert.ok(Math.abs(hole.radiusRatio-(Math.sqrt(6)/2-1))<1e-10);
+  assert.equal(hole.points.length,4);
+  assert.equal(hole.faces.length,4);
+});
+
+test("octahedral void recovers the close-packing hole-radius ratio",()=>{
+  const sites=[
+    {pos:[1,0,0]},{pos:[-1,0,0]},
+    {pos:[0,1,0]},{pos:[0,-1,0]},
+    {pos:[0,0,1]},{pos:[0,0,-1]}
+  ];
+  const shell=coordinationPolyhedron(sites,[0,0,0],6);
+  const hole=interstitialVoidPolyhedron(shell);
+  assert.equal(hole.valid,true);
+  assert.ok(Math.abs(hole.radiusRatio-(Math.sqrt(2)-1))<1e-10);
+  assert.equal(hole.points.length,6);
+  assert.equal(hole.faces.length,8);
+});
+
+test("close-packed contact network exposes triangular tessellation",()=>{
+  const h=Math.sqrt(3)/2;
+  const sites=[
+    {pos:[0,0,0],active:true},
+    {pos:[1,0,0],active:true},
+    {pos:[.5,h,0],active:true},
+    {pos:[1.5,h,0],active:true}
+  ];
+  const network=planeContactNetwork(sites,{normal:[0,0,1],point:[0,0,0]},.01);
+  const triangles=contactTriangles(network);
+  assert.equal(triangles.length,2);
+  assert.deepEqual(triangles,[ [0,1,2], [1,2,3] ]);
 });
