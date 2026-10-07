@@ -11,3 +11,6 @@ Current coverage:
 - Jupyter Notebook
 - ASCII STL
 - 3MF assembly
+- LaTeX
+- DOCX/XLSX/PPTX
+- Quiz JSON
