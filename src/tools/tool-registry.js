@@ -29,7 +29,7 @@ export const TOOL_REGISTRY=[
     short:"CP",
     route:"/tools/coolprop",
     status:"prototype",
-    parity:"full",
+    parity:"review",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html",
     category:"Engineering",
     summary:"Reference-grade thermophysical properties using the local CoolProp WASM engine.",
@@ -44,7 +44,7 @@ export const TOOL_REGISTRY=[
     parity:"full",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/KrystallStrukturer/krystall-viewer.html",
     category:"Chemistry",
-    summary:"Shared Three.js crystal editor with structures, defects, holes, measurement, planes and analysis; legacy analyzer remains available during review.",
+    summary:"Shared Three.js crystal editor with browser-verified legacy parity plus coordination polyhedra, planes and analysis.",
     keywords:["crystal","bcc","fcc","hcp","diamond","nacl","measurement","polyhedra","dopant","vacancy"]
   },
   {
@@ -89,7 +89,7 @@ export const TOOL_REGISTRY=[
     short:"IMG",
     route:"/settings/theme-studio/image",
     status:"prototype",
-    parity:"full",
+    parity:"review",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/image-to-theme.html",
     category:"Developer",
     summary:"Image palette extraction, role assignment, auto-assign, preview and JSON/CSS/JS export migrated into Theme Studio.",
