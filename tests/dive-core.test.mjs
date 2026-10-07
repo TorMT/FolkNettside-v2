@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
-import {diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeatureQuality,diveStats,filterDiveFeatures,sortDiveFeatures} from "../src/diverse/dive-core.js";
+import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "../src/diverse/dive-core.js";
 
 const dataset=JSON.parse(await readFile(new URL("../data/diving/trondheim-sites.geojson",import.meta.url),"utf8"));
 const features=dataset.features;
@@ -73,4 +73,28 @@ test("DG additions and data-quality filtering are preserved",()=>{
   assert.ok(strongest.every(f=>diveFeatureQuality(f)==="A"));
   const verify=filterDiveFeatures(features,{quality:"C"});
   assert.ok(verify.some(f=>String(f.properties.Datakvalitet).startsWith("C")));
+});
+
+
+test("wildlife index supports include and exclude exploration",()=>{
+  const index=diveWildlifeIndex(features);
+  assert.ok(index.length>5);
+  assert.ok(index.some(item=>/hummer/i.test(item.label)));
+  const withHummer=filterDiveFeatures(features,{wildlife:"hummer"});
+  assert.ok(withHummer.length>0);
+  assert.ok(withHummer.every(feature=>diveFeatureWildlife(feature).some(item=>/hummer/i.test(item))));
+  const withoutHummer=filterDiveFeatures(features,{wildlife:"hummer",excludeWildlife:true});
+  assert.equal(withHummer.length+withoutHummer.length,features.length);
+});
+
+test("nearest sorting uses haversine distance only when an origin is available",()=>{
+  const origin={lat:63.43,lon:10.39};
+  const sorted=sortDiveFeatures(features,"nearest",{origin});
+  const mapped=sorted.filter(feature=>feature.geometry?.type==="Point");
+  const distance=feature=>{
+    const [lon,lat]=feature.geometry.coordinates;
+    return diveDistanceKm(origin,{lat,lon});
+  };
+  assert.ok(distance(mapped[0])<=distance(mapped[Math.min(5,mapped.length-1)]));
+  assert.ok(diveDistanceKm(origin,origin)<1e-9);
 });
