@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Gunnerus GLB browser smoke</title></head>
+<body data-status="running">
+<pre id="result">running</pre>
+<script type="module">
+import {loadModelDocument} from "../../src/model/load-model.js";
+import {componentSemantic} from "../../src/model/semantic-assembly.js";
+
+const result=document.querySelector("#result");
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+
+try{
+  const configResponse=await fetch("../../data/gunnerus-model.json");
+  assert(configResponse.ok,"Could not load Gunnerus model config");
+  const config=await configResponse.json();
+  const model=await loadModelDocument(config);
+
+  assert(model.format==="GLB","Expected GLB ModelDocument");
+  assert(model.unit==="meter","Expected metre units");
+  assert(model.components.length>=25,"Expected root plus 24 sourced part nodes");
+
+  const bySource=id=>model.components.find(component=>component.sourceObjectId===id);
+  const port=bySource("part19");
+  const starboard=bySource("part20");
+  const tunnel=bySource("part23");
+  const hull=bySource("part00");
+
+  assert(port&&starboard&&tunnel&&hull,"Published Gunnerus propulsion/hull part ids missing");
+  assert(componentSemantic(port).subtype==="azimuth","Port azimuth semantic mapping missing");
+  assert(componentSemantic(starboard).subtype==="azimuth","Starboard azimuth semantic mapping missing");
+  assert(componentSemantic(tunnel).subtype==="tunnel","Tunnel semantic mapping missing");
+  assert(componentSemantic(hull).role==="hull","Hull semantic mapping missing");
+  assert(hull.metadata?.hydro===false,"Unvalidated Gunnerus hull must not be hydro-enabled");
+
+  let min=[Infinity,Infinity,Infinity],max=[-Infinity,-Infinity,-Infinity],vertices=0;
+  for(const component of model.components){
+    const positions=component.geometry?.positions||[];
+    vertices+=positions.length/3;
+    for(let i=0;i<positions.length;i+=3){
+      for(let axis=0;axis<3;axis++){
+        const value=positions[i+axis];
+        assert(Number.isFinite(value),"Non-finite GLB geometry coordinate");
+        min[axis]=Math.min(min[axis],value);
+        max[axis]=Math.max(max[axis],value);
+      }
+    }
+  }
+  const size=max.map((value,index)=>value-min[index]);
+  const largest=Math.max(...size);
+  assert(vertices>1000,"GLB geometry unexpectedly empty");
+  assert(largest>30&&largest<50,"Expected Gunnerus metre-scale geometry, largest dimension="+largest);
+
+  document.body.dataset.status="pass";
+  result.textContent=JSON.stringify({
+    name:model.name,
+    components:model.components.length,
+    vertices,
+    size:size.map(value=>Number(value.toFixed(3))),
+    port:port.name,
+    starboard:starboard.name,
+    tunnel:tunnel.name,
+    source:model.source
+  });
+}catch(error){
+  document.body.dataset.status="fail";
+  result.textContent=String(error?.stack||error);
+}
+</script>
+</body>
+</html>
