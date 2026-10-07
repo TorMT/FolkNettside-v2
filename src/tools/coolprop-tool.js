@@ -78,7 +78,7 @@ function globalSettingsHTML(s){
       <label class="field"><span>Temperature unit</span><select id="cp-temperature-unit">${selectOptions(["K","C"],s.units.temperature)}</select></label>
       <label class="field"><span>H/U unit</span><select id="cp-energy-unit">${selectOptions(["Jkg","kJkg"],s.units.energy)}</select></label>
       <label class="field"><span>S/Cp/Cv unit</span><select id="cp-entropy-unit">${selectOptions(["JkgK","kJkgK"],s.units.entropy)}</select></label>
-      <label class="coolprop-book-toggle"><input id="cp-book-basis" type="checkbox" ${s.bookBasis?"checked":""}><span>Air book basis</span><small>Legacy H/U reference at 1000 K, 1 bar</small></label>
+      <label class="coolprop-book-toggle"><input id="cp-book-basis" type="checkbox" ${s.bookBasis?"checked":""}><span>Table reference · Air A-22</span><small>Match course-table H/U/S · off = CoolProp default</small></label>
     </div>
   </section>`;
 }
@@ -168,7 +168,7 @@ export function coolPropToolHTML(state={}){
     <header class="tool-header">
       <div><span class="project-kicker">Thermodynamics tool</span><h1>CoolProp</h1>
       <p>Local WebAssembly property engine with the legacy state, batch, process and explore workflows.</p>
-      <div class="tool-parity-banner"><strong>Migration in progress:</strong> calculations, units, book basis, batch, process, explore and exports are now being run through the shared v2 core. Advanced diagrams remain available in the <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">full legacy tool ↗</a>.</div></div>
+      <div class="tool-parity-banner"><strong>Numerical review:</strong> functional parity is browser-verified. Table-reference calibration and saturation/phase reference checks are the remaining gate before full parity. The <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">legacy tool ↗</a> remains available during review.</div></div>
       <div class="coolprop-header-actions"><div class="coolprop-engine-status" id="coolprop-status">Engine not loaded</div><button class="btn" id="cp-help-open">Help</button></div>
     </header>
 
