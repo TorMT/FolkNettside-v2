@@ -1,5 +1,5 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=1e0f3adc216cf30705f88079bd3cc77faa448c1c";
-import {createHydroInclude} from "./hydro-selection.js?v=1e0f3adc216cf30705f88079bd3cc77faa448c1c";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=45d683c4f79c842373f0f39292dbfea7076dc49e";
+import {createHydroInclude} from "./hydro-selection.js?v=45d683c4f79c842373f0f39292dbfea7076dc49e";
 
 let worker=null;
 let currentModel=null;
@@ -8,7 +8,7 @@ const pending=new Map();
 
 function ensureWorker(){
   if(worker||typeof Worker==="undefined")return worker;
-  worker=new Worker(new URL("./hydro-worker.js?v=1e0f3adc216cf30705f88079bd3cc77faa448c1c",import.meta.url),{type:"module"});
+  worker=new Worker(new URL("./hydro-worker.js?v=45d683c4f79c842373f0f39292dbfea7076dc49e",import.meta.url),{type:"module"});
   worker.onmessage=event=>{
     const {id,ok,result,error}=event.data||{};
     const entry=pending.get(id);
