@@ -46,5 +46,12 @@ export async function loadModelDocument(config){
     source:config.source||null
   });
   else throw new Error(`Unsupported engineering model format: .${ext}`);
+
+  if(config.defaultHydro!==undefined){
+    for(const component of documentModel.components){
+      if(!component.geometry)continue;
+      component.metadata={...(component.metadata||{}),hydro:Boolean(config.defaultHydro)};
+    }
+  }
   return applyModelRules(documentModel,config.componentRules);
 }
