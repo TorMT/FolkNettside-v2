@@ -42,11 +42,11 @@ export const DIVERSE_MODULES=[
     id:"sandalen",
     title:"Sandalen Gård",
     short:"SG",
-    route:null,
+    route:"/diverse/sandalen",
     status:"migration",
     access:"optional",
     category:"Operations",
-    summary:"Bygges om til native v2-modul slik at theme, dataflyt og eventuell konto deles med resten av siden.",
+    summary:"Native v2-hub for Sandalen-lenkene med SandalenTools bevart in-view til selve verktøyet har full v2-paritet.",
     legacyUrl:"https://tormt.folk.ntnu.no/diverse/SandalenG%C3%A5rd/",
     storage:"local",
     sync:"optional-account"

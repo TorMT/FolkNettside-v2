@@ -16,7 +16,7 @@ test("Dive map is native, Njord points into Engineering and LeseRavnen remains p
   assert.equal(diverseModule("njord").status,"superseded");
   assert.equal(diverseModule("leseravnen").status,"preserved");
   assert.match(diverseModule("leseravnen").legacyUrl,/LeseRavnen/);
-  assert.equal(diverseModule("matpris").status,"repair");
+  assert.equal(diverseModule("matpris").status,"repair");\n  assert.equal(diverseModule("sandalen").route,"/diverse/sandalen");
 });
 
 test("native Diverse modules all have routes",()=>{
