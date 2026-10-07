@@ -1,6 +1,7 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=918f3b59381fa81bce33c922baf17bd845654f1e";
-import {createHydroInclude} from "./hydro-selection.js?v=918f3b59381fa81bce33c922baf17bd845654f1e";
-import {gzCurve} from "./gz.js?v=918f3b59381fa81bce33c922baf17bd845654f1e";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=b8f1793038fe30309a1e47a97e1cb425829879fd";
+import {createHydroInclude} from "./hydro-selection.js?v=b8f1793038fe30309a1e47a97e1cb425829879fd";
+import {gzCurve} from "./gz.js?v=b8f1793038fe30309a1e47a97e1cb425829879fd";
+import {attitudeCurve,attitudeHydro} from "./attitude.js?v=b8f1793038fe30309a1e47a97e1cb425829879fd";
 
 let worker=null;
 let currentModel=null;
@@ -9,7 +10,7 @@ const pending=new Map();
 
 function ensureWorker(){
   if(worker||typeof Worker==="undefined")return worker;
-  worker=new Worker(new URL("./hydro-worker.js?v=918f3b59381fa81bce33c922baf17bd845654f1e",import.meta.url),{type:"module"});
+  worker=new Worker(new URL("./hydro-worker.js?v=b8f1793038fe30309a1e47a97e1cb425829879fd",import.meta.url),{type:"module"});
   worker.onmessage=event=>{
     const {id,ok,result,error}=event.data||{};
     const entry=pending.get(id);
@@ -64,6 +65,20 @@ export async function solveHydroDraftAsync(modelDocument,targetVolume,options){
   const queued=request("solve",{targetVolume,...options});
   if(queued)return queued;
   return solveWaterlineForVolume(modelDocument,targetVolume,{...options,include:createHydroInclude(modelDocument)});
+}
+
+export async function attitudeHydroAsync(modelDocument,options){
+  await ensureModel(modelDocument);
+  const queued=request("attitude",options);
+  if(queued)return queued;
+  return attitudeHydro(modelDocument,{...options,include:createHydroInclude(modelDocument)});
+}
+
+export async function attitudeCurveAsync(modelDocument,options){
+  await ensureModel(modelDocument);
+  const queued=request("attitudeCurve",options);
+  if(queued)return queued;
+  return attitudeCurve(modelDocument,{...options,include:createHydroInclude(modelDocument)});
 }
 
 export async function gzCurveAsync(modelDocument,options){
