@@ -1,6 +1,6 @@
 import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,TABLE4_PRESETS,
-  computeBatch,computeCourseReferenceTable,computeProcess,computeState,computeTable4,courseTableConfig,courseTableLabel,processTargetOptions,
+  computeBatch,computeCourseReferenceTable,computeProcess,computeState,computeTable4,courseTableConfig,courseTableDefaultRows,courseTableLabel,processTargetOptions,
   rowsToCSV,rowsToJSON,saturationWarning,tableReferenceProfile,unitLabel
 } from "./coolprop-core.js";
 import {getCoolProp} from "../vendor/coolprop-runtime.js";
@@ -161,11 +161,33 @@ function processHTML(s){
   </section>`;
 }
 
-function referenceDefaults(table){
+function referenceDefaults(fluid,table,units){
+  return table?courseTableDefaultRows(fluid,table.id,units):"";
+}
+
+function referenceInputHint(table,units){
   if(!table)return "";
-  if(table.mode==="sat-T")return "0\n20\n50\n100";
-  if(table.mode==="sat-P")return "0.5\n1\n5\n10";
-  return "25,1\n100,5\n200,10";
+  if(table.mode==="ideal-gas")return "One temperature per line · K";
+  if(table.mode==="sat-T")return `One temperature per line · ${unitLabel("T",units)}`;
+  if(table.mode==="sat-P")return `One pressure per line · ${unitLabel("P",units)}`;
+  return `Temperature [${unitLabel("T",units)}], pressure [${unitLabel("P",units)}] per line`;
+}
+
+function referenceTableLabels(table,units){
+  const labels={
+    Row:"#",
+    T:`T (${unitLabel("T",units)})`,
+    T_K:"T (K)",
+    P:`P (${unitLabel("P",units)})`,
+    v:"v (m³/kg)",vf:"v_f (m³/kg)",vg:"v_g (m³/kg)",
+    U:`u (${unitLabel("U",units)})`,uf:`u_f (${unitLabel("U",units)})`,ug:`u_g (${unitLabel("U",units)})`,
+    H:`h (${unitLabel("H",units)})`,hf:`h_f (${unitLabel("H",units)})`,hg:`h_g (${unitLabel("H",units)})`,
+    S:`s (${unitLabel("S",units)})`,sf:`s_f (${unitLabel("S",units)})`,sg:`s_g (${unitLabel("S",units)})`,
+    Cp:`c_p (${unitLabel("Cp",units)})`,Cv:`c_v (${unitLabel("Cv",units)})`,
+    Phase:"Phase",Status:"Status",Error:"Error"
+  };
+  if(table?.mode==="ideal-gas")labels.T_K="T (K · A-22)";
+  return labels;
 }
 
 function referenceHTML(s){
@@ -179,12 +201,9 @@ function referenceHTML(s){
     ?s.reference.tableId
     :config.tables[0].id;
   const table=config.tables.find(item=>item.id===selected);
-  const rows=s.reference.rows||referenceDefaults(table);
-  const inputHint=table.mode==="sat-T"
-    ?"One temperature per line"
-    :table.mode==="sat-P"
-      ?"One pressure per line"
-      :"Temperature, pressure per line";
+  const rows=s.reference.rows||referenceDefaults(s.fluid,table,s.units);
+  const inputHint=referenceInputHint(table,s.units);
+  const tableContext=table.mode==="ideal-gas"?"1 bar reference pressure · temperature input fixed in K":`${unitLabel("T",s.units)} · ${unitLabel("P",s.units)} display basis`;
   return `<section class="coolprop-mode" data-mode="reference" ${s.tab==="reference"?"":"hidden"}>
     <div class="coolprop-subhead"><strong>Course reference tables</strong><span>Generate the same table layout from the local CoolProp engine. A mapped textbook reference basis is applied only where it has been separately calibrated.</span></div>
     <div class="coolprop-input-grid">
@@ -193,7 +212,7 @@ function referenceHTML(s){
       </select></label>
       <label class="field coolprop-span-2"><span>${inputHint}</span><textarea id="cp-reference-rows" rows="8">${esc(rows)}</textarea></label>
     </div>
-    <div class="coolprop-table4-note"><strong>${esc(table.id)}</strong><span>${esc(table.label)} · ${esc(table.mode)}</span></div>
+    <div class="coolprop-table4-note"><strong>${esc(table.id)}</strong><span>${esc(table.label)} · ${esc(tableContext)}</span></div>
     <div class="coolprop-actions"><button class="btn primary" id="cp-reference-run">Generate table</button><button class="btn" id="cp-reference-example">Reset rows</button></div>
     <div id="cp-reference-results" class="coolprop-results"><div class="tool-result-card"><span>Reference</span><strong>${esc(table.id)}</strong><p>${esc(table.label)}</p></div></div>
   </section>`;
@@ -321,10 +340,10 @@ function resultGrid(state,units){
     </div>`;
 }
 
-function genericTable(rows){
+function genericTable(rows,labels={}){
   if(!rows.length)return '<div class="search-empty">No rows.</div>';
   const keys=[...new Set(rows.flatMap(row=>Object.keys(row)))];
-  return `<div class="coolprop-table-wrap"><table><thead><tr>${keys.map(key=>`<th>${esc(key)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr>${keys.map(key=>`<td>${esc(row[key]??"")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  return `<div class="coolprop-table-wrap"><table><thead><tr>${keys.map(key=>`<th>${esc(labels[key]||key)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr>${keys.map(key=>`<td>${esc(row[key]??"")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 
 function downloadText(filename,text,mime){
@@ -574,14 +593,16 @@ export function bindCoolPropTool(root,state,onState){
   });
 
   root.querySelector("#cp-reference-table")?.addEventListener("change",event=>{
-    const table=courseTableConfig(root.querySelector("#cp-fluid")?.value||s.fluid)?.tables?.find(item=>item.id===event.target.value);
-    save({...syncGlobal(),tab:"reference",reference:{tableId:event.target.value,rows:referenceDefaults(table)}},true);
+    const fluid=root.querySelector("#cp-fluid")?.value||s.fluid;
+    const table=courseTableConfig(fluid)?.tables?.find(item=>item.id===event.target.value);
+    save({...syncGlobal(),tab:"reference",reference:{tableId:event.target.value,rows:referenceDefaults(fluid,table,readUnits(root))}},true);
   });
 
   root.querySelector("#cp-reference-example")?.addEventListener("click",()=>{
     const tableId=root.querySelector("#cp-reference-table")?.value||s.reference.tableId;
-    const table=courseTableConfig(root.querySelector("#cp-fluid")?.value||s.fluid)?.tables?.find(item=>item.id===tableId);
-    save({...syncGlobal(),tab:"reference",reference:{tableId,rows:referenceDefaults(table)}},true);
+    const fluid=root.querySelector("#cp-fluid")?.value||s.fluid;
+    const table=courseTableConfig(fluid)?.tables?.find(item=>item.id===tableId);
+    save({...syncGlobal(),tab:"reference",reference:{tableId,rows:referenceDefaults(fluid,table,readUnits(root))}},true);
   });
 
   root.querySelector("#cp-reference-run")?.addEventListener("click",async()=>{
@@ -602,7 +623,8 @@ export function bindCoolPropTool(root,state,onState){
         units:readUnits(root),
         bookBasis:Boolean(root.querySelector("#cp-book-basis")?.checked)
       });
-      target.innerHTML=genericTable(rows);
+      const table=courseTableConfig(fluid)?.tables?.find(item=>item.id===reference.tableId);
+      target.innerHTML=genericTable(rows,referenceTableLabels(table,readUnits(root)));
       save({...syncGlobal(),reference,exportRows:rows,exportName:`coolprop-${fluid.toLowerCase()}-${reference.tableId.toLowerCase()}`},false);
       setDiagramStates([],`Reference ${reference.tableId}`);
     }catch(error){
