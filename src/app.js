@@ -1,35 +1,36 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {mountViewer} from "./viewer.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {loadContent} from "./content.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {renderResourceTree} from "./components/resource-tree.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {karakterwebUrl} from "./courses/external-links.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {buildSearchIndex} from "./search/search-index.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {createSearchController} from "./components/search-dialog.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {activeTools} from "./tools/tool-registry.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {loadModelDocument} from "./model/load-model.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {mountModelScene} from "./model/model-scene.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=a9b99ee88974141a595afc683db34eea2547479f";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=a9b99ee88974141a595afc683db34eea2547479f";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {mountViewer} from "./viewer.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {loadContent} from "./content.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {renderResourceTree} from "./components/resource-tree.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {karakterwebUrl} from "./courses/external-links.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {buildSearchIndex} from "./search/search-index.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {createSearchController} from "./components/search-dialog.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {activeTools} from "./tools/tool-registry.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {loadModelDocument} from "./model/load-model.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {mountModelScene} from "./model/model-scene.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=9ed4d572c4d37790e7a04df384049f99652b8a5f";
 
 initSettings();
 
@@ -73,6 +74,7 @@ let chemEditorCleanup=null;
 let modelInspectorCleanup=null;
 let workspaceDrawerCleanup=null;
 let themeStudioState={mode:"manual",name:"custom-theme",colors:{},palette:[],imageSrc:""};
+let settingsSection="appearance";
 
 function getEngineeringDocument(){
   if(!engineeringDocumentPromise){
@@ -587,7 +589,36 @@ function themeStudioPage(mode="manual"){
   });
 }
 
-function settingsPage(){const s=getSettings(),acc={magenta:"#b3157a",teal:"#0b6e72",blue:"#1f57c9",amber:"#8f5a00",graphite:"#394d5b"};document.documentElement.dataset.lens="study";app.innerHTML=top("")+'<main class="settings"><aside class="side"><div class="side-title">Settings</div><button class="active">Appearance</button><button>Account & connections</button><button>Courses</button><button>Engineering</button><button>Privacy & data</button><button>Advanced</button></aside><section class="settings-main"><h1>Appearance</h1><p class="muted">Theme lives here only. Viewers and workspaces inherit the same global state.</p><div class="settings-card"><div class="setting-row"><div><strong>Mode</strong><small>Follow system, or force light/dark.</small></div><div class="segment">'+["system","light","dark"].map(v=>'<button data-setting="mode" data-value="'+v+'" class="'+(s.mode===v?"active":"")+'">'+v+'</button>').join("")+'</div></div><div class="setting-row"><div><strong>Accent</strong><small>Shared UI accent. Analysis colormaps remain independent.</small></div><div class="swatches">'+Object.entries(acc).map(([k,v])=>'<button class="swatch '+(s.accent===k?"active":"")+'" data-setting="accent" data-value="'+k+'" style="background:'+v+'" title="'+k+'"></button>').join("")+'</div></div></div><div class="settings-card"><div class="setting-row"><div><strong>Theme Studio</strong><small>Manual theme authoring and image → palette generation live under Settings.</small></div><div class="settings-shortcuts"><button class="btn" data-go="/settings/theme-studio/manual">Manual</button><button class="btn" data-go="/settings/theme-studio/image">Image → theme</button></div></div></div><div class="settings-card"><div class="setting-row"><div><strong>Google</strong><small>Optional; only needed for Drive/cloud features.</small></div><button class="btn">Not connected</button></div><div class="setting-row"><div><strong>Autodesk</strong><small>Optional; future Fusion/APS connection.</small></div><button class="btn">Not connected</button></div></div></section></main><div class="preview-badge">Public by default · auth optional</div>';bindNav();app.querySelectorAll("[data-setting]").forEach(b=>b.onclick=()=>{setSetting(b.dataset.setting,b.dataset.value);settingsPage()})}
+function settingsPage(){
+  const settings=getSettings();
+  const stats={
+    semesters:semesters.length,
+    courses:semesters.reduce((sum,semester)=>sum+(semester.courses?.length||0),0),
+    resources:semesters.reduce((sum,semester)=>sum+(semester.courses||[]).reduce((courseSum,course)=>courseSum+(course.resources?.length||0),0),0),
+    models:engineeringModels.length
+  };
+  document.documentElement.dataset.lens="study";
+  app.innerHTML=top("")+settingsPageHTML({settings,section:settingsSection,stats});
+  bindNav();
+
+  app.querySelectorAll("[data-settings-section]").forEach(button=>button.addEventListener("click",()=>{
+    settingsSection=button.dataset.settingsSection||"appearance";
+    settingsPage();
+  }));
+
+  app.querySelectorAll("[data-setting]").forEach(button=>button.addEventListener("click",()=>{
+    setSetting(button.dataset.setting,button.dataset.value);
+    settingsPage();
+  }));
+
+  app.querySelector("#settings-clear-study-progress")?.addEventListener("click",event=>{
+    const removed=clearLocalStudyProgress();
+    const feedback=app.querySelector("#settings-feedback");
+    if(feedback)feedback.textContent=removed?`Cleared ${removed} local progress record${removed===1?"":"s"}.`:"No local study progress was stored.";
+    event.currentTarget.textContent="Cleared";
+    setTimeout(()=>{if(event.currentTarget?.isConnected)event.currentTarget.textContent="Clear progress"},1200);
+  });
+}
 
 function depthFor(component,list){
   const byId=new Map(list.map(c=>[c.id,c]));
