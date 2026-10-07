@@ -1,6 +1,6 @@
 import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,TABLE4_PRESETS,
-  computeBatch,computeProcess,computeState,computeTable4,courseTableLabel,processTargetOptions,
+  computeBatch,computeProcess,computeState,computeTable4,courseTableConfig,courseTableLabel,processTargetOptions,
   rowsToCSV,rowsToJSON,saturationWarning,tableReferenceProfile,unitLabel
 } from "./coolprop-core.js";
 import {getCoolProp} from "../vendor/coolprop-runtime.js";
@@ -72,7 +72,9 @@ function normalizedState(state={}){
 
 function globalSettingsHTML(s){
   const profile=tableReferenceProfile(s.fluid);
+  const tableConfig=courseTableConfig(s.fluid);
   const tableLabel=courseTableLabel(s.fluid);
+  const tableDetail=tableConfig?.tables?.map(table=>`${table.id} · ${table.label}`).join(" · ")||"No course-specific reference table mapped";
   return `<section class="coolprop-global">
     <div class="coolprop-fluid-control">
       <span class="coolprop-control-kicker">Working fluid</span>
@@ -87,7 +89,7 @@ function globalSettingsHTML(s){
         <label><span>S / C</span><select id="cp-entropy-unit">${selectOptions(["JkgK","kJkgK"],s.units.entropy)}</select></label>
       </div>
     </div>
-    <label class="coolprop-book-toggle ${profile?"":"disabled"}"><input id="cp-book-basis" type="checkbox" ${s.bookBasis&&profile?"checked":""} ${profile?"":"disabled"}><span><strong>${esc(tableLabel)}</strong><small>${profile?"Shift H/U/S to the selected course-table reference":"No calibrated course-table reference yet"}</small></span></label>
+    <label class="coolprop-book-toggle ${profile?"":"disabled"}"><input id="cp-book-basis" type="checkbox" ${s.bookBasis&&profile?"checked":""} ${profile?"":"disabled"}><span><strong>${esc(tableLabel)}</strong><small>${profile?"Shift H/U/S to the selected course-table reference":"Reference table mapped; numeric basis calibration not enabled"}</small><small class="coolprop-table-detail">${esc(tableDetail)}</small></span></label>
   </section>`;
 }
 
@@ -180,7 +182,7 @@ export function coolPropToolHTML(state={}){
         <p>Thermophysical states, processes and diagrams from the local CoolProp engine.</p>
         <details class="coolprop-verification">
           <summary>Numerical verification</summary>
-          <span>Air A-22 is CI-checked at 300 / 400 / 1000 / 1200 K with inverse P-h, plus Water saturation and R134a two-phase references. <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">Legacy reference ↗</a></span>
+          <span>Air A-22 is CI-checked at 300 / 400 / 1000 / 1200 K with inverse P-h. Ammonia A-13/A-14/A-15 is mapped and calibrated; Water A-2/A-3/A-4/A-5 is mapped, with native CoolProp retained until its reference shift is separately verified. <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">Legacy reference ↗</a></span>
         </details>
       </div>
       <div class="coolprop-header-actions"><div class="coolprop-engine-status" id="coolprop-status">Engine offline</div><button class="btn coolprop-help-button" id="cp-help-open">Help</button></div>
