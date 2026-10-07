@@ -1,10 +1,10 @@
-import {getThreeRuntime} from "../model/three-runtime.js?v=73652eb6800cc048b595e897ff33a9cab9872478";
-import {crystalEditorPanelHTML} from "./crystal-editor-panel.js?v=73652eb6800cc048b595e897ff33a9cab9872478";
+import {getThreeRuntime} from "../model/three-runtime.js?v=b4d63f08a39a33e9492a92a1c19f060ebdaf16d8";
+import {crystalEditorPanelHTML} from "./crystal-editor-panel.js?v=b4d63f08a39a33e9492a92a1c19f060ebdaf16d8";
 import {
   cellEdges,crystalPreset,crystalType,distance3,idealHoleCenters,
   listCrystalPresets,listCrystalTypes,replicateCrystal
-} from "./crystal-structures-core.js?v=73652eb6800cc048b595e897ff33a9cab9872478";
-import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,coordinationPolyhedron,millerPlane,planeBoxPolygon,polyhedronEdges,sitesNearPlane} from "./crystal-analysis.js?v=73652eb6800cc048b595e897ff33a9cab9872478";
+} from "./crystal-structures-core.js?v=b4d63f08a39a33e9492a92a1c19f060ebdaf16d8";
+import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,coordinationPolyhedron,millerPlane,planeBoxPolygon,planeContactNetwork,polyhedronEdges,sitesNearPlane} from "./crystal-analysis.js?v=b4d63f08a39a33e9492a92a1c19f060ebdaf16d8";
 
 const SPECIES_COLORS={
   A:0xb3157a,B:0x2f7fa4,O:0xd9e7ed,
@@ -27,7 +27,7 @@ export function crystalToolHTML(state={}){
     <header class="tool-header">
       <div><span class="project-kicker">Materials tool</span><h1>Crystal structures</h1>
       <p>Shared Three.js crystallography editor with structures, defects, planes, holes, measurement and analysis.</p>
-      <div class="tool-parity-banner"><strong>Migration in progress:</strong> the major interactive legacy features are now present in v2. The full legacy tool remains available while the advanced structure-identification/analyzer behavior is compared side by side.</div></div>
+      <div class="tool-parity-banner"><strong>Legacy parity verified:</strong> the v2 tool preserves the full interactive legacy workflow and now adds real coordination polyhedra plus geometric close-packed plane layers.</div></div>
     </header>
 
     <section class="crystal-tool-layout">
@@ -293,6 +293,7 @@ export async function mountCrystalViewer(container,state={}){
   }
 
   const planeObjects=[];
+  const planeMetrics=[];
 
   function crystalBounds(){
     if(!atomSites.length)return {min:[0,0,0],max:[a,a,a]};
@@ -370,7 +371,16 @@ export async function mountCrystalViewer(container,state={}){
 
     const tolerance=Math.max(.04*a,span*.015);
     const planeForSites={normal:spec.normal,point};
-    for(const item of sitesNearPlane(atomSites,planeForSites,tolerance)){
+    const near=sitesNearPlane(atomSites,planeForSites,tolerance);
+    const network=planeContactNetwork(atomSites,planeForSites,tolerance,{distanceTolerance:.10});
+    planeMetrics.push({
+      label:spec.label,
+      atoms:network.siteIndices.length,
+      contacts:network.contacts.length,
+      nearestDistance:network.nearestDistance
+    });
+
+    for(const item of near){
       const site=atomSites[item.index];
       const ringGeometry=new THREE.RingGeometry(.12*a,.155*a,24);
       const ringMaterial=new THREE.MeshBasicMaterial({
@@ -386,6 +396,23 @@ export async function mountCrystalViewer(container,state={}){
       ring.userData.planeAtom=true;
       group.add(ring);
       planeObjects.push(ring);
+    }
+
+    if(state.planeFamily==="close"&&network.contacts.length){
+      const contactMaterial=new THREE.LineBasicMaterial({
+        color:index%2?0xa9e2fa:0xffa6dd,
+        transparent:true,opacity:.95,
+        depthTest:false
+      });
+      for(const contact of network.contacts){
+        const left=atomSites[contact.a],right=atomSites[contact.b];
+        if(!left||!right)continue;
+        const line=addLine(THREE,group,left.pos,right.pos,contactMaterial);
+        line.renderOrder=19;
+        line.userData.planeContact=true;
+        line.userData.planeLabel=spec.label;
+        planeObjects.push(line);
+      }
     }
   }
   let planeSpecs=[];
@@ -452,7 +479,9 @@ export async function mountCrystalViewer(container,state={}){
       '<div class="readout"><span>Active atoms</span><strong>'+analysis.activeAtoms+'</strong></div>'+
       '<div class="readout"><span>Defects</span><strong>'+defects+'</strong></div>'+
       '<div class="readout"><span>Bonds</span><strong>'+bonds.length+'</strong></div>'+
-      '<div class="readout"><span>Planes</span><strong>'+planeSpecs.length+'</strong></div>';
+      '<div class="readout"><span>Planes</span><strong>'+planeSpecs.length+'</strong></div>'+
+      (planeMetrics.length?'<div class="readout"><span>Plane atoms</span><strong>'+planeMetrics.reduce((sum,item)=>sum+item.atoms,0)+'</strong></div>':'')+
+      (state.planeFamily==="close"&&planeMetrics.length?'<div class="readout"><span>In-plane contacts</span><strong>'+planeMetrics.reduce((sum,item)=>sum+item.contacts,0)+'</strong></div>':'');
   }
 
   function updateMeasurementUI(){
