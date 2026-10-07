@@ -18,7 +18,7 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | 3MF | ModelDocument + shared Three.js scene | 3MF geometry assembly | prototype | Object/build identity, units, transforms, selection and real Fit/Reset controls |
 | Fusion F3D/F3Z | semantic ModelDocument import pipeline | archive-selection tests | prototype | F3Z can consume embedded 3MF/STL with provenance; native F3D/F3Z emits APS_REQUIRED until Autodesk conversion is connected |
 | STEP/IGES | shared CAD import | pending | planned | Keep component/source identity where possible |
-| Hydrostatics | exact clipped-triangle surface integrals + prepared world geometry | box/wedge/multi-component + perf fixture | prototype | CI validates volume/CB/waterplane moments and benchmarks 21 drafts; curves/solver reuse transformed geometry |
+| Hydrostatics | exact clipped-triangle integrals + stability/GZ | box/wedge/multi-component + GZ + perf fixtures | prototype | Prepared geometry, BM/KM/GM, constant-displacement GZ, worker-service tests and 21-draft performance benchmark |
 | FEM | engineering workspace Structure mode | cantilever frame JSON | prototype | Tested 2D Euler–Bernoulli frame solver; shell/solid later |
 | CFD/resistance | Resistance workspace baseline | ITTC friction JSON | prototype | ITTC-1957 friction only; total resistance/OpenFOAM later |
 | Thruster flow | actuator-disk + rigid-body thruster system | actuator-disk JSON + ModelDocument thrusters | prototype | World-space force, resultant thrust, roll/pitch/yaw moments and ideal power regression-tested; OpenFOAM later |

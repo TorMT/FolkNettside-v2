@@ -18,7 +18,7 @@ import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel
 import {loadModelDocument} from "./model/load-model.js";
 import {mountModelScene} from "./model/model-scene.js";
 import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
+import {analyzeHydroAsync,gzCurveAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js";
 import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js";
@@ -42,6 +42,7 @@ let engineeringMode="Model";
 let hydroDraft=Number(model.hydro?.defaultDraft??1.20);
 let hydroTargetTonnes="";
 let hydroKg="";
+let hydroGzRequested=false;
 let hydroCurveCache={model:null,data:null};
 let structureLoadKn=-20;
 let resistanceSpeedKn=10;
@@ -599,6 +600,31 @@ async function engineeringPage(){
         ? Promise.resolve(hydroCurveCache.data)
         : hydroCurveAsync(documentModel,{minWaterline,maxWaterline,samples});
       let solvePromise=Promise.resolve(null);
+      let gzPromise=Promise.resolve({value:null,error:null});
+      if(hydroGzRequested&&Number.isFinite(Number(hydroKg))){
+        const targetVolume=(Number(hydroTargetTonnes)>0)
+          ?Number(hydroTargetTonnes)*1000/(Number(config.density)||1025)
+          :null;
+        const referenceVolume=targetVolume||null;
+        gzPromise=(async()=>{
+          try{
+            const upright=referenceVolume??(await analysisPromise).volume;
+            const value=await gzCurveAsync(documentModel,{
+              targetVolume:upright,
+              kg:Number(hydroKg),
+              density:Number(config.density)||1025,
+              minHeel:-30,
+              maxHeel:30,
+              step:5,
+              tolerance:1e-9,
+              maxIterations:80
+            });
+            return {value,error:null};
+          }catch(error){
+            return {value:null,error:String(error?.message||error)};
+          }
+        })();
+      }
       const target=Number(hydroTargetTonnes);
       if(Number.isFinite(target)&&target>0){
         const density=Number(config.density)||1025;
@@ -606,7 +632,7 @@ async function engineeringPage(){
           minWaterline,maxWaterline,tolerance:1e-7,maxIterations:60
         }).then(value=>({value,error:null})).catch(error=>({value:null,error:String(error?.message||error)}));
       }
-      const [result,curve,solvedState]=await Promise.all([analysisPromise,curvePromise,solvePromise]);
+      const [result,curve,solvedState,gzState]=await Promise.all([analysisPromise,curvePromise,solvePromise,gzPromise]);
       if(renderId!==engineeringRenderId)return;
       hydroCurveCache={model:documentModel,data:curve};
       const includedIds=new Set(result.components.map(item=>item.componentId));
@@ -618,6 +644,8 @@ async function engineeringPage(){
         draft:hydroDraft,
         targetDisplacementTonnes:hydroTargetTonnes,
         kg:hydroKg,
+        gz:gzState?.value||null,
+        gzError:gzState?.error||null,
         geometryWarnings,
         config
       });
@@ -701,9 +729,15 @@ async function engineeringPage(){
   });
   app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
   app.querySelector("#hydro-draft")?.addEventListener("change",event=>{hydroDraft=Number(event.target.value)||0;engineeringPage()});
-  app.querySelector("#hydro-kg")?.addEventListener("change",event=>{hydroKg=event.target.value;engineeringPage()});
+  app.querySelector("#hydro-kg")?.addEventListener("change",event=>{hydroKg=event.target.value;hydroGzRequested=false;engineeringPage()});
   app.querySelector("#hydro-solve")?.addEventListener("click",()=>{
-    hydroTargetTonnes=app.querySelector("#hydro-target")?.value??"";engineeringPage();
+    hydroTargetTonnes=app.querySelector("#hydro-target")?.value??"";hydroGzRequested=false;engineeringPage();
+  });
+  app.querySelector("#hydro-gz")?.addEventListener("click",()=>{
+    hydroKg=app.querySelector("#hydro-kg")?.value??hydroKg;
+    hydroTargetTonnes=app.querySelector("#hydro-target")?.value??hydroTargetTonnes;
+    hydroGzRequested=true;
+    engineeringPage();
   });
   app.querySelector("#hydro-target")?.addEventListener("keydown",event=>{
     if(event.key==="Enter"){hydroTargetTonnes=event.currentTarget.value;engineeringPage()}

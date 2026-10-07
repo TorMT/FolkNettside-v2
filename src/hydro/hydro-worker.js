@@ -1,6 +1,4 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js";
-import {createHydroInclude} from "./hydro-selection.js";
-import {gzCurve} from "./gz.js";
+import {executeHydroRequest} from "./hydro-service.js";
 
 let modelDocument=null;
 
@@ -12,29 +10,7 @@ self.onmessage=event=>{
       self.postMessage({id,ok:true,result:{components:modelDocument?.components?.length||0}});
       return;
     }
-    if(!modelDocument)throw new Error("Hydro worker has no model loaded");
-
-    let result;
-    if(type==="analyze"){
-      result=analyzeModelDocument(modelDocument,payload.waterline,{include:createHydroInclude(modelDocument)});
-    }else if(type==="curve"){
-      result=hydroCurve(modelDocument,{
-        minWaterline:payload.minWaterline,
-        maxWaterline:payload.maxWaterline,
-        samples:payload.samples,
-        include:includeHydro
-      });
-    }else if(type==="solve"){
-      result=solveWaterlineForVolume(modelDocument,payload.targetVolume,{
-        minWaterline:payload.minWaterline,
-        maxWaterline:payload.maxWaterline,
-        tolerance:payload.tolerance,
-        maxIterations:payload.maxIterations,
-        include:includeHydro
-      });
-    }else{
-      throw new Error(`Unknown hydro worker request: ${type}`);
-    }
+    const result=executeHydroRequest(modelDocument,type,payload);
     self.postMessage({id,ok:true,result});
   }catch(error){
     self.postMessage({id,ok:false,error:String(error?.message||error)});
