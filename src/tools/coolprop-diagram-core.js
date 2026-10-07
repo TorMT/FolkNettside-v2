@@ -1,4 +1,4 @@
-import {applyBookBasis} from "./coolprop-core.js?v=32025ca3b1372ca3f6bad398d0e71b1103eab0ed";
+import {applyBookBasis} from "./coolprop-core.js?v=9e61ba286b76ef5509eb7bad6b1da964c80c5f68";
 
 export const DIAGRAM_TYPES={
   "log-ph":{id:"log-ph",label:"log P-h",xLabel:"Specific enthalpy h (kJ/kg)",yLabel:"Pressure P (bar)",logY:true},
@@ -166,6 +166,16 @@ export function diagramDatasets(engine,fluid,type,states=[],options={}){
   const saturation=generateSaturationCurve(engine,fluid,type,{points:options.saturationPoints||60,bookBasis});
   if(saturation.liquid.length)datasets.push({kind:"saturation",label:"Saturated liquid",points:saturation.liquid,affectsBounds:true});
   if(saturation.vapor.length)datasets.push({kind:"saturation",label:"Saturated vapour",points:saturation.vapor,affectsBounds:true});
+  if(saturation.liquid.length&&saturation.vapor.length){
+    const liquid=saturation.liquid[saturation.liquid.length-1];
+    const vapor=saturation.vapor[saturation.vapor.length-1];
+    datasets.push({
+      kind:"critical",
+      label:"Critical point",
+      points:[{x:(liquid.x+vapor.x)/2,y:(liquid.y+vapor.y)/2}],
+      affectsBounds:true
+    });
+  }
   if(options.quality!==false){
     for(const line of generateQualityLines(engine,fluid,type,{bookBasis}))datasets.push({kind:"quality",affectsBounds:false,...line});
   }
