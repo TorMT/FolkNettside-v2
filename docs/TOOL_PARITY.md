@@ -235,9 +235,18 @@ Architectural change:
 Manual Theme Creator verified:
 - deployed browser test covered theme name, all color roles, live preview, CSS/JS outputs, copy, reset and JSON download.
 
+Image → Theme verified in the deployed-browser CI smoke:
+- a real PNG sample is decoded through the browser image/canvas path;
+- five distinct palette colors are extracted;
+- all five theme roles are auto-assigned;
+- live preview consumes the assigned colors;
+- manual palette-to-role reassignment works;
+- CSS and JS registry outputs contain the generated theme;
+- JSON download/export preserves the assigned colors.
+
 Status:
 - manual Theme Creator: `full`
-- Image→Theme: `review` until deployed in-browser verification covers file decoding, palette extraction, auto-assign, preview and exports.
+- Image→Theme: `full`
 
 Both legacy fallbacks remain temporarily for safety.
 
