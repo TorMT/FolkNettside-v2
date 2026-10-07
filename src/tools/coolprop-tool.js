@@ -168,7 +168,7 @@ export function coolPropToolHTML(state={}){
     <header class="tool-header">
       <div><span class="project-kicker">Thermodynamics tool</span><h1>CoolProp</h1>
       <p>Local WebAssembly property engine with the legacy state, batch, process and explore workflows.</p>
-      <div class="tool-parity-banner"><strong>Numerical review:</strong> UI and workflow parity are verified. Course-table reference offsets and representative Water/R134a saturation/phase states are being numerically validated before this tool is promoted to full parity. The <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">legacy tool ↗</a> remains available as a safety reference.</div></div>
+      <div class="tool-parity-banner"><strong>Full parity · real-WASM verified:</strong> Air A-22 reference conversion is numerically CI-checked at 300/400/1000/1200 K, including inverse P-h handling, with representative Water saturation and R134a two-phase checks. Off = native CoolProp reference basis. The <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">legacy tool ↗</a> remains available as a safety reference.</div></div>
       <div class="coolprop-header-actions"><div class="coolprop-engine-status" id="coolprop-status">Engine not loaded</div><button class="btn" id="cp-help-open">Help</button></div>
     </header>
 
