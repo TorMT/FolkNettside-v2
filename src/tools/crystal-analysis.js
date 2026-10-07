@@ -1,4 +1,4 @@
-import {crystalPreset,crystalType,distance3} from "./crystal-structures-core.js?v=b4d63f08a39a33e9492a92a1c19f060ebdaf16d8";
+import {crystalPreset,crystalType,distance3} from "./crystal-structures-core.js?v=9cdf3c9a5a5a32ae9a1e8c2f305df694984c9648";
 
 export const MANUAL_ATOMS={
   fe:{label:"Fe",species:"Fe",radius:.14,color:"#9aa6ad"},
@@ -38,11 +38,13 @@ export function millerPlane(h,k,l){
 export function closePackedPlaneSpecs(type){
   const center=[.5,.5,.5];
   if(["fcc","diamond","nacl","zns","caf2","spinel"].includes(type)){
+    // Pick actual FCC lattice-bearing {111} members, not the mid-layer
+    // x+y+z=1.5 plane that passes between adjacent close-packed layers.
     return [
-      {label:"{111} A",normal:[1,1,1],point:center},
-      {label:"{111} B",normal:[1,1,-1],point:center},
-      {label:"{111} C",normal:[1,-1,1],point:center},
-      {label:"{111} D",normal:[-1,1,1],point:center}
+      {label:"{111} A",normal:[1,1,1],point:[.5,.5,0]},
+      {label:"{111} B",normal:[1,1,-1],point:[.5,.5,0]},
+      {label:"{111} C",normal:[1,-1,1],point:[.5,0,.5]},
+      {label:"{111} D",normal:[-1,1,1],point:[0,.5,.5]}
     ];
   }
   if(type==="bcc"){
@@ -337,6 +339,47 @@ export function nearestSitesToPoint(sites,point,count,{activeOnly=true}={}){
     .slice(0,Math.max(0,Math.floor(count)||0));
 }
 
+export function periodicImageSites(sites,latticeVectors,{range=1,tolerance=1e-8}={}){
+  const vectors=(latticeVectors||[])
+    .map(vector=>vector.map(Number))
+    .filter(vector=>vector.length===3&&Math.hypot(...vector)>tolerance);
+  if(!vectors.length)return (sites||[]).map((site,index)=>({...site,pos:[...site.pos],sourceIndex:index,imageShift:[0,0,0]}));
+
+  const shifts=[[0,0,0]];
+  for(const vector of vectors){
+    const prior=[...shifts];
+    shifts.length=0;
+    for(const base of prior){
+      for(let n=-Math.max(0,Math.floor(range));n<=Math.max(0,Math.floor(range));n++){
+        shifts.push([
+          base[0]+n*vector[0],
+          base[1]+n*vector[1],
+          base[2]+n*vector[2]
+        ]);
+      }
+    }
+  }
+
+  const output=[];
+  const seen=new Set();
+  const scale=1/Math.max(tolerance,1e-12);
+  for(const [sourceIndex,site] of (sites||[]).entries()){
+    if(!Array.isArray(site?.pos))continue;
+    for(const shift of shifts){
+      const pos=[
+        Number(site.pos[0])+shift[0],
+        Number(site.pos[1])+shift[1],
+        Number(site.pos[2])+shift[2]
+      ];
+      const key=pos.map(value=>Math.round(value*scale)).join(",");
+      if(seen.has(key))continue;
+      seen.add(key);
+      output.push({...site,pos,sourceIndex,imageShift:shift});
+    }
+  }
+  return output;
+}
+
 function triangleNormal(a,b,c){
   const ab=[b[0]-a[0],b[1]-a[1],b[2]-a[2]];
   const ac=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
@@ -375,15 +418,35 @@ export function convexHullTriangles(points,tolerance=1e-9){
   return faces;
 }
 
-export function coordinationPolyhedron(sites,center,count){
-  const nearest=nearestSitesToPoint(sites,center,count);
+export function coordinationPolyhedron(sites,center,count,{distanceTolerance=.06}={}){
+  const target=center.map(Number);
+  const active=(sites||[])
+    .map((site,index)=>({site,index,distance:distance3(site.pos,target)}))
+    .filter(item=>item.site?.active!==false&&Number.isFinite(item.distance))
+    .sort((a,b)=>a.distance-b.distance||a.index-b.index);
+  const expected=Math.max(1,Math.floor(Number(count)||1));
+  const nearest=active.slice(0,expected);
+  const firstDistance=active[0]?.distance??Infinity;
+  const shellLimit=firstDistance*(1+Math.max(0,Number(distanceTolerance)||0))+1e-10;
+  const shellSize=active.filter(item=>item.distance<=shellLimit).length;
+  const distances=nearest.map(item=>item.distance);
+  const spread=distances.length?Math.max(...distances)-Math.min(...distances):Infinity;
+  const allowedSpread=Number.isFinite(firstDistance)
+    ?Math.max(1e-8,firstDistance*Math.max(0,Number(distanceTolerance)||0))
+    :0;
   const points=nearest.map(item=>item.site.pos);
+  const faces=convexHullTriangles(points);
+  const valid=nearest.length===expected&&shellSize===expected&&spread<=allowedSpread&&faces.length>0;
   return {
-    center:[...center],
+    center:[...target],
     siteIndices:nearest.map(item=>item.index),
-    distances:nearest.map(item=>item.distance),
+    sourceIndices:nearest.map(item=>item.site.sourceIndex??item.index),
+    distances,
+    shellSize,
+    shellSpread:spread,
+    valid,
     points,
-    faces:convexHullTriangles(points)
+    faces
   };
 }
 
