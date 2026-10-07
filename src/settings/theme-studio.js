@@ -63,7 +63,7 @@ export function themeStudioHTML(state={}){
         (mode==="image"?'<div class="theme-upload" id="theme-upload" tabindex="0">'+
           '<strong>Drop an image here</strong><span>or click to choose JPG/PNG/WebP</span>'+
           '<input id="theme-image-input" type="file" accept="image/*" hidden>'+
-        '</div>'+
+        '</div><button class="btn" id="theme-sample-image">Load sample image</button>'+
         (state.imageSrc?'<img class="theme-image-preview" src="'+esc(state.imageSrc)+'" alt="Theme source preview">':"")+
         '<div class="theme-palette-grid">'+palette.map(color=>'<button type="button" data-theme-color-only="'+color+'" style="background:'+color+'" title="'+color+'"><span>'+color+'</span></button>').join("")+'</div>'+
         '<button class="btn" id="theme-auto-assign" '+(palette.length?"":"disabled")+'>Auto-assign palette</button>':"")+
@@ -220,4 +220,21 @@ export function bindThemeStudio(root,state,onState){
     useFile(event.dataTransfer?.files?.[0]);
   });
   input?.addEventListener("change",()=>useFile(input.files?.[0]));
+  root.querySelector("#theme-sample-image")?.addEventListener("click",async()=>{
+    const canvas=document.createElement("canvas");
+    canvas.width=240;
+    canvas.height=160;
+    const ctx=canvas.getContext("2d");
+    ctx.fillStyle="#142c3b";ctx.fillRect(0,0,240,160);
+    ctx.fillStyle="#b3157a";ctx.fillRect(0,0,95,160);
+    ctx.fillStyle="#2f7fa4";ctx.fillRect(95,0,70,160);
+    ctx.fillStyle="#8f5a00";ctx.fillRect(165,0,75,80);
+    ctx.fillStyle="#f4f8fa";ctx.fillRect(165,80,75,80);
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
+    if(!blob){
+      upload?.setAttribute("data-error","Could not create sample image");
+      return;
+    }
+    await useFile(new File([blob],"theme-sample.png",{type:"image/png"}));
+  });
 }
