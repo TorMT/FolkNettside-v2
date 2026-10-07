@@ -71,6 +71,12 @@ const cases=[
     path:"../../examples/semesters/5/TMR4182/Forelesninger/lecture-01.pdf",
     name:"lecture-01.pdf",label:"Lecture PDF",
     selector:".pdf-frame"
+  },
+  {
+    id:"video",kind:"VIDEO",
+    path:"../../examples/semesters/5/TMR4182/Videoer/demo.mp4",
+    name:"demo.mp4",label:"Local video fixture",
+    selector:".video-view"
   }
 ];
 
@@ -95,6 +101,11 @@ try{
     if(spec.id==="notebook")assert(host.querySelectorAll(".nb-cell").length>=2,"Notebook cells missing");
     if(spec.id==="xlsx")assert(host.querySelectorAll(".office-sheet").length>=1,"Workbook sheet missing");
     if(spec.id==="pptx")assert(host.querySelectorAll(".office-slide").length>=1,"Slides missing");
+    if(spec.id==="video"){
+      assert(typeof rendered.actions?.resetProgress==="function","Video missing resetProgress action");
+      rendered.actions.resetProgress();
+      assert(host.querySelector(".video-resume")?.textContent==="Progress reset","Video progress reset feedback missing");
+    }
     rendered?.cleanup?.();
     report.push(spec.id);
   }
