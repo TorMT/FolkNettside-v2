@@ -93,7 +93,7 @@ function globalSettingsHTML(s){
         <label><span>S / C</span><select id="cp-entropy-unit">${selectOptions(["JkgK","kJkgK"],s.units.entropy)}</select></label>
       </div>
     </div>
-    <label class="coolprop-book-toggle ${profile?"":"disabled"}"><input id="cp-book-basis" type="checkbox" ${s.bookBasis&&profile?"checked":""} ${profile?"":"disabled"}><span><strong>${esc(tableLabel)}</strong><small>${profile?"Shift H/U/S to the selected course-table reference":"Reference table mapped; numeric basis calibration not enabled"}</small><small class="coolprop-table-detail">${esc(tableDetail)}</small></span></label>
+    <label class="coolprop-book-toggle ${profile?"":"disabled"}"><input id="cp-book-basis" type="checkbox" ${s.bookBasis&&profile?"checked":""} ${profile?"":"disabled"}><span><strong>${esc(tableLabel)}</strong><small>${profile?"Shift H/U/S to the selected course-table reference":tableConfig?.native?"Native CoolProp basis · no textbook shift":"Reference table mapped; numeric basis calibration not enabled"}</small><small class="coolprop-table-detail">${esc(tableDetail)}</small></span></label>
   </section>`;
 }
 
@@ -204,8 +204,9 @@ function referenceHTML(s){
   const rows=s.reference.rows||referenceDefaults(s.fluid,table,s.units);
   const inputHint=referenceInputHint(table,s.units);
   const tableContext=table.mode==="ideal-gas"?"1 bar reference pressure · temperature input fixed in K":`${unitLabel("T",s.units)} · ${unitLabel("P",s.units)} display basis`;
+  const native=Boolean(config.native);
   return `<section class="coolprop-mode" data-mode="reference" ${s.tab==="reference"?"":"hidden"}>
-    <div class="coolprop-subhead"><strong>Course reference tables</strong><span>Generate the same table layout from the local CoolProp engine. A mapped textbook reference basis is applied only where it has been separately calibrated.</span></div>
+    <div class="coolprop-subhead"><strong>${native?"Native property table":"Course reference tables"}</strong><span>${native?"No documented course A-table mapping is available for this fluid, so this table is explicitly generated on the native CoolProp basis.":"Generate the same table layout from the local CoolProp engine. A mapped textbook reference basis is applied only where it has been separately calibrated."}</span></div>
     <div class="coolprop-input-grid">
       <label class="field coolprop-span-2"><span>Table</span><select id="cp-reference-table">
         ${config.tables.map(item=>`<option value="${item.id}" ${item.id===selected?"selected":""}>${item.id} · ${esc(item.label)}</option>`).join("")}
