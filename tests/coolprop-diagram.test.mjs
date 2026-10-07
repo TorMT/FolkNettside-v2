@@ -111,3 +111,14 @@ test("diagram datasets keep saturation and states as bound-driving data only",()
   assert.ok(sets.some(set=>set.kind==="isotherm"&&set.affectsBounds===false));
   assert.ok(sets.some(set=>set.kind==="isobar"&&set.affectsBounds===false));
 });
+
+
+test("diagram datasets expose a critical-point marker from the saturation dome",()=>{
+  const sets=diagramDatasets(engine(),"Water","ph",[],{isotherms:false,isobars:false,quality:false});
+  const critical=sets.find(set=>set.kind==="critical");
+  assert.ok(critical);
+  assert.equal(critical.label,"Critical point");
+  assert.equal(critical.points.length,1);
+  assert.ok(Number.isFinite(critical.points[0].x));
+  assert.ok(Number.isFinite(critical.points[0].y));
+});
