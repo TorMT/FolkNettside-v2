@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Engineering layout smoke</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body data-status="running">
+  <header class="topbar"><strong>FolkNettside</strong></header>
+  <main class="workspace">
+    <div class="workspace-bar"><strong>Long assembly fixture</strong></div>
+    <aside class="tree" id="tree"></aside>
+    <section class="viewport"></section>
+    <aside class="inspector" id="inspector"></aside>
+    <section class="results"><div class="results-summary">Summary</div><div class="chart"></div></section>
+    <footer class="statusbar" id="status"><span>Units SI</span><span>Semantic ModelDocument</span><span class="top-spacer"></span><span>Ready</span></footer>
+  </main>
+  <pre id="result">running</pre>
+<script>
+const tree=document.querySelector("#tree");
+const inspector=document.querySelector("#inspector");
+for(let i=0;i<90;i++) tree.insertAdjacentHTML("beforeend", `<div class="tree-row"><span>○</span>Component ${i+1}</div>`);
+for(let i=0;i<30;i++) inspector.insertAdjacentHTML("beforeend", `<div class="readout"><span>Field ${i+1}</span><strong>Value</strong></div>`);
+
+requestAnimationFrame(()=>{
+  const status=document.querySelector("#status");
+  const statusRect=status.getBoundingClientRect();
+  const bodyFits=document.documentElement.scrollHeight<=window.innerHeight+1;
+  const treeScrolls=tree.scrollHeight>tree.clientHeight;
+  const inspectorScrolls=inspector.scrollHeight>inspector.clientHeight;
+  const statusAtBottom=Math.abs(statusRect.bottom-window.innerHeight)<=1.5;
+  const workspaceFits=document.querySelector(".workspace").getBoundingClientRect().bottom<=window.innerHeight+1;
+
+  const pass=bodyFits&&treeScrolls&&inspectorScrolls&&statusAtBottom&&workspaceFits;
+  document.body.dataset.status=pass?"pass":"fail";
+  document.querySelector("#result").textContent=JSON.stringify({
+    bodyFits,treeScrolls,inspectorScrolls,statusAtBottom,workspaceFits,
+    scrollHeight:document.documentElement.scrollHeight,
+    innerHeight:window.innerHeight,
+    statusBottom:statusRect.bottom
+  });
+});
+</script>
+</body>
+</html>
