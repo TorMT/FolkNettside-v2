@@ -97,7 +97,9 @@ function pixelsFromImage(img){
   const colors=[];
   for(let i=0;i<data.length;i+=16){
     const r=data[i],g=data[i+1],b=data[i+2],a=data[i+3];
-    if(a>200&&r>18&&g>18&&b>18&&!(r>242&&g>242&&b>242))colors.push({r,g,b});
+    const nearBlack=r<18&&g<18&&b<18;
+    const nearWhite=r>242&&g>242&&b>242;
+    if(a>200&&!nearBlack&&!nearWhite)colors.push({r,g,b});
   }
   return colors;
 }
