@@ -198,18 +198,29 @@ function combineWaterplanes(items){
   };
 }
 
-export function analyzeModelDocument(modelDocument,waterline=0,{include=()=>true}={}){
-  const scale=Number(modelDocument.unitScaleToMeters)||1;
+export function prepareHydroModel(modelDocument,{include=()=>true}={}){
+  const scale=Number(modelDocument?.unitScaleToMeters)||1;
+  const components=[];
+  for(const component of modelDocument?.components||[]){
+    if(!component.geometry||!include(component))continue;
+    components.push({
+      componentId:component.id,
+      name:component.name,
+      geometry:transformGeometryToWorld(component.geometry,component.transform,scale)
+    });
+  }
+  return {schemaVersion:1,components};
+}
+
+export function analyzePreparedHydro(prepared,waterline=0){
   let totalVolume=0;
   const first=[0,0,0];
   const perComponent=[];
   const waterplanes=[];
 
-  for(const component of modelDocument.components||[]){
-    if(!component.geometry||!include(component))continue;
-    const worldGeometry=transformGeometryToWorld(component.geometry,component.transform,scale);
-    const result=analyzeHydrostatics(worldGeometry,waterline);
-    perComponent.push({componentId:component.id,name:component.name,...result});
+  for(const component of prepared?.components||[]){
+    const result=analyzeHydrostatics(component.geometry,waterline);
+    perComponent.push({componentId:component.componentId,name:component.name,...result});
     totalVolume+=result.volume;
     first[0]+=result.volume*result.centerOfBuoyancy[0];
     first[1]+=result.volume*result.centerOfBuoyancy[1];
@@ -225,6 +236,10 @@ export function analyzeModelDocument(modelDocument,waterline=0,{include=()=>true
   };
 }
 
+export function analyzeModelDocument(modelDocument,waterline=0,{include=()=>true}={}){
+  return analyzePreparedHydro(prepareHydroModel(modelDocument,{include}),waterline);
+}
+
 
 export function hydroCurve(modelDocument,{
   minWaterline=0,
@@ -232,12 +247,13 @@ export function hydroCurve(modelDocument,{
   samples=11,
   include=()=>true
 }={}){
+  const prepared=prepareHydroModel(modelDocument,{include});
   const count=Math.max(2,Math.floor(samples));
   const span=maxWaterline-minWaterline;
   return Array.from({length:count},(_,index)=>{
     const t=index/(count-1);
     const waterline=minWaterline+span*t;
-    const result=analyzeModelDocument(modelDocument,waterline,{include});
+    const result=analyzePreparedHydro(prepared,waterline);
     return {waterline,...result};
   });
 }
@@ -254,8 +270,9 @@ export function solveWaterlineForVolume(modelDocument,targetVolume,{
   let low=Number(minWaterline),high=Number(maxWaterline);
   if(!(high>low))throw new Error("maxWaterline must be greater than minWaterline");
 
-  let lowResult=analyzeModelDocument(modelDocument,low,{include});
-  let highResult=analyzeModelDocument(modelDocument,high,{include});
+  const prepared=prepareHydroModel(modelDocument,{include});
+  let lowResult=analyzePreparedHydro(prepared,low);
+  let highResult=analyzePreparedHydro(prepared,high);
   if(target<lowResult.volume-tolerance||target>highResult.volume+tolerance){
     throw new Error(`Target volume ${target} m^3 is outside the bracket [${lowResult.volume}, ${highResult.volume}]`);
   }
@@ -265,7 +282,7 @@ export function solveWaterlineForVolume(modelDocument,targetVolume,{
   let mid=(low+high)/2,midResult;
   for(let iteration=1;iteration<=maxIterations;iteration++){
     mid=(low+high)/2;
-    midResult=analyzeModelDocument(modelDocument,mid,{include});
+    midResult=analyzePreparedHydro(prepared,mid);
     const error=midResult.volume-target;
     if(Math.abs(error)<=tolerance||Math.abs(high-low)<=tolerance){
       return {waterline:mid,result:midResult,iterations:iteration};

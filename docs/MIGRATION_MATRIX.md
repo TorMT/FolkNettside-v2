@@ -18,15 +18,15 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | 3MF | ModelDocument + shared Three.js scene | 3MF geometry assembly | prototype | Object/build identity, units, transforms, selection and real Fit/Reset controls |
 | Fusion F3D/F3Z | semantic import pipeline | pending | planned | APS/native pipeline; do not fake F3Z as 3MF |
 | STEP/IGES | shared CAD import | pending | planned | Keep component/source identity where possible |
-| Hydrostatics | exact clipped-triangle surface integrals | box/wedge/multi-component | prototype | CI validates volume, CB and waterplane moments; worker/BVH only if needed |
+| Hydrostatics | exact clipped-triangle surface integrals + prepared world geometry | box/wedge/multi-component + perf fixture | prototype | CI validates volume/CB/waterplane moments and benchmarks 21 drafts; curves/solver reuse transformed geometry |
 | FEM | engineering workspace Structure mode | cantilever frame JSON | prototype | Tested 2D Euler–Bernoulli frame solver; shell/solid later |
 | CFD/resistance | Resistance workspace baseline | ITTC friction JSON | prototype | ITTC-1957 friction only; total resistance/OpenFOAM later |
-| Thruster flow | Propulsion workspace baseline | actuator-disk JSON + 3MF thruster | prototype | Ideal disk reads thruster metadata from ModelDocument; OpenFOAM coupling later |
-| CoolProp | lazy local WASM Tools module | legacy engine + fake-engine CI | prototype | Partial parity; legacy fallback retained until Batch/Process/diagrams/export/book-basis/help are ported |
+| Thruster flow | actuator-disk + rigid-body thruster system | actuator-disk JSON + ModelDocument thrusters | prototype | World-space force, resultant thrust, roll/pitch/yaw moments and ideal power regression-tested; OpenFOAM later |
+| CoolProp | lazy local WASM Tools module | legacy engine + fake-engine CI | review | Single/Batch/Process/All-data, diagrams, exports, book-basis/help and legacy Table 4 restored; final browser/table validation remains |
 | Fluid calculator | shared Tools calculator | legacy polynomial fixture | prototype | Pure tested core; legacy validity warnings; CoolProp remains separate |
-| ChemDraw | chemistry tool module | pending | planned | Review active use |
+| ChemDraw | lazy Kekule chemistry editor | live runtime | review | Browser-verified New/Import/MOL/SMILES/Undo/Redo/Clean 2D/Copy SMILES |
 | Crystal structures | shared Three.js Tools module | full legacy structure set | review | Hole coordination polyhedra use real neighbour atoms; close-packed/Miller planes clip to visible bounds |
-| Periodic table | data-driven Tools module | full local dataset + test fixture | prototype | full local dataset with CC BY-SA attribution; search/category/material/period/group/crystal filters and property display |
+| Periodic table | data-driven Tools module | full local dataset + test fixture | review | Search, quick filters, category/material/period/group/phase/crystal, property display, detail/source links browser-reviewed |
 | Quiz | shared course module | quiz JSON | prototype | Interactive scoring/feedback; data-driven |
 | Karakterweb | shared course capability | course code | prototype | External fallback always available |
 | Google Drive/login | Settings connection service | n/a | planned | Optional auth only |

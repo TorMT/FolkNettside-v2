@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {analyzeHydrostatics,analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "../src/hydro/hydrostatics.js";
+import {analyzeHydrostatics,analyzeModelDocument,analyzePreparedHydro,hydroCurve,prepareHydroModel,solveWaterlineForVolume} from "../src/hydro/hydrostatics.js";
 import {boxMesh,reverseWinding,wedgePrismMesh} from "../src/hydro/fixtures.js";
 import {createHydroInclude} from "../src/hydro/hydro-selection.js";
 
@@ -118,4 +118,31 @@ test("hydro selection defaults to all geometry when no explicit flags exist",()=
   const r=analyzeModelDocument(model,1,{include:createHydroInclude(model)});
   near(r.volume,8,1e-8);
   assert.equal(r.components.length,2);
+});
+
+
+test("prepared hydro model is numerically identical to direct ModelDocument analysis",()=>{
+  const model={
+    unitScaleToMeters:.001,
+    components:[
+      {
+        id:"hull",
+        name:"Hull",
+        transform:[1,0,0,0, 0,1,0,0, 0,0,1,0, 1500,-500,0,1],
+        geometry:boxMesh({L:10000,B:3000,H:2000}),
+        metadata:{hydro:true}
+      }
+    ]
+  };
+  const include=createHydroInclude(model);
+  const direct=analyzeModelDocument(model,1.1,{include});
+  const prepared=prepareHydroModel(model,{include});
+  const cached=analyzePreparedHydro(prepared,1.1);
+  near(cached.volume,direct.volume,1e-10);
+  near(cached.centerOfBuoyancy[0],direct.centerOfBuoyancy[0],1e-10);
+  near(cached.centerOfBuoyancy[1],direct.centerOfBuoyancy[1],1e-10);
+  near(cached.centerOfBuoyancy[2],direct.centerOfBuoyancy[2],1e-10);
+  near(cached.waterplane.area,direct.waterplane.area,1e-10);
+  near(cached.waterplane.ixx,direct.waterplane.ixx,1e-10);
+  near(cached.waterplane.iyy,direct.waterplane.iyy,1e-10);
 });
