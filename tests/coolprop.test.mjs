@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  DEFAULT_UNITS,PROCESS_TYPES,applyBookBasis,batchFormat,computeBatch,computeProcess,
+  DEFAULT_UNITS,PROCESS_TYPES,TABLE4_R_SPEC,applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,
   computeState,inputToSI,outputFromSI,parseBatchRows,phaseDescription,saturationWarning,
   processTargetOptions,rowsToCSV,rowsToJSON,unitLabel
 } from "../src/tools/coolprop-core.js";
@@ -169,4 +169,53 @@ test("P-T states near saturation preserve the legacy two-phase warning",()=>{
 test("saturation warning only applies to a P-T input pair",()=>{
   const engine={propsSI(){throw new Error("should not be called")}};
   assert.equal(saturationWarning(engine,{fluid:"Water",input1:"P",value1:1,input2:"H",value2:400}),null);
+});
+
+
+test("legacy Table 4 constants match the old calculator exactly",()=>{
+  assert.deepEqual(TABLE4_R_SPEC,{
+    Air:287.058,
+    Water:461.526,
+    Nitrogen:296.803,
+    CO2:188.924,
+    CarbonDioxide:188.924
+  });
+});
+
+test("Table 4 reproduces legacy ideal-vs-real specific volume math",()=>{
+  const engine={
+    propsSI(out,k1,T,k2,P,fluid){
+      assert.equal(out,"D");
+      assert.equal(k1,"T");
+      assert.equal(k2,"P");
+      assert.equal(fluid,"Air");
+      return 1.2;
+    }
+  };
+  const [row]=computeTable4(engine,{
+    fluid:"Air",
+    format:"TP",
+    rows:"25,1",
+    units:{pressure:"bar",temperature:"C",energy:"kJkg",entropy:"kJkgK"}
+  });
+  const T=298.15,P=1e5,R=287.058;
+  const vIdeal=R*T/P;
+  const vReal=1/1.2;
+  assert.equal(row.status,"OK");
+  assert.ok(Math.abs(row.vIdeal-vIdeal)<1e-12);
+  assert.ok(Math.abs(row.vReal-vReal)<1e-12);
+  assert.ok(Math.abs(row.Z-vReal/vIdeal)<1e-12);
+  assert.ok(Math.abs(row.diffPercent-Math.abs(vReal-vIdeal)/vIdeal*100)<1e-12);
+});
+
+test("Table 4 supports PT ordering and rejects unsupported legacy fluids",()=>{
+  const engine={propsSI(){return 2}};
+  const [row]=computeTable4(engine,{fluid:"Nitrogen",format:"PT",rows:"1,25"});
+  assert.equal(row.status,"OK");
+  assert.throws(()=>computeTable4(engine,{fluid:"Propane",format:"TP",rows:"25,1"}),/Missing legacy R_spec/);
+});
+
+test("Table 4 rejects PH and PU because legacy equation needs T and P",()=>{
+  const engine={propsSI(){return 1}};
+  assert.throws(()=>computeTable4(engine,{fluid:"Air",format:"PH",rows:"1,100"}),/requires T\/P/);
 });

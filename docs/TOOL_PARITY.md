@@ -23,6 +23,7 @@ Already migrated:
 - phase identification
 - local/lazy WASM runtime
 - Batch multi-output with TP / PT / PH / PU formats
+- legacy Table 4 batch mode with exact R_spec constants and v_ideal / v_real / diff % / Z calculation
 - process chain: isobaric, isothermal, isentropic, isochoric, isenthalpic
 - All data / explore
 - CSV export
@@ -46,7 +47,7 @@ Remaining:
 
 Status: `review`. Functional browser parity is confirmed, but numerical calibration/saturation verification is still required before `full`.
 
-The old implementation itself marked Table 4 batch mode and fully custom process input as incomplete; these are improvements, not parity blockers.
+The legacy Table 4 mode is now explicitly migrated and regression-tested. Fully custom process input remains an optional improvement rather than a parity blocker.
 
 ## Fluid properties
 
