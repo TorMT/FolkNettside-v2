@@ -708,6 +708,21 @@ async function engineeringPage(){
   let hydro=null;
   if(engineeringMode==="Hydro"){
     const config=model.hydro||{};
+    if(config.enabled===false){
+      const reason=config.reason||"Hydro analysis is not enabled for this model.";
+      hydro={
+        inspector:`<h3>Hydro validation required</h3>
+          <div class="geometry-warning"><strong>Analysis blocked</strong><span>${reason}</span></div>
+          <div class="readout"><span>Model</span><strong>${documentModel.name}</strong></div>
+          <div class="readout"><span>Geometry</span><strong>Sourced visual assembly</strong></div>
+          <p class="muted hydro-note">The 3D model remains available for inspection. Use a validated watertight external hull surface before enabling displacement, stability or GZ calculations.</p>`,
+        summary:`<strong>Hydro not yet validated</strong><div class="readout"><span>Status</span><strong class="status-warn">Blocked</strong></div>`,
+        results:`<div class="engineering-empty-analysis"><strong>No hydrostatic result shown</strong><p>${reason}</p></div>`,
+        draft:Number(config.defaultDraft)||0,
+        density:Number(config.density)||1025,
+        waterlinePercent:0
+      };
+    }else{
     const minWaterline=Number(config.minDraft??0);
     const maxWaterline=Number(config.maxDraft??10);
     const samples=Math.max(3,Number(config.curveSamples??9));
@@ -828,6 +843,7 @@ async function engineeringPage(){
         summary:"<strong>Hydro unavailable</strong>",results:"",
         draft:hydroDraft,density:Number(model.hydro?.density)||1025,waterlinePercent:0
       };
+    }
     }
   }
 
