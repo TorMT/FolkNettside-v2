@@ -1,4 +1,4 @@
-import {searchIndex} from "../search/search-index.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {searchIndex} from "../search/search-index.js?v=8888971e4f6994728439c5fe3d1fdaa28a4e4e1b";
 
 function make(tag,className,text){
   const node=document.createElement(tag);
