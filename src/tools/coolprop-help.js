@@ -3,7 +3,7 @@ export const COOLPROP_HELP=[
     id:"overview",
     title:"Overview",
     description:"What the CoolProp tool does",
-    body:"Single calculates one thermodynamic state. Batch calculates many input rows. Process links state points through constant-property process steps. All data exposes the standard property set. Inputs are converted to SI before PropsSI and PhaseSI calls.",
+    body:"Single calculates one thermodynamic state. Batch calculates many input rows. Process links state points through constant-property process steps. All data exposes the standard property set. Inputs are converted to SI before CoolProp calls.",
     extra:"For textbook tasks using bar and °C, select those display units; the engine still receives SI internally."
   },
   {
@@ -17,7 +17,7 @@ export const COOLPROP_HELP=[
     id:"phase",
     title:"Phase identification",
     description:"How the thermodynamic state is classified",
-    body:"PhaseSI is used to identify two-phase, supercritical, gas/superheated-vapour and liquid/subcooled states. Near saturation, P and T alone can be insufficient to identify quality.",
+    body:"The tool uses PhaseSI when the runtime exposes it; this local WASM build can instead read CoolProp's official numeric phase index through PropsSI('Phase', ...). Both paths identify two-phase, supercritical, gas/superheated-vapour and liquid/subcooled states. Near saturation, P and T alone can be insufficient to identify quality.",
     extra:"In the two-phase region use quality Q or another independent property such as H, S or D."
   },
   {
@@ -32,7 +32,7 @@ export const COOLPROP_HELP=[
     title:"Air table reference",
     description:"Textbook-relative H, U and S",
     body:"CoolProp uses its default reference basis. The Table Reference option applies constant Air offsets for enthalpy, internal energy and entropy so the 1000 K, 1 bar state matches the course Table A-22 values. The conversion is applied in both directions: table-basis H/U/S inputs are converted back before PropsSI, and outputs are converted to the table basis.",
-    extra:"The reference shift changes only the zero level. ΔH, ΔU and ΔS remain unchanged; with the option off, values stay on CoolProp\'s default basis."
+    extra:"The reference shift changes only the zero level. ΔH, ΔU and ΔS remain unchanged; with the option off, values stay on CoolProp\'s default basis. It aligns the reference state to Table A-22 but does not replace CoolProp with the table's ideal-gas interpolation, so small differences can remain away from the calibration point."
   },
   {
     id:"errors",
