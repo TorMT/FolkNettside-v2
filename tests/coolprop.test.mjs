@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  COOLPROP_OUTPUT_ALIASES,COOLPROP_PHASE_INDEX,COURSE_TABLE_LABELS,DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,TABLE_REFERENCE_PROFILES,
-  applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,computeState,courseTableLabel,inputToSI,outputFromSI,
+  COOLPROP_OUTPUT_ALIASES,COOLPROP_PHASE_INDEX,COURSE_TABLE_CONFIGS,COURSE_TABLE_LABELS,DEFAULT_FLUIDS,DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,TABLE_REFERENCE_PROFILES,
+  applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,computeState,courseTableConfig,courseTableLabel,inputToSI,outputFromSI,
   parseBatchRows,phaseDescription,propsSIOutput,removeBookBasis,saturationWarning,tableReferenceOffsets,tableReferenceProfile,
   processTargetOptions,rowsToCSV,rowsToJSON,unitLabel,verifyTableReference
 } from "../src/tools/coolprop-core.js";
@@ -162,7 +162,7 @@ test("Table A-22 fixture includes course reference values and diagnostic checkpo
 test("course table labels and profiles follow the selected working fluid",()=>{
   assert.equal(courseTableLabel("Air"),"Air · Table A-22");
   assert.equal(courseTableLabel("Ammonia"),"Ammonia · Tables A-13 / A-14 / A-15");
-  assert.equal(courseTableLabel("Water"),"Water · Tables A-2 / A-3 / A-4");
+  assert.equal(courseTableLabel("Water"),"Water · Tables A-2 / A-3 / A-4 / A-5");
   assert.equal(courseTableLabel("Propane"),"Propane · native CoolProp basis");
   assert.equal(tableReferenceProfile("Air"),TABLE_REFERENCE_PROFILES.Air);
   assert.equal(tableReferenceProfile("Ammonia"),TABLE_REFERENCE_PROFILES.Ammonia);
@@ -371,4 +371,18 @@ test("known alias sets include mass heat capacities and speed of sound",()=>{
   assert.ok(COOLPROP_OUTPUT_ALIASES.Cp.includes("Cpmass"));
   assert.ok(COOLPROP_OUTPUT_ALIASES.Cv.includes("Cvmass"));
   assert.ok(COOLPROP_OUTPUT_ALIASES.speed_sound.includes("A"));
+});
+
+
+test("full legacy CoolProp working-fluid set is available in v2",()=>{
+  for(const fluid of ["Air","Nitrogen","Water","CO2","Oxygen","Helium","Methane","Propane","Ammonia","R134a"]){
+    assert.ok(DEFAULT_FLUIDS.includes(fluid),fluid);
+  }
+});
+
+test("course table configurations retain distinct saturation and superheated tables",()=>{
+  assert.deepEqual(COURSE_TABLE_CONFIGS.Water.tables.map(t=>t.id),["A-2","A-3","A-4","A-5"]);
+  assert.deepEqual(COURSE_TABLE_CONFIGS.Ammonia.tables.map(t=>t.id),["A-13","A-14","A-15"]);
+  assert.equal(courseTableConfig("Water").tables.find(t=>t.id==="A-5").mode,"compressed");
+  assert.equal(courseTableConfig("Propane"),null);
 });
