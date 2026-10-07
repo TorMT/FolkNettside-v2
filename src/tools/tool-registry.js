@@ -44,7 +44,7 @@ export const TOOL_REGISTRY=[
     parity:"full",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/KrystallStrukturer/krystall-viewer.html",
     category:"Chemistry",
-    summary:"Shared Three.js crystal editor with structures, defects, holes, measurement, planes and analysis; legacy analyzer remains available during review.",
+    summary:"Shared Three.js crystal editor with browser-verified legacy parity plus coordination polyhedra, planes and analysis.",
     keywords:["crystal","bcc","fcc","hcp","diamond","nacl","measurement","polyhedra","dopant","vacancy"]
   },
   {

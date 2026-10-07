@@ -40,17 +40,31 @@ export function colorDistance(a,b){
   return Math.hypot(A.r-B.r,A.g-B.g,A.b-B.b);
 }
 
-export function kMeansPalette(colors,k=5,{iterations=15}={}){
+export function kMeansPalette(colors,k=5,{iterations=18}={}){
   const points=(colors||[]).map(color=>typeof color==="string"?hexToRgb(color):{
     r:clampByte(color.r),g:clampByte(color.g),b:clampByte(color.b)
   });
   if(!points.length)return[];
-  k=Math.max(1,Math.min(Math.floor(k)||1,points.length));
 
-  let centroids=Array.from({length:k},(_,index)=>{
-    const point=points[Math.min(points.length-1,Math.floor(index*points.length/k))];
-    return {...point};
-  });
+  const unique=[...new Map(points.map(point=>[rgbToHex(point),point])).values()];
+  k=Math.max(1,Math.min(Math.floor(k)||1,unique.length));
+
+  // Deterministic farthest-point seeding avoids duplicate centroids when
+  // large flat image regions dominate the pixel stream.
+  const luminance=point=>.2126*point.r+.7152*point.g+.0722*point.b;
+  const first=[...unique].sort((a,b)=>luminance(a)-luminance(b))[0];
+  let centroids=[{...first}];
+  while(centroids.length<k){
+    let best=null,bestDistance=-1;
+    for(const point of unique){
+      const nearest=Math.min(...centroids.map(center=>colorDistance(point,center)));
+      if(nearest>bestDistance){
+        bestDistance=nearest;
+        best=point;
+      }
+    }
+    centroids.push({...best});
+  }
 
   for(let iteration=0;iteration<iterations;iteration++){
     const clusters=Array.from({length:k},()=>[]);
@@ -74,16 +88,14 @@ export function kMeansPalette(colors,k=5,{iterations=15}={}){
     });
   }
 
-  return centroids
-    .map(rgbToHex)
+  return [...new Set(centroids.map(rgbToHex))]
     .sort((left,right)=>{
       const L=hexToRgb(left),R=hexToRgb(right);
       const satL=Math.max(L.r,L.g,L.b)-Math.min(L.r,L.g,L.b);
       const satR=Math.max(R.r,R.g,R.b)-Math.min(R.r,R.g,R.b);
-      return satR-satL;
+      return satR-satL||brightness(left)-brightness(right);
     });
 }
-
 export function autoAssignTheme(palette){
   const colors=[...(palette||[])].filter(Boolean);
   if(!colors.length)throw new Error("Palette is empty");
