@@ -1,24 +1,24 @@
-import {extension} from "./utils.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d";
+import {extension} from "./utils.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334";
 const adapterLoaders={
-  pdf:()=>import("./adapters/pdf.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),docx:()=>import("./adapters/office.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),xlsx:()=>import("./adapters/office.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),pptx:()=>import("./adapters/office.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),csv:()=>import("./adapters/csv.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),
-  html:()=>import("./adapters/html.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),htm:()=>import("./adapters/html.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),
-  ipynb:()=>import("./adapters/notebook.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),tex:()=>import("./adapters/latex.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),
-  mp4:()=>import("./adapters/video.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),webm:()=>import("./adapters/video.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),mkv:()=>import("./adapters/video.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),
-  stl:()=>import("./adapters/stl.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),"3mf":()=>import("./adapters/three-mf.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),
-  md:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),txt:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),py:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),
-  js:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),mjs:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),ts:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),
-  tsx:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),jsx:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),json:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),
-  yaml:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),yml:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),c:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),
-  cpp:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),h:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),hpp:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),
-  cs:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d"),java:()=>import("./adapters/text.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d")
+  pdf:()=>import("./adapters/pdf.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),docx:()=>import("./adapters/office.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),xlsx:()=>import("./adapters/office.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),pptx:()=>import("./adapters/office.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),csv:()=>import("./adapters/csv.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),
+  html:()=>import("./adapters/html.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),htm:()=>import("./adapters/html.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),
+  ipynb:()=>import("./adapters/notebook.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),tex:()=>import("./adapters/latex.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),
+  mp4:()=>import("./adapters/video.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),webm:()=>import("./adapters/video.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),mkv:()=>import("./adapters/video.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),
+  stl:()=>import("./adapters/stl.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),"3mf":()=>import("./adapters/three-mf.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),
+  md:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),txt:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),py:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),
+  js:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),mjs:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),ts:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),
+  tsx:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),jsx:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),json:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),
+  yaml:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),yml:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),c:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),
+  cpp:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),h:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),hpp:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),
+  cs:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334"),java:()=>import("./adapters/text.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334")
 };
 export async function loadAdapter(resource){
   if(resource.kind==="YOUTUBE"){
-    const module=await import("./adapters/youtube.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d");
+    const module=await import("./adapters/youtube.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334");
     return {extension:"youtube",render:module.render};
   }
   if(resource.kind==="QUIZ"){
-    const module=await import("./adapters/quiz.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d");
+    const module=await import("./adapters/quiz.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334");
     return {extension:"quiz",render:module.render};
   }
   const ext=extension(resource.path),loader=adapterLoaders[ext]||adapterLoaders.txt,module=await loader();

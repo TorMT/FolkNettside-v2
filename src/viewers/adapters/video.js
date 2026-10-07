@@ -1,4 +1,4 @@
-import {localVideoProgress} from "../../video/progress-store.js?v=164b5e446f0c43f524299111170dc32df1fb1f6d";
+import {localVideoProgress} from "../../video/progress-store.js?v=fc84dbc188e48781c36d809aa23836a0f4c11334";
 
 export async function render(container,resource){
   const wrap=document.createElement("div");
@@ -14,7 +14,7 @@ export async function render(container,resource){
   wrap.append(video,resume);
   container.replaceChildren(wrap);
 
-  const saved=localVideoProgress.read(resource);
+  let saved=localVideoProgress.read(resource);
   let lastWrite=0;
 
   const duration=await new Promise(resolve=>{
@@ -47,7 +47,17 @@ export async function render(container,resource){
     resume.textContent="Watched";
   });
 
-  return {info:duration?`Video · ${formatTime(duration)} · local progress enabled`:"Video · local progress enabled"};
+  return {
+    info:duration?`Video · ${formatTime(duration)} · local progress enabled`:"Video · local progress enabled",
+    actions:{
+      resetProgress(){
+        localVideoProgress.clear(resource);
+        saved={};
+        try{video.currentTime=0}catch{}
+        resume.textContent="Progress reset";
+      }
+    }
+  };
 }
 
 function formatTime(seconds){
