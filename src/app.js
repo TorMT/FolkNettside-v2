@@ -753,7 +753,7 @@ async function engineeringPage(){
       if(!capability.enabled||sourceThruster&&!hasForceModel){
         const ratedPower=Number(sourceCase.ratedPowerKw);
         app.innerHTML=top("engineering")+`<main class="workspace">
-          <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
+          <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
             ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
           </div></div>
           <aside class="tree">
@@ -762,7 +762,7 @@ async function engineeringPage(){
           </aside>
           <section class="viewport"><div id="engineering-scene" class="engineering-scene"></div><div class="hud">Propulsion · sourced geometry</div></section>
           <aside class="inspector">
-            <h3>${sourceThruster.name}</h3>
+            <h3>${sourceThruster?.name||"Propulsion capability"}</h3>
             <div class="readout"><span>Type</span><strong>${sourceSemantic?.subtype||"thruster"}</strong></div>
             <div class="readout"><span>Rated power</span><strong>${Number.isFinite(ratedPower)?ratedPower+" kW":"—"}</strong></div>
             <div class="readout"><span>Source node</span><strong>${sourceThruster.sourceObjectId||"—"}</strong></div>
@@ -779,6 +779,19 @@ async function engineeringPage(){
 
         bindNav();
         bindEngineeringModelSelector();
+        bindEngineeringCaseExport(engineeringCaseReport({
+          modelConfig:model,
+          modelDocument:documentModel,
+          mode:"Propulsion",
+          capability,
+          method:{name:"capability gate",scope:"no thrust calculation executed"},
+          inputs:{
+            componentId:sourceThruster?.id||null,
+            ratedPowerKw:Number.isFinite(ratedPower)?ratedPower:null
+          },
+          results:{status:"blocked",forceModelConfigured:hasForceModel},
+          warnings:[capability.reason||"Thruster force model is not configured."]
+        }));
         app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
         app.querySelectorAll("[data-propulsion-component]").forEach(row=>row.onclick=()=>{
           selectedComponentId=row.dataset.propulsionComponent;
@@ -839,7 +852,7 @@ async function engineeringPage(){
       );
 
       app.innerHTML=top("engineering")+`<main class="workspace">
-        <div class="workspace-bar"><strong>${sourceThruster?.name||fixture.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
+        <div class="workspace-bar"><strong>${sourceThruster?.name||fixture.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
           ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
         </div></div>
         <aside class="tree">
@@ -861,6 +874,29 @@ async function engineeringPage(){
 
       bindNav();
       bindEngineeringModelSelector();
+      bindEngineeringCaseExport(engineeringCaseReport({
+        modelConfig:model,
+        modelDocument:documentModel,
+        mode:"Propulsion",
+        capability,
+        method:{
+          name:"ideal actuator disk + rigid-body force/moment balance",
+          scope:"momentum-theory estimate"
+        },
+        inputs:{
+          componentId:sourceThruster?.id||null,
+          thrustN:propulsionThrustKn*1000,
+          inflowSpeed:propulsionInflow,
+          diameter:propulsionDiameter,
+          density:Number(fixture.density)||1025
+        },
+        results:{actuatorDisk:propulsion.result,system},
+        assumptions:[
+          "ideal actuator disk",
+          "uniform inflow",
+          "no cavitation, swirl, blade geometry or hull interaction"
+        ]
+      }));
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       app.querySelectorAll("[data-propulsion-component]").forEach(row=>row.onclick=()=>{
         selectedComponentId=row.dataset.propulsionComponent;
