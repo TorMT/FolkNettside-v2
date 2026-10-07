@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  dataBounds,diagramType,generateQualityLines,generateSaturationCurve,
+  dataBounds,diagramType,generateIsotherms,generateQualityLines,generateSaturationCurve,
   stateToDiagramPoint
 } from "../src/tools/coolprop-diagram-core.js";
 
@@ -49,4 +49,22 @@ test("data bounds support logarithmic pressure axes",()=>{
   const bounds=dataBounds([{points:[{x:1,y:.1},{x:4,y:100}]}],{logY:true});
   assert.ok(bounds.xmin<1&&bounds.xmax>4);
   assert.ok(bounds.ymin>0&&bounds.ymin<.1&&bounds.ymax>100);
+});
+
+
+test("Air diagram curves use the same table-reference basis as state points",()=>{
+  const raw=generateIsotherms(engine(),"Air","ph",{lines:2,points:3,bookBasis:false});
+  const book=generateIsotherms(engine(),"Air","ph",{lines:2,points:3,bookBasis:true});
+  assert.equal(raw.length,book.length);
+  assert.ok(raw.length>0);
+  const rawX=raw[0].points[0].x;
+  const bookX=book[0].points[0].x;
+  assert.notEqual(bookX,rawX);
+  const deltas=[];
+  for(let i=0;i<raw.length;i++){
+    for(let j=0;j<raw[i].points.length;j++){
+      deltas.push(book[i].points[j].x-raw[i].points[j].x);
+    }
+  }
+  for(const delta of deltas)assert.ok(Math.abs(delta-deltas[0])<1e-9);
 });
