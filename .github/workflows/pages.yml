@@ -174,6 +174,30 @@ jobs:
             exit 1
           }
           grep '<pre id="result">' /tmp/viewer-matrix-smoke-dom.html || true
+      - name: Engineering layout browser smoke
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          python -m http.server 4177 --bind 127.0.0.1 >/tmp/engineering-layout-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python - <<'PY'
+          import time, urllib.request
+          for _ in range(50):
+              try:
+                  urllib.request.urlopen("http://127.0.0.1:4177/tests/browser/engineering-layout-smoke.html", timeout=1).read(32)
+                  break
+              except Exception:
+                  time.sleep(.1)
+          else:
+              raise SystemExit("Engineering layout smoke server did not start")
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=1400,900 --virtual-time-budget=5000             --dump-dom http://127.0.0.1:4177/tests/browser/engineering-layout-smoke.html             >/tmp/engineering-layout-smoke-dom.html
+          grep -q 'data-status="pass"' /tmp/engineering-layout-smoke-dom.html || {
+            cat /tmp/engineering-layout-smoke-dom.html
+            exit 1
+          }
+          grep '<pre id="result">' /tmp/engineering-layout-smoke-dom.html || true
       - name: Hydro performance benchmark
         run: npm run benchmark:hydro
       - name: Smoke check
