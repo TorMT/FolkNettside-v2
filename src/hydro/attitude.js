@@ -1,0 +1,118 @@
+import {prepareHydroModel,solvePreparedWaterlineForVolume} from "./hydrostatics.js?v=918f3b59381fa81bce33c922baf17bd845654f1e";
+import {createHydroInclude} from "./hydro-selection.js?v=918f3b59381fa81bce33c922baf17bd845654f1e";
+import {attitudeMatrix,transformPoint,transformedModelDocument} from "../model/transforms.js?v=918f3b59381fa81bce33c922baf17bd845654f1e";
+
+function preparedZBounds(prepared){
+  let min=Infinity,max=-Infinity;
+  for(const component of prepared?.components||[]){
+    const positions=component.geometry?.positions||[];
+    for(let i=2;i<positions.length;i+=3){
+      min=Math.min(min,positions[i]);
+      max=Math.max(max,positions[i]);
+    }
+  }
+  if(!Number.isFinite(min)||!Number.isFinite(max))return {min:0,max:1};
+  const span=Math.max(1e-6,max-min);
+  return {min:min-span*.02,max:max+span*.02};
+}
+
+/**
+ * Constant-displacement hydrostatics at a prescribed vessel attitude.
+ *
+ * Coordinates follow the Engineering convention:
+ * x = longitudinal/surge, y = transverse/sway, z = vertical.
+ * The returned raw levers are CB-CG in the world frame. With buoyancy acting
+ * vertically upward, roll and pitch restoring moments are:
+ *   Mx =  W * (CB_y-CG_y)
+ *   My = -W * (CB_x-CG_x)
+ */
+export function attitudeHydro(modelDocument,{
+  heelDeg=0,
+  trimDeg=0,
+  yawDeg=0,
+  targetVolume,
+  centerOfGravity=[0,0,0],
+  density=1025,
+  tolerance=1e-9,
+  maxIterations=60,
+  include=createHydroInclude(modelDocument)
+}={}){
+  const volume=Number(targetVolume);
+  if(!(volume>0))throw new Error("targetVolume must be positive");
+
+  const cg=(centerOfGravity||[]).map(Number);
+  if(cg.length!==3||!cg.every(Number.isFinite)){
+    throw new Error("centerOfGravity must contain three finite coordinates");
+  }
+
+  const attitude={
+    heel:Number(heelDeg)||0,
+    trim:Number(trimDeg)||0,
+    yaw:Number(yawDeg)||0
+  };
+  const transformed=transformedModelDocument(modelDocument,attitude);
+  const prepared=prepareHydroModel(transformed,{include});
+  const bounds=preparedZBounds(prepared);
+  const solved=solvePreparedWaterlineForVolume(prepared,volume,{
+    minWaterline:bounds.min,
+    maxWaterline:bounds.max,
+    tolerance,
+    maxIterations
+  });
+
+  const rotation=attitudeMatrix(attitude);
+  const cgWorld=transformPoint(rotation,cg);
+  const cbWorld=solved.result.centerOfBuoyancy;
+  const lever=[
+    cbWorld[0]-cgWorld[0],
+    cbWorld[1]-cgWorld[1],
+    cbWorld[2]-cgWorld[2]
+  ];
+  const displacementMass=volume*Number(density||1025);
+  const weight=displacementMass*9.80665;
+  const restoringMoment=[
+    weight*lever[1],
+    -weight*lever[0],
+    0
+  ];
+
+  return {
+    heelDeg:attitude.heel,
+    trimDeg:attitude.trim,
+    yawDeg:attitude.yaw,
+    waterline:solved.waterline,
+    volume:solved.result.volume,
+    centerOfBuoyancy:cbWorld,
+    centerOfGravity:cgWorld,
+    lever,
+    rollLever:lever[1],
+    pitchLever:-lever[0],
+    displacementMass,
+    restoringMoment,
+    rollMoment:restoringMoment[0],
+    pitchMoment:restoringMoment[1],
+    iterations:solved.iterations,
+    hydro:solved.result
+  };
+}
+
+export function attitudeCurve(modelDocument,{
+  axis="heel",
+  start=-10,
+  end=10,
+  step=2,
+  ...options
+}={}){
+  if(!["heel","trim"].includes(axis))throw new Error("axis must be heel or trim");
+  const first=Number(start),last=Number(end),increment=Math.abs(Number(step)||2);
+  if(!(last>=first))throw new Error("end must be >= start");
+  const values=[];
+  for(let angle=first;angle<=last+increment*1e-9;angle+=increment){
+    values.push(attitudeHydro(modelDocument,{
+      ...options,
+      heelDeg:axis==="heel"?Number(angle.toFixed(10)):(options.heelDeg||0),
+      trimDeg:axis==="trim"?Number(angle.toFixed(10)):(options.trimDeg||0)
+    }));
+  }
+  return values;
+}

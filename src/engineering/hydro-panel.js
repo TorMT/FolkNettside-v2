@@ -1,4 +1,4 @@
-import {initialStability} from "../hydro/stability.js?v=f23ab9fab9baa23e553179d7b4acd29ca057fc5a";
+import {initialStability} from "../hydro/stability.js?v=918f3b59381fa81bce33c922baf17bd845654f1e";
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
 }
