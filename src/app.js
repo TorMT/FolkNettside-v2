@@ -22,6 +22,7 @@ import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hy
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js";
 import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js";
 import {renderTopShell,bindShellNavigation} from "./shell/navigation.js";
 import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js";
 import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js";
@@ -480,6 +481,17 @@ async function engineeringPage(){
         propulsionInitialized=true;
       }
 
+      const systemThrusters=documentModel?thrustersFromModelDocument(documentModel):[];
+      const selectedSystemThrusters=systemThrusters.map(item=>item.id===sourceThruster?.id?{
+        ...item,
+        thrust:propulsionThrustKn*1000,
+        inflowSpeed:propulsionInflow,
+        diameter:propulsionDiameter
+      }:item);
+      const system=selectedSystemThrusters.length
+        ?analyzeThrusterSystem(selectedSystemThrusters,{reference:[0,0,0]})
+        :null;
+
       const propulsion=propulsionPanelHTML(
         {
           ...fixture,
@@ -491,7 +503,8 @@ async function engineeringPage(){
         {
           thrustKn:propulsionThrustKn,
           inflowSpeed:propulsionInflow,
-          diameter:propulsionDiameter
+          diameter:propulsionDiameter,
+          system
         }
       );
 
@@ -504,6 +517,7 @@ async function engineeringPage(){
           ${thrusters.length?thrusters.map(component=>`<div class="tree-row ${component.id===sourceThruster?.id?"selected":""}" data-propulsion-component="${component.id}"><span>◎</span>${component.name}</div>`).join(""):'<div class="tree-row"><span>○</span>No tagged thruster</div>'}
           <div class="tree-label">Method</div>
           <div class="tree-row selected"><span>≈</span>Ideal actuator disk</div>
+          <div class="tree-row"><span>Σ</span>Rigid-body force/moment <span class="muted">${system?.thrusters.length||0} thruster(s)</span></div>
           <div class="tree-label">Source metadata</div>
           <div class="tree-row"><span>D</span>Diameter <span class="muted">${sourceCase.diameter??"fixture"} m</span></div>
           <div class="tree-row"><span>→</span>Axis <span class="muted">${Array.isArray(sourceCase.axis)?sourceCase.axis.join(", "):"not set"}</span></div>

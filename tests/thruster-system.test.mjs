@@ -1,0 +1,66 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+  analyzeThrusterSystem,azimuthAxis,thrusterContribution,thrustersFromModelDocument
+} from "../src/propulsion/thruster-system.js";
+
+const near=(actual,expected,tol=1e-9)=>assert.ok(Math.abs(actual-expected)<=tol,`${actual} != ${expected}`);
+
+test("azimuth axes follow vessel x-y convention",()=>{
+  const a0=azimuthAxis(0);
+  const a90=azimuthAxis(90);
+  near(a0[0],1);near(a0[1],0);
+  near(a90[0],0,1e-12);near(a90[1],1);
+});
+
+test("offset lateral thruster creates yaw moment r cross F",()=>{
+  const r=thrusterContribution({
+    thrust:10000,axis:[0,1,0],position:[5,0,0],reference:[0,0,0]
+  });
+  assert.deepEqual(r.force,[0,10000,0]);
+  assert.deepEqual(r.moment,[0,0,50000]);
+});
+
+test("symmetric azimuth pair sums surge and cancels yaw",()=>{
+  const result=analyzeThrusterSystem([
+    {id:"ps",thrust:20000,axis:[1,0,0],position:[-2,2,0]},
+    {id:"sb",thrust:20000,axis:[1,0,0],position:[-2,-2,0]}
+  ]);
+  near(result.totalForce[0],40000);
+  near(result.totalForce[1],0);
+  near(result.totalMoment[2],0);
+});
+
+test("bow tunnel thruster creates sway and yaw",()=>{
+  const result=analyzeThrusterSystem([
+    {id:"tunnel",thrust:5000,axis:[0,1,0],position:[8,0,0]}
+  ]);
+  assert.deepEqual(result.totalForce,[0,5000,0]);
+  assert.deepEqual(result.totalMoment,[0,0,40000]);
+});
+
+test("combined azimuth pair and tunnel thruster remains analytically traceable",()=>{
+  const result=analyzeThrusterSystem([
+    {id:"az-ps",thrust:15000,azimuthDeg:0,position:[-4,2,0]},
+    {id:"az-sb",thrust:15000,azimuthDeg:0,position:[-4,-2,0]},
+    {id:"tunnel",thrust:4000,axis:[0,1,0],position:[7,0,0]}
+  ]);
+  near(result.totalForce[0],30000);
+  near(result.totalForce[1],4000);
+  near(result.totalMoment[2],28000);
+  near(result.resultantThrust,Math.hypot(30000,4000));
+});
+
+test("ModelDocument thruster metadata uses world transform and unit scale",()=>{
+  const model={
+    unitScaleToMeters:.001,
+    components:[{
+      id:"az",name:"Azimuth",
+      transform:[1,0,0,0, 0,1,0,0, 0,0,1,0, 5000,2000,0,1],
+      metadata:{propulsion:{thrust:10000,axis:[1,0,0],diameter:1000}}
+    }]
+  };
+  const [thruster]=thrustersFromModelDocument(model);
+  assert.deepEqual(thruster.position,[5,2,0]);
+  assert.deepEqual(thruster.axis,[1,0,0]);
+});

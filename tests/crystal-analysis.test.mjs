@@ -4,6 +4,7 @@ import {replicateCrystal} from "../src/tools/crystal-structures-core.js";
 import {
   analyzeCrystal,applyCrystalEdits,bondPairs,bondPlaneCuts,closePackedPlaneSpecs,
   coordinationStats,firstShellCutoff,identifyCrystal,
+  coordinationPolyhedron,convexHullTriangles,nearestSitesToPoint,planeBoxPolygon,
   millerPlane,nearestSiteIndex,segmentPlaneIntersection
 } from "../src/tools/crystal-analysis.js";
 
@@ -126,4 +127,46 @@ test("crystal identification retains legacy alloy heuristics",()=>{
     ]
   });
   assert.match(stainless.type,/Stainless/i);
+});
+
+
+test("fcc tetrahedral hole uses four equidistant nearest atoms",()=>{
+  const sites=[
+    {pos:[0,0,0]},{pos:[.5,.5,0]},{pos:[.5,0,.5]},{pos:[0,.5,.5]},
+    {pos:[1,1,1]}
+  ];
+  const poly=coordinationPolyhedron(sites,[.25,.25,.25],4);
+  assert.equal(poly.points.length,4);
+  assert.equal(poly.faces.length,4);
+  const d0=poly.distances[0];
+  for(const d of poly.distances)assert.ok(Math.abs(d-d0)<1e-12);
+});
+
+test("octahedral coordination hull has eight triangular faces",()=>{
+  const sites=[
+    {pos:[1,0,0]},{pos:[-1,0,0]},
+    {pos:[0,1,0]},{pos:[0,-1,0]},
+    {pos:[0,0,1]},{pos:[0,0,-1]}
+  ];
+  const poly=coordinationPolyhedron(sites,[0,0,0],6);
+  assert.equal(poly.points.length,6);
+  assert.equal(poly.faces.length,8);
+});
+
+test("plane box polygon clips a diagonal plane to the visible bounds",()=>{
+  const polygon=planeBoxPolygon([1,1,1],[.5,.5,.5],{min:[0,0,0],max:[1,1,1]});
+  assert.ok(polygon.length>=3);
+  for(const point of polygon){
+    assert.ok(point.every(value=>value>=-1e-9&&value<=1+1e-9));
+    assert.ok(Math.abs(point[0]+point[1]+point[2]-1.5)<1e-8);
+  }
+});
+
+test("nearest site lookup returns deterministic sorted distances",()=>{
+  const nearest=nearestSitesToPoint(
+    [{pos:[2,0,0]},{pos:[1,0,0]},{pos:[3,0,0]}],
+    [0,0,0],2
+  );
+  assert.deepEqual(nearest.map(item=>item.index),[1,0]);
+  assert.deepEqual(nearest.map(item=>item.distance),[1,2]);
 });

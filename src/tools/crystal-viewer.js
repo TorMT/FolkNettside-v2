@@ -4,7 +4,7 @@ import {
   cellEdges,crystalPreset,crystalType,distance3,idealHoleCenters,
   listCrystalPresets,listCrystalTypes,replicateCrystal
 } from "./crystal-structures-core.js";
-import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,millerPlane} from "./crystal-analysis.js";
+import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,coordinationPolyhedron,millerPlane,planeBoxPolygon} from "./crystal-analysis.js";
 
 const SPECIES_COLORS={
   A:0xb3157a,B:0x2f7fa4,O:0xd9e7ed,
@@ -201,17 +201,32 @@ export async function mountCrystalViewer(container,state={}){
 
   const holeObjects=[];
   const holes=idealHoleCenters(type);
+
+  function polyhedronGeometry(polyhedron){
+    const positions=[];
+    for(const face of polyhedron.faces){
+      for(const index of face)positions.push(...polyhedron.points[index]);
+    }
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));
+    geometry.computeVertexNormals();
+    return geometry;
+  }
+
   const addHole=(position,kind)=>{
-    const geometry=kind==="tetra"
-      ?new THREE.TetrahedronGeometry(.12*a)
-      :new THREE.OctahedronGeometry(.13*a);
+    const neighbourCount=kind==="tetra"?4:6;
+    const polyhedron=coordinationPolyhedron(atomSites,position,neighbourCount);
+    if(polyhedron.points.length<neighbourCount||!polyhedron.faces.length)return;
+    const geometry=polyhedronGeometry(polyhedron);
     const material=new THREE.MeshStandardMaterial({
       color:kind==="tetra"?0xd36b59:0x4b88c6,
-      transparent:true,opacity:.38,wireframe:false,roughness:.45,metalness:.02
+      transparent:true,opacity:.28,wireframe:false,roughness:.5,metalness:.02,
+      side:THREE.DoubleSide,depthWrite:false
     });
     const mesh=new THREE.Mesh(geometry,material);
-    mesh.position.set(...position);
     mesh.visible=visibility!=="atoms";
+    mesh.userData.holeKind=kind;
+    mesh.userData.coordination=polyhedron.siteIndices;
     group.add(mesh);
     holeObjects.push(mesh);
   };
@@ -244,27 +259,62 @@ export async function mountCrystalViewer(container,state={}){
   }
 
   const planeObjects=[];
-  function addPlane(spec,index){
-    const normal=new THREE.Vector3(...spec.normal).normalize();
-    const basePoint=spec.point||[.5,.5,.5];
-    const point=new THREE.Vector3(basePoint[0]*a,basePoint[1]*a,basePoint[2]*(crystal?.cell==="hexagonal"?(c||a*(crystal.idealCA||1)):a));
-    const extent=Math.max(nx,ny,nz)*a*2.2;
-    const geometry=new THREE.PlaneGeometry(extent,extent);
-    const material=new THREE.MeshBasicMaterial({
-      color:index%2?0x2f7fa4:0xb3157a,
-      transparent:true,
-      opacity:.15,
-      side:THREE.DoubleSide,
-      depthWrite:false
-    });
-    const mesh=new THREE.Mesh(geometry,material);
-    mesh.position.copy(point);
-    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),normal);
-    mesh.userData.planeLabel=spec.label;
-    group.add(mesh);
-    planeObjects.push(mesh);
+
+  function crystalBounds(){
+    if(!atomSites.length)return {min:[0,0,0],max:[a,a,a]};
+    const min=[Infinity,Infinity,Infinity],max=[-Infinity,-Infinity,-Infinity];
+    for(const site of atomSites){
+      for(let axis=0;axis<3;axis++){
+        min[axis]=Math.min(min[axis],site.pos[axis]);
+        max[axis]=Math.max(max[axis],site.pos[axis]);
+      }
+    }
+    const pad=.08*a;
+    return {min:min.map(v=>v-pad),max:max.map(v=>v+pad)};
   }
 
+  const visibleBounds=crystalBounds();
+
+  function addPlane(spec,index){
+    const basePoint=spec.point||[.5,.5,.5];
+    const cellZ=crystal?.cell==="hexagonal"?(c||a*(crystal?.idealCA||1)):a;
+    const point=[basePoint[0]*a,basePoint[1]*a,basePoint[2]*cellZ];
+    const polygon=planeBoxPolygon(spec.normal,point,visibleBounds);
+    if(polygon.length<3)return;
+
+    const center=polygon.reduce((sum,p)=>[
+      sum[0]+p[0],sum[1]+p[1],sum[2]+p[2]
+    ],[0,0,0]).map(v=>v/polygon.length);
+
+    const positions=[];
+    for(let i=0;i<polygon.length;i++){
+      const p0=polygon[i],p1=polygon[(i+1)%polygon.length];
+      positions.push(...center,...p0,...p1);
+    }
+
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));
+    geometry.computeVertexNormals();
+    const material=new THREE.MeshBasicMaterial({
+      color:index%2?0x2f7fa4:0xb3157a,
+      transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false
+    });
+    const mesh=new THREE.Mesh(geometry,material);
+    mesh.userData.planeLabel=spec.label;
+    mesh.userData.planePolygon=polygon;
+    group.add(mesh);
+    planeObjects.push(mesh);
+
+    const outlineMaterial=new THREE.LineBasicMaterial({
+      color:index%2?0x69b6d9:0xe062b3,transparent:true,opacity:.8
+    });
+    const outlineGeometry=new THREE.BufferGeometry().setFromPoints(
+      [...polygon,polygon[0]].map(p=>new THREE.Vector3(...p))
+    );
+    const outline=new THREE.Line(outlineGeometry,outlineMaterial);
+    group.add(outline);
+    planeObjects.push(outline);
+  }
   let planeSpecs=[];
   if(state.planeFamily==="close")planeSpecs=closePackedPlaneSpecs(type);
   else if(state.planeFamily==="miller"){
@@ -427,7 +477,7 @@ export async function mountCrystalViewer(container,state={}){
       }
       for(const mesh of holeObjects){mesh.geometry.dispose();mesh.material.dispose()}
       for(const mesh of markerObjects){mesh.geometry.dispose();mesh.material.dispose()}
-      for(const mesh of planeObjects){mesh.geometry.dispose();mesh.material.dispose()}
+      for(const object of planeObjects){object.geometry?.dispose?.();object.material?.dispose?.()}
       renderer.dispose();
     }
   };

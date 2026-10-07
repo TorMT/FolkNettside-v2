@@ -34,7 +34,7 @@ function flowSVG(result){
   </svg>`;
 }
 
-export function propulsionPanelHTML(fixture,{thrustKn,inflowSpeed,diameter}={}){
+export function propulsionPanelHTML(fixture,{thrustKn,inflowSpeed,diameter,system=null}={}){
   const thrust=Number.isFinite(Number(thrustKn))?Number(thrustKn)*1000:Number(fixture.thrust);
   const inflow=Number.isFinite(Number(inflowSpeed))?Number(inflowSpeed):Number(fixture.inflowSpeed);
   const d=Number.isFinite(Number(diameter))?Number(diameter):Number(fixture.diameter);
@@ -63,7 +63,21 @@ export function propulsionPanelHTML(fixture,{thrustKn,inflowSpeed,diameter}={}){
       <div><span class="muted">Disk loading</span><strong>${(result.diskLoading/1000).toFixed(3)} kN/m²</strong></div>
       <div><span class="muted">Disk velocity</span><strong>${result.diskVelocity.toFixed(3)} m/s</strong></div>
       <div><span class="muted">Ideal efficiency</span><strong>${result.idealEfficiency==null?"n/a":(result.idealEfficiency*100).toFixed(1)+"%"}</strong></div>
-    </div><div class="resistance-warning"><strong>Scope:</strong> ideal momentum theory. No blade geometry, cavitation, swirl, hull interaction or CFD.</div></div>`,
+    </div>
+    ${system?`<div class="thruster-system-results">
+      <h3>Thruster-system resultant</h3>
+      <div class="hydro-grid">
+        <div><span class="muted">ΣFx / surge</span><strong>${(system.totalForce[0]/1000).toFixed(2)} kN</strong></div>
+        <div><span class="muted">ΣFy / sway</span><strong>${(system.totalForce[1]/1000).toFixed(2)} kN</strong></div>
+        <div><span class="muted">ΣFz</span><strong>${(system.totalForce[2]/1000).toFixed(2)} kN</strong></div>
+        <div><span class="muted">Resultant thrust</span><strong>${(system.resultantThrust/1000).toFixed(2)} kN</strong></div>
+        <div><span class="muted">Mx / roll</span><strong>${(system.totalMoment[0]/1000).toFixed(2)} kN·m</strong></div>
+        <div><span class="muted">My / pitch</span><strong>${(system.totalMoment[1]/1000).toFixed(2)} kN·m</strong></div>
+        <div><span class="muted">Mz / yaw</span><strong>${(system.totalMoment[2]/1000).toFixed(2)} kN·m</strong></div>
+        <div><span class="muted">Ideal total power</span><strong>${(system.idealPower/1000).toFixed(2)} kW</strong></div>
+      </div>
+    </div>`:""}
+    <div class="resistance-warning"><strong>Scope:</strong> ideal momentum theory + rigid-body force/moment balance. No blade geometry, cavitation, swirl, hull interaction or CFD.</div></div>`,
     result,curve,thrustKn:thrust/1000,inflowSpeed:inflow,diameter:d
   };
 }

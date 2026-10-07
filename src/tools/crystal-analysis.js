@@ -327,3 +327,116 @@ export function identifyCrystal({structureId=null,sites=[],edits=[]}={}){
 
   return result;
 }
+
+
+export function nearestSitesToPoint(sites,point,count,{activeOnly=true}={}){
+  const target=point.map(Number);
+  return (sites||[])
+    .map((site,index)=>({site,index,distance:distance3(site.pos,target)}))
+    .filter(item=>!activeOnly||item.site.active!==false)
+    .sort((a,b)=>a.distance-b.distance||a.index-b.index)
+    .slice(0,Math.max(0,Math.floor(count)||0));
+}
+
+function triangleNormal(a,b,c){
+  const ab=[b[0]-a[0],b[1]-a[1],b[2]-a[2]];
+  const ac=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
+  return [
+    ab[1]*ac[2]-ab[2]*ac[1],
+    ab[2]*ac[0]-ab[0]*ac[2],
+    ab[0]*ac[1]-ab[1]*ac[0]
+  ];
+}
+
+function dot3(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]}
+
+export function convexHullTriangles(points,tolerance=1e-9){
+  const pts=(points||[]).map(point=>point.map(Number));
+  const faces=[];
+  const seen=new Set();
+  for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++)for(let k=j+1;k<pts.length;k++){
+    const normal=triangleNormal(pts[i],pts[j],pts[k]);
+    const length=Math.hypot(...normal);
+    if(length<=tolerance)continue;
+    const unit=normal.map(v=>v/length);
+    const d=dot3(unit,pts[i]);
+    let positive=false,negative=false;
+    for(let p=0;p<pts.length;p++){
+      if(p===i||p===j||p===k)continue;
+      const side=dot3(unit,pts[p])-d;
+      if(side>tolerance)positive=true;
+      if(side<-tolerance)negative=true;
+    }
+    if(positive&&negative)continue;
+    const key=[i,j,k].sort((a,b)=>a-b).join("-");
+    if(seen.has(key))continue;
+    seen.add(key);
+    faces.push(positive?[i,k,j]:[i,j,k]);
+  }
+  return faces;
+}
+
+export function coordinationPolyhedron(sites,center,count){
+  const nearest=nearestSitesToPoint(sites,center,count);
+  const points=nearest.map(item=>item.site.pos);
+  return {
+    center:[...center],
+    siteIndices:nearest.map(item=>item.index),
+    distances:nearest.map(item=>item.distance),
+    points,
+    faces:convexHullTriangles(points)
+  };
+}
+
+function boxEdges(bounds){
+  const min=bounds.min,max=bounds.max;
+  const p=[
+    [min[0],min[1],min[2]],[max[0],min[1],min[2]],[min[0],max[1],min[2]],[max[0],max[1],min[2]],
+    [min[0],min[1],max[2]],[max[0],min[1],max[2]],[min[0],max[1],max[2]],[max[0],max[1],max[2]]
+  ];
+  const pairs=[[0,1],[0,2],[1,3],[2,3],[4,5],[4,6],[5,7],[6,7],[0,4],[1,5],[2,6],[3,7]];
+  return pairs.map(([a,b])=>[p[a],p[b]]);
+}
+
+function uniquePoint(points,point,tolerance=1e-8){
+  if(!points.some(existing=>distance3(existing,point)<=tolerance))points.push(point);
+}
+
+export function planeBoxPolygon(normal,point,bounds,tolerance=1e-9){
+  const n=normal.map(Number),p0=point.map(Number);
+  const length=Math.hypot(...n);
+  if(length<=tolerance)throw new Error("Plane normal cannot be zero");
+  const unit=n.map(v=>v/length);
+  const d=dot3(unit,p0);
+  const intersections=[];
+  for(const [a,b] of boxEdges(bounds)){
+    const da=dot3(unit,a)-d,db=dot3(unit,b)-d;
+    if(Math.abs(da)<=tolerance)uniquePoint(intersections,a);
+    if(Math.abs(db)<=tolerance)uniquePoint(intersections,b);
+    if(da*db<0){
+      const t=da/(da-db);
+      uniquePoint(intersections,[
+        a[0]+(b[0]-a[0])*t,
+        a[1]+(b[1]-a[1])*t,
+        a[2]+(b[2]-a[2])*t
+      ]);
+    }
+  }
+  if(intersections.length<3)return[];
+
+  const center=intersections.reduce((sum,p)=>[sum[0]+p[0],sum[1]+p[1],sum[2]+p[2]],[0,0,0]).map(v=>v/intersections.length);
+  const reference=Math.abs(unit[2])<.9?[0,0,1]:[0,1,0];
+  let u=triangleNormal([0,0,0],unit,reference);
+  const uLength=Math.hypot(...u);
+  u=u.map(v=>v/uLength);
+  const v=[
+    unit[1]*u[2]-unit[2]*u[1],
+    unit[2]*u[0]-unit[0]*u[2],
+    unit[0]*u[1]-unit[1]*u[0]
+  ];
+  return intersections.sort((a,b)=>{
+    const ar=[a[0]-center[0],a[1]-center[1],a[2]-center[2]];
+    const br=[b[0]-center[0],b[1]-center[1],b[2]-center[2]];
+    return Math.atan2(dot3(ar,v),dot3(ar,u))-Math.atan2(dot3(br,v),dot3(br,u));
+  });
+}
