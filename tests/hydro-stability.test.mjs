@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {analyzeHydrostatics} from "../src/hydro/hydrostatics.js";
 import {boxMesh} from "../src/hydro/fixtures.js";
-import {hydrostaticCurveRows,hydrostaticParticulars,initialStability,rectangularBargeStability} from "../src/hydro/stability.js";
+import {hydrostaticCurveRows,hydrostaticParticulars,initialStability,rectangularBargeStability,waterplanePrincipalAxes} from "../src/hydro/stability.js";
 
 const near=(a,b,tol=1e-9)=>assert.ok(Math.abs(a-b)<=tol,`${a} != ${b}`);
 
@@ -59,4 +59,23 @@ test("hydrostatic curve rows retain draft and derive stability at each sample",(
   near(rows[1].tonnesPerCm,.48);
   assert.ok(Number.isFinite(rows[1].kmTransverse));
   assert.ok(Number.isFinite(rows[1].gmTransverse));
+});
+
+
+test("waterplane principal moments diagonalize an asymmetric inertia tensor",()=>{
+  const result=waterplanePrincipalAxes({ixx:20,iyy:50,ixy:10});
+  const mean=35;
+  const radius=Math.hypot(-15,10);
+  near(result.major,mean+radius);
+  near(result.minor,mean-radius);
+  const theta=result.angleRad;
+  const transformedCross=(50-20)*Math.sin(2*theta)/2-10*Math.cos(2*theta);
+  near(transformedCross,0,1e-10);
+});
+
+test("principal waterplane axes reduce to x/y moments for symmetric waterplanes",()=>{
+  const result=waterplanePrincipalAxes({ixx:12,iyy:60,ixy:0});
+  near(result.major,60);
+  near(result.minor,12);
+  near(result.angleDeg,0);
 });
