@@ -258,19 +258,17 @@ export function hydroCurve(modelDocument,{
   });
 }
 
-export function solveWaterlineForVolume(modelDocument,targetVolume,{
+export function solvePreparedWaterlineForVolume(prepared,targetVolume,{
   minWaterline=0,
   maxWaterline=1,
   tolerance=1e-6,
-  maxIterations=60,
-  include=()=>true
+  maxIterations=60
 }={}){
   const target=Number(targetVolume);
   if(!Number.isFinite(target)||target<0)throw new Error("targetVolume must be a finite non-negative number");
   let low=Number(minWaterline),high=Number(maxWaterline);
   if(!(high>low))throw new Error("maxWaterline must be greater than minWaterline");
 
-  const prepared=prepareHydroModel(modelDocument,{include});
   let lowResult=analyzePreparedHydro(prepared,low);
   let highResult=analyzePreparedHydro(prepared,high);
   if(target<lowResult.volume-tolerance||target>highResult.volume+tolerance){
@@ -291,4 +289,17 @@ export function solveWaterlineForVolume(modelDocument,targetVolume,{
     else{high=mid;highResult=midResult}
   }
   return {waterline:mid,result:midResult,iterations:maxIterations};
+}
+
+export function solveWaterlineForVolume(modelDocument,targetVolume,{
+  minWaterline=0,
+  maxWaterline=1,
+  tolerance=1e-6,
+  maxIterations=60,
+  include=()=>true
+}={}){
+  const prepared=prepareHydroModel(modelDocument,{include});
+  return solvePreparedWaterlineForVolume(prepared,targetVolume,{
+    minWaterline,maxWaterline,tolerance,maxIterations
+  });
 }

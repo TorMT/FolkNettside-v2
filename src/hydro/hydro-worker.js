@@ -1,5 +1,6 @@
 import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js";
 import {createHydroInclude} from "./hydro-selection.js";
+import {gzCurve} from "./gz.js";
 
 let modelDocument=null;
 
