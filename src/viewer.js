@@ -1,1 +1,1 @@
-export {mountViewer} from "./viewers/viewer-shell.js?v=d3a1e51c177a56990f1459c681a0f2bfb4e0b3c0";
+export {mountViewer} from "./viewers/viewer-shell.js?v=8d61c2af3a8dbac37f74daddfdef722be809fbcc";
