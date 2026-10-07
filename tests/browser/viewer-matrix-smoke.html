@@ -77,6 +77,18 @@ const cases=[
     path:"../../examples/semesters/5/TMR4182/Videoer/demo.mp4",
     name:"demo.mp4",label:"Local video fixture",
     selector:".video-view"
+  },
+  {
+    id:"stl",kind:"STL",
+    path:"../../examples/models/wedge.stl",
+    name:"wedge.stl",label:"Wedge STL",
+    selector:".three-stage"
+  },
+  {
+    id:"3mf",kind:"3MF",
+    path:"../../examples/models/assembly-demo.3mf",
+    name:"assembly-demo.3mf",label:"3MF assembly",
+    selector:".three-stage"
   }
 ];
 
@@ -105,6 +117,14 @@ try{
       assert(typeof rendered.actions?.resetProgress==="function","Video missing resetProgress action");
       rendered.actions.resetProgress();
       assert(host.querySelector(".video-resume")?.textContent==="Progress reset","Video progress reset feedback missing");
+    }
+    if(spec.id==="stl"||spec.id==="3mf"){
+      assert(typeof rendered.actions?.fit==="function",spec.id+" missing Fit action");
+      assert(typeof rendered.actions?.resetZoom==="function",spec.id+" missing Reset view action");
+      const bounds=rendered.actions.getBounds?.();
+      assert(bounds&&bounds.size.every(value=>Number.isFinite(value)&&value>=0),spec.id+" invalid model bounds");
+      rendered.actions.fit();
+      rendered.actions.resetZoom();
     }
     rendered?.cleanup?.();
     report.push(spec.id);
