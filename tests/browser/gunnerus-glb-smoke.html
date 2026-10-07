@@ -14,6 +14,11 @@ try{
   const configResponse=await fetch("../../data/gunnerus-model.json");
   assert(configResponse.ok,"Could not load Gunnerus model config");
   const config=await configResponse.json();
+  const params=new URL(location.href).searchParams;
+  if(params.get("local")==="1"){
+    config.sourcePath="./fixtures/gunnerus/gunnerus.glb";
+    config.partMetadataPath="./fixtures/gunnerus/gunnerus-parts.json";
+  }
   const model=await loadModelDocument(config);
 
   assert(model.format==="GLB","Expected GLB ModelDocument");
