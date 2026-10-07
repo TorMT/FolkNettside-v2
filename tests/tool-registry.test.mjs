@@ -43,9 +43,9 @@ test("CoolProp is full after deployed and real-WASM numerical verification",()=>
 test("Theme Studio manual and image modes share one verified Settings architecture",()=>{
   const manual=toolById("theme-creator");
   const image=toolById("image-theme");
-  assert.equal(manual.status,"prototype");
+  assert.equal(manual.status,"full");
   assert.equal(manual.parity,"full");
-  assert.equal(image.status,"prototype");
+  assert.equal(image.status,"full");
   assert.equal(image.parity,"full");
   for(const tool of [manual,image]){
     assert.ok(tool.route?.startsWith("/settings/theme-studio/"));
@@ -62,6 +62,7 @@ test("browser-verified parity tools are marked full",()=>{
   for(const id of ["fluid","periodic","crystal","chemdraw","stl-advanced","theme-creator","image-theme","coolprop"]){
     const tool=toolById(id);
     assert.ok(tool,id+" missing");
+    assert.equal(tool.status,"full",id+" status should match verified parity");
     assert.equal(tool.parity,"full",id+" should be full after deployed browser verification");
     assert.equal(toolParityComplete(tool),true);
     assert.ok(tool.legacyUrl?.startsWith("https://"),id+" should keep legacy safety link for now");
