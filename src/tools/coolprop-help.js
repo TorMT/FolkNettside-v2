@@ -29,10 +29,10 @@ export const COOLPROP_HELP=[
   },
   {
     id:"basis",
-    title:"Air book basis",
-    description:"Textbook-relative H and U",
-    body:"CoolProp uses its own absolute reference state. The legacy Book Basis option shifts Air enthalpy and internal energy by constant offsets calibrated at 1000 K and 1 bar to the legacy Table A-22 reference.",
-    extra:"Only the absolute H/U level changes; differences ΔH and ΔU remain unchanged."
+    title:"Air table reference",
+    description:"Textbook-relative H, U and S",
+    body:"CoolProp uses its default reference basis. The Table Reference option applies constant Air offsets for enthalpy, internal energy and entropy so the 1000 K, 1 bar state matches the course Table A-22 values. The conversion is applied in both directions: table-basis H/U/S inputs are converted back before PropsSI, and outputs are converted to the table basis.",
+    extra:"The reference shift changes only the zero level. ΔH, ΔU and ΔS remain unchanged; with the option off, values stay on CoolProp\'s default basis."
   },
   {
     id:"errors",

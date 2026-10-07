@@ -2,10 +2,10 @@ import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,TABLE4_PRESETS,
   computeBatch,computeProcess,computeState,computeTable4,processTargetOptions,
   rowsToCSV,rowsToJSON,saturationWarning,unitLabel
-} from "./coolprop-core.js?v=3addd6f7ca32031daa045b013932d00187968508";
-import {getCoolProp} from "../vendor/coolprop-runtime.js?v=3addd6f7ca32031daa045b013932d00187968508";
-import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=3addd6f7ca32031daa045b013932d00187968508";
-import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=3addd6f7ca32031daa045b013932d00187968508";
+} from "./coolprop-core.js?v=fcceb5d6da9f38c2b8936c298a117e77b8f02c39";
+import {getCoolProp} from "../vendor/coolprop-runtime.js?v=fcceb5d6da9f38c2b8936c298a117e77b8f02c39";
+import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=fcceb5d6da9f38c2b8936c298a117e77b8f02c39";
+import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=fcceb5d6da9f38c2b8936c298a117e77b8f02c39";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -78,7 +78,7 @@ function globalSettingsHTML(s){
       <label class="field"><span>Temperature unit</span><select id="cp-temperature-unit">${selectOptions(["K","C"],s.units.temperature)}</select></label>
       <label class="field"><span>H/U unit</span><select id="cp-energy-unit">${selectOptions(["Jkg","kJkg"],s.units.energy)}</select></label>
       <label class="field"><span>S/Cp/Cv unit</span><select id="cp-entropy-unit">${selectOptions(["JkgK","kJkgK"],s.units.entropy)}</select></label>
-      <label class="coolprop-book-toggle"><input id="cp-book-basis" type="checkbox" ${s.bookBasis?"checked":""}><span>Air book basis</span><small>Legacy H/U reference at 1000 K, 1 bar</small></label>
+      <label class="coolprop-book-toggle"><input id="cp-book-basis" type="checkbox" ${s.bookBasis?"checked":""}><span>Table reference · Air A-22</span><small>Match course-table H/U/S · off = CoolProp default</small></label>
     </div>
   </section>`;
 }
@@ -168,7 +168,7 @@ export function coolPropToolHTML(state={}){
     <header class="tool-header">
       <div><span class="project-kicker">Thermodynamics tool</span><h1>CoolProp</h1>
       <p>Local WebAssembly property engine with the legacy state, batch, process and explore workflows.</p>
-      <div class="tool-parity-banner"><strong>Migration in progress:</strong> calculations, units, book basis, batch, process, explore and exports are now being run through the shared v2 core. Advanced diagrams remain available in the <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">full legacy tool ↗</a>.</div></div>
+      <div class="tool-parity-banner"><strong>Numerical review:</strong> functional parity is browser-verified. Table-reference calibration and saturation/phase reference checks are the remaining gate before full parity. The <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">legacy tool ↗</a> remains available during review.</div></div>
       <div class="coolprop-header-actions"><div class="coolprop-engine-status" id="coolprop-status">Engine not loaded</div><button class="btn" id="cp-help-open">Help</button></div>
     </header>
 
