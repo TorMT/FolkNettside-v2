@@ -1,7 +1,7 @@
 import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js";
 import {createHydroInclude} from "./hydro-selection.js";
 import {gzCurve} from "./gz.js";
-import {attitudeCurve,attitudeHydro} from "./attitude.js";
+import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js";
 
 export function executeHydroRequest(modelDocument,type,payload={}){
   if(!modelDocument)throw new Error("Hydro service has no model loaded");
@@ -32,6 +32,9 @@ export function executeHydroRequest(modelDocument,type,payload={}){
   }
   if(type==="attitudeCurve"){
     return attitudeCurve(modelDocument,{...payload,include});
+  }
+  if(type==="equilibrium"){
+    return solveAttitudeEquilibrium(modelDocument,{...payload,include});
   }
   if(type==="gz"){
     return gzCurve(modelDocument,{
