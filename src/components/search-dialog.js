@@ -1,4 +1,4 @@
-import {searchIndex} from "../search/search-index.js?v=852354996808f16f6f60bd42b587ac52c1e5fae0";
+import {searchIndex} from "../search/search-index.js?v=d3a1e51c177a56990f1459c681a0f2bfb4e0b3c0";
 
 function make(tag,className,text){
   const node=document.createElement(tag);
@@ -23,7 +23,7 @@ export function createSearchController({index,onNavigate}){
     inputRow.append(make("span","",String.fromCharCode(8981)));
     input=make("input");
     input.type="search";
-    input.placeholder="Search projects, courses and files";
+    input.placeholder="Search projects, courses, tools and Diverse";
     input.autocomplete="off";
     inputRow.append(input,make("kbd","","Esc"));
 
@@ -72,7 +72,7 @@ export function createSearchController({index,onNavigate}){
     current=searchIndex(index,query,{limit:14});
 
     if(!query){
-      results.append(make("div","search-empty","Search across the portfolio and course archive."));
+      results.append(make("div","search-empty","Search across projects, courses, tools and Diverse."));
       return;
     }
     if(!current.length){
@@ -84,7 +84,7 @@ export function createSearchController({index,onNavigate}){
       const button=make("button","search-result"+(indexValue===active?" active":""));
       button.type="button";
 
-      const icon=make("span","search-result-icon",item.type==="project"?"P":item.type==="course"?"C":"F");
+      const icon=make("span","search-result-icon",item.type==="project"?"P":item.type==="course"?"C":item.type==="tool"?"T":item.type==="diverse"?"D":"F");
       const textWrap=make("span");
       textWrap.append(make("strong","",item.title),make("small","",item.subtitle));
       const type=make("span","search-result-type",item.type);
