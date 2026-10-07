@@ -8,3 +8,20 @@ export function getThreeRuntime(){
   }
   return promise;
 }
+
+
+let gltfPromise;
+export function getGLTFRuntime(){
+  if(!gltfPromise){
+    gltfPromise=Promise.all([
+      getThreeRuntime(),
+      import("https://esm.sh/three@0.180.0/examples/jsm/loaders/GLTFLoader.js"),
+      import("https://esm.sh/three@0.180.0/examples/jsm/libs/meshopt_decoder.module.js")
+    ]).then(([runtime,loader,meshopt])=>({
+      ...runtime,
+      GLTFLoader:loader.GLTFLoader,
+      MeshoptDecoder:meshopt.MeshoptDecoder
+    }));
+  }
+  return gltfPromise;
+}
