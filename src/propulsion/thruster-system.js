@@ -99,6 +99,8 @@ export function thrustersFromModelDocument(modelDocument){
     const semantic=componentSemantic(component);
     const propulsion=semantic.thruster;
     if(!propulsion||propulsion.enabled===false)continue;
+    const thrustValue=Number(propulsion.thrust);
+    if(propulsion.thrust===null||propulsion.thrust===undefined||propulsion.thrust===""||!Number.isFinite(thrustValue))continue;
     const localDirection=thrusterDirection({
       axis:propulsion.axis||[1,0,0],
       azimuthDeg:propulsion.azimuthDeg
@@ -108,7 +110,7 @@ export function thrustersFromModelDocument(modelDocument){
       type:semantic.subtype||propulsion.type||"thruster",
       subsystem:semantic.subsystem,
       tags:semantic.tags,
-      thrust:Number(propulsion.thrust)||0,
+      thrust:thrustValue,
       diameter:Number(propulsion.diameter)||null,
       inflowSpeed:Number(propulsion.inflowSpeed)||0,
       density:Number(propulsion.density)||1025,
