@@ -2,6 +2,8 @@
 
 Gunnerus is planned as the final public example vessel for the Engineering landing/workspace once the v2 system is mature.
 
+The sourced engineering baseline now lives in `data/engineering/gunnerus-sources.json`. Current principal dimensions follow NTNUs 2023 specification after the 2019 prolongation (Loa 36.25 m); older pre-prolongation 31.25 m data must not silently override the current vessel geometry.
+
 ## Goal
 
 Use one sourced vessel model through the complete engineering workflow:
@@ -55,5 +57,13 @@ Gunnerus
 ```
 
 Each propulsion component should retain a stable component ID and its own transform, axis and propulsion metadata.
+
+Known sourced propulsion baseline:
+- two 500 kW stern azimuth units;
+- one 200 kW Brunvoll bow tunnel thruster;
+- Kongsberg identifies Gunnerus as the first rim-drive azimuth installation in 2015;
+- the 2025 NTNU service procurement identifies the two installed azimuth units as RDAZ1900.
+
+Exact thruster positions/transforms, loading-condition CG and displacement remain intentionally unset until sourced geometry/drawings or measured data provide them. They must not be inferred from a sketch solely to make the demo run.
 
 The existing generic `assembly-demo.3mf` remains the regression fixture until the sourced Gunnerus model is ready.
