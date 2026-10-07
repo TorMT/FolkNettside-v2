@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Viewer adapter matrix smoke</title></head>
+<body data-status="running">
+<div id="host"></div>
+<pre id="result">running</pre>
+<script type="module">
+import {loadAdapter} from "../../src/viewers/registry.js";
+
+const host=document.querySelector("#host");
+const result=document.querySelector("#result");
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+
+const cases=[
+  {
+    id:"markdown",kind:"FILE",
+    path:"../../examples/semesters/5/TMR4182/Kok/kok-example.md",
+    name:"kok-example.md",label:"Kok example",
+    selector:".code-shell",find:"bokslekter"
+  },
+  {
+    id:"python",kind:"FILE",
+    path:"../../examples/semesters/5/TMR4182/Kok/hydro-demo.py",
+    name:"hydro-demo.py",label:"Hydro demo",
+    selector:".code-shell",find:"volume"
+  },
+  {
+    id:"csv",kind:"FILE",
+    path:"../../examples/semesters/5/TMR4182/Kok/hydro-data.csv",
+    name:"hydro-data.csv",label:"Hydro data",
+    selector:".data-table",find:"draft"
+  },
+  {
+    id:"html",kind:"FILE",
+    path:"../../examples/semesters/5/TMR4182/Kok/formula-demo.html",
+    name:"formula-demo.html",label:"Formula demo",
+    selector:".html-preview"
+  },
+  {
+    id:"notebook",kind:"FILE",
+    path:"../../examples/semesters/5/TMR4182/Kok/hydro-demo.ipynb",
+    name:"hydro-demo.ipynb",label:"Hydro notebook",
+    selector:".notebook",find:"36.0"
+  },
+  {
+    id:"latex",kind:"FILE",
+    path:"../../examples/semesters/5/TMR4182/Forelesninger/formulas.tex",
+    name:"formulas.tex",label:"Formula sheet",
+    selector:".latex-view",find:"document"
+  },
+  {
+    id:"docx",kind:"FILE",
+    path:"../../examples/semesters/5/TMR4182/Filer%20og%20ressurser/Office/hydro-notes.docx",
+    name:"hydro-notes.docx",label:"Hydro notes",
+    selector:".office-doc",find:"hydro"
+  },
+  {
+    id:"xlsx",kind:"FILE",
+    path:"../../examples/semesters/5/TMR4182/Filer%20og%20ressurser/Office/hydro-data.xlsx",
+    name:"hydro-data.xlsx",label:"Hydro workbook",
+    selector:".office-workbook"
+  },
+  {
+    id:"pptx",kind:"FILE",
+    path:"../../examples/semesters/5/TMR4182/Filer%20og%20ressurser/Office/hydro-slides.pptx",
+    name:"hydro-slides.pptx",label:"Hydro slides",
+    selector:".office-slides"
+  },
+  {
+    id:"pdf",kind:"FILE",
+    path:"../../examples/semesters/5/TMR4182/Forelesninger/lecture-01.pdf",
+    name:"lecture-01.pdf",label:"Lecture PDF",
+    selector:".pdf-frame"
+  }
+];
+
+try{
+  const report=[];
+  for(const spec of cases){
+    host.innerHTML="";
+    const adapter=await loadAdapter(spec);
+    const rendered=await adapter.render(host,spec);
+    assert(host.querySelector(spec.selector),spec.id+" did not render "+spec.selector);
+    assert(typeof rendered?.info==="string"&&rendered.info.length>0,spec.id+" missing info");
+    if(spec.find){
+      assert(typeof rendered.actions?.find==="function",spec.id+" missing Find action");
+      const match=rendered.actions.find(spec.find);
+      assert(match&&match.total>0,spec.id+" Find returned no matches for "+spec.find);
+    }
+    if(spec.id==="html"){
+      const frame=host.querySelector(".html-preview");
+      assert(frame.getAttribute("sandbox")==="allow-scripts","HTML preview sandbox changed");
+      assert(frame.srcdoc.length>0,"HTML preview srcdoc empty");
+    }
+    if(spec.id==="notebook")assert(host.querySelectorAll(".nb-cell").length>=2,"Notebook cells missing");
+    if(spec.id==="xlsx")assert(host.querySelectorAll(".office-sheet").length>=1,"Workbook sheet missing");
+    if(spec.id==="pptx")assert(host.querySelectorAll(".office-slide").length>=1,"Slides missing");
+    rendered?.cleanup?.();
+    report.push(spec.id);
+  }
+  document.body.dataset.status="pass";
+  result.textContent="viewer-matrix-smoke: "+report.join(", ");
+}catch(error){
+  document.body.dataset.status="fail";
+  result.textContent=String(error?.stack||error);
+}
+</script>
+</body>
+</html>
