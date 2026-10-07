@@ -16,12 +16,12 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | Video | shared local/YouTube adapters + progress store | MP4 + YouTube | prototype | One progress model, local resume/watched state, externalResources manifest support; cloud sync later |
 | STL | shared Three.js ModelScene | ASCII STL | prototype | Render-on-demand; binary parser; real Fit/Reset controls |
 | 3MF | ModelDocument + shared Three.js scene | 3MF geometry assembly | prototype | Object/build identity, units, transforms, selection and real Fit/Reset controls |
-| Fusion F3D/F3Z | semantic ModelDocument import pipeline | archive-selection tests | prototype | F3Z can consume embedded 3MF/STL with provenance; native F3D/F3Z emits APS_REQUIRED until Autodesk conversion is connected |
+| Fusion F3D/F3Z | semantic ModelDocument import pipeline | archive-selection + semantic-sidecar tests | prototype | F3Z consumes embedded 3MF/STL with provenance and optional semantic sidecar metadata; native F3D/F3Z emits APS_REQUIRED until Autodesk conversion is connected |
 | STEP/IGES | shared CAD import | pending | planned | Keep component/source identity where possible |
-| Hydrostatics | exact clipped-triangle integrals + stability/GZ | box/wedge/multi-component + GZ + perf fixtures | prototype | Prepared geometry, BM/KM/GM, constant-displacement GZ, worker-service tests and 21-draft performance benchmark |
+| Hydrostatics | exact clipped-triangle integrals + stability/GZ | box/wedge/multi-component + GZ + perf fixtures | prototype | Prepared geometry now caches triangle z-bounds for repeated waterline solves; BM/KM/GM, constant-displacement GZ, worker-service tests and 21-draft benchmark remain covered |
 | FEM | engineering workspace Structure mode | cantilever frame JSON | prototype | Tested 2D Euler–Bernoulli frame solver; shell/solid later |
 | CFD/resistance | Resistance workspace baseline | ITTC friction JSON | prototype | ITTC-1957 friction only; total resistance/OpenFOAM later |
-| Thruster flow | actuator-disk + rigid-body thruster system | actuator-disk JSON + ModelDocument thrusters | prototype | World-space force, resultant thrust, roll/pitch/yaw moments and ideal power regression-tested; OpenFOAM later |
+| Thruster flow | actuator-disk + rigid-body thruster system | actuator-disk JSON + semantic ModelDocument thrusters | prototype | Semantic azimuth/tunnel components, world-space force, resultant thrust, roll/pitch/yaw moments and ideal power regression-tested; OpenFOAM later |
 | CoolProp | lazy local WASM Tools module | hashed legacy WASM + unit tests + deployed browser + real-WASM CI verifier | full | Air A-22 reference conversion is bidirectional and numerically checked at 300/400/1000/1200 K; Water saturation and R134a two-phase reference cases are CI-gated |
 | Fluid calculator | shared Tools calculator | legacy polynomial fixture + deployed browser comparison | full | Browser-verified against legacy for all 6 fluids/gases, C/F/K, all 8 properties, warnings and responsive layout |
 | ChemDraw | lazy Kekule chemistry editor | live runtime | full | Browser-verified New/Import/MOL/SMILES/Undo/Redo/Clean 2D/Copy SMILES |
