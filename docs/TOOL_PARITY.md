@@ -28,7 +28,7 @@ Already migrated:
 - All data / explore
 - CSV export
 - JSON export
-- Air book-basis calibration
+- Air Table A-22 reference calibration
 
 Now also migrated:
 - Single / Batch / Process state-point diagrams
@@ -39,15 +39,19 @@ Now also migrated:
 - PNG export
 
 Now also migrated:
-- searchable integrated help/reference notes covering overview, diagrams, phases, units, Air book basis and common errors
+- searchable integrated help/reference notes covering overview, diagrams, phases, units, Air table reference and common errors
 - legacy P-T near-saturation / two-phase ambiguity warning
 
-Remaining before `full`:
-- numerically verify the Air textbook-reference conversion against the actual course Table A-22 values, including entropy reference handling;
-- verify that book/table-basis inputs as well as outputs are converted correctly for PH/PU/process calculations;
-- browser-check saturation and phase behavior with representative Water and R134a states.
+Numerically verified:
+- Air Table A-22 reference alignment at 1000 K and 1 bar gives h = 1046.04 kJ/kg, u = 758.94 kJ/kg and s° = 2.96770 kJ/(kg·K) exactly;
+- table-reference conversion is bidirectional: PH input at 1 bar and h = 1046.04 kJ/kg returns 1000 K, and raw engine values remain available internally for process constants;
+- with Table Reference off, CoolProp remains on its default reference basis;
+- Water at 100 °C and 1.01325 bar raises the expected two-phase ambiguity warning;
+- deployed phase checks identify Water at 1 bar / 120 °C as Gas / superheated vapour and R134a at 0 °C / Q = 0.5 as Two-phase.
 
-Status: `review`. Functional coverage is browser-verified; the remaining gate is numerical reference-state validation. Legacy fallback remains available.
+The Table A-22 option is a constant reference-state shift, not a replacement ideal-gas table model. Away from the calibration state, small differences from the tabulated ideal-gas values can remain because CoolProp and Table A-22 use different property models/interpolation.
+
+Status: `full`. Functional coverage, reference conversion and representative saturation/phase behavior are deployed-browser verified. Legacy fallback remains temporarily for safety.
 
 The legacy Table 4 mode is now explicitly migrated and regression-tested. Fully custom process input remains an optional improvement rather than a parity blocker.
 
