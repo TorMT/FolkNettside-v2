@@ -20,4 +20,11 @@ test("rendered shell exposes the same active navigation state",()=>{
   assert.match(html,/data-go="\/engineering" class="active"/);
   assert.match(html,/class="mobile-nav"/);
   assert.match(html,/data-search-open/);
+  assert.match(html,/data-go="\/settings\/connections"/);
+});
+
+test("shell account chip reflects the shared signed-in state",()=>{
+  const html=renderTopShell("portfolio",{account:{status:"signed-in",profile:{name:"Test User"}}});
+  assert.match(html,/account-chip signed-in/);
+  assert.match(html,/Test User/);
 });

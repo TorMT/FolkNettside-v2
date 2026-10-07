@@ -31,12 +31,20 @@ test("Appearance exposes all persisted global preferences",()=>{
   }
 });
 
-test("Connections are honest non-connected capability states",()=>{
-  const html=settingsPageHTML({settings,section:"connections"});
+test("Connections use one optional site-level Google session",()=>{
+  const html=settingsPageHTML({settings,section:"connections",account:{status:"signed-out"}});
   assert.match(html,/Google \/ Drive/);
   assert.match(html,/Autodesk \/ APS/);
-  assert.match(html,/Not configured/g);
-  assert.doesNotMatch(html,/data-connect=/);
+  assert.match(html,/data-google-connect/);
+  assert.match(html,/Brewing and Dive log stay local/);
+});
+
+test("Connections render signed-in Google identity without a second module login",()=>{
+  const html=settingsPageHTML({settings,section:"connections",account:{status:"signed-in",profile:{name:"Test User",email:"test@example.com"}}});
+  assert.match(html,/Connected/);
+  assert.match(html,/Test User/);
+  assert.match(html,/data-google-disconnect/);
+  assert.doesNotMatch(html,/data-google-connect/);
 });
 
 test("Clear progress removes only quiz and video records",()=>{

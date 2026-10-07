@@ -43,17 +43,27 @@ function appearanceHTML(settings){
     </div>`;
 }
 
-function connectionsHTML(){
+function connectionsHTML(account={}){
+  const signedIn=account?.status==="signed-in";
+  const connecting=account?.status==="connecting"||account?.status==="loading";
+  const profile=account?.profile||{};
+  const accountLabel=profile.name||profile.email||"Google account";
+  const googleControl=signedIn
+    ? `<div class="settings-connection-actions"><span class="settings-status ready">Connected</span><button class="btn" data-google-disconnect>Sign out</button></div>`
+    : `<div class="settings-connection-actions"><span class="settings-status ${account?.status==="unavailable"?"planned":"ready"}">${connecting?"Loading":account?.status==="unavailable"?"Unavailable":"Signed out"}</span><button class="btn" data-google-connect ${connecting?"disabled":""}>Sign in with Google</button></div>`;
+  const googleDescription=signedIn
+    ? `${esc(accountLabel)}${profile.email&&profile.email!==accountLabel?` · ${esc(profile.email)}`:""}. This one site-level session is reused by Brewing and Dive log.`
+    : "Optional site-level sign-in. Brewing and Dive log stay local and never open their own Google prompt while you are signed out.";
   return `
     <h1>Account & connections</h1>
-    <p class="muted">The public site and local engineering/study tools do not require authentication.</p>
+    <p class="muted">The public site and local engineering/study tools do not require authentication. Sign-in is only used for account-backed features.</p>
     <div class="settings-card">
-      <div class="setting-row"><div><strong>Google / Drive</strong><small>Optional future cloud-file workflow. No connection is required for course resources.</small></div><span class="settings-status planned">Not configured</span></div>
+      <div class="setting-row"><div><strong>Google / Drive</strong><small>${googleDescription}</small></div>${googleControl}</div>
       <div class="setting-row"><div><strong>Autodesk / APS</strong><small>Optional future native F3D/F3Z conversion path. Embedded 3MF/STL F3Z remains local.</small></div><span class="settings-status planned">Not configured</span></div>
     </div>
+    ${account?.error?`<div class="settings-note"><strong>Google status</strong><span>${esc(account.error)}</span></div>`:""}
     <div class="settings-note"><strong>Local-first rule</strong><span>Features remain usable without an account whenever the underlying format can be handled locally.</span></div>`;
 }
-
 function coursesHTML(stats){
   return `
     <h1>Courses</h1>
@@ -106,11 +116,11 @@ function advancedHTML(){
     </div>`;
 }
 
-export function settingsPageHTML({settings,section="appearance",stats={}}={}){
+export function settingsPageHTML({settings,section="appearance",stats={},account={}}={}){
   const active=SECTIONS.some(([id])=>id===section)?section:"appearance";
   const bodies={
     appearance:()=>appearanceHTML(settings||{}),
-    connections:connectionsHTML,
+    connections:()=>connectionsHTML(account||{}),
     courses:()=>coursesHTML(stats),
     engineering:()=>engineeringHTML(stats),
     privacy:privacyHTML,
