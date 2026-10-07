@@ -1,7 +1,7 @@
-import {analyzeModelDocument} from "../hydro/hydrostatics.js?v=c69e5661d7e556b5fc6742e3b25062c589a9583c";
-import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js?v=c69e5661d7e556b5fc6742e3b25062c589a9583c";
-import {parseSTL} from "../model/parsers/stl.js?v=c69e5661d7e556b5fc6742e3b25062c589a9583c";
-import {parse3MF} from "../model/parsers/three-mf.js?v=c69e5661d7e556b5fc6742e3b25062c589a9583c";
+import {analyzeModelDocument} from "../hydro/hydrostatics.js?v=1e0f3adc216cf30705f88079bd3cc77faa448c1c";
+import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js?v=1e0f3adc216cf30705f88079bd3cc77faa448c1c";
+import {parseSTL} from "../model/parsers/stl.js?v=1e0f3adc216cf30705f88079bd3cc77faa448c1c";
+import {parse3MF} from "../model/parsers/three-mf.js?v=1e0f3adc216cf30705f88079bd3cc77faa448c1c";
 
 export function modelFileKind(name){
   const ext=String(name||"").split(".").pop()?.toLowerCase();
