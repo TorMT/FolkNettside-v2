@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  dataBounds,diagramType,generateIsotherms,generateQualityLines,generateSaturationCurve,
+  dataBounds,diagramDatasets,diagramType,generateIsobars,generateIsotherms,generateQualityLines,generateSaturationCurve,
   stateToDiagramPoint
 } from "../src/tools/coolprop-diagram-core.js";
 
@@ -67,4 +67,47 @@ test("Air diagram curves use the same table-reference basis as state points",()=
     }
   }
   for(const delta of deltas)assert.ok(Math.abs(delta-deltas[0])<1e-9);
+});
+
+
+test("auxiliary CoolProp curves do not blow out diagram auto bounds",()=>{
+  const datasets=[
+    {kind:"states",affectsBounds:true,points:[{x:100,y:1},{x:200,y:2}]},
+    {kind:"isotherm",affectsBounds:false,points:[{x:-5000,y:.0001},{x:9000,y:5000}]}
+  ];
+  const bounds=dataBounds(datasets,{logY:true});
+  assert.ok(bounds.xmin>0);
+  assert.ok(bounds.xmax<300);
+  assert.ok(bounds.ymin>.1);
+  assert.ok(bounds.ymax<10);
+});
+
+test("generated helper curves mark phase changes as discontinuities",()=>{
+  let calls=0;
+  const fake={
+    props1SI(fluid,key){return {Tcrit:500,Pcrit:5e6,Ttriple:200}[key]},
+    propsSI(out,k1,v1,k2,v2){
+      const T=k1==="T"?v1:v2;
+      const P=k1==="P"?v1:v2;
+      if(out==="Phase")return P>1e6?0:5;
+      if(out==="H")return T*1000+(P>1e6?1e6:0);
+      if(out==="S")return T*10;
+      if(out==="D")return P>1e6?800:2;
+      return 0;
+    },
+    phaseSI(k1,v1,k2,v2){calls++;const P=k1==="P"?v1:v2;return P>1e6?"liquid":"gas"}
+  };
+  const lines=generateIsotherms(fake,"Water","ph",{lines:2,points:20});
+  assert.ok(calls>0);
+  assert.ok(lines.some(line=>line.points.some(point=>point.breakBefore)));
+});
+
+test("diagram datasets keep saturation and states as bound-driving data only",()=>{
+  const sets=diagramDatasets(engine(),"Water","ph",[{valuesSI:{P:2e5,H:500000,S:7000,T:350,D:2}}],{
+    isotherms:true,isobars:true,quality:true
+  });
+  assert.ok(sets.some(set=>set.kind==="states"&&set.affectsBounds===true));
+  assert.ok(sets.some(set=>set.kind==="saturation"&&set.affectsBounds===true));
+  assert.ok(sets.some(set=>set.kind==="isotherm"&&set.affectsBounds===false));
+  assert.ok(sets.some(set=>set.kind==="isobar"&&set.affectsBounds===false));
 });
