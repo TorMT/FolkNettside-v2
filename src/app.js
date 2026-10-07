@@ -1,36 +1,36 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {mountViewer} from "./viewer.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {loadContent} from "./content.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {renderResourceTree} from "./components/resource-tree.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {karakterwebUrl} from "./courses/external-links.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {buildSearchIndex} from "./search/search-index.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {createSearchController} from "./components/search-dialog.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {activeTools} from "./tools/tool-registry.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {loadModelDocument} from "./model/load-model.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {mountModelScene} from "./model/model-scene.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=736846c68df99c645bae84f521ba552176960f68";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=736846c68df99c645bae84f521ba552176960f68";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {mountViewer} from "./viewer.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {loadContent} from "./content.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {renderResourceTree} from "./components/resource-tree.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {karakterwebUrl} from "./courses/external-links.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {buildSearchIndex} from "./search/search-index.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {createSearchController} from "./components/search-dialog.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {activeTools} from "./tools/tool-registry.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {loadModelDocument} from "./model/load-model.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {mountModelScene} from "./model/model-scene.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=fede50374fe950b524a1e82c155e425f8cc81d1a";
 
 initSettings();
 
@@ -258,8 +258,10 @@ function coursesPage(requestedSemester){
   document.documentElement.dataset.lens="study";
   const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;
   const semester=getSemester(semesterId)||semesters[0];
-  const semesterOptions=semesters.map(s=>`<option value="${s.id}" ${Number(s.id)===Number(semester.id)?"selected":""}>${s.label} · ${s.courses.length} fag</option>`).join("");
-  const semesterTabs=semesters.map(s=>`<button class="${Number(s.id)===Number(semester.id)?"active":""}" data-semester="${s.id}">${s.label}</button>`).join("");
+  const semesterTabs=semesters.map(s=>`<button class="${Number(s.id)===Number(semester.id)?"active":""}" data-semester="${s.id}" aria-label="${s.label}" title="${s.label}">
+    <span class="semester-label-long">${s.label}</span>
+    <span class="semester-label-short">S${s.id}</span>
+  </button>`).join("");
   const courseCards=semester.courses.map(course=>{
     const resourceCount=course.resources?.length||0;
     const sectionCount=course.sections?.length||0;
@@ -288,10 +290,6 @@ function coursesPage(requestedSemester){
     </section>
 
     <div class="semester-navigation">
-      <label class="semester-select-wrap">
-        <span>Semester</span>
-        <select id="semester-select">${semesterOptions}</select>
-      </label>
       <div class="semester-tabs" aria-label="Semester navigation">${semesterTabs}</div>
     </div>
 
@@ -311,7 +309,8 @@ function coursesPage(requestedSemester){
 
   bindNav();
   app.querySelectorAll("[data-semester]").forEach(button=>button.onclick=()=>go("/courses/"+button.dataset.semester));
-  app.querySelector("#semester-select")?.addEventListener("change",event=>go("/courses/"+event.currentTarget.value));
+  const activeSemester=app.querySelector(".semester-tabs .active");
+  activeSemester?.scrollIntoView?.({behavior:"instant",block:"nearest",inline:"center"});
   app.querySelectorAll("[data-course]").forEach(card=>{
     const open=()=>go(courseRoute(semester.id,card.dataset.course));
     card.onclick=open;
