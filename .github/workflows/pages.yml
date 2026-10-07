@@ -122,6 +122,32 @@ jobs:
             exit 1
           }
           grep '<pre id="result">' /tmp/study-workspace-smoke-dom.html || true
+      - name: Settings app browser smoke
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          python -m http.server 4177 --bind 127.0.0.1 >/tmp/settings-browser-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python - <<'PY'
+          import time, urllib.request
+          for _ in range(50):
+              try:
+                  urllib.request.urlopen("http://127.0.0.1:4177/tests/browser/settings-app-smoke.html", timeout=1).read(32)
+                  break
+              except Exception:
+                  time.sleep(.1)
+          else:
+              raise SystemExit("Settings browser smoke server did not start")
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=20000 \
+            --dump-dom http://127.0.0.1:4177/tests/browser/settings-app-smoke.html \
+            >/tmp/settings-app-smoke-dom.html
+          grep -q 'data-status="pass"' /tmp/settings-app-smoke-dom.html || {
+            cat /tmp/settings-app-smoke-dom.html
+            exit 1
+          }
+          grep '<pre id="result">' /tmp/settings-app-smoke-dom.html || true
       - name: Viewer adapter browser matrix
         run: |
           browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
