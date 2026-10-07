@@ -1,8 +1,8 @@
-import {extension} from "../viewers/utils.js?v=5cfb1ce8b44c7e497d991f68d6b9220c9e15051f";
-import {parse3MF} from "./parsers/three-mf.js?v=5cfb1ce8b44c7e497d991f68d6b9220c9e15051f";
-import {parseSTL} from "./parsers/stl.js?v=5cfb1ce8b44c7e497d991f68d6b9220c9e15051f";
-import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=5cfb1ce8b44c7e497d991f68d6b9220c9e15051f";
-import {parseGLB} from "./parsers/gltf.js?v=5cfb1ce8b44c7e497d991f68d6b9220c9e15051f";
+import {extension} from "../viewers/utils.js?v=1793abea10f9cca1f3354f6ec9c14feebaa6bac4";
+import {parse3MF} from "./parsers/three-mf.js?v=1793abea10f9cca1f3354f6ec9c14feebaa6bac4";
+import {parseSTL} from "./parsers/stl.js?v=1793abea10f9cca1f3354f6ec9c14feebaa6bac4";
+import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=1793abea10f9cca1f3354f6ec9c14feebaa6bac4";
+import {parseGLB} from "./parsers/gltf.js?v=1793abea10f9cca1f3354f6ec9c14feebaa6bac4";
 
 export function applyModelRules(documentModel,rules=[]){
   for(const component of documentModel.components){
