@@ -93,23 +93,53 @@ export const PROCESS_TYPES={
 export const TABLE_REFERENCE_PROFILES={
   Air:{
     id:"air-table-a22",
+    fluid:"Air",
     label:"Air · Table A-22",
+    shortLabel:"Air A-22",
     source:"Course Table A-22 · Ideal Gas Properties of Air",
     calibration:{
-      T:1000,
-      P:1e5,
+      inputs:["T",1000,"P",1e5],
       H:1046.04e3,
       U:758.94e3,
       S:2.96770e3
     },
     checkpoints:[
-      {T:300,H:300.19e3,U:214.07e3,S:1.70203e3},
-      {T:400,H:400.98e3,U:286.16e3,S:1.99194e3},
-      {T:1000,H:1046.04e3,U:758.94e3,S:2.96770e3},
-      {T:1200,H:1277.79e3,U:933.33e3,S:3.17888e3}
+      {inputs:["T",300,"P",1e5],T:300,H:300.19e3,U:214.07e3,S:1.70203e3},
+      {inputs:["T",400,"P",1e5],T:400,H:400.98e3,U:286.16e3,S:1.99194e3},
+      {inputs:["T",1000,"P",1e5],T:1000,H:1046.04e3,U:758.94e3,S:2.96770e3},
+      {inputs:["T",1200,"P",1e5],T:1200,H:1277.79e3,U:933.33e3,S:3.17888e3}
+    ]
+  },
+  Ammonia:{
+    id:"ammonia-tables-a13-a15",
+    fluid:"Ammonia",
+    label:"Ammonia · Tables A-13 / A-14 / A-15",
+    shortLabel:"Ammonia A-13–A-15",
+    source:"Course Tables A-13 to A-15 · Saturated and Superheated Ammonia",
+    calibration:{
+      inputs:["T",243.15,"P",1e5],
+      H:1406.44e3,
+      U:1290.71e3,
+      S:5.8723e3
+    },
+    checkpoints:[
+      {inputs:["T",243.15,"P",1e5],T:243.15,P:1e5,H:1406.44e3,U:1290.71e3,S:5.8723e3},
+      {inputs:["T",373.15,"P",5e5],T:373.15,P:5e5,H:1679.56e3,U:1501.46e3,S:6.0020e3},
+      {inputs:["T",373.15,"P",10e5],T:373.15,P:10e5,H:1664.10e3,U:1490.20e3,S:5.6332e3},
+      {inputs:["T",323.15,"Q",1],T:323.15,Q:1,H:1471.26e3,U:1342.42e3,S:4.7604e3}
     ]
   }
 };
+
+export const COURSE_TABLE_LABELS={
+  Air:"Air · Table A-22",
+  Ammonia:"Ammonia · Tables A-13 / A-14 / A-15",
+  Water:"Water · Tables A-2 / A-3 / A-4"
+};
+
+export function courseTableLabel(fluid){
+  return COURSE_TABLE_LABELS[fluid]||`${fluid||"Fluid"} · native CoolProp basis`;
+}
 
 const tableReferenceOffsetCache=new WeakMap();
 
@@ -192,7 +222,9 @@ export function phaseDescription(raw){
 export function tableReferenceProfile(fluid){
   const normalized=String(fluid||"").toLowerCase();
   return Object.values(TABLE_REFERENCE_PROFILES).find(profile=>
-    profile.id.startsWith(normalized+"-")||profile.label.toLowerCase().startsWith(normalized+" ")
+    String(profile.fluid||"").toLowerCase()===normalized
+    ||profile.id.startsWith(normalized+"-")
+    ||profile.label.toLowerCase().startsWith(normalized+" ")
   )||null;
 }
 
@@ -207,12 +239,13 @@ export function tableReferenceOffsets(engine,fluid="Air"){
   if(byFluid.has(profile.id))return byFluid.get(profile.id);
 
   const offsets={};
-  const {T,P}=profile.calibration;
+  const inputs=profile.calibration.inputs||["T",profile.calibration.T,"P",profile.calibration.P];
+  const [input1,value1,input2,value2]=inputs;
   for(const prop of ["H","U","S"]){
     const target=Number(profile.calibration[prop]);
     if(!Number.isFinite(target))continue;
     try{
-      const raw=Number(engine.propsSI(prop,"T",T,"P",P,fluid));
+      const raw=Number(engine.propsSI(prop,input1,value1,input2,value2,fluid));
       if(Number.isFinite(raw))offsets[prop]=target-raw;
     }catch{}
   }
@@ -239,9 +272,11 @@ export function verifyTableReference(engine,fluid="Air"){
   if(!profile)throw new Error(`No table reference profile for ${fluid}`);
   return profile.checkpoints.map(reference=>{
     const values={},errors={};
+    const inputs=reference.inputs||profile.calibration.inputs||["T",reference.T,"P",profile.calibration.P];
+    const [input1,value1,input2,value2]=inputs;
     for(const prop of ["H","U","S"]){
       try{
-        const raw=engine.propsSI(prop,"T",reference.T,"P",profile.calibration.P,fluid);
+        const raw=engine.propsSI(prop,input1,value1,input2,value2,fluid);
         const adjusted=applyBookBasis(engine,fluid,prop,raw,true);
         values[prop]=adjusted;
         errors[prop]=adjusted-reference[prop];
