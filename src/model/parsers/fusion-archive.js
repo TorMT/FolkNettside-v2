@@ -31,15 +31,67 @@ export function selectFusionArchiveCandidate(paths=[]){
   return candidates[0]?.path||null;
 }
 
+export function selectSemanticManifestCandidate(paths=[]){
+  const preferred=[
+    "folknet-semantic.json",
+    "model-semantic.json",
+    ".folknet/semantic.json"
+  ];
+  const files=paths.map(path=>String(path)).filter(path=>!path.endsWith("/"));
+  for(const name of preferred){
+    const exact=files.find(path=>path.toLowerCase()===name);
+    if(exact)return exact;
+  }
+  return files.find(path=>/(^|\/)folknet-semantic\.json$/i.test(path))
+    ||files.find(path=>/(^|\/)model-semantic\.json$/i.test(path))
+    ||null;
+}
+
 export function fusionArchiveInventory(paths=[]){
   const list=paths.map(path=>String(path)).filter(Boolean);
   return {
     entries:list.length,
     threeMF:list.filter(path=>path.toLowerCase().endsWith(".3mf")).length,
     stl:list.filter(path=>path.toLowerCase().endsWith(".stl")).length,
-    nativeFusion:list.filter(path=>/.(f3d|f3z)$/i.test(path)).length,
-    candidate:selectFusionArchiveCandidate(list)
+    nativeFusion:list.filter(path=>/\.(f3d|f3z)$/i.test(path)).length,
+    candidate:selectFusionArchiveCandidate(list),
+    semanticManifest:selectSemanticManifestCandidate(list)
   };
+}
+
+export function applySemanticManifest(model,manifest={}){
+  const entries=Array.isArray(manifest?.components)?manifest.components:[];
+  const applied=[];
+  for(const entry of entries){
+    const component=(model?.components||[]).find(candidate=>
+      entry.id!=null&&String(candidate.id)===String(entry.id)
+      ||entry.sourceObjectId!=null&&String(candidate.sourceObjectId)===String(entry.sourceObjectId)
+      ||entry.name!=null&&String(candidate.name)===String(entry.name)
+    );
+    if(!component)continue;
+    component.metadata={
+      ...(component.metadata||{}),
+      semantic:{
+        ...(component.metadata?.semantic||{}),
+        ...(entry.semantic||{})
+      }
+    };
+    if(entry.propulsion){
+      component.metadata.propulsion={
+        ...(component.metadata.propulsion||{}),
+        ...entry.propulsion
+      };
+    }
+    if(entry.hydro!==undefined)component.metadata.hydro=entry.hydro;
+    applied.push(component.id);
+  }
+  model.semanticManifest={
+    version:manifest?.version??1,
+    vessel:manifest?.vessel||null,
+    source:manifest?.source||null,
+    appliedComponentIds:applied
+  };
+  return model;
 }
 
 export async function parseFusionArchive(buffer,name="Fusion archive"){
@@ -83,6 +135,20 @@ export async function parseFusionArchive(buffer,name="Fusion archive"){
     conversion:"embedded-fallback",
     inventory
   };
+
+  if(inventory.semanticManifest){
+    const manifestEntry=zip.file(inventory.semanticManifest);
+    if(manifestEntry){
+      try{
+        const manifest=JSON.parse(await manifestEntry.async("string"));
+        applySemanticManifest(model,manifest);
+        model.source.semanticManifest=inventory.semanticManifest;
+      }catch(error){
+        model.source.semanticManifest=inventory.semanticManifest;
+        model.source.semanticManifestError=String(error?.message||error);
+      }
+    }
+  }
   for(const component of model.components){
     component.metadata={
       ...component.metadata,
