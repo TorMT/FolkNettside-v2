@@ -28,7 +28,8 @@ Already migrated:
 - All data / explore
 - CSV export
 - JSON export
-- Air Table A-22 reference calibration
+- fluid-specific course reference workspace: Air A-22, Water A-2/A-3/A-4/A-5 and Ammonia A-13/A-14/A-15
+- Air and Ammonia H/U/S reference-basis handling without silently applying Air values to other fluids
 
 Now also migrated:
 - Single / Batch / Process state-point diagrams
@@ -48,6 +49,8 @@ Numerically verified against the deployed/hash-locked WASM:
 - inverse P-h input with 1 bar and h = 1046.04 kJ/kg on the table basis returns 1000 K, while internal process constants remain on the raw CoolProp basis;
 - additional A-22 checks at 300 / 400 / 1200 K remain close to the book while preserving CoolProp as the underlying model: h = 299.82403 / 400.77864 / 1277.73166 kJ/kg versus 300.19 / 400.98 / 1277.79 kJ/kg in the table;
 - Water saturation at 1 atm is 373.12429585 K, Water at 1 bar / 120 °C is gas/superheated vapour, and R134a at 0 °C / Q = 0.5 is two-phase at 2.92803 bar with h = 299.30172 kJ/kg;
+- Ammonia A-15 calibration is checked against the course-table reference state and additional real-WASM checkpoints are drift-gated rather than assumed identical to the textbook model;
+- P-h / T-s / P-v diagram data are real-WASM checked for finite scaling, phase separation and stable bounds;
 - the same real-WASM numerical checks run in CI after the binary's size and Git-blob hash are verified.
 
 The table option remains a constant reference-basis conversion around the native CoolProp property model, not a replacement ideal-gas table interpolator. Therefore H/U/S differences are invariant under the conversion, while small deviations from A-22 away from the calibration state reflect the different property models. Table Reference OFF leaves CoolProp's default basis untouched.
