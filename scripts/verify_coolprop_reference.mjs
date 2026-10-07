@@ -5,6 +5,7 @@ import path from "node:path";
 import {fileURLToPath} from "node:url";
 import {createRequire} from "node:module";
 
+import {dataBounds,diagramDatasets} from "../src/tools/coolprop-diagram-core.js";
 import {
   TABLE_REFERENCE_PROFILES,
   applyBookBasis,
@@ -76,6 +77,32 @@ try{
   const rawAtCalibration=engine.propsSI("H","T",1000,"P",1e5,"Air");
   closeEnough(applyBookBasis(engine,"Air","H",rawAtCalibration,true),profile.calibration.H,1e-6,"Air forward H conversion");
 
+  const ammoniaProfile=TABLE_REFERENCE_PROFILES.Ammonia;
+  const ammoniaReport=verifyTableReference(engine,"Ammonia");
+  console.log("\nAmmonia A-13/A-14/A-15 reference verification");
+  console.log("state                         dH [J/kg]      dU [J/kg]      dS [J/(kg K)]");
+  for(const row of ammoniaReport){
+    const label=row.Q===1
+      ?`T=${row.T} K, saturated vapour`
+      :`T=${row.T} K, P=${(row.P/1e5).toFixed(2)} bar`;
+    for(const prop of ["H","U","S"]){
+      assert.ok(Number.isFinite(row.values[prop]),`Ammonia ${prop} is not finite at ${label}`);
+    }
+    console.log(
+      label.padEnd(29),
+      row.errors.H.toFixed(2).padStart(12),
+      row.errors.U.toFixed(2).padStart(14),
+      row.errors.S.toFixed(4).padStart(18)
+    );
+  }
+  const ammoniaCalibration=ammoniaReport[0];
+  closeEnough(ammoniaCalibration.values.H,ammoniaProfile.calibration.H,1e-6,"Ammonia A-15 calibration H");
+  closeEnough(ammoniaCalibration.values.U,ammoniaProfile.calibration.U,1e-6,"Ammonia A-15 calibration U");
+  closeEnough(ammoniaCalibration.values.S,ammoniaProfile.calibration.S,1e-9,"Ammonia A-15 calibration S");
+  const ammoniaRawH=removeBookBasis(engine,"Ammonia","H",ammoniaProfile.calibration.H,true);
+  const ammoniaInverseT=engine.propsSI("T","P",ammoniaProfile.calibration.P,"H",ammoniaRawH,"Ammonia");
+  closeEnough(ammoniaInverseT,ammoniaProfile.calibration.T,2e-4,"Ammonia inverse P-H temperature");
+
   const waterTsat=engine.propsSI("T","P",101325,"Q",0,"Water");
   closeEnough(waterTsat,373.1242958477,0.01,"Water saturation temperature at 1 atm");
   const waterPhase=phaseDescription(engine.phaseSI?.("P",1e5,"T",393.15,"Water")??engine.propsSI("Phase","P",1e5,"T",393.15,"Water"));
@@ -92,7 +119,33 @@ try{
   console.log(`Water Tsat @ 1 atm: ${waterTsat.toFixed(8)} K`);
   console.log(`Water @ 1 bar, 120 C: ${waterPhase}`);
   console.log(`R134a @ 0 C, Q=0.5: P=${(r134aP/1e5).toFixed(5)} bar, H=${(r134aH/1000).toFixed(5)} kJ/kg, phase=${r134aPhase}`);
-  console.log("\nCoolProp numerical reference verification passed.");
+
+  console.log("\nDiagram generation checks");
+  for(const fluid of ["Water","Ammonia","R134a"]){
+    const state={
+      valuesSI:{
+        T:engine.propsSI("T","P",2e5,"Q",1,fluid),
+        P:2e5,
+        H:engine.propsSI("H","P",2e5,"Q",1,fluid),
+        S:engine.propsSI("S","P",2e5,"Q",1,fluid),
+        D:engine.propsSI("D","P",2e5,"Q",1,fluid)
+      }
+    };
+    for(const type of ["log-ph","ph","ts","pv"]){
+      const datasets=diagramDatasets(engine,fluid,type,[state],{
+        quality:true,isotherms:true,isobars:true,
+        bookBasis:Boolean(TABLE_REFERENCE_PROFILES[fluid])
+      });
+      const bounds=dataBounds(datasets,{logY:type==="log-ph"||type==="pv"});
+      assert.ok(datasets.some(dataset=>dataset.kind==="saturation"&&dataset.points.length>20),`${fluid} ${type} saturation curve missing`);
+      assert.ok(datasets.some(dataset=>dataset.kind==="states"&&dataset.points.length===1),`${fluid} ${type} state point missing`);
+      for(const value of Object.values(bounds))assert.ok(Number.isFinite(value),`${fluid} ${type} has invalid bounds`);
+      assert.ok(bounds.xmax>bounds.xmin&&bounds.ymax>bounds.ymin,`${fluid} ${type} bounds are inverted`);
+      console.log(`${fluid.padEnd(8)} ${type.padEnd(6)} datasets=${String(datasets.length).padStart(2)} bounds OK`);
+    }
+  }
+
+  console.log("\nCoolProp numerical and diagram reference verification passed.");
 } finally {
   rmSync(scratch,{recursive:true,force:true});
 }
