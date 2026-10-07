@@ -33,7 +33,7 @@ export async function render(container,resource){
   container.replaceChildren(shell);
 
   const YT=await getYouTubeAPI();
-  const saved=localVideoProgress.read(resource);
+  let saved=localVideoProgress.read(resource);
   let timer=null;
   let player=null;
 
@@ -77,6 +77,14 @@ export async function render(container,resource){
   const duration=await ready;
   return {
     info:`YouTube · ${formatTime(duration)} · local progress enabled`,
+    actions:{
+      resetProgress(){
+        localVideoProgress.clear(resource);
+        saved={};
+        try{player?.seekTo(0,true)}catch{}
+        resume.textContent="Progress reset";
+      }
+    },
     cleanup(){
       if(timer)clearInterval(timer);
       try{player?.destroy()}catch{}
