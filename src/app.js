@@ -33,6 +33,7 @@ import {renderTopShell,bindShellNavigation} from "./shell/navigation.js";
 import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js";
 import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js";
 import {diversePageHTML} from "./diverse/diverse-page.js";
+import {DIVERSE_MODULES} from "./diverse/diverse-registry.js";
 import {diveMapHTML,mountDiveMap} from "./diverse/dive-map.js";
 
 initSettings();
@@ -218,7 +219,7 @@ const vessel='<svg viewBox="0 0 760 380"><path d="M120 236 L560 236 L642 265 L60
 
 const route=()=>location.hash.slice(1)||"/portfolio";
 const go=path=>{location.hash=path};
-const globalSearch=createSearchController({index:buildSearchIndex({semesters,projects,tools:activeTools()}),onNavigate:go});
+const globalSearch=createSearchController({index:buildSearchIndex({semesters,projects,tools:activeTools(),diverse:DIVERSE_MODULES}),onNavigate:go});
 function parseCourseRoute(path){const m=path.match(/^\/(?:courses|study)\/(\d+)\/([^/]+)$/i);return m?{semester:Number(m[1]),code:decodeURIComponent(m[2])}:null}
 function parseViewerRoute(path){const m=path.match(/^\/viewer\/(\d+)\/([^/]+)\/(\d+)$/i);return m?{semester:Number(m[1]),code:decodeURIComponent(m[2]),resourceIndex:Number(m[3])}:null}
 function getSemester(id){return semesters.find(s=>Number(s.id)===Number(id))}
