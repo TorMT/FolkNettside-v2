@@ -18,7 +18,8 @@ import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel
 import {loadModelDocument} from "./model/load-model.js";
 import {mountModelScene} from "./model/model-scene.js";
 import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js";
-import {analyzeHydroAsync,gzCurveAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js";
+import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js";
 import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js";
@@ -42,7 +43,12 @@ let engineeringMode="Model";
 let hydroDraft=Number(model.hydro?.defaultDraft??1.20);
 let hydroTargetTonnes="";
 let hydroKg="";
+let hydroLcg="";
+let hydroTcg="";
+let hydroHeel=0;
+let hydroTrim=0;
 let hydroGzRequested=false;
+let hydroAttitudeAction="";
 let hydroCurveCache={model:null,data:null};
 let structureLoadKn=-20;
 let resistanceSpeedKn=10;
@@ -66,7 +72,7 @@ function getEngineeringDocument(){
     engineeringDocumentPromise=loadModelDocument(model).then(documentModel=>{
       engineeringDocument=documentModel;
       selectedComponentId=selectedComponentId
-        || documentModel.components.find(component=>component.type==="hull"&&component.geometry)?.id
+        || documentModel.components.find(component=>componentSemantic(component).role==="hull"&&component.geometry)?.id
         || documentModel.components.find(component=>component.geometry)?.id
         || documentModel.components[0]?.id
         || null;
@@ -473,9 +479,10 @@ async function engineeringPage(){
       ]);
       if(renderId!==engineeringRenderId)return;
 
-      const thrusters=documentModel?.components?.filter(component=>component.type==="thruster")||[];
+      const thrusters=documentModel?semanticComponents(documentModel,{role:"thruster"}).map(node=>node.component):[];
       const sourceThruster=thrusters.find(component=>component.id===selectedComponentId)||thrusters[0]||null;
-      const sourceCase=sourceThruster?.metadata?.propulsion||{};
+      const sourceSemantic=sourceThruster?componentSemantic(sourceThruster):null;
+      const sourceCase=sourceSemantic?.thruster||{};
       if(!propulsionInitialized){
         propulsionThrustKn=Number(sourceCase.thrust??fixture.thrust)/1000;
         propulsionInflow=Number(sourceCase.inflowSpeed??fixture.inflowSpeed);
@@ -516,7 +523,7 @@ async function engineeringPage(){
         </div></div>
         <aside class="tree">
           <div class="tree-label">Thruster components</div>
-          ${thrusters.length?thrusters.map(component=>`<div class="tree-row ${component.id===sourceThruster?.id?"selected":""}" data-propulsion-component="${component.id}"><span>◎</span>${component.name}</div>`).join(""):'<div class="tree-row"><span>○</span>No tagged thruster</div>'}
+          ${thrusters.length?thrusters.map(component=>{const semantic=componentSemantic(component);return `<div class="tree-row ${component.id===sourceThruster?.id?"selected":""}" data-propulsion-component="${component.id}"><span>◎</span><span class="tree-row-copy">${component.name}<small>${semantic.subtype||semantic.role}</small></span></div>`}).join(""):'<div class="tree-row"><span>○</span>No tagged thruster</div>'}
           <div class="tree-label">Method</div>
           <div class="tree-row selected"><span>≈</span>Ideal actuator disk</div>
           <div class="tree-row"><span>Σ</span>Rigid-body force/moment <span class="muted">${system?.thrusters.length||0} thruster(s)</span></div>
