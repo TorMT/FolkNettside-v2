@@ -18,16 +18,28 @@ export async function render(container,resource){
   let lastWrite=0;
 
   const duration=await new Promise(resolve=>{
-    video.addEventListener("loadedmetadata",()=>{
+    let settled=false;
+    const finish=value=>{
+      if(settled)return;
+      settled=true;
+      clearTimeout(timeout);
+      resolve(value);
+    };
+    const onMetadata=()=>{
       if(saved.position>0&&saved.position<video.duration-2){
         video.currentTime=Math.min(saved.position,Math.max(0,video.duration-1));
         resume.textContent=`Resumed at ${formatTime(video.currentTime)}`;
       }else if(saved.watched){
         resume.textContent="Watched";
       }
-      resolve(Number.isFinite(video.duration)?video.duration:null);
-    },{once:true});
-    video.addEventListener("error",()=>resolve(null),{once:true});
+      finish(Number.isFinite(video.duration)?video.duration:null);
+    };
+    const timeout=setTimeout(()=>finish(null),2500);
+    if(video.readyState>=1)onMetadata();
+    else{
+      video.addEventListener("loadedmetadata",onMetadata,{once:true});
+      video.addEventListener("error",()=>finish(null),{once:true});
+    }
   });
 
   video.addEventListener("timeupdate",()=>{
