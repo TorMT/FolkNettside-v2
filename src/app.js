@@ -628,7 +628,7 @@ async function engineeringPage(){
       const structure=structurePanelHTML(fixture,{loadFy:structureLoadKn*1000});
       const caseModel=structure.model;
       app.innerHTML=top("engineering")+`<main class="workspace">
-        <div class="workspace-bar"><strong>${caseModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
+        <div class="workspace-bar"><strong>${caseModel.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
           ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
         </div></div>
         <aside class="tree">
@@ -646,6 +646,15 @@ async function engineeringPage(){
       </main><div class="preview-badge">Structure · tested frame FEM</div>`;
       bindNav();
       bindEngineeringModelSelector();
+      bindEngineeringCaseExport(engineeringCaseReport({
+        modelConfig:model,
+        mode:"Structure",
+        capability,
+        method:{name:"2D Euler-Bernoulli frame FEM",caseModel:caseModel.name,scope:"linear static"},
+        inputs:{loadFy:structureLoadKn*1000,nodes:caseModel.nodes,elements:caseModel.elements,supports:caseModel.supports},
+        results:structure.result,
+        assumptions:["2D frame idealisation","linear elastic response","small displacements"]
+      }));
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       app.querySelector("#structure-load")?.addEventListener("change",event=>{
         structureLoadKn=Number(event.target.value)||0;
@@ -674,7 +683,7 @@ async function engineeringPage(){
       if(renderId!==engineeringRenderId)return;
       const resistance=resistancePanelHTML(fixture,{speedKnots:resistanceSpeedKn});
       app.innerHTML=top("engineering")+`<main class="workspace">
-        <div class="workspace-bar"><strong>${fixture.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
+        <div class="workspace-bar"><strong>${fixture.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
           ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
         </div></div>
         <aside class="tree">
@@ -693,6 +702,21 @@ async function engineeringPage(){
       </main><div class="preview-badge">Resistance · ITTC friction baseline</div>`;
       bindNav();
       bindEngineeringModelSelector();
+      bindEngineeringCaseExport(engineeringCaseReport({
+        modelConfig:model,
+        mode:"Resistance",
+        capability,
+        method:{name:"ITTC-1957 friction line",scope:"frictional resistance only"},
+        inputs:{
+          speedKnots:resistance.speedKnots,
+          length:fixture.length,
+          wettedSurface:fixture.wettedSurface,
+          density:fixture.density,
+          kinematicViscosity:fixture.kinematicViscosity
+        },
+        results:resistance.result,
+        assumptions:["smooth flat-plate friction correlation","no form, wave, appendage or air resistance"]
+      }));
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       app.querySelector("#resistance-speed")?.addEventListener("change",event=>{
         resistanceSpeedKn=Number(event.target.value)||0;
