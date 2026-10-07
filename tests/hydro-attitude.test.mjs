@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {boxMesh} from "../src/hydro/fixtures.js";
 import {analyzeModelDocument} from "../src/hydro/hydrostatics.js";
-import {attitudeCurve,attitudeHydro} from "../src/hydro/attitude.js";
+import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "../src/hydro/attitude.js";
 
 const near=(a,b,tol=1e-6)=>assert.ok(Math.abs(a-b)<=tol,`${a} != ${b}`);
 
@@ -71,4 +71,52 @@ test("attitude curve supports both heel and trim axes",()=>{
   assert.deepEqual(heel.map(p=>p.heelDeg),[-4,0,4]);
   assert.deepEqual(trim.map(p=>p.trimDeg),[-4,0,4]);
   for(const point of [...heel,...trim])near(point.volume,upright.volume,1e-6);
+});
+
+
+test("trim equilibrium solver finds zero pitch lever for shifted LCG",()=>{
+  const model=barge();
+  const upright=analyzeModelDocument(model,1);
+  const result=solveAttitudeEquilibrium(model,{
+    axis:"trim",
+    minAngle:-12,
+    maxAngle:12,
+    targetVolume:upright.volume,
+    centerOfGravity:[.35,0,.5],
+    leverTolerance:1e-6
+  });
+  assert.ok(result.equilibriumAngle>=-12&&result.equilibriumAngle<=12);
+  assert.ok(Math.abs(result.residual)<=1e-6);
+  near(result.volume,upright.volume,1e-6);
+});
+
+test("heel equilibrium solver finds zero roll lever for shifted TCG",()=>{
+  const model=barge();
+  const upright=analyzeModelDocument(model,1);
+  const result=solveAttitudeEquilibrium(model,{
+    axis:"heel",
+    minAngle:-12,
+    maxAngle:12,
+    targetVolume:upright.volume,
+    centerOfGravity:[0,.10,.5],
+    leverTolerance:1e-6
+  });
+  assert.ok(result.equilibriumAngle>=-12&&result.equilibriumAngle<=12);
+  assert.ok(Math.abs(result.residual)<=1e-6);
+  near(result.volume,upright.volume,1e-6);
+});
+
+test("equilibrium solver fails explicitly when requested bracket has no root",()=>{
+  const model=barge();
+  const upright=analyzeModelDocument(model,1);
+  assert.throws(
+    ()=>solveAttitudeEquilibrium(model,{
+      axis:"trim",
+      minAngle:0,
+      maxAngle:1,
+      targetVolume:upright.volume,
+      centerOfGravity:[2,0,.5]
+    }),
+    error=>error?.code==="EQUILIBRIUM_NOT_BRACKETED"
+  );
 });
