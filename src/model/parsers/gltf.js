@@ -1,0 +1,159 @@
+import {createModelDocument} from "../model-document.js?v=4cde5fe4f18c182716f9014d81b24a48695d4c65";
+import {getGLTFRuntime} from "../three-runtime.js?v=4cde5fe4f18c182716f9014d81b24a48695d4c65";
+
+function identity(){
+  return [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+}
+
+export function gltfEngineeringPoint([x,y,z],coordinateSystem="gltf-y-up"){
+  if(coordinateSystem==="gltf-y-up")return [Number(x),-Number(z),Number(y)];
+  if(coordinateSystem==="z-up")return [Number(x),Number(y),Number(z)];
+  throw new Error(`Unsupported glTF coordinate system: ${coordinateSystem}`);
+}
+
+export function gltfPartSemantic(part={}){
+  const node=String(part.node||"");
+  if(node==="part00")return {role:"hull",subsystem:"hydro",tags:["source-geometry"]};
+  if(node==="part01")return {role:"superstructure",subsystem:"vessel"};
+  if(node==="part19")return {role:"thruster",subtype:"azimuth",subsystem:"propulsion",tags:["port","stern"]};
+  if(node==="part20")return {role:"thruster",subtype:"azimuth",subsystem:"propulsion",tags:["starboard","stern"]};
+  if(node==="part23")return {role:"thruster",subtype:"tunnel",subsystem:"propulsion",tags:["bow"]};
+  return {
+    role:"component",
+    subsystem:part.group_key||null,
+    tags:[part.sfi&&`sfi-${part.sfi}`].filter(Boolean)
+  };
+}
+
+export function gltfPartDescriptor(part={},index=0){
+  const node=String(part.node||`part${String(index).padStart(2,"0")}`);
+  return {
+    id:`gltf-${node}`,
+    sourceObjectId:node,
+    name:part.label||part.group||node,
+    semantic:gltfPartSemantic({...part,node}),
+    sourceMetadata:{
+      sfi:part.sfi??null,
+      group:part.group??null,
+      groupKey:part.group_key??null,
+      item:part.item??null,
+      sourceTriangles:Number(part.source_triangles)||null,
+      sourceObjects:Number(part.objects)||null
+    }
+  };
+}
+
+function geometryFromNode(node,{coordinateSystem="gltf-y-up"}={}){
+  const positions=[];
+  const indices=[];
+  let triangleCount=0;
+
+  node.updateWorldMatrix(true,true);
+  node.traverse(object=>{
+    if(!object.isMesh||!object.geometry)return;
+    const geometry=object.geometry;
+    const position=geometry.getAttribute?.("position");
+    if(!position)return;
+    const offset=positions.length/3;
+
+    for(let i=0;i<position.count;i++){
+      const point=object.localToWorld(object.position.clone().set(
+        position.getX(i),position.getY(i),position.getZ(i)
+      ));
+      positions.push(...gltfEngineeringPoint([point.x,point.y,point.z],coordinateSystem));
+    }
+
+    const index=geometry.getIndex?.();
+    if(index){
+      for(let i=0;i<index.count;i++)indices.push(offset+index.getX(i));
+      triangleCount+=Math.floor(index.count/3);
+    }else{
+      for(let i=0;i<position.count;i++)indices.push(offset+i);
+      triangleCount+=Math.floor(position.count/3);
+    }
+  });
+
+  return positions.length?{positions,indices,triangleCount}:null;
+}
+
+function rootsFromScene(scene,partMetadata=[]){
+  if(partMetadata.length){
+    return partMetadata.map((part,index)=>({
+      node:scene.getObjectByName(String(part.node||"")),
+      descriptor:gltfPartDescriptor(part,index)
+    })).filter(item=>item.node);
+  }
+
+  const roots=[];
+  let index=0;
+  for(const child of scene.children||[]){
+    let hasMesh=false;
+    child.traverse?.(object=>{if(object.isMesh)hasMesh=true});
+    if(!hasMesh)continue;
+    const descriptor=gltfPartDescriptor({
+      node:child.name||`node-${index+1}`,
+      label:child.name||`Component ${index+1}`
+    },index);
+    roots.push({node:child,descriptor});
+    index++;
+  }
+  return roots;
+}
+
+export async function parseGLB(buffer,name="glTF model",{
+  partMetadata=[],
+  coordinateSystem="gltf-y-up",
+  source=null
+}={}){
+  const {GLTFLoader,MeshoptDecoder}=await getGLTFRuntime();
+  const loader=new GLTFLoader();
+  loader.setMeshoptDecoder(MeshoptDecoder);
+  const gltf=await new Promise((resolve,reject)=>{
+    loader.parse(buffer,"",resolve,reject);
+  });
+  const scene=gltf.scene||gltf.scenes?.[0];
+  if(!scene)throw new Error("glTF contains no scene");
+  scene.updateMatrixWorld(true);
+
+  const rootId="gltf-root";
+  const components=[{
+    id:rootId,
+    name,
+    type:"assembly",
+    parentId:null,
+    transform:identity(),
+    geometry:null,
+    metadata:{semantic:{role:"assembly",subsystem:"vessel"}}
+  }];
+
+  const roots=rootsFromScene(scene,partMetadata);
+  if(!roots.length)throw new Error("glTF scene contains no mesh-bearing component roots");
+
+  for(const {node,descriptor} of roots){
+    const geometry=geometryFromNode(node,{coordinateSystem});
+    if(!geometry)continue;
+    components.push({
+      id:descriptor.id,
+      name:descriptor.name,
+      type:"component",
+      sourceObjectId:descriptor.sourceObjectId,
+      parentId:rootId,
+      transform:identity(),
+      geometry:{positions:geometry.positions,indices:geometry.indices},
+      metadata:{
+        semantic:descriptor.semantic,
+        gltf:descriptor.sourceMetadata,
+        triangleCount:geometry.triangleCount
+      }
+    });
+  }
+
+  const model=createModelDocument({name,format:"GLB",unit:"meter",components});
+  model.source={
+    format:"GLB",
+    coordinateSystem,
+    conversion:coordinateSystem==="gltf-y-up"?"Y-up to Engineering Z-up":"none",
+    ...(source||{})
+  };
+  return model;
+}
