@@ -42,15 +42,12 @@ Now also migrated:
 - searchable integrated help/reference notes covering overview, diagrams, phases, units, Air book basis and common errors
 - legacy P-T near-saturation / two-phase ambiguity warning
 
-Remaining:
-- final side-by-side functional and visual verification
+Remaining before `full`:
+- numerically verify the Air textbook-reference conversion against the actual course Table A-22 values, including entropy reference handling;
+- verify that book/table-basis inputs as well as outputs are converted correctly for PH/PU/process calculations;
+- browser-check saturation and phase behavior with representative Water and R134a states.
 
-Verified numerically in deployed v2:
-- Air book basis at 1000 K / 1 bar gives H = 1046.04 kJ/kg and U = 758.94 kJ/kg exactly;
-- both legacy Air and Water Table 4 presets calculate all six rows successfully;
-- Single-mode Water at 100 °C / 1.01325 bar raises the expected two-phase ambiguity warning.
-
-Status: `full`. Legacy fallback remains temporarily for safety.
+Status: `review`. Functional coverage is browser-verified; the remaining gate is numerical reference-state validation. Legacy fallback remains available.
 
 The legacy Table 4 mode is now explicitly migrated and regression-tested. Fully custom process input remains an optional improvement rather than a parity blocker.
 
@@ -229,7 +226,7 @@ Manual Theme Creator verified:
 
 Status:
 - manual Theme Creator: `full`
-- Image→Theme: `full` after deployed in-browser sample-image verification of file decoding, palette extraction, auto-assign, preview and exports.
+- Image→Theme: `review` until deployed in-browser verification covers file decoding, palette extraction, auto-assign, preview and exports.
 
 Both legacy fallbacks remain temporarily for safety.
 
