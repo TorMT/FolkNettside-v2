@@ -5,6 +5,7 @@ import {
   analyzeCrystal,applyCrystalEdits,bondPairs,bondPlaneCuts,closePackedPlaneSpecs,
   coordinationStats,firstShellCutoff,identifyCrystal,
   coordinationPolyhedron,convexHullTriangles,nearestSitesToPoint,planeBoxPolygon,
+  polyhedronEdges,sitesNearPlane,
   millerPlane,nearestSiteIndex,segmentPlaneIntersection
 } from "../src/tools/crystal-analysis.js";
 
@@ -169,4 +170,34 @@ test("nearest site lookup returns deterministic sorted distances",()=>{
   );
   assert.deepEqual(nearest.map(item=>item.index),[1,0]);
   assert.deepEqual(nearest.map(item=>item.distance),[1,2]);
+});
+
+
+test("HCP close-packed basal planes are normal to the c axis",()=>{
+  const planes=closePackedPlaneSpecs("hcp");
+  assert.equal(planes.length,2);
+  for(const plane of planes)assert.deepEqual(plane.normal,[0,0,1]);
+  assert.deepEqual(planes[0].point,[0,0,0]);
+  assert.deepEqual(planes[1].point,[0,0,.5]);
+});
+
+test("tetrahedral and octahedral hulls expose unique polyhedron edges",()=>{
+  assert.equal(polyhedronEdges([[0,1,2],[0,3,1],[0,2,3],[1,3,2]]).length,6);
+  const octaFaces=[
+    [0,2,4],[2,1,4],[1,3,4],[3,0,4],
+    [2,0,5],[1,2,5],[3,1,5],[0,3,5]
+  ];
+  assert.equal(polyhedronEdges(octaFaces).length,12);
+});
+
+test("plane atom selection is geometric and tolerance-bounded",()=>{
+  const plane={normal:[0,0,1],point:[0,0,.5]};
+  const sites=[
+    {pos:[0,0,.5],active:true},
+    {pos:[1,0,.54],active:true},
+    {pos:[0,1,.7],active:true},
+    {pos:[0,0,.5],active:false}
+  ];
+  const near=sitesNearPlane(sites,plane,.05);
+  assert.deepEqual(near.map(item=>item.index),[0,1]);
 });

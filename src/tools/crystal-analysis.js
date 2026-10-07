@@ -56,10 +56,9 @@ export function closePackedPlaneSpecs(type){
     ];
   }
   if(type==="hcp"){
-    const c=1.633;
     return [
-      {label:"Basal plane A",normal:[0,1,0],point:[0,0,0]},
-      {label:"Basal plane B",normal:[0,1,0],point:[0,c/2,0]}
+      {label:"Basal (0001) A",normal:[0,0,1],point:[0,0,0]},
+      {label:"Basal (0001) B",normal:[0,0,1],point:[0,0,.5]}
     ];
   }
   if(type==="sc"||type==="cscl"){
@@ -386,6 +385,41 @@ export function coordinationPolyhedron(sites,center,count){
     points,
     faces:convexHullTriangles(points)
   };
+}
+
+export function polyhedronEdges(faces){
+  const edges=new Map();
+  for(const face of faces||[]){
+    for(let i=0;i<face.length;i++){
+      const a=Number(face[i]),b=Number(face[(i+1)%face.length]);
+      const key=a<b?`${a}:${b}`:`${b}:${a}`;
+      if(!edges.has(key))edges.set(key,[Math.min(a,b),Math.max(a,b)]);
+    }
+  }
+  return [...edges.values()];
+}
+
+export function pointPlaneDistance(point,normal,planePoint=[0,0,0]){
+  const n=normal.map(Number);
+  const length=Math.hypot(...n);
+  if(length<=1e-12)throw new Error("Plane normal cannot be zero");
+  const delta=[
+    Number(point[0])-Number(planePoint[0]),
+    Number(point[1])-Number(planePoint[1]),
+    Number(point[2])-Number(planePoint[2])
+  ];
+  return Math.abs((delta[0]*n[0]+delta[1]*n[1]+delta[2]*n[2])/length);
+}
+
+export function sitesNearPlane(sites,plane,tolerance=.08){
+  const limit=Math.max(0,Number(tolerance)||0);
+  return (sites||[])
+    .map((site,index)=>({
+      index,site,
+      distance:pointPlaneDistance(site.pos,plane.normal,plane.point)
+    }))
+    .filter(item=>item.site?.active!==false&&item.distance<=limit)
+    .sort((a,b)=>a.distance-b.distance||a.index-b.index);
 }
 
 function boxEdges(bounds){

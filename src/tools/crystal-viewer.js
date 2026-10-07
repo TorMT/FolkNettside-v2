@@ -4,7 +4,7 @@ import {
   cellEdges,crystalPreset,crystalType,distance3,idealHoleCenters,
   listCrystalPresets,listCrystalTypes,replicateCrystal
 } from "./crystal-structures-core.js";
-import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,coordinationPolyhedron,millerPlane,planeBoxPolygon} from "./crystal-analysis.js";
+import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,coordinationPolyhedron,millerPlane,planeBoxPolygon,polyhedronEdges,sitesNearPlane} from "./crystal-analysis.js";
 
 const SPECIES_COLORS={
   A:0xb3157a,B:0x2f7fa4,O:0xd9e7ed,
@@ -91,6 +91,17 @@ function speciesColor(species,index){
   if(SPECIES_COLORS[species]!==undefined)return SPECIES_COLORS[species];
   const palette=[0xb3157a,0x2f7fa4,0xd08a3e,0x729d61,0x8170ba,0x9f657f];
   return palette[index%palette.length];
+}
+
+function disposeObject3D(object){
+  object?.traverse?.(node=>{
+    node.geometry?.dispose?.();
+    if(Array.isArray(node.material)){
+      for(const material of node.material)material?.dispose?.();
+    }else{
+      node.material?.dispose?.();
+    }
+  });
 }
 
 export async function mountCrystalViewer(container,state={}){
@@ -229,6 +240,29 @@ export async function mountCrystalViewer(container,state={}){
     mesh.userData.coordination=polyhedron.siteIndices;
     group.add(mesh);
     holeObjects.push(mesh);
+
+    const edgeMaterial=new THREE.LineBasicMaterial({
+      color:kind==="tetra"?0xffa08f:0x7bc7eb,
+      transparent:true,opacity:.9
+    });
+    for(const [left,right] of polyhedronEdges(polyhedron.faces)){
+      const line=addLine(THREE,group,polyhedron.points[left],polyhedron.points[right],edgeMaterial);
+      line.visible=visibility!=="atoms";
+      line.userData.sharedHoleEdgeMaterial=edgeMaterial;
+      holeObjects.push(line);
+    }
+
+    const centerGeometry=new THREE.SphereGeometry(.035*Math.max(.55,Math.min(1.4,a)),12,8);
+    const centerMaterial=new THREE.MeshBasicMaterial({
+      color:kind==="tetra"?0xffd0c7:0xb7e7fb,
+      transparent:true,opacity:.95
+    });
+    const centerMarker=new THREE.Mesh(centerGeometry,centerMaterial);
+    centerMarker.position.set(...position);
+    centerMarker.visible=visibility!=="atoms";
+    centerMarker.userData.holeKind=kind;
+    group.add(centerMarker);
+    holeObjects.push(centerMarker);
   };
   if(crystal?.cell==="cubic"){
     for(let ix=0;ix<nx;ix++)for(let iy=0;iy<ny;iy++)for(let iz=0;iz<nz;iz++){
@@ -314,6 +348,45 @@ export async function mountCrystalViewer(container,state={}){
     const outline=new THREE.Line(outlineGeometry,outlineMaterial);
     group.add(outline);
     planeObjects.push(outline);
+
+    const n=new THREE.Vector3(...spec.normal).normalize();
+    const span=Math.max(
+      visibleBounds.max[0]-visibleBounds.min[0],
+      visibleBounds.max[1]-visibleBounds.min[1],
+      visibleBounds.max[2]-visibleBounds.min[2],
+      a
+    );
+    const arrow=new THREE.ArrowHelper(
+      n,
+      new THREE.Vector3(...center),
+      span*.22,
+      index%2?0x69b6d9:0xe062b3,
+      span*.07,
+      span*.035
+    );
+    arrow.userData.planeLabel=spec.label;
+    group.add(arrow);
+    planeObjects.push(arrow);
+
+    const tolerance=Math.max(.04*a,span*.015);
+    const planeForSites={normal:spec.normal,point};
+    for(const item of sitesNearPlane(atomSites,planeForSites,tolerance)){
+      const site=atomSites[item.index];
+      const ringGeometry=new THREE.RingGeometry(.12*a,.155*a,24);
+      const ringMaterial=new THREE.MeshBasicMaterial({
+        color:index%2?0x69b6d9:0xe062b3,
+        transparent:true,opacity:.9,
+        side:THREE.DoubleSide,
+        depthTest:false
+      });
+      const ring=new THREE.Mesh(ringGeometry,ringMaterial);
+      ring.position.set(...site.pos);
+      ring.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),n);
+      ring.renderOrder=20;
+      ring.userData.planeAtom=true;
+      group.add(ring);
+      planeObjects.push(ring);
+    }
   }
   let planeSpecs=[];
   if(state.planeFamily==="close")planeSpecs=closePackedPlaneSpecs(type);
@@ -475,9 +548,9 @@ export async function mountCrystalViewer(container,state={}){
         line.geometry.dispose();
         line.userData.sharedBondMaterial?.dispose?.();
       }
-      for(const mesh of holeObjects){mesh.geometry.dispose();mesh.material.dispose()}
-      for(const mesh of markerObjects){mesh.geometry.dispose();mesh.material.dispose()}
-      for(const object of planeObjects){object.geometry?.dispose?.();object.material?.dispose?.()}
+      for(const object of holeObjects)disposeObject3D(object);
+      for(const mesh of markerObjects)disposeObject3D(mesh);
+      for(const object of planeObjects)disposeObject3D(object);
       renderer.dispose();
     }
   };
