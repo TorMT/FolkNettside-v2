@@ -1,4 +1,5 @@
 import {diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeatureQuality,diveStats,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js";
+import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -49,7 +50,13 @@ export function diveMapHTML(){
       <label><span>Max depth</span><input id="dive-depth" type="number" min="0" step="1" placeholder="m"></label>
       <label><span>Sort</span><select id="dive-sort"><option value="name">Name</option><option value="depth">Depth</option><option value="level">Level</option></select></label>
     </section>
-    <section class="dive-stats" id="dive-stats">Loading dive dataset…</section>
+    <section class="dive-stats-row">
+      <div class="dive-stats" id="dive-stats">Loading dive dataset…</div>
+      <div class="dive-export-actions">
+        <button class="btn" id="dive-export-csv">Export filtered CSV</button>
+        <button class="btn" id="dive-export-geojson">Export filtered GeoJSON</button>
+      </div>
+    </section>
     <section class="dive-workspace">
       <div class="dive-map-panel"><div id="dive-map-canvas" aria-label="Dive sites map"></div><div id="dive-map-note" class="dive-map-note">Map loading…</div></div>
       <aside class="dive-list-panel"><div id="dive-list" class="dive-list"></div></aside>
@@ -67,11 +74,12 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
   if(!response.ok)throw new Error(`Dive dataset HTTP ${response.status}`);
   const data=await response.json();
   const features=data.features||[];
+  let currentVisible=features;
   const elements={
     query:root.querySelector("#dive-query"),level:root.querySelector("#dive-level"),kind:root.querySelector("#dive-kind"),quality:root.querySelector("#dive-quality"),
     depth:root.querySelector("#dive-depth"),sort:root.querySelector("#dive-sort"),stats:root.querySelector("#dive-stats"),
     list:root.querySelector("#dive-list"),inspector:root.querySelector("#dive-inspector"),map:root.querySelector("#dive-map-canvas"),
-    note:root.querySelector("#dive-map-note")
+    note:root.querySelector("#dive-map-note"),csv:root.querySelector("#dive-export-csv"),geojson:root.querySelector("#dive-export-geojson")
   };
   root.querySelector("[data-go-diverse]")?.addEventListener("click",onBack);
 
@@ -86,6 +94,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
 
   const render=()=>{
     const visible=sortDiveFeatures(filterDiveFeatures(features,state),state.sort);
+    currentVisible=visible;
     const stats=diveStats(visible);
     elements.stats.innerHTML=`<strong>${stats.total}</strong> shown · ${stats.nature} nature/area · ${stats.wrecks} wreck · ${stats.withCoordinates} mapped · ${stats.withDepth} with documented max depth`;
     elements.list.innerHTML=visible.map(feature=>{
@@ -129,6 +138,16 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
   ]){
     element?.addEventListener(event,ev=>{state[key]=ev.currentTarget.value;render()});
   }
+  elements.csv?.addEventListener("click",()=>{
+    downloadDiveText(diveFeaturesCSV(currentVisible),"trondheim-dive-filtered.csv","text/csv;charset=utf-8");
+  });
+  elements.geojson?.addEventListener("click",()=>{
+    const filters={query:state.query,level:state.level,kind:state.kind,quality:state.quality,maxDepth:state.maxDepth,sort:state.sort};
+    downloadDiveText(
+      diveFeaturesGeoJSON(currentVisible,{source:data.metadata?.source||null,sourceDate:data.metadata?.created||null,filters}),
+      "trondheim-dive-filtered.geojson","application/geo+json"
+    );
+  });
 
   render();
 
