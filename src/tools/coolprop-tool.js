@@ -1,11 +1,11 @@
 import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,TABLE4_PRESETS,
-  computeBatch,computeProcess,computeState,computeTable4,processTargetOptions,
-  rowsToCSV,rowsToJSON,saturationWarning,unitLabel
-} from "./coolprop-core.js?v=7ad2c067446e996584637c569ccd95576101aea7";
-import {getCoolProp} from "../vendor/coolprop-runtime.js?v=7ad2c067446e996584637c569ccd95576101aea7";
-import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=7ad2c067446e996584637c569ccd95576101aea7";
-import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=7ad2c067446e996584637c569ccd95576101aea7";
+  computeBatch,computeProcess,computeState,computeTable4,courseTableLabel,processTargetOptions,
+  rowsToCSV,rowsToJSON,saturationWarning,tableReferenceProfile,unitLabel
+} from "./coolprop-core.js?v=51ea01e2c7f657ea3f8e90392c513a9eedf33f83";
+import {getCoolProp} from "../vendor/coolprop-runtime.js?v=51ea01e2c7f657ea3f8e90392c513a9eedf33f83";
+import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=51ea01e2c7f657ea3f8e90392c513a9eedf33f83";
+import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=51ea01e2c7f657ea3f8e90392c513a9eedf33f83";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -71,6 +71,8 @@ function normalizedState(state={}){
 }
 
 function globalSettingsHTML(s){
+  const profile=tableReferenceProfile(s.fluid);
+  const tableLabel=courseTableLabel(s.fluid);
   return `<section class="coolprop-global">
     <div class="coolprop-fluid-control">
       <span class="coolprop-control-kicker">Working fluid</span>
@@ -85,7 +87,7 @@ function globalSettingsHTML(s){
         <label><span>S / C</span><select id="cp-entropy-unit">${selectOptions(["JkgK","kJkgK"],s.units.entropy)}</select></label>
       </div>
     </div>
-    <label class="coolprop-book-toggle"><input id="cp-book-basis" type="checkbox" ${s.bookBasis?"checked":""}><span><strong>Air A-22 basis</strong><small>Shift H/U/S reference only</small></span></label>
+    <label class="coolprop-book-toggle ${profile?"":"disabled"}"><input id="cp-book-basis" type="checkbox" ${s.bookBasis&&profile?"checked":""} ${profile?"":"disabled"}><span><strong>${esc(tableLabel)}</strong><small>${profile?"Shift H/U/S to the selected course-table reference":"No calibrated course-table reference yet"}</small></span></label>
   </section>`;
 }
 
@@ -98,7 +100,7 @@ function singleHTML(s){
       <label class="field"><span>Input 2</span><select id="cp-single-i2">${inputOptions(x.input2)}</select></label>
       <label class="field"><span>Value 2</span><input id="cp-single-v2" type="number" step="any" value="${esc(x.value2)}"></label>
     </div>
-    <div class="coolprop-actions"><button class="btn primary" id="cp-single-run">Calculate state</button><button class="btn" id="cp-single-example">Air · 1 bar · 25 °C</button><button class="btn" id="cp-single-diagram">Show diagram</button></div>
+    <div class="coolprop-actions"><button class="btn primary" id="cp-single-run">Calculate state</button><button class="btn" id="cp-single-example">1 bar · 25 °C</button><button class="btn" id="cp-single-diagram">Show diagram</button></div>
     <div id="cp-single-results" class="coolprop-results"><div class="tool-result-card"><span>Ready</span><strong>Choose a state</strong><p>The WASM engine loads only when calculation starts.</p></div></div>
   </section>`;
 }
@@ -310,7 +312,12 @@ export function bindCoolPropTool(root,state,onState){
     root.querySelector("#cp-export-json")?.toggleAttribute("disabled",!s.exportRows.length);
   };
 
-  for(const selector of ["#cp-fluid","#cp-pressure-unit","#cp-temperature-unit","#cp-energy-unit","#cp-entropy-unit","#cp-book-basis"]){
+  root.querySelector("#cp-fluid")?.addEventListener("change",()=>{
+    const next=syncGlobal();
+    if(!tableReferenceProfile(next.fluid))next.bookBasis=false;
+    save(next,true);
+  });
+  for(const selector of ["#cp-pressure-unit","#cp-temperature-unit","#cp-energy-unit","#cp-entropy-unit","#cp-book-basis"]){
     root.querySelector(selector)?.addEventListener("change",()=>save(syncGlobal(),false));
   }
 
