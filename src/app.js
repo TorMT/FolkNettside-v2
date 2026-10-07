@@ -22,6 +22,7 @@ import {mountModelScene} from "./model/model-scene.js";
 import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js";
 import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js";
 import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
+import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js";
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js";
 import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js";
@@ -1250,6 +1251,7 @@ async function engineeringPage(){
           hydrostaticCurve:hydro.curveRows||[],
           solvedDraft:solvedState?.value||null,
           gz:gzState?.value||null,
+          gzMetrics:hydro.gzSummary||null,
           attitude:attitudeState?.value||null
         },
         assumptions:["rigid body","constant water density","hydro geometry selected by semantic metadata"],
@@ -1427,6 +1429,14 @@ async function engineeringPage(){
       hydroAttitudeAction="";
       engineeringPage();
     }
+  });
+  app.querySelector("#hydro-export-table")?.addEventListener("click",()=>{
+    if(!hydro?.curveRows?.length)return;
+    downloadTextFile(hydrostaticRowsCSV(hydro.curveRows),"hydrostatic-table.csv");
+  });
+  app.querySelector("#hydro-export-gz")?.addEventListener("click",()=>{
+    const gzCurve=engineeringReport?.analysis?.results?.gz||[];
+    if(gzCurve.length)downloadTextFile(gzCurveCSV(gzCurve),"gz-curve.csv");
   });
 }
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
