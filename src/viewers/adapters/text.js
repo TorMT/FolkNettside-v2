@@ -1,6 +1,6 @@
-import {escapeHTML,fetchText,extension} from "../utils.js?v=99afeed3d40e8fa5e04f1b4d73839fd2f9967e10";
-import {getHighlighter} from "../../vendor/highlight.js?v=99afeed3d40e8fa5e04f1b4d73839fd2f9967e10";
-import {createDomFinder} from "../dom-search.js?v=99afeed3d40e8fa5e04f1b4d73839fd2f9967e10";
+import {escapeHTML,fetchText,extension} from "../utils.js?v=0c572609238258b358cd83accef2e828f95d7316";
+import {getHighlighter} from "../../vendor/highlight.js?v=0c572609238258b358cd83accef2e828f95d7316";
+import {createDomFinder} from "../dom-search.js?v=0c572609238258b358cd83accef2e828f95d7316";
 
 const languageByExtension={
   py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",
