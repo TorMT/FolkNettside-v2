@@ -13,9 +13,10 @@ The local v2 importer:
 3. prefers an embedded `.3mf` representation;
 4. falls back to embedded `.stl`;
 5. records the selected archive entry and archive inventory in `ModelDocument.source`;
-6. preserves the parsed component hierarchy from 3MF when available.
+6. preserves the parsed component hierarchy from 3MF when available;
+7. optionally reads `folknet-semantic.json`, `model-semantic.json` or `.folknet/semantic.json` and maps declared roles/subsystems, hydro flags and propulsion metadata onto stable component IDs/source object IDs.
 
-This gives a useful local/offline path for exported or prepared Fusion archives that contain tessellated fallback geometry.
+This gives a useful local/offline path for exported or prepared Fusion archives that contain tessellated fallback geometry. The optional semantic sidecar is deliberately format-neutral: Hydro and Propulsion consume the shared ModelDocument metadata, not F3Z-specific rules.
 
 If the archive contains no supported fallback geometry, the importer throws an explicit error with code:
 
