@@ -149,7 +149,18 @@ export async function mountViewer(root,resource,onBack){
       resetButton.onclick=()=>actions.resetZoom();
     }
   }catch(error){
-    canvas.innerHTML=`<pre class="code-view">Viewer error: ${escapeHTML(error?.message || error)}</pre>`;
+    const message=escapeHTML(error?.message||error);
+    canvas.innerHTML=`<div class="viewer-error">
+      <span class="project-kicker">Viewer error</span>
+      <h2>Could not render this resource</h2>
+      <p>${message}</p>
+      <div class="viewer-error-actions">
+        <button class="btn primary" id="viewer-retry">Retry</button>
+        <button class="btn" id="viewer-error-original">Open original</button>
+      </div>
+    </div>`;
     status.textContent="Error";
+    canvas.querySelector("#viewer-retry")?.addEventListener("click",()=>mountViewer(root,resource,onBack));
+    canvas.querySelector("#viewer-error-original")?.addEventListener("click",()=>window.open(resource.url||resource.path,"_blank","noopener"));
   }
 }
