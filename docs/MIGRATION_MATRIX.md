@@ -22,7 +22,7 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | FEM | engineering workspace Structure mode | cantilever frame JSON | prototype | Tested 2D Euler–Bernoulli frame solver; shell/solid later |
 | CFD/resistance | Resistance workspace baseline | ITTC friction JSON | prototype | ITTC-1957 friction only; total resistance/OpenFOAM later |
 | Thruster flow | actuator-disk + rigid-body thruster system | actuator-disk JSON + ModelDocument thrusters | prototype | World-space force, resultant thrust, roll/pitch/yaw moments and ideal power regression-tested; OpenFOAM later |
-| CoolProp | lazy local WASM Tools module | legacy engine + fake-engine CI | review | Single/Batch/Process/All-data, diagrams, exports, book-basis/help and legacy Table 4 restored; final browser/table validation remains |
+| CoolProp | lazy local WASM Tools module | legacy engine + fake-engine CI + deployed browser checks | full | Single/Batch/Process/All-data, diagrams, exports, Table A-22 reference conversion, phase fallback, help and legacy Table 4 are numerically/browser verified |
 | Fluid calculator | shared Tools calculator | legacy polynomial fixture | prototype | Pure tested core; legacy validity warnings; CoolProp remains separate |
 | ChemDraw | lazy Kekule chemistry editor | live runtime | review | Browser-verified New/Import/MOL/SMILES/Undo/Redo/Clean 2D/Copy SMILES |
 | Crystal structures | shared Three.js Tools module | full legacy structure set | review | Hole coordination polyhedra use real neighbour atoms; close-packed/Miller planes clip to visible bounds |
