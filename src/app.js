@@ -957,6 +957,7 @@ async function engineeringPage(){
   if(selected&&!selectedComponentId)selectedComponentId=selected.id;
 
   let hydro=null;
+  let engineeringReport=null;
   if(engineeringMode==="Hydro"){
     const config=model.hydro||{};
     const capability=analysisCapability(model,"hydro");
@@ -965,6 +966,16 @@ async function engineeringPage(){
       const requirements=capability.requirements?.length
         ?`<div class="engineering-requirements"><strong>Required before analysis</strong><ul>${capability.requirements.map(item=>`<li>${item}</li>`).join("")}</ul></div>`
         :"";
+      engineeringReport=engineeringCaseReport({
+        modelConfig:model,
+        modelDocument:documentModel,
+        mode:"Hydro",
+        capability,
+        method:{name:"capability gate",scope:"no hydrostatic solve executed"},
+        inputs:{draft:Number(config.defaultDraft)||0,density:Number(config.density)||1025},
+        results:{status:"blocked"},
+        warnings:[reason]
+      });
       hydro={
         inspector:`<h3>Hydro validation required</h3>
           <div class="geometry-warning"><strong>${capabilityLabel(capability)}</strong><span>${reason}</span></div>
@@ -1092,6 +1103,32 @@ async function engineeringPage(){
         geometryWarnings,
         config
       });
+      engineeringReport=engineeringCaseReport({
+        modelConfig:model,
+        modelDocument:documentModel,
+        mode:"Hydro",
+        capability,
+        method:{
+          name:"clipped-triangle hydrostatics",
+          scope:"world-space ModelDocument geometry with constant-displacement stability"
+        },
+        inputs:{
+          draft:hydroDraft,
+          targetDisplacementTonnes:hydroTargetTonnes===""?null:Number(hydroTargetTonnes),
+          density,
+          centerOfGravity:hasKg?centerOfGravity:null,
+          heelDeg:Number(hydroHeel)||0,
+          trimDeg:Number(hydroTrim)||0
+        },
+        results:{
+          hydro:result,
+          solvedDraft:solvedState?.value||null,
+          gz:gzState?.value||null,
+          attitude:attitudeState?.value||null
+        },
+        assumptions:["rigid body","constant water density","hydro geometry selected by semantic metadata"],
+        warnings:geometryWarnings.map(item=>`${item.name||item.componentId}: geometry is not watertight`)
+      });
     }catch(error){
       if(renderId!==engineeringRenderId)return;
       hydro={
@@ -1101,6 +1138,27 @@ async function engineeringPage(){
       };
     }
     }
+  }
+
+  if(!engineeringReport){
+    const capability=analysisCapability(model,"model");
+    engineeringReport=engineeringCaseReport({
+      modelConfig:model,
+      modelDocument:documentModel,
+      mode:engineeringMode,
+      capability,
+      method:{name:"semantic ModelDocument inspection",scope:"geometry and metadata inspection only"},
+      inputs:{selectedComponentId:selected?.id||null},
+      results:{
+        components:semanticInfo.components,
+        geometryComponents:semanticInfo.geometryComponents,
+        roles:semanticInfo.roles,
+        triangles:diagnostics.triangles,
+        watertight:diagnostics.watertight,
+        bounds:diagnostics.bounds
+      },
+      warnings:diagnostics.watertight?[]:["Model topology requires review before geometry-dependent engineering analysis."]
+    });
   }
 
   const semanticRoleText=Object.entries(semanticInfo.roles)
@@ -1132,7 +1190,7 @@ async function engineeringPage(){
   const waterline=hydro?`<div class="workspace-waterline" style="bottom:${hydro.waterlinePercent}%"><span>WL ${hydro.draft.toFixed(2)} m</span></div>`:"";
 
   app.innerHTML=top("engineering")+`<main class="workspace">
-    <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
+    <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
       ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
     </div></div>
     <aside class="tree"><input id="component-filter" placeholder="Filter name, role or subsystem"><div class="tree-label">Semantic assembly</div>
@@ -1151,6 +1209,7 @@ async function engineeringPage(){
 
   bindNav();
   bindEngineeringModelSelector();
+  bindEngineeringCaseExport(engineeringReport);
   let sceneHandle=null;
   const updateSelection=component=>{
     if(!component)return;
