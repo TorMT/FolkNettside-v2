@@ -39,3 +39,22 @@ test("CoolProp reference-table workspace exposes mapped course tables",()=>{
   const r134a=coolPropToolHTML({fluid:"R134a",tab:"reference"});
   for(const table of ["A-10","A-11","A-12"])assert.match(r134a,new RegExp(table));
 });
+
+
+test("CoolProp reference presets expose correct per-fluid row semantics",()=>{
+  const air=coolPropToolHTML({fluid:"Air",tab:"reference"});
+  assert.match(air,/One temperature per line · K/);
+  assert.match(air,/1 bar reference pressure/);
+  assert.match(air,/>300\n400\n600/);
+
+  const ammonia=coolPropToolHTML({fluid:"Ammonia",tab:"reference"});
+  assert.match(ammonia,/One temperature per line · °C/);
+  assert.match(ammonia,/>-40\n-20\n0\n20/);
+});
+
+test("CoolProp diagram states declare their fixed engineering axis units",()=>{
+  const ph=coolPropToolHTML({diagram:{visible:true,type:"ph",states:[{valuesSI:{P:1e5,H:1e5}}]}});
+  assert.match(ph,/Axes: h in kJ\/kg · P in bar/);
+  const ts=coolPropToolHTML({diagram:{visible:true,type:"ts",states:[{valuesSI:{T:300,S:1000}}]}});
+  assert.match(ts,/Axes: s in kJ\/\(kg·K\) · T in °C/);
+});
