@@ -90,11 +90,28 @@ export const PROCESS_TYPES={
   isenthalpic:{label:"Isenthalpic",constant:"H",targets:["P","T","S","Q"]}
 };
 
-const CALIB_T=1000;
-const CALIB_P=1e5;
-const CALIB_H_BOOK=1046.04e3;
-const CALIB_U_BOOK=758.94e3;
-const bookOffsetCache=new WeakMap();
+export const TABLE_REFERENCE_PROFILES={
+  Air:{
+    id:"air-table-a22",
+    label:"Air · Table A-22",
+    source:"Course Table A-22 · Ideal Gas Properties of Air",
+    calibration:{
+      T:1000,
+      P:1e5,
+      H:1046.04e3,
+      U:758.94e3,
+      S:2.96770e3
+    },
+    checkpoints:[
+      {T:300,H:300.19e3,U:214.07e3,S:1.70203e3},
+      {T:400,H:400.98e3,U:286.16e3,S:1.99194e3},
+      {T:1000,H:1046.04e3,U:758.94e3,S:2.96770e3},
+      {T:1200,H:1277.79e3,U:933.33e3,S:3.17888e3}
+    ]
+  }
+};
+
+const tableReferenceOffsetCache=new WeakMap();
 
 function unitsWithDefaults(units={}){
   return {...DEFAULT_UNITS,...units};
@@ -154,21 +171,69 @@ export function phaseDescription(raw){
   return raw?String(raw):"Unknown";
 }
 
-function bookOffsets(engine){
-  if(bookOffsetCache.has(engine))return bookOffsetCache.get(engine);
-  let h=0,u=0;
-  try{
-    h=CALIB_H_BOOK-engine.propsSI("H","T",CALIB_T,"P",CALIB_P,"Air");
-    u=CALIB_U_BOOK-engine.propsSI("U","T",CALIB_T,"P",CALIB_P,"Air");
-  }catch{}
-  const offsets={H:h,U:u};
-  bookOffsetCache.set(engine,offsets);
+export function tableReferenceProfile(fluid){
+  const normalized=String(fluid||"").toLowerCase();
+  return Object.values(TABLE_REFERENCE_PROFILES).find(profile=>
+    profile.id.startsWith(normalized+"-")||profile.label.toLowerCase().startsWith(normalized+" ")
+  )||null;
+}
+
+export function tableReferenceOffsets(engine,fluid="Air"){
+  const profile=tableReferenceProfile(fluid);
+  if(!profile||!engine?.propsSI)return {};
+  let byFluid=tableReferenceOffsetCache.get(engine);
+  if(!byFluid){
+    byFluid=new Map();
+    tableReferenceOffsetCache.set(engine,byFluid);
+  }
+  if(byFluid.has(profile.id))return byFluid.get(profile.id);
+
+  const offsets={};
+  const {T,P}=profile.calibration;
+  for(const prop of ["H","U","S"]){
+    const target=Number(profile.calibration[prop]);
+    if(!Number.isFinite(target))continue;
+    try{
+      const raw=Number(engine.propsSI(prop,"T",T,"P",P,fluid));
+      if(Number.isFinite(raw))offsets[prop]=target-raw;
+    }catch{}
+  }
+  byFluid.set(profile.id,offsets);
   return offsets;
 }
 
+function supportsTableReference(fluid,prop){
+  return Boolean(tableReferenceProfile(fluid))&&["H","U","S"].includes(prop);
+}
+
 export function applyBookBasis(engine,fluid,prop,value,enabled=false){
-  if(!enabled||String(fluid).toLowerCase()!=="air"||(prop!=="H"&&prop!=="U"))return value;
-  return value+(bookOffsets(engine)[prop]||0);
+  if(!enabled||!supportsTableReference(fluid,prop))return value;
+  return Number(value)+(tableReferenceOffsets(engine,fluid)[prop]||0);
+}
+
+export function removeBookBasis(engine,fluid,prop,value,enabled=false){
+  if(!enabled||!supportsTableReference(fluid,prop))return value;
+  return Number(value)-(tableReferenceOffsets(engine,fluid)[prop]||0);
+}
+
+export function verifyTableReference(engine,fluid="Air"){
+  const profile=tableReferenceProfile(fluid);
+  if(!profile)throw new Error(`No table reference profile for ${fluid}`);
+  return profile.checkpoints.map(reference=>{
+    const values={},errors={};
+    for(const prop of ["H","U","S"]){
+      try{
+        const raw=engine.propsSI(prop,"T",reference.T,"P",profile.calibration.P,fluid);
+        const adjusted=applyBookBasis(engine,fluid,prop,raw,true);
+        values[prop]=adjusted;
+        errors[prop]=adjusted-reference[prop];
+      }catch(error){
+        values[prop]=null;
+        errors[prop]=null;
+      }
+    }
+    return {...reference,values,errors};
+  });
 }
 
 export function computeStateSI(engine,{
@@ -183,6 +248,7 @@ export function computeStateSI(engine,{
   if(!engine?.propsSI)throw new Error("CoolProp engine is not ready");
   if(input1===input2)throw new Error("Choose two different independent properties");
 
+  const engineValuesSI={};
   const valuesSI={};
   const values={};
   const errors={};
@@ -190,10 +256,12 @@ export function computeStateSI(engine,{
   for(const [key] of OUTPUTS){
     try{
       const {value:raw}=propsSIOutput(engine,key,input1,value1SI,input2,value2SI,fluid);
+      engineValuesSI[key]=raw;
       const adjusted=applyBookBasis(engine,fluid,key,raw,bookBasis);
       valuesSI[key]=adjusted;
       values[key]=outputFromSI(key,adjusted,units);
     }catch(error){
+      engineValuesSI[key]=null;
       valuesSI[key]=null;
       values[key]=null;
       errors[key]=String(error?.message||error);
@@ -211,7 +279,7 @@ export function computeStateSI(engine,{
 
   return {
     fluid,input1,input2,value1SI,value2SI,
-    valuesSI,values,phase,phaseRaw,errors
+    engineValuesSI,valuesSI,values,phase,phaseRaw,errors
   };
 }
 
@@ -261,9 +329,11 @@ export function computeState(engine,{
   units=DEFAULT_UNITS,
   bookBasis=false
 }){
+  const value1SI=removeBookBasis(engine,fluid,input1,inputToSI(input1,value1,units),bookBasis);
+  const value2SI=removeBookBasis(engine,fluid,input2,inputToSI(input2,value2,units),bookBasis);
   return computeStateSI(engine,{
-    fluid,input1,value1SI:inputToSI(input1,value1,units),
-    input2,value2SI:inputToSI(input2,value2,units),
+    fluid,input1,value1SI,
+    input2,value2SI,
     units,bookBasis
   });
 }
@@ -404,7 +474,9 @@ export function computeProcess(engine,{
       continue;
     }
 
-    const constantValue=previous.valuesSI[rule.constant];
+    const constantValue=previous.engineValuesSI?.[rule.constant]??removeBookBasis(
+      engine,fluid,rule.constant,previous.valuesSI[rule.constant],bookBasis
+    );
     if(!Number.isFinite(constantValue)){
       results.push({step:index+2,description:step.description||`Point ${index+2}`,status:"FAIL",error:`Previous ${rule.constant} is unavailable`});
       previous=null;
@@ -417,7 +489,9 @@ export function computeProcess(engine,{
         input1:rule.constant,
         value1SI:constantValue,
         input2:step.targetType,
-        value2SI:inputToSI(step.targetType,step.targetValue,units),
+        value2SI:removeBookBasis(
+          engine,fluid,step.targetType,inputToSI(step.targetType,step.targetValue,units),bookBasis
+        ),
         units,bookBasis
       });
       previous=state;
