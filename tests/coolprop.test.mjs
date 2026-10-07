@@ -196,6 +196,18 @@ test("Air A-22 reference rows are temperature-only and evaluated at 1 bar",()=>{
   assert.ok(!Object.hasOwn(rows[0],"P"));
 });
 
+test("unmapped course fluids get an explicitly native TP table",()=>{
+  const config=courseTableConfig("Propane");
+  assert.equal(config.label,"Propane · native CoolProp basis");
+  assert.equal(courseTableDefaultRows("Propane","Native-TP",{temperature:"K",pressure:"kPa"}).split("\n")[1],"298.15,100");
+  const rows=computeCourseReferenceTable(fakeEngine(),{
+    fluid:"Propane",tableId:"Native-TP",rows:"25,1",units:DEFAULT_UNITS
+  });
+  assert.equal(rows[0].Status,"OK");
+  assert.equal(rows[0].T,26.85);
+  assert.equal(rows[0].P,2);
+});
+
 test("Ammonia table basis calibrates H U and S to Table A-15 reference",()=>{
   const engine=fakeEngine();
   const profile=TABLE_REFERENCE_PROFILES.Ammonia;
@@ -411,7 +423,8 @@ test("course table configurations retain distinct saturation and superheated tab
   assert.deepEqual(COURSE_TABLE_CONFIGS.Ammonia.tables.map(t=>t.id),["A-13","A-14","A-15"]);
   assert.deepEqual(COURSE_TABLE_CONFIGS.R134a.tables.map(t=>t.id),["A-10","A-11","A-12"]);
   assert.equal(courseTableConfig("Water").tables.find(t=>t.id==="A-5").mode,"compressed");
-  assert.equal(courseTableConfig("Propane"),null);
+  assert.equal(courseTableConfig("Propane").native,true);
+  assert.equal(courseTableConfig("Propane").tables[0].id,"Native-TP");
 });
 
 
