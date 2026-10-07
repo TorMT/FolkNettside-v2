@@ -39,33 +39,40 @@ test("CoolProp stays in review until side-by-side verification is complete",()=>
 });
 
 
-test("migrating legacy tools stay registered with fallback until full parity",()=>{
-  for(const id of ["chemdraw","stl-advanced"]){
-    const tool=toolById(id);
-    assert.ok(tool,id+" disappeared from tool registry");
-    assert.notEqual(tool.parity,"full");
-    assert.ok(["prototype","legacy"].includes(tool.status));
-    assert.ok(tool.legacyUrl?.startsWith("https://"));
-  }
-});
 
-test("crystal stays in review until side-by-side verification is complete",()=>{
-  const tool=toolById("crystal");
-  assert.equal(tool.parity,"review");
-  assert.ok(tool.legacyUrl?.includes("KrystallStrukturer"));
-});
-
-
-test("theme authoring tools migrate through one Settings-owned Theme Studio without losing fallback",()=>{
+test("Theme Studio shares one Settings architecture while manual mode is verified and image mode remains review",()=>{
   const manual=toolById("theme-creator");
   const image=toolById("image-theme");
+  assert.equal(manual.status,"prototype");
+  assert.equal(manual.parity,"full");
+  assert.equal(image.status,"prototype");
+  assert.equal(image.parity,"review");
   for(const tool of [manual,image]){
-    assert.equal(tool.status,"prototype");
-    assert.equal(tool.parity,"review");
     assert.ok(tool.route?.startsWith("/settings/theme-studio/"));
     assert.ok(tool.legacyUrl?.startsWith("https://"));
     assert.ok(visibleTools().some(item=>item.id===tool.id));
-    assert.ok(toolsNeedingParityReview().some(item=>item.id===tool.id));
   }
+  assert.equal(toolsNeedingParityReview().some(item=>item.id==="theme-creator"),false);
+  assert.equal(toolsNeedingParityReview().some(item=>item.id==="image-theme"),true);
   assert.notEqual(manual.route,image.route);
+});
+
+
+test("browser-verified parity tools are marked full",()=>{
+  for(const id of ["fluid","periodic","crystal","chemdraw","stl-advanced","theme-creator"]){
+    const tool=toolById(id);
+    assert.ok(tool,id+" missing");
+    assert.equal(tool.parity,"full",id+" should be full after deployed browser verification");
+    assert.equal(toolParityComplete(tool),true);
+    assert.ok(tool.legacyUrl?.startsWith("https://"),id+" should keep legacy safety link for now");
+  }
+});
+
+test("image theme and CoolProp remain review until their final numeric/browser checks are complete",()=>{
+  for(const id of ["image-theme","coolprop"]){
+    const tool=toolById(id);
+    assert.equal(tool.parity,"review");
+    assert.equal(toolParityComplete(tool),false);
+    assert.ok(tool.legacyUrl?.startsWith("https://"));
+  }
 });

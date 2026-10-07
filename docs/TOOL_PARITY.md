@@ -44,7 +44,7 @@ Now also migrated:
 Remaining:
 - final side-by-side functional and visual verification
 
-Status: `review`. The full legacy fallback remains until verification promotes this to `full`.
+Status: `review`. Functional browser parity is confirmed, but numerical calibration/saturation verification is still required before `full`.
 
 The old implementation itself marked Table 4 batch mode and fully custom process input as incomplete; these are improvements, not parity blockers.
 
@@ -66,8 +66,10 @@ Migrated:
 
 v2 additionally rejects non-physical polynomial outputs.
 
-Remaining:
-- side-by-side visual/behavior verification before `full`.
+Verified:
+- deployed browser comparison covered all legacy fluids, C/F/K and all eight displayed properties.
+
+Status: `full`. Legacy fallback remains temporarily for safety.
 
 ## Periodic table
 
@@ -89,10 +91,10 @@ Now migrated:
 - element summary/detail panel
 - source/Wikipedia link
 
-Remaining:
-- final side-by-side visual/behavior verification.
+Verified:
+- deployed browser test covered search, quick filters, dropdown filters, temperature phase, property selection, detail panel, reset/clear and Wikipedia link.
 
-Status: `review`. Legacy fallback remains until `full`.
+Status: `full`. Legacy fallback is retained temporarily as an additional safety link.
 
 ## Crystal structures
 
@@ -126,10 +128,10 @@ Analyzer parity added:
 - Fe-C / Fe3C-like and Fe-Cr(-Ni) material heuristics
 - defect-aware confidence/details
 
-Remaining:
-- final side-by-side interaction/visual verification.
+Verified:
+- deployed browser test exercised all ten structures, presets, replication, holes, measurement, defects, manual atoms, Miller planes and analyzer updates.
 
-Status: `review`. Legacy fallback remains available until `full`.
+Status: `full`. Legacy fallback remains temporarily as a safety link.
 
 ## Chemical structure editor
 
@@ -149,10 +151,10 @@ Migrated:
 - load/error status and tips
 - route cleanup so global hotkeys do not leak outside the tool
 
-Remaining:
-- final side-by-side behavior check against the legacy Kekule build.
+Verified:
+- deployed browser test confirmed the Kekule editor reaches Ready and exposes New/Import/MOL/SMILES/Undo/Redo/Clean 2D/Copy SMILES.
 
-Status: `review`. Legacy fallback remains available until `full`.
+Status: `full`. Legacy fallback remains temporarily for safety.
 
 ## Advanced STL / model inspector
 
@@ -187,10 +189,10 @@ Additional parity completed:
 - shared X/Y/Z clipping plane with invert + offset
 - hydro analysis now applies the same heel/trim/yaw attitude as the 3D view
 
-Remaining:
-- final side-by-side validation of auto-align, snapping, clipping, rendering and help interaction details.
+Verified:
+- deployed browser test exercised model load, camera controls, alignment, axis swaps, appearance, snapping/measurement, clipping, CG/CB, waterline, attitude hydro, PNG and help.
 
-Status: `review`. Legacy fallback remains available until `full`.
+Status: `full`. Legacy fallback remains temporarily for safety.
 
 ## Theme creator and Image to theme
 
@@ -216,10 +218,14 @@ Architectural change:
 - the generators no longer own runtime theme state;
 - generated themes target the single Settings-owned theme system.
 
-Remaining:
-- final side-by-side visual/behavior verification.
+Manual Theme Creator verified:
+- deployed browser test covered theme name, all color roles, live preview, CSS/JS outputs, copy, reset and JSON download.
 
-Status: `review`. Both legacy fallbacks remain available until `full`.
+Status:
+- manual Theme Creator: `full`
+- Image→Theme: `review` until real browser file upload/palette extraction is verified.
+
+Both legacy fallbacks remain temporarily for safety.
 
 ## Migration rule
 
