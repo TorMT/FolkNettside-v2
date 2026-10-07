@@ -1,3 +1,5 @@
+import {applyBookBasis} from "./coolprop-core.js?v=4e9de89a77901adf99b81fda013f0ca739a159ca";
+
 export const DIAGRAM_TYPES={
   "log-ph":{id:"log-ph",label:"log P-h",xLabel:"Specific enthalpy h (kJ/kg)",yLabel:"Pressure P (bar)",logY:true},
   "ph":{id:"ph",label:"P-h",xLabel:"Specific enthalpy h (kJ/kg)",yLabel:"Pressure P (bar)",logY:false},
@@ -33,14 +35,17 @@ function criticalData(engine,fluid){
   };
 }
 
-function saturatedState(engine,fluid,T,Q){
+function saturatedState(engine,fluid,T,Q,bookBasis=false){
   const keys=["P","H","S","D"];
   const valuesSI={T};
-  for(const key of keys)valuesSI[key]=engine.propsSI(key,"T",T,"Q",Q,fluid);
+  for(const key of keys){
+    const raw=engine.propsSI(key,"T",T,"Q",Q,fluid);
+    valuesSI[key]=applyBookBasis(engine,fluid,key,raw,bookBasis);
+  }
   return {valuesSI};
 }
 
-export function generateSaturationCurve(engine,fluid,type="log-ph",{points=60}={}){
+export function generateSaturationCurve(engine,fluid,type="log-ph",{points=60,bookBasis=false}={}){
   const {Tcrit,Ttriple}=criticalData(engine,fluid);
   const liquid=[],vapor=[];
   const count=Math.max(8,Math.floor(points));
@@ -48,8 +53,8 @@ export function generateSaturationCurve(engine,fluid,type="log-ph",{points=60}={
   for(let i=0;i<=count;i++){
     const T=Ttriple+margin+(Tcrit-Ttriple-2*margin)*(i/count);
     try{
-      const l=stateToDiagramPoint(saturatedState(engine,fluid,T,0),type);
-      const v=stateToDiagramPoint(saturatedState(engine,fluid,T,1),type);
+      const l=stateToDiagramPoint(saturatedState(engine,fluid,T,0,bookBasis),type);
+      const v=stateToDiagramPoint(saturatedState(engine,fluid,T,1,bookBasis),type);
       if(l)liquid.push(l);
       if(v)vapor.push(v);
     }catch{}
@@ -59,7 +64,8 @@ export function generateSaturationCurve(engine,fluid,type="log-ph",{points=60}={
 
 export function generateQualityLines(engine,fluid,type="log-ph",{
   qualities=[.1,.2,.3,.4,.5,.6,.7,.8,.9],
-  points=36
+  points=36,
+  bookBasis=false
 }={}){
   const {Tcrit,Ttriple}=criticalData(engine,fluid);
   const lines=[];
@@ -68,7 +74,7 @@ export function generateQualityLines(engine,fluid,type="log-ph",{
     for(let i=0;i<points;i++){
       const T=Ttriple+(Tcrit-Ttriple)*((i+.25)/(points+.5));
       try{
-        const p=stateToDiagramPoint(saturatedState(engine,fluid,T,quality),type);
+        const p=stateToDiagramPoint(saturatedState(engine,fluid,T,quality,bookBasis),type);
         if(p)data.push(p);
       }catch{}
     }
@@ -77,13 +83,16 @@ export function generateQualityLines(engine,fluid,type="log-ph",{
   return lines;
 }
 
-function stateTP(engine,fluid,T,P){
+function stateTP(engine,fluid,T,P,bookBasis=false){
   const valuesSI={T,P};
-  for(const key of ["H","S","D"])valuesSI[key]=engine.propsSI(key,"T",T,"P",P,fluid);
+  for(const key of ["H","S","D"]){
+    const raw=engine.propsSI(key,"T",T,"P",P,fluid);
+    valuesSI[key]=applyBookBasis(engine,fluid,key,raw,bookBasis);
+  }
   return {valuesSI};
 }
 
-export function generateIsotherms(engine,fluid,type="log-ph",{lines=7,points=28}={}){
+export function generateIsotherms(engine,fluid,type="log-ph",{lines=7,points=28,bookBasis=false}={}){
   const {Tcrit,Pcrit,Ttriple}=criticalData(engine,fluid);
   const output=[];
   const Tmin=Ttriple*1.02,Tmax=Tcrit*1.45;
@@ -95,7 +104,7 @@ export function generateIsotherms(engine,fluid,type="log-ph",{lines=7,points=28}
       const f=j/(Math.max(1,points-1));
       const P=Pmin*Math.pow(Pmax/Pmin,f);
       try{
-        const p=stateToDiagramPoint(stateTP(engine,fluid,T,P),type);
+        const p=stateToDiagramPoint(stateTP(engine,fluid,T,P,bookBasis),type);
         if(p)data.push(p);
       }catch{}
     }
@@ -104,7 +113,7 @@ export function generateIsotherms(engine,fluid,type="log-ph",{lines=7,points=28}
   return output;
 }
 
-export function generateIsobars(engine,fluid,type="log-ph",{lines=7,points=28}={}){
+export function generateIsobars(engine,fluid,type="log-ph",{lines=7,points=28,bookBasis=false}={}){
   const {Tcrit,Pcrit,Ttriple}=criticalData(engine,fluid);
   const output=[];
   const Pmin=Math.max(1e3,Pcrit*1e-4),Pmax=Pcrit*2;
@@ -115,7 +124,7 @@ export function generateIsobars(engine,fluid,type="log-ph",{lines=7,points=28}={
     for(let j=0;j<points;j++){
       const T=Tmin+(Tmax-Tmin)*(j/(Math.max(1,points-1)));
       try{
-        const p=stateToDiagramPoint(stateTP(engine,fluid,T,P),type);
+        const p=stateToDiagramPoint(stateTP(engine,fluid,T,P,bookBasis),type);
         if(p)data.push(p);
       }catch{}
     }
@@ -126,17 +135,18 @@ export function generateIsobars(engine,fluid,type="log-ph",{lines=7,points=28}={
 
 export function diagramDatasets(engine,fluid,type,states=[],options={}){
   const datasets=[];
-  const saturation=generateSaturationCurve(engine,fluid,type,{points:options.saturationPoints||60});
+  const bookBasis=Boolean(options.bookBasis);
+  const saturation=generateSaturationCurve(engine,fluid,type,{points:options.saturationPoints||60,bookBasis});
   if(saturation.liquid.length)datasets.push({kind:"saturation",label:"Saturated liquid",points:saturation.liquid});
   if(saturation.vapor.length)datasets.push({kind:"saturation",label:"Saturated vapour",points:saturation.vapor});
   if(options.quality!==false){
-    for(const line of generateQualityLines(engine,fluid,type))datasets.push({kind:"quality",...line});
+    for(const line of generateQualityLines(engine,fluid,type,{bookBasis}))datasets.push({kind:"quality",...line});
   }
   if(options.isotherms!==false){
-    for(const line of generateIsotherms(engine,fluid,type))datasets.push({kind:"isotherm",...line});
+    for(const line of generateIsotherms(engine,fluid,type,{bookBasis}))datasets.push({kind:"isotherm",...line});
   }
   if(options.isobars!==false){
-    for(const line of generateIsobars(engine,fluid,type))datasets.push({kind:"isobar",...line});
+    for(const line of generateIsobars(engine,fluid,type,{bookBasis}))datasets.push({kind:"isobar",...line});
   }
   const statePoints=states.map((state,index)=>{
     const point=stateToDiagramPoint(state,type);
