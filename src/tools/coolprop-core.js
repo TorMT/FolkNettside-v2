@@ -158,6 +158,14 @@ export const COURSE_TABLE_CONFIGS={
       {id:"A-14",label:"Saturated ammonia · pressure table",mode:"sat-P"},
       {id:"A-15",label:"Superheated ammonia vapour",mode:"superheated"}
     ]
+  },
+  R134a:{
+    label:"R134a · Tables A-10 / A-11 / A-12",
+    tables:[
+      {id:"A-10",label:"Saturated R134a · temperature table",mode:"sat-T"},
+      {id:"A-11",label:"Saturated R134a · pressure table",mode:"sat-P"},
+      {id:"A-12",label:"Superheated R134a vapour",mode:"superheated"}
+    ]
   }
 };
 
@@ -171,6 +179,98 @@ export function courseTableConfig(fluid){
 
 export function courseTableLabel(fluid){
   return courseTableConfig(fluid)?.label||`${fluid||"Fluid"} · native CoolProp basis`;
+}
+
+export function courseTableById(fluid,tableId){
+  return courseTableConfig(fluid)?.tables?.find(table=>table.id===tableId)||null;
+}
+
+function parseReferenceScalars(text){
+  return String(text||"").split(/\r?\n/).map(line=>line.trim()).filter(Boolean).map((line,index)=>{
+    const value=Number(line.split(/[,;\s]+/)[0]);
+    return Number.isFinite(value)
+      ?{index:index+1,status:"OK",value}
+      :{index:index+1,status:"FAIL",raw:line,error:"Need one numeric value"};
+  });
+}
+
+function referenceValue(engine,fluid,prop,input1,value1,input2,value2,bookBasis){
+  const raw=Number(engine.propsSI(prop,input1,value1,input2,value2,fluid));
+  if(!Number.isFinite(raw))throw new Error(`${prop} returned a non-finite value`);
+  return applyBookBasis(engine,fluid,prop,raw,bookBasis);
+}
+
+function saturatedReferenceRow(engine,{fluid,inputKey,inputValueSI,units,bookBasis,index}){
+  const other=inputKey==="T"?"P":"T";
+  const q=(quality,prop)=>referenceValue(engine,fluid,prop,inputKey,inputValueSI,"Q",quality,bookBasis);
+  const rawOther=Number(engine.propsSI(other,inputKey,inputValueSI,"Q",0,fluid));
+  if(!Number.isFinite(rawOther))throw new Error(`${other} returned a non-finite value`);
+  const densityF=q(0,"D"),densityG=q(1,"D");
+  return {
+    Row:index,
+    T:outputFromSI("T",inputKey==="T"?inputValueSI:rawOther,units),
+    P:outputFromSI("P",inputKey==="P"?inputValueSI:rawOther,units),
+    vf:densityF>0?1/densityF:null,
+    vg:densityG>0?1/densityG:null,
+    uf:outputFromSI("U",q(0,"U"),units),
+    ug:outputFromSI("U",q(1,"U"),units),
+    hf:outputFromSI("H",q(0,"H"),units),
+    hg:outputFromSI("H",q(1,"H"),units),
+    sf:outputFromSI("S",q(0,"S"),units),
+    sg:outputFromSI("S",q(1,"S"),units),
+    Status:"OK"
+  };
+}
+
+export function computeCourseReferenceTable(engine,{
+  fluid,
+  tableId,
+  rows="",
+  units=DEFAULT_UNITS,
+  bookBasis=false
+}={}){
+  if(!engine?.propsSI)throw new Error("CoolProp engine is not ready");
+  const table=courseTableById(fluid,tableId);
+  if(!table)throw new Error(`Reference table ${tableId||""} is not configured for ${fluid||"this fluid"}`);
+
+  if(table.mode==="sat-T"||table.mode==="sat-P"){
+    const inputKey=table.mode==="sat-T"?"T":"P";
+    return parseReferenceScalars(rows).map(parsed=>{
+      if(parsed.status!=="OK")return {Row:parsed.index,Status:"FAIL",Error:parsed.error};
+      try{
+        const inputValueSI=inputToSI(inputKey,parsed.value,units);
+        return saturatedReferenceRow(engine,{fluid,inputKey,inputValueSI,units,bookBasis,index:parsed.index});
+      }catch(error){
+        return {Row:parsed.index,Status:"FAIL",Error:String(error?.message||error)};
+      }
+    });
+  }
+
+  const parsed=parseBatchRows(rows);
+  return parsed.map(row=>{
+    if(row.status!=="OK")return {Row:row.index,Status:"FAIL",Error:row.error};
+    try{
+      const state=computeState(engine,{
+        fluid,input1:"T",value1:row.value1,input2:"P",value2:row.value2,units,bookBasis
+      });
+      const density=Number(state.valuesSI.D);
+      return {
+        Row:row.index,
+        T:state.values.T,
+        P:state.values.P,
+        v:density>0?1/density:null,
+        U:state.values.U,
+        H:state.values.H,
+        S:state.values.S,
+        Cp:state.values.Cp,
+        Cv:state.values.Cv,
+        Phase:state.phase,
+        Status:"OK"
+      };
+    }catch(error){
+      return {Row:row.index,Status:"FAIL",Error:String(error?.message||error)};
+    }
+  });
 }
 
 const tableReferenceOffsetCache=new WeakMap();
