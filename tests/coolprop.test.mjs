@@ -1,9 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  COOLPROP_OUTPUT_ALIASES,COOLPROP_PHASE_INDEX,DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,TABLE_REFERENCE_PROFILES,
-  applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,computeState,inputToSI,outputFromSI,
-  parseBatchRows,phaseDescription,propsSIOutput,removeBookBasis,saturationWarning,tableReferenceOffsets,
+  COOLPROP_OUTPUT_ALIASES,COOLPROP_PHASE_INDEX,COURSE_TABLE_LABELS,DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,TABLE_REFERENCE_PROFILES,
+  applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,computeState,courseTableLabel,inputToSI,outputFromSI,
+  parseBatchRows,phaseDescription,propsSIOutput,removeBookBasis,saturationWarning,tableReferenceOffsets,tableReferenceProfile,
   processTargetOptions,rowsToCSV,rowsToJSON,unitLabel,verifyTableReference
 } from "../src/tools/coolprop-core.js";
 
@@ -140,9 +140,13 @@ test("process constants use raw engine basis when table conversion is enabled",(
 });
 
 test("Table A-22 fixture includes course reference values and diagnostic checkpoints",()=>{
-  assert.deepEqual(TABLE_REFERENCE_PROFILES.Air.calibration,{
-    T:1000,P:1e5,H:1046.04e3,U:758.94e3,S:2.96770e3
-  });
+  const calibrationProfile=TABLE_REFERENCE_PROFILES.Air.calibration;
+  assert.equal(calibrationProfile.T,1000);
+  assert.equal(calibrationProfile.P,1e5);
+  assert.equal(calibrationProfile.H,1046.04e3);
+  assert.equal(calibrationProfile.U,758.94e3);
+  assert.equal(calibrationProfile.S,2.96770e3);
+  assert.deepEqual(calibrationProfile.inputs,["T",1000,"P",1e5]);
   assert.deepEqual(
     TABLE_REFERENCE_PROFILES.Air.checkpoints.map(point=>point.T),
     [300,400,1000,1200]
@@ -153,6 +157,34 @@ test("Table A-22 fixture includes course reference values and diagnostic checkpo
   assert.equal(calibration.values.U,758.94e3);
   assert.equal(calibration.values.S,2.96770e3);
   assert.deepEqual(calibration.errors,{H:0,U:0,S:0});
+});
+
+test("course table labels and profiles follow the selected working fluid",()=>{
+  assert.equal(courseTableLabel("Air"),"Air · Table A-22");
+  assert.equal(courseTableLabel("Ammonia"),"Ammonia · Tables A-13 / A-14 / A-15");
+  assert.equal(courseTableLabel("Water"),"Water · Tables A-2 / A-3 / A-4");
+  assert.equal(courseTableLabel("Propane"),"Propane · native CoolProp basis");
+  assert.equal(tableReferenceProfile("Air"),TABLE_REFERENCE_PROFILES.Air);
+  assert.equal(tableReferenceProfile("Ammonia"),TABLE_REFERENCE_PROFILES.Ammonia);
+  assert.equal(tableReferenceProfile("Water"),null);
+  assert.equal(COURSE_TABLE_LABELS.Ammonia,"Ammonia · Tables A-13 / A-14 / A-15");
+});
+
+test("Ammonia table basis calibrates H U and S to Table A-15 reference",()=>{
+  const engine=fakeEngine();
+  const profile=TABLE_REFERENCE_PROFILES.Ammonia;
+  const offsets=tableReferenceOffsets(engine,"Ammonia");
+  assert.ok(Number.isFinite(offsets.H));
+  assert.ok(Number.isFinite(offsets.U));
+  assert.ok(Number.isFinite(offsets.S));
+
+  const rawH=300000,rawU=250000,rawS=7000;
+  assert.equal(applyBookBasis(engine,"Ammonia","H",rawH,true),profile.calibration.H);
+  assert.equal(applyBookBasis(engine,"Ammonia","U",rawU,true),profile.calibration.U);
+  assert.equal(applyBookBasis(engine,"Ammonia","S",rawS,true),profile.calibration.S);
+  assert.equal(removeBookBasis(engine,"Ammonia","H",profile.calibration.H,true),rawH);
+  assert.equal(removeBookBasis(engine,"Ammonia","U",profile.calibration.U,true),rawU);
+  assert.equal(removeBookBasis(engine,"Ammonia","S",profile.calibration.S,true),rawS);
 });
 
 test("batch formats and row parsing match legacy modes",()=>{
