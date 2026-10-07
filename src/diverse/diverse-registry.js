@@ -98,7 +98,7 @@ export const DIVERSE_MODULES=[
     status:"review",
     access:"public",
     category:"Archive",
-    summary:"Legacy-funksjonene gjennomgås før vi avgjør om de skal migreres, slås sammen med en annen modul eller pensjoneres.",
+    summary:"Eksisterende øvingsvisning er tilgjengelig gjennom v2 mens filinnholdet kartlegges til felles Courses-modell.",
     legacyUrl:"https://tormt.folk.ntnu.no/diverse/LAOS/",
     storage:"local",
     sync:"none"
@@ -111,7 +111,7 @@ export const DIVERSE_MODULES=[
     status:"review",
     access:"public",
     category:"Study",
-    summary:"Gjennomgås mot v2-regelen om at Kok/studieinnhold skal høre hjemme under Courses fremfor Diverse.",
+    summary:"Eksisterende koksider, sortering og filtre er bevart gjennom v2 mens katalogen flyttes mot felles studieflate.",
     legacyUrl:"https://tormt.folk.ntnu.no/diverse/AndreKokSider/",
     storage:"local",
     sync:"none"
