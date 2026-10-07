@@ -48,7 +48,7 @@ export function propsSIOutput(engine,key,input1,value1SI,input2,value2SI,fluid){
   throw lastError||new Error(`CoolProp output unavailable: ${key}`);
 }
 
-export const DEFAULT_FLUIDS=["Air","Water","Ammonia","Propane","CO2","Nitrogen","Oxygen","R134a"];
+export const DEFAULT_FLUIDS=["Air","Water","Ammonia","Propane","CO2","Nitrogen","Oxygen","Helium","Methane","R134a"];
 
 export const TABLE4_R_SPEC={
   Air:287.058,
@@ -135,14 +135,42 @@ export const TABLE_REFERENCE_PROFILES={
   }
 };
 
-export const COURSE_TABLE_LABELS={
-  Air:"Air · Table A-22",
-  Ammonia:"Ammonia · Tables A-13 / A-14 / A-15",
-  Water:"Water · Tables A-2 / A-3 / A-4"
+export const COURSE_TABLE_CONFIGS={
+  Air:{
+    label:"Air · Table A-22",
+    tables:[
+      {id:"A-22",label:"Ideal-gas properties of air",mode:"ideal-gas"}
+    ]
+  },
+  Water:{
+    label:"Water · Tables A-2 / A-3 / A-4 / A-5",
+    tables:[
+      {id:"A-2",label:"Saturated water · temperature table",mode:"sat-T"},
+      {id:"A-3",label:"Saturated water · pressure table",mode:"sat-P"},
+      {id:"A-4",label:"Superheated water vapour",mode:"superheated"},
+      {id:"A-5",label:"Compressed liquid water",mode:"compressed"}
+    ]
+  },
+  Ammonia:{
+    label:"Ammonia · Tables A-13 / A-14 / A-15",
+    tables:[
+      {id:"A-13",label:"Saturated ammonia · temperature table",mode:"sat-T"},
+      {id:"A-14",label:"Saturated ammonia · pressure table",mode:"sat-P"},
+      {id:"A-15",label:"Superheated ammonia vapour",mode:"superheated"}
+    ]
+  }
 };
 
+export const COURSE_TABLE_LABELS=Object.fromEntries(
+  Object.entries(COURSE_TABLE_CONFIGS).map(([fluid,config])=>[fluid,config.label])
+);
+
+export function courseTableConfig(fluid){
+  return COURSE_TABLE_CONFIGS[fluid]||null;
+}
+
 export function courseTableLabel(fluid){
-  return COURSE_TABLE_LABELS[fluid]||`${fluid||"Fluid"} · native CoolProp basis`;
+  return courseTableConfig(fluid)?.label||`${fluid||"Fluid"} · native CoolProp basis`;
 }
 
 const tableReferenceOffsetCache=new WeakMap();

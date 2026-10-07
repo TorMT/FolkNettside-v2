@@ -1,4 +1,4 @@
-import {solveFrame2D} from "../structure/frame2d.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
+import {solveFrame2D} from "../structure/frame2d.js?v=1b2df9871b099337e2126a52144046d1147577a7";
 
 let fixturePromise;
 

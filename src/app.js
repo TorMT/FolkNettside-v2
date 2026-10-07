@@ -1,36 +1,36 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {mountViewer} from "./viewer.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {loadContent} from "./content.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {renderResourceTree} from "./components/resource-tree.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {karakterwebUrl} from "./courses/external-links.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {buildSearchIndex} from "./search/search-index.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {createSearchController} from "./components/search-dialog.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {activeTools} from "./tools/tool-registry.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {loadModelDocument} from "./model/load-model.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {mountModelScene} from "./model/model-scene.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {mountViewer} from "./viewer.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {loadContent} from "./content.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {renderResourceTree} from "./components/resource-tree.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {karakterwebUrl} from "./courses/external-links.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {buildSearchIndex} from "./search/search-index.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {createSearchController} from "./components/search-dialog.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {activeTools} from "./tools/tool-registry.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {loadModelDocument} from "./model/load-model.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {mountModelScene} from "./model/model-scene.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=1b2df9871b099337e2126a52144046d1147577a7";
 
 initSettings();
 
@@ -1215,6 +1215,8 @@ async function engineeringPage(){
         },
         results:{
           hydro:result,
+          particulars:hydro.particulars||null,
+          hydrostaticCurve:hydro.curveRows||[],
           solvedDraft:solvedState?.value||null,
           gz:gzState?.value||null,
           attitude:attitudeState?.value||null

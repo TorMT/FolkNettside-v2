@@ -1,21 +1,67 @@
-import {initialStability} from "../hydro/stability.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=1b2df9871b099337e2126a52144046d1147577a7";
+
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
 }
 function clamp(value,min,max){return Math.max(min,Math.min(max,Number(value)||0))}
-function curveSVG(curve){
-  if(!curve?.length)return "";
-  const width=360,height=130,pad=18;
-  const xs=curve.map(p=>p.waterline),ys=curve.map(p=>p.volume);
-  const minX=Math.min(...xs),maxX=Math.max(...xs),maxY=Math.max(...ys,1);
-  const sx=x=>pad+(x-minX)/Math.max(maxX-minX,1e-9)*(width-pad*2);
-  const sy=y=>height-pad-y/maxY*(height-pad*2);
-  const points=curve.map(p=>`${sx(p.waterline).toFixed(1)},${sy(p.volume).toFixed(1)}`).join(" ");
-  return `<div class="hydro-curve"><div class="hydro-curve-head"><span>Volume vs draft</span><span class="muted">${curve.length} samples</span></div>
-    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Hydrostatic volume curve">
-      <path d="M${pad} ${height-pad}H${width-pad}M${pad} ${pad}V${height-pad}" stroke="var(--line-strong)" fill="none"/>
-      <polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="3"/>
-    </svg></div>`;
+function fmt(value,digits=3){
+  const n=Number(value);
+  return Number.isFinite(n)?n.toFixed(digits):"—";
+}
+
+function hydroCurveSVG(rows,key,title,unit,{digits=2}={}){
+  const values=(rows||[]).map(row=>({x:Number(row.draft),y:Number(row[key])}))
+    .filter(point=>Number.isFinite(point.x)&&Number.isFinite(point.y));
+  if(values.length<2)return "";
+  const width=320,height=116,pad={l:34,r:10,t:18,b:24};
+  const minX=Math.min(...values.map(p=>p.x)),maxX=Math.max(...values.map(p=>p.x));
+  let minY=Math.min(...values.map(p=>p.y)),maxY=Math.max(...values.map(p=>p.y));
+  if(Math.abs(maxY-minY)<1e-12){const d=Math.max(1,Math.abs(maxY)*.1);minY-=d;maxY+=d}
+  const yPad=(maxY-minY)*.08;minY-=yPad;maxY+=yPad;
+  const sx=x=>pad.l+(x-minX)/Math.max(maxX-minX,1e-9)*(width-pad.l-pad.r);
+  const sy=y=>height-pad.b-(y-minY)/Math.max(maxY-minY,1e-9)*(height-pad.t-pad.b);
+  const points=values.map(p=>`${sx(p.x).toFixed(1)},${sy(p.y).toFixed(1)}`).join(" ");
+  const mid=(minY+maxY)/2;
+  return `<div class="hydro-curve hydro-particular-curve">
+    <div class="hydro-curve-head"><span>${title}</span><span class="muted">${unit}</span></div>
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${esc(title)} versus draft">
+      <path d="M${pad.l} ${height-pad.b}H${width-pad.r}M${pad.l} ${pad.t}V${height-pad.b}" stroke="var(--line-strong)" fill="none"/>
+      <path d="M${pad.l} ${sy(mid)}H${width-pad.r}" stroke="var(--line)" fill="none"/>
+      <polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+      <text x="${pad.l-5}" y="${sy(maxY)+4}" text-anchor="end" fill="var(--ink-3)" font-size="8">${fmt(maxY,digits)}</text>
+      <text x="${pad.l-5}" y="${sy(minY)+4}" text-anchor="end" fill="var(--ink-3)" font-size="8">${fmt(minY,digits)}</text>
+      <text x="${pad.l}" y="${height-6}" fill="var(--ink-3)" font-size="8">${fmt(minX,2)} m</text>
+      <text x="${width-pad.r}" y="${height-6}" text-anchor="end" fill="var(--ink-3)" font-size="8">${fmt(maxX,2)} m</text>
+    </svg>
+  </div>`;
+}
+
+function hydrostaticCurvesHTML(rows,{hasKg=false}={}){
+  if(!rows?.length)return "";
+  return `<div class="hydro-particular-curves">
+    ${hydroCurveSVG(rows,"displacementTonnes","Displacement","t",{digits:1})}
+    ${hydroCurveSVG(rows,"waterplaneArea","Waterplane area","m²",{digits:1})}
+    ${hydroCurveSVG(rows,"kb","KB","m",{digits:2})}
+    ${hydroCurveSVG(rows,hasKg?"gmTransverse":"kmTransverse",hasKg?"GM transverse":"KM transverse","m",{digits:2})}
+  </div>`;
+}
+
+function hydrostaticTableHTML(rows,{hasKg=false}={}){
+  if(!rows?.length)return "";
+  const selected=rows.filter((_,index)=>index===0||index===rows.length-1||index%Math.max(1,Math.floor(rows.length/6))===0);
+  return `<div class="hydro-table-wrap">
+    <div class="hydro-curve-head"><span>Hydrostatic table</span><span class="muted">${rows.length} calculated drafts</span></div>
+    <table class="hydro-table">
+      <thead><tr>
+        <th>Draft m</th><th>Disp. t</th><th>Aw m²</th><th>LCB m</th><th>KB m</th><th>LCF m</th><th>TPC t/cm</th><th>${hasKg?"GMt":"KMt"} m</th>
+      </tr></thead>
+      <tbody>${selected.map(row=>`<tr>
+        <td>${fmt(row.draft,2)}</td><td>${fmt(row.displacementTonnes,1)}</td><td>${fmt(row.waterplaneArea,2)}</td>
+        <td>${fmt(row.lcb,2)}</td><td>${fmt(row.kb,2)}</td><td>${fmt(row.lcf,2)}</td>
+        <td>${fmt(row.tonnesPerCm,3)}</td><td>${fmt(hasKg?row.gmTransverse:row.kmTransverse,2)}</td>
+      </tr>`).join("")}</tbody>
+    </table>
+  </div>`;
 }
 
 function gzSVG(curve){
@@ -64,10 +110,11 @@ export function hydroPanelHTML({
   const maxDraft=Number.isFinite(Number(config.maxDraft))?Number(config.maxDraft):10;
   const clamped=clamp(draft,minDraft,maxDraft);
   const cb=result.centerOfBuoyancy;
-  const displacementTonnes=result.volume*density/1000;
   const span=Math.max(maxDraft-minDraft,1e-9);
   const solvedText=solved?`${solved.waterline.toFixed(4)} m (${solved.iterations} iterations)`:null;
-  const stability=initialStability(result,{kg});
+  const hasKg=kg!==""&&Number.isFinite(Number(kg));
+  const particulars=hydrostaticParticulars(result,{density,kg:hasKg?Number(kg):null});
+  const curveRows=hydrostaticCurveRows(curve,{density,kg:hasKg?Number(kg):null});
 
   return {
     inspector:`
@@ -116,26 +163,40 @@ export function hydroPanelHTML({
     `,
     summary:`
       <strong>Hydro summary</strong>
-      <div class="readout"><span>Volume</span><strong>${result.volume.toFixed(3)} m³</strong></div>
-      <div class="readout"><span>Displacement</span><strong>${displacementTonnes.toFixed(2)} t</strong></div>
-      <div class="readout"><span>CB z</span><strong>${cb[2].toFixed(3)} m</strong></div>
+      <div class="readout"><span>Volume</span><strong>${particulars.volume.toFixed(3)} m³</strong></div>
+      <div class="readout"><span>Displacement</span><strong>${particulars.displacementTonnes.toFixed(2)} t</strong></div>
+      <div class="readout"><span>KB</span><strong>${particulars.kb.toFixed(3)} m</strong></div>
+      <div class="readout"><span>TPC</span><strong>${particulars.tonnesPerCm.toFixed(3)} t/cm</strong></div>
     `,
     results:`
-      <div class="hydro-results-wrap"><div class="hydro-grid">
-        <div><span class="muted">CB</span><strong>(${cb.map(v=>v.toFixed(3)).join(", ")}) m</strong></div>
-        <div><span class="muted">Waterplane area</span><strong>${result.waterplane.area.toFixed(3)} m²</strong></div>
-        <div><span class="muted">Ixx</span><strong>${result.waterplane.ixx.toFixed(3)} m⁴</strong></div>
-        <div><span class="muted">Iyy</span><strong>${result.waterplane.iyy.toFixed(3)} m⁴</strong></div>
-        ${stability.valid?`
-          <div><span class="muted">BM transverse</span><strong>${stability.bmTransverse.toFixed(3)} m</strong></div>
-          <div><span class="muted">BM longitudinal</span><strong>${stability.bmLongitudinal.toFixed(3)} m</strong></div>
-          <div><span class="muted">KM transverse</span><strong>${stability.kmTransverse.toFixed(3)} m</strong></div>
-          <div><span class="muted">KM longitudinal</span><strong>${stability.kmLongitudinal.toFixed(3)} m</strong></div>
-          ${stability.gmTransverse===null?"":`<div><span class="muted">GM transverse</span><strong>${stability.gmTransverse.toFixed(3)} m</strong></div>`}
-          ${stability.gmLongitudinal===null?"":`<div><span class="muted">GM longitudinal</span><strong>${stability.gmLongitudinal.toFixed(3)} m</strong></div>`}
-        `:""}
-      </div><p class="muted hydro-stability-note">BM/KM/GM are initial small-angle stability values. GZ solves a new waterline at constant displacement for every heel angle.</p>${gzSVG(gz)}${curveSVG(curve)}</div>
+      <div class="hydro-results-wrap">
+        <div class="hydro-grid hydro-particular-grid">
+          <div><span class="muted">CB / LCB · TCB · KB</span><strong>(${cb.map(v=>v.toFixed(3)).join(", ")}) m</strong></div>
+          <div><span class="muted">Waterplane area</span><strong>${particulars.waterplaneArea.toFixed(3)} m²</strong></div>
+          <div><span class="muted">LCF</span><strong>${particulars.lcf.toFixed(3)} m</strong></div>
+          <div><span class="muted">TCF</span><strong>${particulars.tcf.toFixed(3)} m</strong></div>
+          <div><span class="muted">TPC</span><strong>${particulars.tonnesPerCm.toFixed(3)} t/cm</strong></div>
+          <div><span class="muted">Ixx</span><strong>${particulars.ixx.toFixed(3)} m⁴</strong></div>
+          <div><span class="muted">Iyy</span><strong>${particulars.iyy.toFixed(3)} m⁴</strong></div>
+          ${particulars.valid?`
+            <div><span class="muted">BM transverse</span><strong>${particulars.bmTransverse.toFixed(3)} m</strong></div>
+            <div><span class="muted">BM longitudinal</span><strong>${particulars.bmLongitudinal.toFixed(3)} m</strong></div>
+            <div><span class="muted">KM transverse</span><strong>${particulars.kmTransverse.toFixed(3)} m</strong></div>
+            <div><span class="muted">KM longitudinal</span><strong>${particulars.kmLongitudinal.toFixed(3)} m</strong></div>
+            ${particulars.gmTransverse===null?"":`<div><span class="muted">GM transverse</span><strong>${particulars.gmTransverse.toFixed(3)} m</strong></div>`}
+            ${particulars.gmLongitudinal===null?"":`<div><span class="muted">GM longitudinal</span><strong>${particulars.gmLongitudinal.toFixed(3)} m</strong></div>`}
+          `:""}
+        </div>
+        <div class="hydro-curves-column">
+          <p class="muted hydro-stability-note">LCF/TCF are the waterplane centroid. TPC is tonnes per centimetre immersion. BM/KM/GM are initial small-angle values; GZ resolves a new waterline at constant displacement for every heel angle.</p>
+          ${gzSVG(gz)}
+          ${hydrostaticCurvesHTML(curveRows,{hasKg})}
+          ${hydrostaticTableHTML(curveRows,{hasKg})}
+        </div>
+      </div>
     `,
+    particulars,
+    curveRows,
     draft:clamped,
     density,
     waterlinePercent:((clamped-minDraft)/span)*100

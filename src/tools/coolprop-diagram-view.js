@@ -1,4 +1,4 @@
-import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js?v=e0a9770fa9862b4adecdd47eccd60a8ab0c5984c";
+import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js?v=1b2df9871b099337e2126a52144046d1147577a7";
 
 function css(name,fallback){
   const value=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -122,7 +122,7 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
     context.beginPath();
     points.forEach((point,index)=>{
       const x=sx(point.x,w),y=sy(point.y,h);
-      if(index===0)context.moveTo(x,y);else context.lineTo(x,y);
+      if(index===0||point.breakBefore)context.moveTo(x,y);else context.lineTo(x,y);
     });
     if(dataset.kind!=="states")context.stroke();
 
