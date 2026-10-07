@@ -22,11 +22,11 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`.
 | FEM | engineering workspace Structure mode | cantilever frame JSON | prototype | Tested 2D Euler–Bernoulli frame solver; shell/solid later |
 | CFD/resistance | Resistance workspace baseline | ITTC friction JSON | prototype | ITTC-1957 friction only; total resistance/OpenFOAM later |
 | Thruster flow | actuator-disk + rigid-body thruster system | actuator-disk JSON + ModelDocument thrusters | prototype | World-space force, resultant thrust, roll/pitch/yaw moments and ideal power regression-tested; OpenFOAM later |
-| CoolProp | lazy local WASM Tools module | legacy engine + fake-engine CI + deployed browser checks | full | Single/Batch/Process/All-data, diagrams, exports, Table A-22 reference conversion, phase fallback, help and legacy Table 4 are numerically/browser verified |
-| Fluid calculator | shared Tools calculator | legacy polynomial fixture | prototype | Pure tested core; legacy validity warnings; CoolProp remains separate |
-| ChemDraw | lazy Kekule chemistry editor | live runtime | review | Browser-verified New/Import/MOL/SMILES/Undo/Redo/Clean 2D/Copy SMILES |
-| Crystal structures | shared Three.js Tools module | full legacy structure set | review | Hole coordination polyhedra use real neighbour atoms; close-packed/Miller planes clip to visible bounds |
-| Periodic table | data-driven Tools module | full local dataset + test fixture | review | Search, quick filters, category/material/period/group/phase/crystal, property display, detail/source links browser-reviewed |
+| CoolProp | lazy local WASM Tools module | legacy engine + fake-engine CI + deployed browser checks | review | Functional/UI coverage is browser-verified; course-table/book-basis calibration plus representative Water/R134a saturation/phase behavior still require numerical reference verification |
+| Fluid calculator | shared Tools calculator | legacy polynomial fixture + deployed browser comparison | full | Browser-verified against legacy for all 6 fluids/gases, C/F/K, all 8 properties, warnings and responsive layout |
+| ChemDraw | lazy Kekule chemistry editor | live runtime | full | Browser-verified New/Import/MOL/SMILES/Undo/Redo/Clean 2D/Copy SMILES |
+| Crystal structures | shared Three.js Tools module | full legacy structure set + interactive browser verification | full | Full legacy functional parity verified; next work is beyond-legacy hole polyhedra and close-packed-plane visualization |
+| Periodic table | data-driven Tools module | full local dataset + test fixture + deployed browser verification | full | Search, quick filters, dropdown filters, temperature phase, property display, reset/clear, details and Wikipedia link browser-verified |
 | Quiz | shared course module | quiz JSON | prototype | Interactive scoring/feedback; data-driven |
 | Karakterweb | shared course capability | course code | prototype | External fallback always available |
 | Google Drive/login | Settings connection service | n/a | planned | Optional auth only |
