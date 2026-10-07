@@ -1,9 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  COOLPROP_OUTPUT_ALIASES,DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,
-  computeState,inputToSI,outputFromSI,parseBatchRows,phaseDescription,propsSIOutput,saturationWarning,
-  processTargetOptions,rowsToCSV,rowsToJSON,unitLabel
+  COOLPROP_OUTPUT_ALIASES,DEFAULT_UNITS,PROCESS_TYPES,TABLE4_PRESETS,TABLE4_R_SPEC,TABLE_REFERENCE_PROFILES,
+  applyBookBasis,batchFormat,computeBatch,computeProcess,computeTable4,computeState,inputToSI,outputFromSI,
+  parseBatchRows,phaseDescription,propsSIOutput,removeBookBasis,saturationWarning,tableReferenceOffsets,
+  processTargetOptions,rowsToCSV,rowsToJSON,unitLabel,verifyTableReference
 } from "../src/tools/coolprop-core.js";
 
 function fakeEngine(){
@@ -71,15 +72,69 @@ test("phase descriptions are stable",()=>{
   assert.equal(phaseDescription("supercritical_gas"),"Supercritical");
 });
 
-test("book basis reproduces legacy Air calibration behavior",()=>{
+test("table basis calibrates Air H U and S and round-trips engine values",()=>{
   const engine=fakeEngine();
-  const raw=300000;
-  const adjusted=applyBookBasis(engine,"Air","H",raw,true);
-  const calibrationCall=engine.calls.find(call=>call[0]==="H"&&call[1]==="T"&&call[2]===1000);
-  assert.ok(calibrationCall);
-  assert.notEqual(adjusted,raw);
-  assert.equal(applyBookBasis(engine,"Water","H",raw,true),raw);
-  assert.equal(applyBookBasis(engine,"Air","S",7000,true),7000);
+  const rawH=300000,rawS=7000;
+  const adjustedH=applyBookBasis(engine,"Air","H",rawH,true);
+  const adjustedS=applyBookBasis(engine,"Air","S",rawS,true);
+  const offsets=tableReferenceOffsets(engine,"Air");
+  assert.equal(adjustedH,TABLE_REFERENCE_PROFILES.Air.calibration.H);
+  assert.equal(adjustedS,TABLE_REFERENCE_PROFILES.Air.calibration.S);
+  assert.equal(removeBookBasis(engine,"Air","H",adjustedH,true),rawH);
+  assert.equal(removeBookBasis(engine,"Air","S",adjustedS,true),rawS);
+  assert.ok(Number.isFinite(offsets.H));
+  assert.ok(Number.isFinite(offsets.U));
+  assert.ok(Number.isFinite(offsets.S));
+  assert.equal(applyBookBasis(engine,"Water","H",rawH,true),rawH);
+});
+
+test("PH and PU inputs are converted from table basis back to CoolProp basis",()=>{
+  const engineH=fakeEngine();
+  computeState(engineH,{
+    fluid:"Air",input1:"P",value1:1,input2:"H",value2:1046.04,bookBasis:true
+  });
+  assert.ok(engineH.calls.some(call=>
+    call[1]==="P"&&call[2]===100000&&call[3]==="H"&&Math.abs(call[4]-300000)<1e-9
+  ));
+
+  const engineU=fakeEngine();
+  computeState(engineU,{
+    fluid:"Air",input1:"P",value1:1,input2:"U",value2:758.94,bookBasis:true
+  });
+  assert.ok(engineU.calls.some(call=>
+    call[1]==="P"&&call[2]===100000&&call[3]==="U"&&Math.abs(call[4]-250000)<1e-9
+  ));
+});
+
+test("process constants use raw engine basis when table conversion is enabled",()=>{
+  const engine=fakeEngine();
+  const rows=computeProcess(engine,{
+    fluid:"Air",
+    bookBasis:true,
+    start:{input1:"P",value1:1,input2:"T",value2:25},
+    steps:[
+      {processType:"isenthalpic",targetType:"P",targetValue:2},
+      {processType:"isentropic",targetType:"P",targetValue:3}
+    ]
+  });
+  assert.equal(rows[1].status,"OK");
+  assert.ok(engine.calls.some(call=>call[1]==="H"&&Math.abs(call[2]-300000)<1e-9));
+});
+
+test("Table A-22 fixture includes course reference values and diagnostic checkpoints",()=>{
+  assert.deepEqual(TABLE_REFERENCE_PROFILES.Air.calibration,{
+    T:1000,P:1e5,H:1046.04e3,U:758.94e3,S:2.96770e3
+  });
+  assert.deepEqual(
+    TABLE_REFERENCE_PROFILES.Air.checkpoints.map(point=>point.T),
+    [300,400,1000,1200]
+  );
+  const report=verifyTableReference(fakeEngine(),"Air");
+  const calibration=report.find(point=>point.T===1000);
+  assert.equal(calibration.values.H,1046.04e3);
+  assert.equal(calibration.values.U,758.94e3);
+  assert.equal(calibration.values.S,2.96770e3);
+  assert.deepEqual(calibration.errors,{H:0,U:0,S:0});
 });
 
 test("batch formats and row parsing match legacy modes",()=>{
