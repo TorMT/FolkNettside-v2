@@ -4,7 +4,7 @@ import {replicateCrystal} from "../src/tools/crystal-structures-core.js";
 import {
   analyzeCrystal,applyCrystalEdits,bondPairs,bondPlaneCuts,closePackedPlaneSpecs,
   coordinationStats,firstShellCutoff,identifyCrystal,
-  coordinationPolyhedron,convexHullTriangles,nearestSitesToPoint,planeBoxPolygon,
+  coordinationPolyhedron,convexHullTriangles,nearestSitesToPoint,planeBoxPolygon,planeContactNetwork,
   polyhedronEdges,sitesNearPlane,
   millerPlane,nearestSiteIndex,segmentPlaneIntersection
 } from "../src/tools/crystal-analysis.js";
@@ -200,4 +200,38 @@ test("plane atom selection is geometric and tolerance-bounded",()=>{
   ];
   const near=sitesNearPlane(sites,plane,.05);
   assert.deepEqual(near.map(item=>item.index),[0,1]);
+});
+
+
+test("close-packed plane contact network recovers a triangular nearest-neighbour layer",()=>{
+  const h=Math.sqrt(3)/2;
+  const sites=[
+    {pos:[0,0,0],active:true},
+    {pos:[1,0,0],active:true},
+    {pos:[.5,h,0],active:true},
+    {pos:[1.5,h,0],active:true},
+    {pos:[.5,h,.3],active:true}
+  ];
+  const network=planeContactNetwork(
+    sites,
+    {normal:[0,0,1],point:[0,0,0]},
+    .02
+  );
+  assert.equal(network.siteIndices.length,4);
+  assert.ok(Math.abs(network.nearestDistance-1)<1e-12);
+  assert.equal(network.contacts.length,5);
+  for(const contact of network.contacts)assert.ok(Math.abs(contact.distance-1)<1e-12);
+});
+
+test("plane contact network collapses duplicate boundary atoms before linking",()=>{
+  const sites=[
+    {pos:[0,0,0],active:true},
+    {pos:[0,0,0],active:true},
+    {pos:[1,0,0],active:true},
+    {pos:[2,0,0],active:true}
+  ];
+  const network=planeContactNetwork(sites,{normal:[0,0,1],point:[0,0,0]},.01);
+  assert.equal(network.siteIndices.length,3);
+  assert.equal(network.contacts.length,2);
+  assert.equal(network.nearestDistance,1);
 });
