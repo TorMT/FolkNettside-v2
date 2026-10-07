@@ -672,18 +672,19 @@ async function engineeringPage(){
       ]);
       if(renderId!==engineeringRenderId)return;
 
+      const capability=analysisCapability(model,"propulsion");
       const thrusters=documentModel?semanticComponents(documentModel,{role:"thruster"}).map(node=>node.component):[];
       const sourceThruster=thrusters.find(component=>component.id===selectedComponentId)||thrusters[0]||null;
       const sourceSemantic=sourceThruster?componentSemantic(sourceThruster):null;
       const sourceCase=sourceSemantic?.thruster||{};
-      const hasForceModel=!sourceThruster||(
+      const hasForceModel=capability.enabled&&(!sourceThruster||(
         sourceCase.forceModel!=="unset"
         &&sourceCase.thrust!==null&&sourceCase.thrust!==undefined&&sourceCase.thrust!==""
         &&Number.isFinite(Number(sourceCase.thrust))
         &&Number(sourceCase.diameter)>0
-      );
+      ));
 
-      if(sourceThruster&&!hasForceModel){
+      if(!capability.enabled||sourceThruster&&!hasForceModel){
         const ratedPower=Number(sourceCase.ratedPowerKw);
         app.innerHTML=top("engineering")+`<main class="workspace">
           <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
@@ -699,13 +700,15 @@ async function engineeringPage(){
             <div class="readout"><span>Type</span><strong>${sourceSemantic?.subtype||"thruster"}</strong></div>
             <div class="readout"><span>Rated power</span><strong>${Number.isFinite(ratedPower)?ratedPower+" kW":"—"}</strong></div>
             <div class="readout"><span>Source node</span><strong>${sourceThruster.sourceObjectId||"—"}</strong></div>
-            <div class="readout"><span>Force model</span><strong class="status-warn">Not configured</strong></div>
-            <p class="muted hydro-note">Geometry and component identity are sourced. Thrust, actuator diameter and local thrust axis are intentionally not inferred from rated power or appearance.</p>
+            <div class="readout"><span>Capability</span><strong class="status-warn">${capabilityLabel(capability)}</strong></div>
+            <div class="readout"><span>Force model</span><strong class="status-warn">${hasForceModel?"Configured":"Not configured"}</strong></div>
+            <p class="muted hydro-note">${capability.reason||"Geometry and component identity are sourced. Thrust, actuator diameter and local thrust axis are intentionally not inferred from rated power or appearance."}</p>
+            ${capability.requirements?.length?`<div class="engineering-requirements"><strong>Required before analysis</strong><ul>${capability.requirements.map(item=>`<li>${item}</li>`).join("")}</ul></div>`:""}
           </aside>
           <section class="results"><div class="results-summary"><strong>Propulsion analysis blocked</strong><div class="readout"><span>Reason</span><strong>Missing force model</strong></div></div>
             <div class="engineering-empty-analysis"><strong>No fabricated thrust result</strong><p>Add sourced or explicitly assumed thrust/diameter/axis metadata before actuator-disk and rigid-body force/moment analysis is enabled.</p></div>
           </section>
-          <footer class="statusbar"><span>Units SI</span><span>Sourced identity</span><span>No thrust assumption</span><span class="top-spacer"></span><span>ModelDocument</span></footer>
+          <footer class="statusbar"><span>Units SI</span><span>${capabilityLabel(capability)}</span><span>No thrust assumption</span><span class="top-spacer"></span><span>ModelDocument</span></footer>
         </main><div class="preview-badge">Propulsion · sourced identity only</div>`;
 
         bindNav();
