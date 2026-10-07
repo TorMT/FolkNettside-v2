@@ -1,5 +1,5 @@
-import {componentSemantic} from "../model/semantic-assembly.js?v=0484f09b3e21917a05552c5b92460bb5e370dd76";
-import {actuatorDisk} from "./actuator-disk.js?v=0484f09b3e21917a05552c5b92460bb5e370dd76";
+import {componentSemantic} from "../model/semantic-assembly.js?v=3c539a7465792e092560a6e49b4ddab262f3a9b6";
+import {actuatorDisk} from "./actuator-disk.js?v=3c539a7465792e092560a6e49b4ddab262f3a9b6";
 
 const EPS=1e-12;
 const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
@@ -99,6 +99,8 @@ export function thrustersFromModelDocument(modelDocument){
     const semantic=componentSemantic(component);
     const propulsion=semantic.thruster;
     if(!propulsion||propulsion.enabled===false)continue;
+    const thrustValue=Number(propulsion.thrust);
+    if(propulsion.thrust===null||propulsion.thrust===undefined||propulsion.thrust===""||!Number.isFinite(thrustValue))continue;
     const localDirection=thrusterDirection({
       axis:propulsion.axis||[1,0,0],
       azimuthDeg:propulsion.azimuthDeg
@@ -108,7 +110,7 @@ export function thrustersFromModelDocument(modelDocument){
       type:semantic.subtype||propulsion.type||"thruster",
       subsystem:semantic.subsystem,
       tags:semantic.tags,
-      thrust:Number(propulsion.thrust)||0,
+      thrust:thrustValue,
       diameter:Number(propulsion.diameter)||null,
       inflowSpeed:Number(propulsion.inflowSpeed)||0,
       density:Number(propulsion.density)||1025,

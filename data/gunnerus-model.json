@@ -1,0 +1,90 @@
+{
+  "id": "gunnerus-open-data",
+  "name": "R/V GUNNERUS · Open Data",
+  "format": "GLB",
+  "sourceMode": "remote",
+  "sourcePath": "https://raw.githubusercontent.com/shiplab/gunnerus/5881453a9089791ddf6b7e3ea4a1ffdff6c98cb9/derived/3d/gunnerus.glb",
+  "partMetadataPath": "https://raw.githubusercontent.com/shiplab/gunnerus/5881453a9089791ddf6b7e3ea4a1ffdff6c98cb9/derived/3d/gunnerus-parts.json",
+  "coordinateSystem": "gltf-y-up",
+  "defaultHydro": false,
+  "source": {
+    "repository": "shiplab/gunnerus",
+    "revision": "5881453a9089791ddf6b7e3ea4a1ffdff6c98cb9",
+    "datasetVersion": "1.0.1",
+    "doi": "10.5281/zenodo.22983657",
+    "geometryCredit": "Gunnerus open data, courtesy of polarkonsult, published by NTNU. 3D model by C-JOB; simplified glTF by NTNU.",
+    "license": "CC BY-NC 4.0",
+    "purpose": "visualisation and teaching"
+  },
+  "componentRules": [
+    {
+      "match": "^part00$",
+      "semantic": {
+        "role": "hull",
+        "subsystem": "hydro",
+        "tags": ["source-geometry", "hydro-unvalidated"]
+      },
+      "hydro": false
+    },
+    {
+      "match": "^part19$",
+      "semantic": {
+        "role": "thruster",
+        "subtype": "azimuth",
+        "subsystem": "propulsion",
+        "tags": ["port", "stern", "sourced-identity"]
+      },
+      "hydro": false,
+      "propulsion": {
+        "type": "azimuth",
+        "ratedPowerKw": 500,
+        "forceModel": "unset"
+      }
+    },
+    {
+      "match": "^part20$",
+      "semantic": {
+        "role": "thruster",
+        "subtype": "azimuth",
+        "subsystem": "propulsion",
+        "tags": ["starboard", "stern", "sourced-identity"]
+      },
+      "hydro": false,
+      "propulsion": {
+        "type": "azimuth",
+        "ratedPowerKw": 500,
+        "forceModel": "unset"
+      }
+    },
+    {
+      "match": "^part23$",
+      "semantic": {
+        "role": "thruster",
+        "subtype": "tunnel",
+        "subsystem": "propulsion",
+        "tags": ["bow", "sourced-identity"]
+      },
+      "hydro": false,
+      "propulsion": {
+        "type": "tunnel",
+        "ratedPowerKw": 200,
+        "forceModel": "unset"
+      }
+    }
+  ],
+  "analysisCapabilities": {
+    "model": "sourced",
+    "hydro": "blocked-until-hull-validation",
+    "propulsion": "component-identity-only",
+    "structure": "visual-only",
+    "resistance": "not-configured"
+  },
+  "hydro": {
+    "density": 1025,
+    "defaultDraft": 2.7,
+    "minDraft": 0,
+    "maxDraft": 4.5,
+    "enabled": false,
+    "reason": "The published lightweight glTF is intended for visualisation/teaching and part00 combines hull and structure. Hydro is disabled until a watertight external hull surface is validated."
+  }
+}
