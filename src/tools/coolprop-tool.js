@@ -2,10 +2,10 @@ import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,TABLE4_PRESETS,
   computeBatch,computeProcess,computeState,computeTable4,processTargetOptions,
   rowsToCSV,rowsToJSON,saturationWarning,unitLabel
-} from "./coolprop-core.js?v=6d99993b799267c1b2e599e7d7e0d59f4c24d7a2";
-import {getCoolProp} from "../vendor/coolprop-runtime.js?v=6d99993b799267c1b2e599e7d7e0d59f4c24d7a2";
-import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=6d99993b799267c1b2e599e7d7e0d59f4c24d7a2";
-import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=6d99993b799267c1b2e599e7d7e0d59f4c24d7a2";
+} from "./coolprop-core.js?v=66a32719412b4629bb066b94a400a1693fa008ca";
+import {getCoolProp} from "../vendor/coolprop-runtime.js?v=66a32719412b4629bb066b94a400a1693fa008ca";
+import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=66a32719412b4629bb066b94a400a1693fa008ca";
+import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=66a32719412b4629bb066b94a400a1693fa008ca";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -168,7 +168,7 @@ export function coolPropToolHTML(state={}){
     <header class="tool-header">
       <div><span class="project-kicker">Thermodynamics tool</span><h1>CoolProp</h1>
       <p>Local WebAssembly property engine with the legacy state, batch, process and explore workflows.</p>
-      <div class="tool-parity-banner"><strong>Numerically verified:</strong> Table A-22 reference conversion, bidirectional H/U/S handling and representative Water/R134a saturation/phase cases are verified in the deployed tool. The <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">legacy tool ↗</a> remains available as a safety reference.</div></div>
+      <div class="tool-parity-banner"><strong>Numerical review:</strong> UI and workflow parity are verified. Course-table reference offsets and representative Water/R134a saturation/phase states are being numerically validated before this tool is promoted to full parity. The <a href="https://tormt.folk.ntnu.no/Tools/Coolprop/CoolPropForbedretKanksje2.html" target="_blank" rel="noopener">legacy tool ↗</a> remains available as a safety reference.</div></div>
       <div class="coolprop-header-actions"><div class="coolprop-engine-status" id="coolprop-status">Engine not loaded</div><button class="btn" id="cp-help-open">Help</button></div>
     </header>
 
