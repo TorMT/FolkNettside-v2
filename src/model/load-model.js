@@ -1,17 +1,20 @@
-import {extension} from "../viewers/utils.js?v=4cde5fe4f18c182716f9014d81b24a48695d4c65";
-import {parse3MF} from "./parsers/three-mf.js?v=4cde5fe4f18c182716f9014d81b24a48695d4c65";
-import {parseSTL} from "./parsers/stl.js?v=4cde5fe4f18c182716f9014d81b24a48695d4c65";
-import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=4cde5fe4f18c182716f9014d81b24a48695d4c65";
+import {extension} from "../viewers/utils.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
+import {parse3MF} from "./parsers/three-mf.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
+import {parseSTL} from "./parsers/stl.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
+import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
+import {parseGLB} from "./parsers/gltf.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
 
-function applyRules(documentModel,rules=[]){
+export function applyModelRules(documentModel,rules=[]){
   for(const component of documentModel.components){
     for(const rule of rules){
-      if(!new RegExp(rule.match,"i").test(component.name))continue;
+      const matcher=new RegExp(rule.match,"i");
+      if(![component.name,component.sourceObjectId].filter(Boolean).some(value=>matcher.test(String(value))))continue;
       if(rule.type)component.type=rule.type;
       component.metadata={
         ...component.metadata,
-        hydro:rule.hydro!==false,
-        ...(rule.propulsion?{propulsion:{...rule.propulsion}}:{})
+        ...(rule.hydro!==undefined?{hydro:rule.hydro}:{}),
+        ...(rule.propulsion?{propulsion:{...(component.metadata?.propulsion||{}),...rule.propulsion}}:{}),
+        ...(rule.semantic?{semantic:{...(component.metadata?.semantic||{}),...rule.semantic}}:{})
       };
       break;
     }
@@ -25,11 +28,23 @@ export async function loadModelDocument(config){
   if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${config.sourcePath}`);
   const buffer=await response.arrayBuffer();
   const ext=extension(config.sourcePath);
+  let partMetadata=[];
+  if(config.partMetadataPath){
+    const metadataResponse=await fetch(config.partMetadataPath);
+    if(!metadataResponse.ok)throw new Error(`HTTP ${metadataResponse.status} while loading ${config.partMetadataPath}`);
+    partMetadata=await metadataResponse.json();
+    if(!Array.isArray(partMetadata))throw new Error("partMetadataPath must resolve to an array");
+  }
   let documentModel;
   if(ext==="3mf")documentModel=await parse3MF(buffer,config.name);
   else if(ext==="stl")documentModel=parseSTL(buffer,config.name);
   else if(ext==="f3z")documentModel=await parseFusionArchive(buffer,config.name);
   else if(ext==="f3d")documentModel=nativeFusionPlaceholder({name:config.name,format:"F3D"});
+  else if(ext==="glb")documentModel=await parseGLB(buffer,config.name,{
+    partMetadata,
+    coordinateSystem:config.coordinateSystem||"gltf-y-up",
+    source:config.source||null
+  });
   else throw new Error(`Unsupported engineering model format: .${ext}`);
-  return applyRules(documentModel,config.componentRules);
+  return applyModelRules(documentModel,config.componentRules);
 }

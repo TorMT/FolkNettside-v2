@@ -1,7 +1,7 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=4cde5fe4f18c182716f9014d81b24a48695d4c65";
-import {createHydroInclude} from "./hydro-selection.js?v=4cde5fe4f18c182716f9014d81b24a48695d4c65";
-import {gzCurve} from "./gz.js?v=4cde5fe4f18c182716f9014d81b24a48695d4c65";
-import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js?v=4cde5fe4f18c182716f9014d81b24a48695d4c65";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
+import {createHydroInclude} from "./hydro-selection.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
+import {gzCurve} from "./gz.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
+import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
 
 export function executeHydroRequest(modelDocument,type,payload={}){
   if(!modelDocument)throw new Error("Hydro service has no model loaded");
