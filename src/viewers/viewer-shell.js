@@ -1,5 +1,5 @@
-import {loadAdapter} from "./registry.js?v=a3584248ac50cdb70d8398e9164e1981fa7ab735";
-import {escapeHTML} from "./utils.js?v=a3584248ac50cdb70d8398e9164e1981fa7ab735";
+import {loadAdapter} from "./registry.js?v=d40d94be989a292cf353b1b096cb4ff8d8459cbb";
+import {escapeHTML} from "./utils.js?v=d40d94be989a292cf353b1b096cb4ff8d8459cbb";
 
 export async function mountViewer(root,resource,onBack){
   root.__viewerCleanup?.();
