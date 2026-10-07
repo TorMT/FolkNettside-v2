@@ -45,3 +45,40 @@ export function rectangularBargeStability({L,B,T,kg=null}){
     gmLongitudinal:Number.isFinite(kgValue)?kb+bmLongitudinal-kgValue:null
   };
 }
+
+
+export function hydrostaticParticulars(hydroResult,{density=1025,kg=null}={}){
+  const volume=Number(hydroResult?.volume);
+  const waterplane=hydroResult?.waterplane||{};
+  const cb=hydroResult?.centerOfBuoyancy||[0,0,0];
+  const area=Number(waterplane.area)||0;
+  const centroid=Array.isArray(waterplane.centroid)?waterplane.centroid:[0,0];
+  const rho=Number(density)||1025;
+  const stability=initialStability(hydroResult,{kg});
+
+  return {
+    valid:volume>0,
+    volume:Number.isFinite(volume)?volume:0,
+    displacementTonnes:volume>0?volume*rho/1000:0,
+    kb:Number(cb[2])||0,
+    lcb:Number(cb[0])||0,
+    tcb:Number(cb[1])||0,
+    waterplaneArea:area,
+    lcf:Number(centroid[0])||0,
+    tcf:Number(centroid[1])||0,
+    tonnesPerCm:area>0?rho*area*0.01/1000:0,
+    ixx:Number(waterplane.ixx)||0,
+    iyy:Number(waterplane.iyy)||0,
+    ...stability
+  };
+}
+
+export function hydrostaticCurveRows(curve,{density=1025,kg=null}={}){
+  return (curve||[]).map(point=>{
+    const particulars=hydrostaticParticulars(point,{density,kg});
+    return {
+      draft:Number(point.waterline)||0,
+      ...particulars
+    };
+  });
+}
