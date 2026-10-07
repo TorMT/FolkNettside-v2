@@ -1,0 +1,1000 @@
+{
+  "type": "FeatureCollection",
+  "name": "Trondheim dive research 2026-09-28",
+  "metadata": {
+    "scope": "Trondheim, Trondheimsfjorden, plus selected extended Trøndelag sites",
+    "created": "2026-09-28",
+    "warning": "Public-source positions can be stale/inexact. No unpublished sensitive coral positions are included.",
+    "facebook_limitation": "Private/login-restricted Facebook group content was not accessible."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.421476,
+          63.572552
+        ]
+      },
+      "properties": {
+        "ID": "D001",
+        "Navn": "Ambornesset",
+        "Område": "Indre Fosen / Trondheimsfjorden",
+        "Kategori": "Natur/landdykk",
+        "Status": "Praktisk landdykk",
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Nivå 1",
+        "Adkomst": "Bil + Flakk–Rørvik-ferge; landdykk",
+        "Bunn_terreng": "Variert bunn / vegetasjon",
+        "Strøm_fare_forbehold": "Ingen særskilt fare dokumentert i kilden",
+        "Observert_dyreliv": "rød/grønn sjøsalat; store fiskestimer; sei; torsk; sommer: makrell",
+        "Mulig_rapportert_dyreliv": "havmus/større fisk omtalt som mulig ved flaks",
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – detaljert eldre guide",
+        "Kilde_IDer": "S03;S01",
+        "Notater": "Klassisk lokalt naturdykk.",
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Ambornesset",
+          "https://dykkepedia.com/wiki/Kategori%3ATr%C3%B8ndelag"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.910258,
+          63.351263
+        ]
+      },
+      "properties": {
+        "ID": "D002",
+        "Navn": "Astantåa",
+        "Område": "Buvika/Skaun-siden",
+        "Kategori": "Natur/landdykk",
+        "Status": "Praktisk, dyp profil mulig",
+        "Dybde_min_m": 0,
+        "Dybde_max_m": 45,
+        "Kilde_nivå": "Nivå 2",
+        "Adkomst": "Kort gange ned åpen skråning; parkering kan bli gjørmete",
+        "Bunn_terreng": "Skråning; rør rundt 25 m",
+        "Strøm_fare_forbehold": "Dypere parti 40–45 m",
+        "Observert_dyreliv": "havmus; breiflabb; lange",
+        "Mulig_rapportert_dyreliv": "mye annet liv omtalt uten artsliste",
+        "Vrak_historie": null,
+        "Vern_kulturminne": "Gaulosen nærområde; sjekk vernegrenser før aktivitet",
+        "Datakvalitet": "B – detaljert eldre guide",
+        "Kilde_IDer": "S04;S43;S57",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Astant%C3%A5a",
+          "https://inte.statsforvalteren.no/nb/Trondelag/Miljo-og-klima/Verneomrader/marin-verneplan/",
+          "https://lovdata.no/dokument/LF/forskrift/2016-06-17-690/%C2%A77"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.200398,
+          63.451631
+        ]
+      },
+      "properties": {
+        "ID": "D003",
+        "Navn": "Flakk",
+        "Område": "Byneset / Flakk",
+        "Kategori": "Natur/landdykk",
+        "Status": "Praktisk landdykk",
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Nivå 1",
+        "Adkomst": "Fra utsiden av fergekai/molo; også innside omtalt",
+        "Bunn_terreng": "Store steiner; mindre vegg på innsiden",
+        "Strøm_fare_forbehold": "Ferge-/havneaktivitet må tas hensyn til",
+        "Observert_dyreliv": "hummer; steinbit omtalt om våren",
+        "Mulig_rapportert_dyreliv": "godt nattdykk nevnt",
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – detaljert eldre guide",
+        "Kilde_IDer": "S05;S01",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Flakk",
+          "https://dykkepedia.com/wiki/Kategori%3ATr%C3%B8ndelag"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.868017,
+          63.483067
+        ]
+      },
+      "properties": {
+        "ID": "D004",
+        "Navn": "Ingdalen",
+        "Område": "Orkland-siden av fjorden",
+        "Kategori": "Natur/landdykk",
+        "Status": "Strømpåvirket naturdykk",
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Nivå 2",
+        "Adkomst": "Landdykk; rundt 60 km fra Trondheim ifølge guide",
+        "Bunn_terreng": "Vegger; eldre bilvrak nevnt",
+        "Strøm_fare_forbehold": "Kan ha sterk tidevannsstrøm og sjø/swell",
+        "Observert_dyreliv": "medusahode; mye fisk; krabber",
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "gammelt bilvrak omtalt",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – detaljert eldre guide",
+        "Kilde_IDer": "S06;S01",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Ingdalen",
+          "https://dykkepedia.com/wiki/Kategori%3ATr%C3%B8ndelag"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.868017,
+          63.483067
+        ]
+      },
+      "properties": {
+        "ID": "D005",
+        "Navn": "Ingdalen Strand",
+        "Område": "Orkland-siden av fjorden",
+        "Kategori": "Natur/landdykk",
+        "Status": "Lite dokumentert",
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Nivå 1",
+        "Adkomst": "Landdykk",
+        "Bunn_terreng": "Lite detaljert",
+        "Strøm_fare_forbehold": "Koordinat er identisk med Ingdalen i Dykkepedia og kan være placeholder",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "C – indeks/tynn side",
+        "Kilde_IDer": "S07;S01",
+        "Notater": "Verifiser posisjon lokalt før bruk.",
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Ingdalen_Strand",
+          "https://dykkepedia.com/wiki/Kategori%3ATr%C3%B8ndelag"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.751427,
+          63.597455
+        ]
+      },
+      "properties": {
+        "ID": "D006",
+        "Navn": "Kalurdalen",
+        "Område": "Indre Fosen / vestre fjordside",
+        "Kategori": "Naturdykk",
+        "Status": "Lite dokumentert",
+        "Dybde_min_m": 0,
+        "Dybde_max_m": 50,
+        "Kilde_nivå": "Nivå 2",
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": "Dybde opptil ca. 50 m i regional tabell",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "C – indeksdata",
+        "Kilde_IDer": "S01;S02",
+        "Notater": "Trenger lokal verifisering.",
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Kategori%3ATr%C3%B8ndelag",
+          "https://dykkepedia.com/wiki/Tr%C3%B8ndelag"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.428933,
+          63.44909
+        ]
+      },
+      "properties": {
+        "ID": "D007",
+        "Navn": "Korsvika",
+        "Område": "Lade, Trondheim",
+        "Kategori": "Natur/landdykk",
+        "Status": "Aktivt kurs-/oppfriskningssted",
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Nivå 1",
+        "Adkomst": "Svært lett tilgjengelig fra byen",
+        "Bunn_terreng": "Mudder, slak skråning",
+        "Strøm_fare_forbehold": "Silt kan røres opp; gammel guide nevner nærliggende område med dykkeforbud på vrak – identitet ikke avklart",
+        "Observert_dyreliv": "sjøpølser; småfisk",
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "A/B – støttet av klubbaktivitet",
+        "Kilde_IDer": "S08;S49;S50",
+        "Notater": "NTNUI hadde offentlig søndagsdykk her i 2023; lokal bruk er godt dokumentert.",
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Korsvika",
+          "https://dykkergruppa.org/",
+          "https://ntnui.no/dykkergruppa/aktivitet/"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.099933,
+          63.328882
+        ]
+      },
+      "properties": {
+        "ID": "D008",
+        "Navn": "Nykorallene",
+        "Område": "Børsa / Skaun",
+        "Kategori": "Korall/natur",
+        "Status": "Sårbart overvåkingssted",
+        "Dybde_min_m": 24,
+        "Dybde_max_m": null,
+        "Kilde_nivå": null,
+        "Adkomst": "Krevende landrute ifølge eldre guide",
+        "Bunn_terreng": "Korallforekomst fra ca. 24 m",
+        "Strøm_fare_forbehold": "Sårbart habitat; historisk endring dokumentert",
+        "Observert_dyreliv": "viftekoraller/sjøbusk; svarthå",
+        "Mulig_rapportert_dyreliv": "2013: småfisk, reker og snegler i korall; samme fulgte korall dokumentert død i 2025",
+        "Vrak_historie": null,
+        "Vern_kulturminne": "Nær Gaulosen/Børsa; korallhensyn viktig",
+        "Datakvalitet": "A – flerårig overvåking + guide",
+        "Kilde_IDer": "S09;S36;S37;S41",
+        "Notater": "Skille mellom historiske og nyere observasjoner er viktig.",
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Nykorallene",
+          "https://projectbaseline.no/",
+          "https://www.havaksjonen.no/project-baseline-trondheim/",
+          "https://prod.statsforvalteren.no/nb/trondelag/privatperson/natur-og-friluftsliv/nyheter/2026/09/nye-info-tavler-skal-gjere-det-enklare-a-ta-omsyn-til-korallane2/"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.436497,
+          63.591359
+        ]
+      },
+      "properties": {
+        "ID": "D009",
+        "Navn": "Skålvika",
+        "Område": "Indre Fosen",
+        "Kategori": "Natur/landdykk",
+        "Status": "Praktisk landdykk",
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Nivå 1",
+        "Adkomst": "Bil helt fram; start i vik",
+        "Bunn_terreng": "Vegg blir finere videre utover; steinrøyser",
+        "Strøm_fare_forbehold": "Strøm ikke spesifisert i kilden",
+        "Observert_dyreliv": "krabbe; hummer",
+        "Mulig_rapportert_dyreliv": "havmus nevnt som mulig",
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – detaljert eldre guide",
+        "Kilde_IDer": "S10;S01",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Sk%C3%A5lvika",
+          "https://dykkepedia.com/wiki/Kategori%3ATr%C3%B8ndelag"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.324531,
+          63.449665
+        ]
+      },
+      "properties": {
+        "ID": "D011",
+        "Navn": "Texacobrygga",
+        "Område": "Ilsvika/Trolla, Trondheim",
+        "Kategori": "Natur/landdykk",
+        "Status": "Aktivt kurs-/ryddeområde",
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": null,
+        "Adkomst": "God parkering og enkel rigging",
+        "Bunn_terreng": "Sand/mudder/stein",
+        "Strøm_fare_forbehold": "Mye tapt fiskesene/sluk; klar entanglement-risiko",
+        "Observert_dyreliv": "krabber; torsk; flyndre dokumentert i/ved mistet ruse",
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "A/B – guide + Project Baseline + nyere anekdote",
+        "Kilde_IDer": "S11;S38;S53",
+        "Notater": "Project Baseline har hatt målestasjon/rydding her.",
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Texacobrygga",
+          "https://projectbaseline.no/bevare/",
+          "https://www.reddit.com/r/trondheim/comments/1v3aati/fishing/"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.312353,
+          63.45236
+        ]
+      },
+      "properties": {
+        "ID": "D012",
+        "Navn": "Trolla",
+        "Område": "Trondheim vest",
+        "Kategori": "Natur/landdykk",
+        "Status": "Aktivt kurssted",
+        "Dybde_min_m": 0,
+        "Dybde_max_m": 25,
+        "Kilde_nivå": null,
+        "Adkomst": "Landdykk; kurssted",
+        "Bunn_terreng": "Sand/skråning nær land; betongelementer/stein etter svømmetur",
+        "Strøm_fare_forbehold": "Lang overflatesvøm (~180 m) til mer interessant område ifølge guide",
+        "Observert_dyreliv": "mange nakensnegler; krabber; fisk",
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "bilvrak rundt 25 m omtalt",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – detaljert eldre guide + lokal omtale",
+        "Kilde_IDer": "S12;S52",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Trolla",
+          "https://www.reddit.com/r/trondheim/comments/1ghsc11"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.868017,
+          63.483067
+        ]
+      },
+      "properties": {
+        "ID": "D013",
+        "Navn": "Tråsåvika Camping",
+        "Område": "Orkland-siden",
+        "Kategori": "Natur/landdykk",
+        "Status": "Svært lite dokumentert",
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Nivå 1",
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": "Koordinat dupliserer Ingdalen i Dykkepedia; lav tillit",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "C – indeks/placeholder",
+        "Kilde_IDer": "S01;S02",
+        "Notater": "Ikke bruk koordinatet uten lokal verifisering.",
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Kategori%3ATr%C3%B8ndelag",
+          "https://dykkepedia.com/wiki/Tr%C3%B8ndelag"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          11.092211,
+          63.836908
+        ]
+      },
+      "properties": {
+        "ID": "D014",
+        "Navn": "Vangshylla",
+        "Område": "Skarnsundet / Inderøy",
+        "Kategori": "Korall/natur/strøm",
+        "Status": "Kjent avansert strøm-/korallsted",
+        "Dybde_min_m": 0,
+        "Dybde_max_m": 40,
+        "Kilde_nivå": "Nivå 3",
+        "Adkomst": "Landdykk fra kai/parkering ifølge guide",
+        "Bunn_terreng": "Vegg + sand; korall fra ca. 36 m i eldre guide",
+        "Strøm_fare_forbehold": "Kan ha svært sterk strøm; tidevannstiming avgjørende",
+        "Observert_dyreliv": "sjøbusk; potetsvamp; medusahoder; steinbit; Periphylla periphylla; nakensnegler; svarthå; havmus",
+        "Mulig_rapportert_dyreliv": "hummer og maneter også dokumentert av Project Baseline",
+        "Vrak_historie": null,
+        "Vern_kulturminne": "Skarnsundet marine verneområde",
+        "Datakvalitet": "A – guide + nyere overvåking/fagmateriale",
+        "Kilde_IDer": "S14;S37;S39;S40;S43",
+        "Notater": "2026-rapport dokumenterer også dykkerelatert skade i en avgrenset delsone; kontaktfri dykking er essensielt.",
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Vangshylla",
+          "https://www.havaksjonen.no/project-baseline-trondheim/",
+          "https://baredykk.no/fagressurser/kaldtvannskoraller-skarnsundet-tauterryggen/",
+          "https://baredykk.no/dykking-i-norge/",
+          "https://inte.statsforvalteren.no/nb/Trondelag/Miljo-og-klima/Verneomrader/marin-verneplan/"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.747236,
+          63.450439
+        ]
+      },
+      "properties": {
+        "ID": "W001",
+        "Navn": "Arado AR 196",
+        "Område": "Hommelvik",
+        "Kategori": "Flyvrak",
+        "Status": "Dyp/teknisk pga. 52 m",
+        "Dybde_min_m": 52,
+        "Dybde_max_m": 52,
+        "Kilde_nivå": null,
+        "Adkomst": "Båt/vrakdykk",
+        "Bunn_terreng": "Flykropp og vinger i hovedsak intakt; duk borte",
+        "Strøm_fare_forbehold": "Dybde 52 m",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "Arado Ar 196 sjøfly; sannsynligvis ett av tre senket 11.09.1945; funnet igjen med sonar 2017",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "A/B – koordinat + flere vrakkilder",
+        "Kilde_IDer": "S16;S01",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Arado_AR_196",
+          "https://dykkepedia.com/wiki/Kategori%3ATr%C3%B8ndelag"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.17435,
+          63.44826
+        ]
+      },
+      "properties": {
+        "ID": "W002",
+        "Navn": "Einar (Piene-Einar)",
+        "Område": "Flakk",
+        "Kategori": "Skipsvrak",
+        "Status": "Grunt historisk vrak",
+        "Dybde_min_m": 12,
+        "Dybde_max_m": 20,
+        "Kilde_nivå": null,
+        "Adkomst": "Båt omtalt",
+        "Bunn_terreng": "Vrak i to deler; dårlig/sliten tilstand",
+        "Strøm_fare_forbehold": "Historisk vrak; ikke ta gjenstander",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "Lastebåt bygget 1880, forlist 28.05.1924; propell igjen etter berging",
+        "Vern_kulturminne": ">100 år: kulturminneloven §14 relevant",
+        "Datakvalitet": "A/B – detaljert vrakside + lov",
+        "Kilde_IDer": "S17;S44;S45",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Einar",
+          "https://www.ntnu.no/museum/kulturminner-under-vann",
+          "https://lovdata.no/nav/lov/1978-06-09-50/kapIV/%C2%A714"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.35999,
+          63.43444
+        ]
+      },
+      "properties": {
+        "ID": "W003",
+        "Navn": "Heinkel HE 115 (Ilsvika)",
+        "Område": "Ilsvika, Trondheim",
+        "Kategori": "Flyvrak",
+        "Status": "Dyp vrakdykking",
+        "Dybde_min_m": 35,
+        "Dybde_max_m": 45,
+        "Kilde_nivå": null,
+        "Adkomst": "Vanligvis båt; gammel kilde omtaler landline/scooter",
+        "Bunn_terreng": "Tre vrak; to dårligere 30–36 m, ett mer intakt rundt 40 m",
+        "Strøm_fare_forbehold": "Mudder/silt; gammel lineinfo må ikke antas gyldig",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "Tyske sjøfly; knyttet til luftangrep i 1943 i Dykkepedia",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – detaljert men eldre guide",
+        "Kilde_IDer": "S18;S47",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Heinkel_HE_115",
+          "https://www.scubadiving.com/travel/europe/dark-side"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.405677,
+          63.453509
+        ]
+      },
+      "properties": {
+        "ID": "W004",
+        "Navn": "Herkules",
+        "Område": "Mellom Ladehammeren og Munkholmen",
+        "Kategori": "Skipsvrak",
+        "Status": "Teknisk / 60 m",
+        "Dybde_min_m": 60,
+        "Dybde_max_m": 60,
+        "Kilde_nivå": "Trimix",
+        "Adkomst": "Båt",
+        "Bunn_terreng": "Slepebåtvrak",
+        "Strøm_fare_forbehold": "60 m",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "Sank 16.09.1957 etter slepewire-hendelse; 7 om bord, ingen omkomne ifølge kilden",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – vrakside",
+        "Kilde_IDer": "S19;S29",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Herkules",
+          "https://dykkepedia.com/wiki/Vrak_tabell_fylke"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.36027,
+          63.43778
+        ]
+      },
+      "properties": {
+        "ID": "W005",
+        "Navn": "Ilsvika Lekteren",
+        "Område": "Ilsvika, Trondheim",
+        "Kategori": "Lekter",
+        "Status": "ROV-/ekspedisjonsmål",
+        "Dybde_min_m": 78,
+        "Dybde_max_m": 81,
+        "Kilde_nivå": null,
+        "Adkomst": "Båt/ROV",
+        "Bunn_terreng": "Stållekter, flat mudderbunn; vinsjer",
+        "Strøm_fare_forbehold": "~80 m; svært dyp",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "Oppdaget av NTNU 2016; publisert posisjon 2018; omtalt som ikke menneskedykket ved sideoppdatering",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "A/B – prosjekt-/vrakkilde",
+        "Kilde_IDer": "S20;S29",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Ilsvika_Lekteren",
+          "https://dykkepedia.com/wiki/Vrak_tabell_fylke"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.78188,
+          63.42323
+        ]
+      },
+      "properties": {
+        "ID": "W006",
+        "Navn": "Junker 52 (LN-DAI «Hauken»)",
+        "Område": "Hommelvik",
+        "Kategori": "Flyvrak",
+        "Status": "Dyp vrakdykking",
+        "Dybde_min_m": 38,
+        "Dybde_max_m": 38,
+        "Kilde_nivå": "Nivå 3",
+        "Adkomst": "Båt",
+        "Bunn_terreng": "God tilstand i kilde",
+        "Strøm_fare_forbehold": "Fri ned-/oppstigning kan være nødvendig; kilde anbefaler line og organisert/lokal tur",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "Ju 52; styrtet ved landing i dårlig vær 01.03.1943",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "A/B – detaljert vrakside",
+        "Kilde_IDer": "S21;S29",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Junker_52_(Hommelvika)",
+          "https://dykkepedia.com/wiki/Vrak_tabell_fylke"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.429598,
+          63.449026
+        ]
+      },
+      "properties": {
+        "ID": "W007",
+        "Navn": "Korsvika Lekteren",
+        "Område": "Korsvika, Trondheim",
+        "Kategori": "Lekter",
+        "Status": "Svært grunt vrak",
+        "Dybde_min_m": 6,
+        "Dybde_max_m": 12,
+        "Kilde_nivå": null,
+        "Adkomst": "Land; ca. 80 m svøm",
+        "Bunn_terreng": "Ca. 12 x 4 m, brukbar stand",
+        "Strøm_fare_forbehold": "Silt/line kan forekomme",
+        "Observert_dyreliv": "dødmannshånd-korall; glassreker/blomsterreker; pyntekrabber; taskekrabber; stankelbenkrabber; nakensnegler",
+        "Mulig_rapportert_dyreliv": "hummer noen ganger",
+        "Vrak_historie": "Ukjent lekteridentitet",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "A/B – detaljert vrakside",
+        "Kilde_IDer": "S22;S08",
+        "Notater": "Sterkt kandidatsted for biologisk fotologg pga. grunn dybde.",
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Korsvika_Lekteren",
+          "https://dykkepedia.com/wiki/Korsvika"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.78524,
+          63.41368
+        ]
+      },
+      "properties": {
+        "ID": "W008",
+        "Navn": "Krana ved Hommelvika",
+        "Område": "Hommelvik",
+        "Kategori": "Industrielt vrakfelt",
+        "Status": "Grunt/middels landdykk",
+        "Dybde_min_m": 12,
+        "Dybde_max_m": 20,
+        "Kilde_nivå": "Nivå 1",
+        "Adkomst": "Land; leider ved Dypvannskaia; parkering omtalt",
+        "Bunn_terreng": "Kran, togvogner og annet fra ras; mudder",
+        "Strøm_fare_forbehold": "Mudder krever god oppdriftskontroll",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "Krigstid: ras tok deler av kaianlegg",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – detaljert side",
+        "Kilde_IDer": "S23",
+        "Notater": null,
+        "source_urls": [
+          "https://www.dykkepedia.com/wiki/Krana_ved_Hommelvika"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.4375,
+          63.455417
+        ]
+      },
+      "properties": {
+        "ID": "W009",
+        "Navn": "Lade Lekteren",
+        "Område": "Lade, Trondheim",
+        "Kategori": "Lekter",
+        "Status": "Dyp vrakdykking",
+        "Dybde_min_m": 37,
+        "Dybde_max_m": 38,
+        "Kilde_nivå": null,
+        "Adkomst": "Båt",
+        "Bunn_terreng": "Ca. 20 x 3 m, god stand; last av mursteinslignende materiale",
+        "Strøm_fare_forbehold": "Ligger ved/over Perlen; ikke forstyrr bunn eller kulturminne",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "Gjenfunnet av Project Baseline/Blueye 16.09.2018",
+        "Vern_kulturminne": "Nær/over Perlen – kulturminnehensyn",
+        "Datakvalitet": "A/B – nyere funnhistorie + vrakside",
+        "Kilde_IDer": "S24;S27;S44",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Lade_Lekteren",
+          "https://dykkepedia.com/wiki/Perlen",
+          "https://www.ntnu.no/museum/kulturminner-under-vann"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.114031,
+          63.326172
+        ]
+      },
+      "properties": {
+        "ID": "W010",
+        "Navn": "Lekteren ved Børsa",
+        "Område": "Børsa",
+        "Kategori": "Lekter",
+        "Status": "Populært dypere klubbmål",
+        "Dybde_min_m": 24,
+        "Dybde_max_m": 45,
+        "Kilde_nivå": "Nivå 2",
+        "Adkomst": "Land/bil; gammel beskrivelse fra sammenrast kai",
+        "Bunn_terreng": "Intakt lekter; hekk grunnest; stålbjelker/skinner omtalt",
+        "Strøm_fare_forbehold": "Dybde varierer kraftig; gammel guide sier ferdighetsnivå må matche dybden",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "Antatt WWII-lekter; identitet usikker",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "A/B – detaljert vrakside",
+        "Kilde_IDer": "S25;S29",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Lekteren_ved_B%C3%B8rsa",
+          "https://dykkepedia.com/wiki/Vrak_tabell_fylke"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.39645,
+          63.451717
+        ]
+      },
+      "properties": {
+        "ID": "W011",
+        "Navn": "Munkholmen Lekteren",
+        "Område": "Øst for Munkholmen",
+        "Kategori": "Lekter",
+        "Status": "Dyp vrakdykking",
+        "Dybde_min_m": 38,
+        "Dybde_max_m": 38,
+        "Kilde_nivå": null,
+        "Adkomst": "Båt",
+        "Bunn_terreng": "25 x ca. 4 m; god stand; flat mudderbunn",
+        "Strøm_fare_forbehold": "38 m",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "Funnet med sidescan 13.08.2018; første dykk 19.08.2018",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "A/B – nyere funnhistorie",
+        "Kilde_IDer": "S26;S29",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Munkholmen_Lekteren",
+          "https://dykkepedia.com/wiki/Vrak_tabell_fylke"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.43884,
+          63.45498
+        ]
+      },
+      "properties": {
+        "ID": "W012",
+        "Navn": "Perlen",
+        "Område": "Lade/Kjerringberget",
+        "Kategori": "Historisk skipsvrak",
+        "Status": "Grunt, men sårbart kulturminne",
+        "Dybde_min_m": 16,
+        "Dybde_max_m": 20,
+        "Kilde_nivå": "Nivå 1",
+        "Adkomst": "Båt eller krevende landadkomst omtalt",
+        "Bunn_terreng": "Sterkt nedbrutt og begravd i mudder",
+        "Strøm_fare_forbehold": "Kulturminne – ikke flytt/ta opp noe",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "1700-talls fregatt; sank 15.03.1781 med murstein/rug; fire omkom ifølge kilden",
+        "Vern_kulturminne": ">100 år: kulturminneloven §14",
+        "Datakvalitet": "A – vrakside + lov",
+        "Kilde_IDer": "S27;S44;S45",
+        "Notater": "Nivå 1 er Dykkepedias etikett og sier ikke noe om kulturminnerisiko.",
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Perlen",
+          "https://www.ntnu.no/museum/kulturminner-under-vann",
+          "https://lovdata.no/nav/lov/1978-06-09-50/kapIV/%C2%A714"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.37318,
+          63.452221
+        ]
+      },
+      "properties": {
+        "ID": "W013",
+        "Navn": "Short Sunderland EJ138 / WH-Y",
+        "Område": "Vest for Munkholmen",
+        "Kategori": "Flyvrak",
+        "Status": "Teknisk / 57–72 m",
+        "Dybde_min_m": 57,
+        "Dybde_max_m": 72,
+        "Kilde_nivå": null,
+        "Adkomst": "Båt",
+        "Bunn_terreng": "God tilstand i indeks; stort sjøfly",
+        "Strøm_fare_forbehold": "57–72 m",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "RAF/norsk Short Sunderland Mk V; funnet under søk etter U 622",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "A/B – detaljert vrakside",
+        "Kilde_IDer": "S28;S29",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Short_Sunderland",
+          "https://dykkepedia.com/wiki/Vrak_tabell_fylke"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.971638,
+          64.018576
+        ]
+      },
+      "properties": {
+        "ID": "X007",
+        "Navn": "Moi",
+        "Område": "Stoksund/Åfjord",
+        "Kategori": "Skipsvrak",
+        "Status": "Utvidet kystmål",
+        "Dybde_min_m": 25,
+        "Dybde_max_m": 41,
+        "Kilde_nivå": null,
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "Fraktebåt, ca. 200 fot",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B/C – koordinert vrakindeks",
+        "Kilde_IDer": "S29;S30",
+        "Notater": "Nær V 5706-området.",
+        "source_urls": [
+          "https://dykkepedia.com/wiki/Vrak_tabell_fylke",
+          "https://dykkepedia.com/wiki/V_5706"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.965167,
+          64.01795
+        ]
+      },
+      "properties": {
+        "ID": "X015",
+        "Navn": "V 5706 Ostmark (Treff)",
+        "Område": "Stoksund/Åfjord",
+        "Kategori": "Skipsvrak",
+        "Status": "Utvidet kystmål",
+        "Dybde_min_m": 35,
+        "Dybde_max_m": 45,
+        "Kilde_nivå": "Nivå 3",
+        "Adkomst": "Båt",
+        "Bunn_terreng": "God stand; kanon, propell, daviter m.m.",
+        "Strøm_fare_forbehold": "Bøyeinfo fra 2018 er historisk og ikke egnet som nåstatus",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": "Hvalbåt/forpostbåt, bygget 1925, sank 16.06.1941",
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – detaljert vrakside",
+        "Kilde_IDer": "S30;S29",
+        "Notater": null,
+        "source_urls": [
+          "https://dykkepedia.com/wiki/V_5706",
+          "https://dykkepedia.com/wiki/Vrak_tabell_fylke"
+        ],
+        "verified_date": "2026-09-28"
+      }
+    }
