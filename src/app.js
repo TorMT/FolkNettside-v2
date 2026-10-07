@@ -1,31 +1,31 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {mountViewer} from "./viewer.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {loadContent} from "./content.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {renderResourceTree} from "./components/resource-tree.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {buildSearchIndex} from "./search/search-index.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {createSearchController} from "./components/search-dialog.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {activeTools} from "./tools/tool-registry.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {loadModelDocument} from "./model/load-model.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {mountModelScene} from "./model/model-scene.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=22b952292fde8dfad6dcea7458bc8f1b60a2cc21";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {mountViewer} from "./viewer.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {loadContent} from "./content.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {renderResourceTree} from "./components/resource-tree.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {buildSearchIndex} from "./search/search-index.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {createSearchController} from "./components/search-dialog.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {activeTools} from "./tools/tool-registry.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {loadModelDocument} from "./model/load-model.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {mountModelScene} from "./model/model-scene.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=10a29eb770e74cc9694d93d008ded421388d6f3d";
 
 initSettings();
 
@@ -41,6 +41,7 @@ let selectedComponentId=null;
 let engineeringMode="Model";
 let hydroDraft=Number(model.hydro?.defaultDraft??1.20);
 let hydroTargetTonnes="";
+let hydroKg="";
 let hydroCurveCache={model:null,data:null};
 let structureLoadKn=-20;
 let resistanceSpeedKn=10;
@@ -616,6 +617,7 @@ async function engineeringPage(){
         solveError:solvedState?.error||null,
         draft:hydroDraft,
         targetDisplacementTonnes:hydroTargetTonnes,
+        kg:hydroKg,
         geometryWarnings,
         config
       });
@@ -699,6 +701,7 @@ async function engineeringPage(){
   });
   app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
   app.querySelector("#hydro-draft")?.addEventListener("change",event=>{hydroDraft=Number(event.target.value)||0;engineeringPage()});
+  app.querySelector("#hydro-kg")?.addEventListener("change",event=>{hydroKg=event.target.value;engineeringPage()});
   app.querySelector("#hydro-solve")?.addEventListener("click",()=>{
     hydroTargetTonnes=app.querySelector("#hydro-target")?.value??"";engineeringPage();
   });
