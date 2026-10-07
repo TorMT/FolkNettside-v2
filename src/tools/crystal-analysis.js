@@ -1,4 +1,4 @@
-import {crystalPreset,crystalType,distance3} from "./crystal-structures-core.js?v=f3d774892c06685186973c87dab921f08453adf7";
+import {crystalPreset,crystalType,distance3} from "./crystal-structures-core.js?v=3addd6f7ca32031daa045b013932d00187968508";
 
 export const MANUAL_ATOMS={
   fe:{label:"Fe",species:"Fe",radius:.14,color:"#9aa6ad"},
