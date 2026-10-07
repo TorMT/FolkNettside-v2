@@ -1,8 +1,8 @@
-import {analyzeModelDocument} from "../hydro/hydrostatics.js?v=d40d94be989a292cf353b1b096cb4ff8d8459cbb";
-import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js?v=d40d94be989a292cf353b1b096cb4ff8d8459cbb";
-import {parseSTL} from "../model/parsers/stl.js?v=d40d94be989a292cf353b1b096cb4ff8d8459cbb";
-import {parse3MF} from "../model/parsers/three-mf.js?v=d40d94be989a292cf353b1b096cb4ff8d8459cbb";
-import {attitudeMatrix,transformedModelDocument} from "../model/transforms.js?v=d40d94be989a292cf353b1b096cb4ff8d8459cbb";
+import {analyzeModelDocument} from "../hydro/hydrostatics.js?v=f23ab9fab9baa23e553179d7b4acd29ca057fc5a";
+import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js?v=f23ab9fab9baa23e553179d7b4acd29ca057fc5a";
+import {parseSTL} from "../model/parsers/stl.js?v=f23ab9fab9baa23e553179d7b4acd29ca057fc5a";
+import {parse3MF} from "../model/parsers/three-mf.js?v=f23ab9fab9baa23e553179d7b4acd29ca057fc5a";
+import {attitudeMatrix,transformedModelDocument} from "../model/transforms.js?v=f23ab9fab9baa23e553179d7b4acd29ca057fc5a";
 
 export function modelFileKind(name){
   const ext=String(name||"").split(".").pop()?.toLowerCase();

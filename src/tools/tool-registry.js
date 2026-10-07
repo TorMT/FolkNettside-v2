@@ -89,10 +89,10 @@ export const TOOL_REGISTRY=[
     short:"IMG",
     route:"/settings/theme-studio/image",
     status:"prototype",
-    parity:"review",
+    parity:"full",
     legacyUrl:"https://tormt.folk.ntnu.no/Tools/image-to-theme.html",
     category:"Developer",
-    summary:"Image palette extraction, role assignment, auto-assign, preview and JSON/CSS/JS export migrated into Theme Studio.",
+    summary:"Browser-verified image palette extraction, role assignment, auto-assign, live preview and JSON/CSS/JS export in Theme Studio.",
     keywords:["image","theme","palette","colors","json","css","export"]
   }
 ];
