@@ -14,8 +14,19 @@ function entry({type,title,subtitle="",keywords=[],route,meta={}}){
   };
 }
 
-export function buildSearchIndex({semesters=[],projects=[],tools=[]}={}){
+export function buildSearchIndex({semesters=[],projects=[],tools=[],diverse=[]}={}){
   const entries=[];
+
+  for(const module of diverse){
+    entries.push(entry({
+      type:"diverse",
+      title:module.title,
+      subtitle:module.category||"Diverse",
+      keywords:[module.summary,module.status,module.short],
+      route:module.route||"/diverse",
+      meta:{moduleId:module.id,status:module.status,legacyUrl:module.legacyUrl||null}
+    }));
+  }
 
   for(const tool of tools){
     if(!tool.route)continue;
@@ -88,7 +99,7 @@ function scoreEntry(item,tokens,query){
     else if(subtitle.includes(token))score+=4;
     else score+=2;
   }
-  score+=item.type==="course"?3:item.type==="project"?2:item.type==="tool"?2:0;
+  score+=item.type==="course"?3:item.type==="project"?2:item.type==="tool"?2:item.type==="diverse"?2:0;
   return score;
 }
 
