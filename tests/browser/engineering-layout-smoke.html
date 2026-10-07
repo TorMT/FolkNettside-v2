@@ -22,7 +22,7 @@ const inspector=document.querySelector("#inspector");
 for(let i=0;i<90;i++) tree.insertAdjacentHTML("beforeend", `<div class="tree-row"><span>○</span>Component ${i+1}</div>`);
 for(let i=0;i<30;i++) inspector.insertAdjacentHTML("beforeend", `<div class="readout"><span>Field ${i+1}</span><strong>Value</strong></div>`);
 
-requestAnimationFrame(()=>{
+function runLayoutCheck(){
   const status=document.querySelector("#status");
   const statusRect=status.getBoundingClientRect();
   const bodyFits=document.documentElement.scrollHeight<=window.innerHeight+1;
@@ -39,7 +39,9 @@ requestAnimationFrame(()=>{
     innerHeight:window.innerHeight,
     statusBottom:statusRect.bottom
   });
-});
+}
+if(document.readyState==="complete")runLayoutCheck();
+else window.addEventListener("load",runLayoutCheck,{once:true});
 </script>
 </body>
 </html>
