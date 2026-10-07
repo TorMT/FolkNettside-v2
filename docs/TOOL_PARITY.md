@@ -42,16 +42,15 @@ Now also migrated:
 - searchable integrated help/reference notes covering overview, diagrams, phases, units, Air table reference and common errors
 - legacy P-T near-saturation / two-phase ambiguity warning
 
-Numerically verified:
-- Air Table A-22 reference alignment at 1000 K and 1 bar gives h = 1046.04 kJ/kg, u = 758.94 kJ/kg and s° = 2.96770 kJ/(kg·K) exactly;
-- table-reference conversion is bidirectional: PH input at 1 bar and h = 1046.04 kJ/kg returns 1000 K, and raw engine values remain available internally for process constants;
-- with Table Reference off, CoolProp remains on its default reference basis;
-- Water at 100 °C and 1.01325 bar raises the expected two-phase ambiguity warning;
-- deployed phase checks identify Water at 1 bar / 120 °C as Gas / superheated vapour and R134a at 0 °C / Q = 0.5 as Two-phase.
+Pending numerical reference verification:
+- confirm the Air book/table reference basis against the course table reference states, including the intended offsets for the affected thermodynamic properties;
+- verify that Table Reference ON reproduces the course-book values at known reference points while Table Reference OFF leaves native CoolProp values unchanged;
+- verify reverse calculations using shifted properties without corrupting the raw CoolProp basis used internally;
+- verify saturation and phase behavior with representative Water and R134a states, including two-phase inputs.
 
-The Table A-22 option is a constant reference-state shift, not a replacement ideal-gas table model. Away from the calibration state, small differences from the tabulated ideal-gas values can remain because CoolProp and Table A-22 use different property models/interpolation.
+The book/table option must remain a reference-state conversion around the native CoolProp calculation, not a replacement property model. Property differences must therefore remain invariant under the reference shift.
 
-Status: `full`. Functional coverage, reference conversion and representative saturation/phase behavior are deployed-browser verified. Legacy fallback remains temporarily for safety.
+Status: `review`. Functional/UI coverage is browser-verified, but mathematical correctness of the course-table/book-basis calibration and representative saturation/phase behavior must be numerically verified before promotion to `full`. Legacy fallback remains temporarily for safety.
 
 The legacy Table 4 mode is now explicitly migrated and regression-tested. Fully custom process input remains an optional improvement rather than a parity blocker.
 
