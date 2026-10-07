@@ -1,8 +1,8 @@
-import {extension} from "../viewers/utils.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
-import {parse3MF} from "./parsers/three-mf.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
-import {parseSTL} from "./parsers/stl.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
-import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
-import {parseGLB} from "./parsers/gltf.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
+import {extension} from "../viewers/utils.js?v=0484f09b3e21917a05552c5b92460bb5e370dd76";
+import {parse3MF} from "./parsers/three-mf.js?v=0484f09b3e21917a05552c5b92460bb5e370dd76";
+import {parseSTL} from "./parsers/stl.js?v=0484f09b3e21917a05552c5b92460bb5e370dd76";
+import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=0484f09b3e21917a05552c5b92460bb5e370dd76";
+import {parseGLB} from "./parsers/gltf.js?v=0484f09b3e21917a05552c5b92460bb5e370dd76";
 
 export function applyModelRules(documentModel,rules=[]){
   for(const component of documentModel.components){
@@ -46,5 +46,12 @@ export async function loadModelDocument(config){
     source:config.source||null
   });
   else throw new Error(`Unsupported engineering model format: .${ext}`);
+
+  if(config.defaultHydro!==undefined){
+    for(const component of documentModel.components){
+      if(!component.geometry)continue;
+      component.metadata={...(component.metadata||{}),hydro:Boolean(config.defaultHydro)};
+    }
+  }
   return applyModelRules(documentModel,config.componentRules);
 }

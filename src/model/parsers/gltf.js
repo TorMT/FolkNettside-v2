@@ -1,5 +1,5 @@
-import {createModelDocument} from "../model-document.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
-import {getGLTFRuntime} from "../three-runtime.js?v=fc8bcbd64da2cc56bfad209bef30171cadf1026b";
+import {createModelDocument} from "../model-document.js?v=0484f09b3e21917a05552c5b92460bb5e370dd76";
+import {getGLTFRuntime} from "../three-runtime.js?v=0484f09b3e21917a05552c5b92460bb5e370dd76";
 
 function identity(){
   return [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
@@ -12,16 +12,29 @@ export function gltfEngineeringPoint([x,y,z],coordinateSystem="gltf-y-up"){
 }
 
 export function gltfPartSemantic(part={}){
-  const node=String(part.node||"");
-  if(node==="part00")return {role:"hull",subsystem:"hydro",tags:["source-geometry"]};
-  if(node==="part01")return {role:"superstructure",subsystem:"vessel"};
-  if(node==="part19")return {role:"thruster",subtype:"azimuth",subsystem:"propulsion",tags:["port","stern"]};
-  if(node==="part20")return {role:"thruster",subtype:"azimuth",subsystem:"propulsion",tags:["starboard","stern"]};
-  if(node==="part23")return {role:"thruster",subtype:"tunnel",subsystem:"propulsion",tags:["bow"]};
+  const label=String(part.label||part.group||part.node||"").toLowerCase();
+  const groupKey=String(part.group_key||"").toLowerCase();
+  const sfiTag=part.sfi?`sfi-${part.sfi}`:null;
+
+  if(groupKey==="hull"||/hull and structure/.test(label)){
+    return {role:"hull",subsystem:"hydro",tags:["source-geometry",sfiTag].filter(Boolean)};
+  }
+  if(groupKey==="super"||/deckhouse|superstructure/.test(label)){
+    return {role:"superstructure",subsystem:"vessel",tags:[sfiTag].filter(Boolean)};
+  }
+  if(/azimuth/.test(label)){
+    const tags=[sfiTag,"stern"];
+    if(/port/.test(label))tags.push("port");
+    if(/starboard/.test(label))tags.push("starboard");
+    return {role:"thruster",subtype:"azimuth",subsystem:"propulsion",tags:tags.filter(Boolean)};
+  }
+  if(/tunnel thruster/.test(label)){
+    return {role:"thruster",subtype:"tunnel",subsystem:"propulsion",tags:[sfiTag,"bow"].filter(Boolean)};
+  }
   return {
     role:"component",
     subsystem:part.group_key||null,
-    tags:[part.sfi&&`sfi-${part.sfi}`].filter(Boolean)
+    tags:[sfiTag].filter(Boolean)
   };
 }
 
