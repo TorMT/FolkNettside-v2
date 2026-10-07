@@ -1,4 +1,4 @@
-import {diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveStats,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js?v=0c572609238258b358cd83accef2e828f95d7316";
+import {diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveStats,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js?v=b1312dbafff1965033da411a6ca48957dd011d26";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
