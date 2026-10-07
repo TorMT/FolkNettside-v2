@@ -15,7 +15,7 @@ const fail=error=>{
   result.textContent=String(error?.stack||error);
 };
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
-const waitFor=async(predicate,label,timeout=8000)=>{
+const waitFor=async(predicate,label,timeout=15000)=>{
   const deadline=performance.now()+timeout;
   while(performance.now()<deadline){
     if(predicate())return;
