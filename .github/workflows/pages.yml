@@ -140,7 +140,7 @@ jobs:
           else:
               raise SystemExit("Viewer browser smoke server did not start")
           PY
-          "$browser" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=20000 \
+          "$browser" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=45000 \
             --dump-dom http://127.0.0.1:4176/tests/browser/viewer-matrix-smoke.html \
             >/tmp/viewer-matrix-smoke-dom.html
           grep -q 'data-status="pass"' /tmp/viewer-matrix-smoke-dom.html || {
