@@ -47,3 +47,22 @@ test("Hydro panel renders attitude and solved-equilibrium diagnostics",()=>{
   assert.match(html,/equilibrium -1\.2345°/);
   assert.match(html,/residual 2\.00e-8 m/);
 });
+
+
+test("Hydro panel renders standard hydrostatic particulars and curve table",()=>{
+  const curve=[.5,1,1.5].map(draft=>({
+    waterline:draft,
+    volume:40*draft,
+    centerOfBuoyancy:[0,0,draft/2],
+    components:[{componentId:"hull"}],
+    waterplane:{area:40,centroid:[0,0],ixx:53.333333,iyy:333.333333,ixy:0}
+  }));
+  const rendered=panel({curve,kg:.6});
+  assert.match(rendered.summary,/TPC/);
+  assert.match(rendered.results,/LCF/);
+  assert.match(rendered.results,/Hydrostatic table/);
+  assert.match(rendered.results,/Displacement/);
+  assert.match(rendered.results,/GM transverse/);
+  assert.equal(rendered.curveRows.length,3);
+  assert.ok(rendered.particulars.tonnesPerCm>0);
+});
