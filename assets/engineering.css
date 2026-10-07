@@ -5,3 +5,4 @@
 .gz-metrics strong{font-size:12px;overflow-wrap:anywhere}
 @media(max-width:1100px){.gz-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.gz-metrics{grid-template-columns:1fr 1fr}.gz-metrics>div{padding:8px}}
+.hydro-export-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.hydro-export-row .btn{font-size:10px;padding:7px 10px}.hydro-export-row .btn:disabled{opacity:.45;cursor:not-allowed}
