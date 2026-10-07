@@ -262,18 +262,22 @@
   }
   .study-hero h1{font-size:36px}
   .study-hero p{font-size:14px;line-height:1.5}
+  .semester-navigation{padding:12px 0 0!important;overflow:hidden}
   .semester-tabs{
-    padding:9px 12px!important;
+    padding:0 12px!important;
     overflow-x:auto;
+    overflow-y:hidden;
     flex-wrap:nowrap!important;
-    scrollbar-width:none;
-    position:sticky;
-    top:52px;
-    z-index:30;
-    background:var(--surface);
-    border-bottom:1px solid var(--line);
+    scrollbar-width:none!important;
+    -ms-overflow-style:none;
+    position:static;
+    background:transparent;
+    border-bottom:0;
+    scroll-padding-inline:12px;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
   }
-  .semester-tabs::-webkit-scrollbar{display:none}
+  .semester-tabs::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
   .semester-tabs button{flex:0 0 auto;min-height:38px}
   .study-main{padding:20px 12px 30px!important}
   .course-grid{grid-template-columns:1fr!important;gap:10px}

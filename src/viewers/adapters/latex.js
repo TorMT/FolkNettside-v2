@@ -1,5 +1,5 @@
-import {escapeHTML,fetchText} from "../utils.js?v=1793abea10f9cca1f3354f6ec9c14feebaa6bac4";import {getKaTeX} from "../../vendor/katex.js?v=1793abea10f9cca1f3354f6ec9c14feebaa6bac4";
-import {createDomFinder} from "../dom-search.js?v=1793abea10f9cca1f3354f6ec9c14feebaa6bac4";
+import {escapeHTML,fetchText} from "../utils.js?v=e895f7ca9c051157bb1f7ebe63c70c655917a894";import {getKaTeX} from "../../vendor/katex.js?v=e895f7ca9c051157bb1f7ebe63c70c655917a894";
+import {createDomFinder} from "../dom-search.js?v=e895f7ca9c051157bb1f7ebe63c70c655917a894";
 function documentBody(source){const match=source.match(/\\begin\{document\}([\s\S]*?)\\end\{document\}/);return match?match[1]:source}
 export async function render(container,resource){
   const source=await fetchText(resource.path),katex=await getKaTeX(),body=documentBody(source),blocks=[];let last=0,match;
