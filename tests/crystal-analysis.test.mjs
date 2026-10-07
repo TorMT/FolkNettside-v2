@@ -4,7 +4,7 @@ import {replicateCrystal} from "../src/tools/crystal-structures-core.js";
 import {
   analyzeCrystal,applyCrystalEdits,bondPairs,bondPlaneCuts,closePackedPlaneSpecs,
   coordinationStats,firstShellCutoff,identifyCrystal,
-  coordinationPolyhedron,convexHullTriangles,nearestSitesToPoint,planeBoxPolygon,planeContactNetwork,
+  coordinationPolyhedron,convexHullTriangles,nearestSitesToPoint,periodicImageSites,planeBoxPolygon,planeContactNetwork,
   polyhedronEdges,sitesNearPlane,
   millerPlane,nearestSiteIndex,segmentPlaneIntersection
 } from "../src/tools/crystal-analysis.js";
@@ -152,6 +152,36 @@ test("octahedral coordination hull has eight triangular faces",()=>{
   const poly=coordinationPolyhedron(sites,[0,0,0],6);
   assert.equal(poly.points.length,6);
   assert.equal(poly.faces.length,8);
+  assert.equal(poly.valid,true);
+});
+
+test("coordination polyhedron rejects a mislabeled shell cardinality",()=>{
+  const corners=[];
+  for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1])corners.push({pos:[x,y,z]});
+  const poly=coordinationPolyhedron(corners,[0,0,0],6);
+  assert.equal(poly.shellSize,8);
+  assert.equal(poly.valid,false);
+});
+
+test("periodic image pool restores a complete FCC boundary octahedron",()=>{
+  const host=replicateCrystal("fcc");
+  const periodic=periodicImageSites(host,[[1,0,0],[0,1,0],[0,0,1]],{range:1});
+  const poly=coordinationPolyhedron(periodic,[.5,0,0],6);
+  assert.equal(poly.valid,true);
+  assert.equal(poly.shellSize,6);
+  assert.equal(poly.faces.length,8);
+  const d0=poly.distances[0];
+  for(const d of poly.distances)assert.ok(Math.abs(d-d0)<1e-10);
+});
+
+test("FCC close-packed plane specs pass through real host-lattice atoms",()=>{
+  const host=replicateCrystal("fcc");
+  for(const plane of closePackedPlaneSpecs("fcc")){
+    const network=planeContactNetwork(host,plane,1e-8,{distanceTolerance:.01});
+    assert.ok(network.siteIndices.length>=3,plane.label);
+    assert.ok(network.contacts.length>=3,plane.label);
+    assert.ok(Math.abs(network.nearestDistance-Math.SQRT1_2)<1e-10,plane.label);
+  }
 });
 
 test("plane box polygon clips a diagonal plane to the visible bounds",()=>{
