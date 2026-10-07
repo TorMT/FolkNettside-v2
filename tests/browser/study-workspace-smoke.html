@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Study workspace browser smoke</title></head>
+<body data-status="running">
+<div id="root"></div>
+<pre id="result">running</pre>
+<script type="module">
+import {mountViewer} from "../../src/viewers/viewer-shell.js";
+import {quizStorageKey} from "../../src/viewers/quiz-core.js";
+
+const root=document.querySelector("#root");
+const result=document.querySelector("#result");
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+const resource={
+  path:"../../examples/semesters/5/TMR4182/Quiz/hydro-basics.quiz.json",
+  relativePath:"Quiz/hydro-basics.quiz.json",
+  kind:"QUIZ",
+  name:"hydro-basics.quiz.json",
+  label:"Hydro basics fixture",
+  section:"Quiz",
+  source:"fixture",
+  semester:5,
+  courseCode:"TMR4182"
+};
+const click=selector=>{
+  const element=root.querySelector(selector);
+  assert(element,"Missing "+selector);
+  element.click();
+};
+
+try{
+  localStorage.removeItem(quizStorageKey(resource));
+  await mountViewer(root,resource,()=>{});
+
+  assert(root.querySelector(".quiz-view"),"Quiz did not render");
+  assert(root.querySelectorAll("[data-choice]").length===4,"Expected four choices");
+
+  click('[data-viewer-panel="info"]');
+  assert(!root.querySelector('[data-viewer-panel-content="info"]').hidden,"Info panel did not open");
+  assert(root.querySelector('[data-viewer-panel-content="file"]').hidden,"File panel did not hide");
+  assert(root.querySelector(".viewer-info-list")?.textContent.includes("TMR4182"),"Course provenance missing");
+
+  click('[data-viewer-panel="file"]');
+  click('[data-choice="2"]');
+  assert(root.querySelector(".quiz-feedback.correct"),"Correct feedback missing");
+  assert(root.querySelector('[data-quiz-jump="0"]').dataset.state==="correct","Question status not updated");
+
+  root.__viewerCleanup?.();
+  await mountViewer(root,resource,()=>{});
+  assert(root.querySelector(".quiz-feedback.correct"),"Quiz answer did not persist across remount");
+
+  click("#quiz-next");
+  click('[data-choice="0"]');
+  assert(root.querySelector(".quiz-feedback.wrong"),"Wrong feedback missing");
+  click("#quiz-finish");
+  assert(root.querySelector(".quiz-result")?.textContent.includes("50%"),"Expected 50% result");
+  assert(root.querySelector(".quiz-score-pill")?.textContent.includes("1/2"),"Expected 1/2 score");
+
+  click("#quiz-review");
+  assert(root.querySelector(".quiz-feedback.correct"),"Review mode did not restore first answer");
+
+  document.body.dataset.status="pass";
+  result.textContent="study-workspace-smoke: pass";
+}catch(error){
+  document.body.dataset.status="fail";
+  result.textContent=String(error?.stack||error);
+}
+</script>
+</body>
+</html>
