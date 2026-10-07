@@ -105,3 +105,32 @@ test("semantic thruster metadata supports azimuth and disabled components",()=>{
   near(thrusters[0].axis[0],0,1e-12);
   near(thrusters[0].axis[1],1,1e-12);
 });
+
+
+test("azimuth direction is resolved locally before component world rotation",()=>{
+  // 90 deg rotation about +Z: local +Y becomes world -X.
+  const rotateZ90=[
+    0,1,0,0,
+    -1,0,0,0,
+    0,0,1,0,
+    0,0,0,1
+  ];
+  const model={
+    unitScaleToMeters:1,
+    components:[{
+      id:"az-rot",name:"Rotated azimuth",transform:rotateZ90,
+      metadata:{semantic:{
+        role:"thruster",subtype:"azimuth",
+        thruster:{thrust:10000,azimuthDeg:90}
+      }}
+    }]
+  };
+  const [thruster]=thrustersFromModelDocument(model);
+  near(thruster.axis[0],-1,1e-12);
+  near(thruster.axis[1],0,1e-12);
+  assert.equal(thruster.azimuthDeg,null);
+
+  const system=analyzeThrusterSystem([thruster]);
+  near(system.totalForce[0],-10000,1e-8);
+  near(system.totalForce[1],0,1e-8);
+});
