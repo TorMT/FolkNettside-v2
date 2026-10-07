@@ -69,8 +69,8 @@ test("duplicate independent variables are rejected",()=>{
 
 test("phase descriptions are stable",()=>{
   assert.equal(phaseDescription("twophase"),"Two-phase");
-  assert.equal(phaseDescription("supercritical_gas"),"Supercritical");
-  assert.equal(phaseDescription("gas"),"Gas / superheated vapour");
+  assert.equal(phaseDescription("supercritical_gas"),"Supercritical gas");
+  assert.equal(phaseDescription("supercritical_liquid"),"Supercritical liquid");\n  assert.equal(phaseDescription("gas"),"Gas / superheated vapour");
   assert.equal(phaseDescription("liquid"),"Liquid / subcooled");
   assert.equal(phaseDescription(4),"Critical point");
   assert.equal(phaseDescription(5),"Gas / superheated vapour");
