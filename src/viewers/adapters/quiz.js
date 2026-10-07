@@ -1,4 +1,4 @@
-import {escapeHTML,fetchJSON} from "../utils.js?v=e3661dc11e4ff520d16528e0789e41e497492bbe";
+import {escapeHTML,fetchJSON} from "../utils.js?v=7d1a8bab5f6a8bf4b0d1cff94f9476e95533fd88";
 export async function render(container,resource){
   const data=await fetchJSON(resource.path),questions=Array.isArray(data.questions)?data.questions:[];let index=0,score=0,answered=false;
   function draw(){
