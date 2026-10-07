@@ -1,32 +1,32 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {mountViewer} from "./viewer.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {loadContent} from "./content.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {renderResourceTree} from "./components/resource-tree.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {buildSearchIndex} from "./search/search-index.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {createSearchController} from "./components/search-dialog.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {activeTools} from "./tools/tool-registry.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {loadModelDocument} from "./model/load-model.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {mountModelScene} from "./model/model-scene.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=380e9d0432f71953908a58630b8159100e439b22";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {mountViewer} from "./viewer.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {loadContent} from "./content.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {renderResourceTree} from "./components/resource-tree.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {buildSearchIndex} from "./search/search-index.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {createSearchController} from "./components/search-dialog.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {activeTools} from "./tools/tool-registry.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {loadModelDocument} from "./model/load-model.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {mountModelScene} from "./model/model-scene.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=ce7dc47e050078d6e3ae66ef31d711179881cb18";
 
 initSettings();
 
@@ -393,6 +393,15 @@ function depthFor(component,list){
   while(current?.parentId&&depth<20){depth++;current=byId.get(current.parentId)}
   return depth;
 }
+function engineeringRoleIcon(component){
+  const role=componentSemantic(component).role;
+  if(role==="assembly")return "▾";
+  if(role==="hull")return "◇";
+  if(role==="thruster")return "◎";
+  if(role==="structure")return "⌗";
+  if(role==="tank")return "▣";
+  return component.geometry?"○":"▾";
+}
 
 async function engineeringPage(){
   const renderId=++engineeringRenderId;
@@ -591,7 +600,9 @@ async function engineeringPage(){
   const documentModel=engineeringDocument;
   const uiComponents=documentModel.components;
   const diagnostics=analyzeModelDiagnostics(documentModel);
+  const semanticInfo=semanticSummary(documentModel);
   const selected=uiComponents.find(c=>c.id===selectedComponentId)||uiComponents.find(c=>c.geometry)||uiComponents[0];
+  const selectedSemantic=selected?componentSemantic(selected):null;
   const selectedDiagnostics=diagnostics.components.find(item=>item.componentId===selected?.id)||null;
   if(selected&&!selectedComponentId)selectedComponentId=selected.id;
 
@@ -601,6 +612,7 @@ async function engineeringPage(){
     const minWaterline=Number(config.minDraft??0);
     const maxWaterline=Number(config.maxDraft??10);
     const samples=Math.max(3,Number(config.curveSamples??9));
+    const density=Number(config.density)||1025;
     try{
       const analysisPromise=analyzeHydroAsync(documentModel,hydroDraft);
       const curvePromise=hydroCurveCache.model===documentModel&&hydroCurveCache.data
@@ -608,18 +620,25 @@ async function engineeringPage(){
         : hydroCurveAsync(documentModel,{minWaterline,maxWaterline,samples});
       let solvePromise=Promise.resolve(null);
       let gzPromise=Promise.resolve({value:null,error:null});
-      if(hydroGzRequested&&Number.isFinite(Number(hydroKg))){
-        const targetVolume=(Number(hydroTargetTonnes)>0)
-          ?Number(hydroTargetTonnes)*1000/(Number(config.density)||1025)
-          :null;
-        const referenceVolume=targetVolume||null;
+      let attitudePromise=Promise.resolve({value:null,error:null});
+
+      const target=Number(hydroTargetTonnes);
+      const targetVolume=Number.isFinite(target)&&target>0?target*1000/density:null;
+      const hasKg=hydroKg!==""&&Number.isFinite(Number(hydroKg));
+      const centerOfGravity=[
+        Number.isFinite(Number(hydroLcg))?Number(hydroLcg):0,
+        Number.isFinite(Number(hydroTcg))?Number(hydroTcg):0,
+        hasKg?Number(hydroKg):0
+      ];
+
+      if(hydroGzRequested&&hasKg){
         gzPromise=(async()=>{
           try{
-            const upright=referenceVolume??(await analysisPromise).volume;
+            const upright=targetVolume??(await analysisPromise).volume;
             const value=await gzCurveAsync(documentModel,{
               targetVolume:upright,
               kg:Number(hydroKg),
-              density:Number(config.density)||1025,
+              density,
               minHeel:-30,
               maxHeel:30,
               step:5,
@@ -632,14 +651,54 @@ async function engineeringPage(){
           }
         })();
       }
-      const target=Number(hydroTargetTonnes);
-      if(Number.isFinite(target)&&target>0){
-        const density=Number(config.density)||1025;
-        solvePromise=solveHydroDraftAsync(documentModel,target*1000/density,{
+
+      if(hydroAttitudeAction&&hasKg){
+        attitudePromise=(async()=>{
+          try{
+            const referenceVolume=targetVolume??(await analysisPromise).volume;
+            const common={
+              targetVolume:referenceVolume,
+              centerOfGravity,
+              density,
+              tolerance:1e-8,
+              maxIterations:80
+            };
+            let value;
+            if(hydroAttitudeAction==="heelEq"){
+              value=await solveAttitudeEquilibriumAsync(documentModel,{
+                ...common,axis:"heel",minAngle:-30,maxAngle:30,
+                trimDeg:Number(hydroTrim)||0,
+                angleTolerance:1e-5,leverTolerance:1e-7
+              });
+            }else if(hydroAttitudeAction==="trimEq"){
+              value=await solveAttitudeEquilibriumAsync(documentModel,{
+                ...common,axis:"trim",minAngle:-15,maxAngle:15,
+                heelDeg:Number(hydroHeel)||0,
+                angleTolerance:1e-5,leverTolerance:1e-7
+              });
+            }else{
+              value=await attitudeHydroAsync(documentModel,{
+                ...common,
+                heelDeg:Number(hydroHeel)||0,
+                trimDeg:Number(hydroTrim)||0
+              });
+            }
+            return {value,error:null};
+          }catch(error){
+            return {value:null,error:String(error?.message||error)};
+          }
+        })();
+      }
+
+      if(targetVolume){
+        solvePromise=solveHydroDraftAsync(documentModel,targetVolume,{
           minWaterline,maxWaterline,tolerance:1e-7,maxIterations:60
         }).then(value=>({value,error:null})).catch(error=>({value:null,error:String(error?.message||error)}));
       }
-      const [result,curve,solvedState,gzState]=await Promise.all([analysisPromise,curvePromise,solvePromise,gzPromise]);
+
+      const [result,curve,solvedState,gzState,attitudeState]=await Promise.all([
+        analysisPromise,curvePromise,solvePromise,gzPromise,attitudePromise
+      ]);
       if(renderId!==engineeringRenderId)return;
       hydroCurveCache={model:documentModel,data:curve};
       const includedIds=new Set(result.components.map(item=>item.componentId));
@@ -651,8 +710,15 @@ async function engineeringPage(){
         draft:hydroDraft,
         targetDisplacementTonnes:hydroTargetTonnes,
         kg:hydroKg,
+        lcg:hydroLcg,
+        tcg:hydroTcg,
+        heel:hydroHeel,
+        trim:hydroTrim,
         gz:gzState?.value||null,
         gzError:gzState?.error||null,
+        attitude:attitudeState?.value||null,
+        attitudeError:attitudeState?.error||null,
+        attitudeAction:hydroAttitudeAction,
         geometryWarnings,
         config
       });
