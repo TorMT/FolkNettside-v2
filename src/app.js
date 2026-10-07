@@ -1,31 +1,32 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {mountViewer} from "./viewer.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {loadContent} from "./content.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {renderResourceTree} from "./components/resource-tree.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {buildSearchIndex} from "./search/search-index.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {createSearchController} from "./components/search-dialog.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {activeTools} from "./tools/tool-registry.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {loadModelDocument} from "./model/load-model.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {mountModelScene} from "./model/model-scene.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {analyzeHydroAsync,gzCurveAsync,hydroCurveAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {mountViewer} from "./viewer.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {loadContent} from "./content.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {renderResourceTree} from "./components/resource-tree.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {buildSearchIndex} from "./search/search-index.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {createSearchController} from "./components/search-dialog.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {activeTools} from "./tools/tool-registry.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {loadModelDocument} from "./model/load-model.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {mountModelScene} from "./model/model-scene.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=380e9d0432f71953908a58630b8159100e439b22";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=380e9d0432f71953908a58630b8159100e439b22";
 
 initSettings();
 
@@ -42,7 +43,12 @@ let engineeringMode="Model";
 let hydroDraft=Number(model.hydro?.defaultDraft??1.20);
 let hydroTargetTonnes="";
 let hydroKg="";
+let hydroLcg="";
+let hydroTcg="";
+let hydroHeel=0;
+let hydroTrim=0;
 let hydroGzRequested=false;
+let hydroAttitudeAction="";
 let hydroCurveCache={model:null,data:null};
 let structureLoadKn=-20;
 let resistanceSpeedKn=10;
@@ -66,7 +72,7 @@ function getEngineeringDocument(){
     engineeringDocumentPromise=loadModelDocument(model).then(documentModel=>{
       engineeringDocument=documentModel;
       selectedComponentId=selectedComponentId
-        || documentModel.components.find(component=>component.type==="hull"&&component.geometry)?.id
+        || documentModel.components.find(component=>componentSemantic(component).role==="hull"&&component.geometry)?.id
         || documentModel.components.find(component=>component.geometry)?.id
         || documentModel.components[0]?.id
         || null;
@@ -473,9 +479,10 @@ async function engineeringPage(){
       ]);
       if(renderId!==engineeringRenderId)return;
 
-      const thrusters=documentModel?.components?.filter(component=>component.type==="thruster")||[];
+      const thrusters=documentModel?semanticComponents(documentModel,{role:"thruster"}).map(node=>node.component):[];
       const sourceThruster=thrusters.find(component=>component.id===selectedComponentId)||thrusters[0]||null;
-      const sourceCase=sourceThruster?.metadata?.propulsion||{};
+      const sourceSemantic=sourceThruster?componentSemantic(sourceThruster):null;
+      const sourceCase=sourceSemantic?.thruster||{};
       if(!propulsionInitialized){
         propulsionThrustKn=Number(sourceCase.thrust??fixture.thrust)/1000;
         propulsionInflow=Number(sourceCase.inflowSpeed??fixture.inflowSpeed);
@@ -516,7 +523,7 @@ async function engineeringPage(){
         </div></div>
         <aside class="tree">
           <div class="tree-label">Thruster components</div>
-          ${thrusters.length?thrusters.map(component=>`<div class="tree-row ${component.id===sourceThruster?.id?"selected":""}" data-propulsion-component="${component.id}"><span>◎</span>${component.name}</div>`).join(""):'<div class="tree-row"><span>○</span>No tagged thruster</div>'}
+          ${thrusters.length?thrusters.map(component=>{const semantic=componentSemantic(component);return `<div class="tree-row ${component.id===sourceThruster?.id?"selected":""}" data-propulsion-component="${component.id}"><span>◎</span><span class="tree-row-copy">${component.name}<small>${semantic.subtype||semantic.role}</small></span></div>`}).join(""):'<div class="tree-row"><span>○</span>No tagged thruster</div>'}
           <div class="tree-label">Method</div>
           <div class="tree-row selected"><span>≈</span>Ideal actuator disk</div>
           <div class="tree-row"><span>Σ</span>Rigid-body force/moment <span class="muted">${system?.thrusters.length||0} thruster(s)</span></div>
