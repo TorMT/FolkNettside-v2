@@ -7,8 +7,8 @@ import {parseGLB} from "./parsers/gltf.js";
 export function applyModelRules(documentModel,rules=[]){
   for(const component of documentModel.components){
     for(const rule of rules){
-      const subject=[component.name,component.sourceObjectId].filter(Boolean).join(" ");
-      if(!new RegExp(rule.match,"i").test(subject))continue;
+      const matcher=new RegExp(rule.match,"i");
+      if(![component.name,component.sourceObjectId].filter(Boolean).some(value=>matcher.test(String(value))))continue;
       if(rule.type)component.type=rule.type;
       component.metadata={
         ...component.metadata,
