@@ -1,4 +1,4 @@
-import {actuatorDisk} from "./actuator-disk.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {actuatorDisk} from "./actuator-disk.js?v=6e5390c2179306a1067152159265834028535831";
 
 const EPS=1e-12;
 const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];

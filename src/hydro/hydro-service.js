@@ -1,6 +1,6 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
-import {createHydroInclude} from "./hydro-selection.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
-import {gzCurve} from "./gz.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=6e5390c2179306a1067152159265834028535831";
+import {createHydroInclude} from "./hydro-selection.js?v=6e5390c2179306a1067152159265834028535831";
+import {gzCurve} from "./gz.js?v=6e5390c2179306a1067152159265834028535831";
 
 export function executeHydroRequest(modelDocument,type,payload={}){
   if(!modelDocument)throw new Error("Hydro service has no model loaded");

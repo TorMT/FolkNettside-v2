@@ -1,4 +1,4 @@
-import {localVideoProgress} from "../../video/progress-store.js?v=04b35147e65e3b44da99ddf4a7d4525d7c57c375";
+import {localVideoProgress} from "../../video/progress-store.js?v=6e5390c2179306a1067152159265834028535831";
 
 export async function render(container,resource){
   const wrap=document.createElement("div");
