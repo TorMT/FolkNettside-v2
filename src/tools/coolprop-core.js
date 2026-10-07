@@ -162,13 +162,29 @@ export function outputFromSI(param,value,units={}){
   return v;
 }
 
+export const COOLPROP_PHASE_INDEX={
+  0:"liquid",
+  1:"supercritical",
+  2:"supercritical_gas",
+  3:"supercritical_liquid",
+  4:"critical_point",
+  5:"gas",
+  6:"twophase",
+  7:"unknown",
+  8:"not_imposed"
+};
+
 export function phaseDescription(raw){
-  const phase=String(raw||"").toLowerCase();
-  if(phase.includes("twophase"))return "Two-phase";
-  if(phase.includes("supercritical"))return "Supercritical";
-  if(phase.includes("gas"))return "Gas / superheated vapour";
-  if(phase.includes("liquid"))return "Liquid / subcooled";
-  return raw?String(raw):"Unknown";
+  const numeric=Number(raw);
+  const normalized=Number.isFinite(numeric)&&String(raw).trim()!==""?
+    (COOLPROP_PHASE_INDEX[Math.round(numeric)]||"unknown"):
+    String(raw||"").toLowerCase();
+  if(normalized.includes("twophase"))return "Two-phase";
+  if(normalized.includes("critical_point"))return "Critical point";
+  if(normalized.includes("supercritical"))return "Supercritical";
+  if(normalized.includes("gas"))return "Gas / superheated vapour";
+  if(normalized.includes("liquid"))return "Liquid / subcooled";
+  return normalized&&normalized!=="unknown"&&normalized!=="not_imposed"?String(raw):"Unknown";
 }
 
 export function tableReferenceProfile(fluid){
@@ -273,6 +289,12 @@ export function computeStateSI(engine,{
   if(engine.phaseSI){
     try{
       phaseRaw=engine.phaseSI(input1,value1SI,input2,value2SI,fluid);
+      phase=phaseDescription(phaseRaw);
+    }catch{}
+  }
+  if(phase==="Unknown"){
+    try{
+      phaseRaw=engine.propsSI("Phase",input1,value1SI,input2,value2SI,fluid);
       phase=phaseDescription(phaseRaw);
     }catch{}
   }
