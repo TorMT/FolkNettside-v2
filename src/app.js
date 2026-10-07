@@ -732,10 +732,13 @@ async function engineeringPage(){
     }
   }
 
+  const semanticRoleText=Object.entries(semanticInfo.roles)
+    .map(([role,count])=>`${role} ${count}`).join(" · ")||"unclassified";
   const inspector=hydro?hydro.inspector:`
     <h3>Properties</h3>
     <div class="readout"><span>Component</span><strong id="prop-component">${selected?.name||"—"}</strong></div>
-    <div class="readout"><span>Role</span><strong id="prop-role">${selected?.type||"—"}</strong></div>
+    <div class="readout"><span>Semantic role</span><strong id="prop-role">${selectedSemantic?.subtype||selectedSemantic?.role||selected?.type||"—"}</strong></div>
+    <div class="readout"><span>Subsystem</span><strong id="prop-subsystem">${selectedSemantic?.subsystem||"—"}</strong></div>
     <div class="readout"><span>Source ID</span><strong id="prop-source">${selected?.sourceObjectId||"—"}</strong></div>
     <div class="readout"><span>Units</span><strong>${documentModel.unit}</strong></div>
     ${selectedDiagnostics?`
@@ -747,8 +750,9 @@ async function engineeringPage(){
     `:""}`;
   const summary=hydro?hydro.summary:`
     <strong>Model summary</strong>
-    <div class="readout"><span>Components</span><strong>${uiComponents.length}</strong></div>
-    <div class="readout"><span>Geometry nodes</span><strong>${diagnostics.geometryComponents}</strong></div>
+    <div class="readout"><span>Components</span><strong>${semanticInfo.components}</strong></div>
+    <div class="readout"><span>Geometry nodes</span><strong>${semanticInfo.geometryComponents}</strong></div>
+    <div class="readout"><span>Roles</span><strong class="semantic-summary">${semanticRoleText}</strong></div>
     <div class="readout"><span>Triangles</span><strong>${diagnostics.triangles}</strong></div>
     <div class="readout"><span>Topology</span><strong class="${diagnostics.watertight?"status-ok":"status-warn"}">${diagnostics.watertight?"Watertight":"Check geometry"}</strong></div>
     <div class="readout"><span>Size</span><strong>${diagnostics.bounds.size.map(v=>v.toFixed(3)).join(" × ")} m</strong></div>
@@ -760,14 +764,19 @@ async function engineeringPage(){
     <div class="workspace-bar"><strong>${documentModel.name}</strong><div class="mode-tabs">
       ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
     </div></div>
-    <aside class="tree"><input id="component-filter" placeholder="Filter components"><div class="tree-label">Components</div>
-      <div id="component-tree">${uiComponents.map(c=>`<div class="tree-row ${c.id===selectedComponentId?"selected":""}" data-component="${c.id}" data-component-name="${c.name.toLowerCase()}" style="padding-left:${8+depthFor(c,uiComponents)*16}px">${c.geometry?"○":"▾"} ${c.name}</div>`).join("")}</div>
+    <aside class="tree"><input id="component-filter" placeholder="Filter name, role or subsystem"><div class="tree-label">Semantic assembly</div>
+      <div id="component-tree">${uiComponents.map(component=>{
+        const semantic=componentSemantic(component);
+        const semanticLabel=semantic.subtype||semantic.role||component.type;
+        const searchable=[component.name,semantic.role,semantic.subtype,semantic.subsystem,...semantic.tags].filter(Boolean).join(" ").toLowerCase();
+        return `<div class="tree-row ${component.id===selectedComponentId?"selected":""}" data-component="${component.id}" data-component-name="${searchable}" style="padding-left:${8+depthFor(component,uiComponents)*16}px"><span class="tree-role-icon">${engineeringRoleIcon(component)}</span><span class="tree-row-copy">${component.name}<small>${semanticLabel}${semantic.subsystem?` · ${semantic.subsystem}`:""}</small></span></div>`;
+      }).join("")}</div>
     </aside>
-    <section class="viewport"><div id="engineering-scene" class="engineering-scene"></div><div class="hud">${engineeringMode==="Hydro"?"Hydro · imported geometry":"Selected: "+(selected?.name||"—")}</div>${waterline}</section>
+    <section class="viewport"><div id="engineering-scene" class="engineering-scene"></div><div class="hud">${engineeringMode==="Hydro"?"Hydro · semantic hull selection":"Selected: "+(selected?.name||"—")}</div>${waterline}</section>
     <aside class="inspector">${inspector}</aside>
     <section class="results"><div class="results-summary">${summary}</div>${resultContent}</section>
-    <footer class="statusbar"><span>Units SI</span><span>Source ${documentModel.unit}</span><span>Mode ${engineeringMode}</span><span class="top-spacer"></span><span>Ready</span></footer>
-  </main><div class="preview-badge">${engineeringMode==="Hydro"?"Hydro · ModelDocument":"Shared ModelDocument"}</div>`;
+    <footer class="statusbar"><span>Units SI</span><span>Source ${documentModel.unit}</span><span>Mode ${engineeringMode}</span><span>Semantic ModelDocument</span><span class="top-spacer"></span><span>Ready</span></footer>
+  </main><div class="preview-badge">${engineeringMode==="Hydro"?"Hydro · stability workspace":"Semantic ModelDocument"}</div>`;
 
   bindNav();
   let sceneHandle=null;
@@ -775,9 +784,14 @@ async function engineeringPage(){
     if(!component)return;
     selectedComponentId=component.id;
     app.querySelectorAll("[data-component]").forEach(row=>row.classList.toggle("selected",row.dataset.component===component.id));
-    const name=app.querySelector("#prop-component"),role=app.querySelector("#prop-role"),source=app.querySelector("#prop-source");
+    const semantic=componentSemantic(component);
+    const name=app.querySelector("#prop-component");
+    const role=app.querySelector("#prop-role");
+    const subsystem=app.querySelector("#prop-subsystem");
+    const source=app.querySelector("#prop-source");
     if(name)name.textContent=component.name;
-    if(role)role.textContent=component.type;
+    if(role)role.textContent=semantic.subtype||semantic.role||component.type;
+    if(subsystem)subsystem.textContent=semantic.subsystem||"—";
     if(source)source.textContent=component.sourceObjectId||"—";
   };
 
@@ -801,19 +815,61 @@ async function engineeringPage(){
     app.querySelectorAll("[data-component]").forEach(row=>row.hidden=query&&!row.dataset.componentName.includes(query));
   });
   app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
-  app.querySelector("#hydro-draft")?.addEventListener("change",event=>{hydroDraft=Number(event.target.value)||0;engineeringPage()});
-  app.querySelector("#hydro-kg")?.addEventListener("change",event=>{hydroKg=event.target.value;hydroGzRequested=false;engineeringPage()});
+
+  const readHydroCaseInputs=()=>{
+    hydroTargetTonnes=app.querySelector("#hydro-target")?.value??hydroTargetTonnes;
+    hydroKg=app.querySelector("#hydro-kg")?.value??hydroKg;
+    hydroLcg=app.querySelector("#hydro-lcg")?.value??hydroLcg;
+    hydroTcg=app.querySelector("#hydro-tcg")?.value??hydroTcg;
+    hydroHeel=Number(app.querySelector("#hydro-heel")?.value??hydroHeel)||0;
+    hydroTrim=Number(app.querySelector("#hydro-trim")?.value??hydroTrim)||0;
+  };
+
+  app.querySelector("#hydro-draft")?.addEventListener("change",event=>{
+    hydroDraft=Number(event.target.value)||0;
+    hydroAttitudeAction="";
+    engineeringPage();
+  });
+  for(const selector of ["#hydro-kg","#hydro-lcg","#hydro-tcg","#hydro-heel","#hydro-trim"]){
+    app.querySelector(selector)?.addEventListener("change",()=>{
+      readHydroCaseInputs();
+      hydroGzRequested=false;
+      hydroAttitudeAction="";
+      engineeringPage();
+    });
+  }
   app.querySelector("#hydro-solve")?.addEventListener("click",()=>{
-    hydroTargetTonnes=app.querySelector("#hydro-target")?.value??"";hydroGzRequested=false;engineeringPage();
+    readHydroCaseInputs();
+    hydroGzRequested=false;
+    hydroAttitudeAction="";
+    engineeringPage();
   });
   app.querySelector("#hydro-gz")?.addEventListener("click",()=>{
-    hydroKg=app.querySelector("#hydro-kg")?.value??hydroKg;
-    hydroTargetTonnes=app.querySelector("#hydro-target")?.value??hydroTargetTonnes;
+    readHydroCaseInputs();
     hydroGzRequested=true;
     engineeringPage();
   });
+  app.querySelector("#hydro-attitude")?.addEventListener("click",()=>{
+    readHydroCaseInputs();
+    hydroAttitudeAction="analyze";
+    engineeringPage();
+  });
+  app.querySelector("#hydro-equilibrium-heel")?.addEventListener("click",()=>{
+    readHydroCaseInputs();
+    hydroAttitudeAction="heelEq";
+    engineeringPage();
+  });
+  app.querySelector("#hydro-equilibrium-trim")?.addEventListener("click",()=>{
+    readHydroCaseInputs();
+    hydroAttitudeAction="trimEq";
+    engineeringPage();
+  });
   app.querySelector("#hydro-target")?.addEventListener("keydown",event=>{
-    if(event.key==="Enter"){hydroTargetTonnes=event.currentTarget.value;engineeringPage()}
+    if(event.key==="Enter"){
+      readHydroCaseInputs();
+      hydroAttitudeAction="";
+      engineeringPage();
+    }
   });
 }
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
