@@ -193,7 +193,7 @@ function blockedEngineeringWorkspaceHTML(documentModel,mode,capability){
   </main><div class="preview-badge">${mode} · capability gated</div>`;
 }
 
-function bindBlockedEngineeringWorkspace(documentModel,renderId){
+function bindBlockedEngineeringWorkspace(documentModel,renderId,mode,capability){
   bindNav();
   bindEngineeringModelSelector();
   bindEngineeringCaseExport(blockedEngineeringReport(documentModel,mode,capability));
@@ -650,7 +650,7 @@ async function engineeringPage(){
         const documentModel=await getEngineeringDocument();
         if(renderId!==engineeringRenderId)return;
         app.innerHTML=top("engineering")+blockedEngineeringWorkspaceHTML(documentModel,"Structure",capability);
-        bindBlockedEngineeringWorkspace(documentModel,renderId);
+        bindBlockedEngineeringWorkspace(documentModel,renderId,"Structure",capability);
         return;
       }
 
@@ -706,7 +706,7 @@ async function engineeringPage(){
         const documentModel=await getEngineeringDocument();
         if(renderId!==engineeringRenderId)return;
         app.innerHTML=top("engineering")+blockedEngineeringWorkspaceHTML(documentModel,"Resistance",capability);
-        bindBlockedEngineeringWorkspace(documentModel,renderId);
+        bindBlockedEngineeringWorkspace(documentModel,renderId,"Resistance",capability);
         return;
       }
 
