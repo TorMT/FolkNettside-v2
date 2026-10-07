@@ -9,6 +9,8 @@ function statusLabel(status){
   if(status==="native")return "Native v2";
   if(status==="superseded")return "Moved into v2";
   if(status==="migration")return "Migrating";
+  if(status==="preserved")return "Preserved demo";
+  if(status==="repair")return "Repair needed";
   return "Review";
 }
 
@@ -39,7 +41,7 @@ export function diversePageHTML(){
           </div>
           <div class="diverse-card-actions">
             ${module.route?`<button class="btn primary" data-go="${module.route}">Open v2</button>`:""}
-            ${module.legacyUrl?`<a class="btn" href="${module.legacyUrl}" target="_blank" rel="noopener">Legacy reference</a>`:""}
+            ${module.legacyUrl?`<a class="btn" href="${module.legacyUrl}" target="_blank" rel="noopener">${module.status==="preserved"?"Open demo":module.status==="repair"?"Inspect legacy files":"Legacy reference"}</a>`:""}
           </div>
         </article>`;
       }).join("")}
