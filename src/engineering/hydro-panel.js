@@ -1,4 +1,4 @@
-import {initialStability} from "../hydro/stability.js?v=5847de308f81a28abf005e6bee53d1782423cc42";
+import {initialStability} from "../hydro/stability.js?v=c03c70dcb49fcc45d104ab6ee046acb51c1b0fd2";
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
 }
@@ -47,8 +47,15 @@ export function hydroPanelHTML({
   draft,
   targetDisplacementTonnes="",
   kg="",
+  lcg="",
+  tcg="",
+  heel=0,
+  trim=0,
   gz=null,
   gzError=null,
+  attitude=null,
+  attitudeError=null,
+  attitudeAction="",
   geometryWarnings=[],
   config={}
 }){
@@ -70,13 +77,39 @@ export function hydroPanelHTML({
       <div class="readout"><span>Source</span><strong>${esc(modelDocument.name)}</strong></div>
       <div class="readout"><span>Included geometry</span><strong>${result.components.length} component(s)</strong></div>
       <div class="hydro-solver">
-        <label class="field"><span>KG for initial stability</span><div><input id="hydro-kg" type="number" step="0.01" value="${esc(kg)}" placeholder="optional"><span> m</span></div></label>
+        <div class="hydro-section-label">Loading condition</div>
         <label class="field"><span>Target displacement</span><div><input id="hydro-target" type="number" min="0" step="0.1" value="${esc(targetDisplacementTonnes)}"><span> t</span></div></label>
         <button class="btn" id="hydro-solve">Solve draft</button>
-        <button class="btn" id="hydro-gz" ${kg===""?"disabled":""}>Compute GZ</button>
         ${solvedText?`<p class="hydro-solve-result">Draft: <strong>${solvedText}</strong></p>`:""}
         ${solveError?`<p class="hydro-solve-error">${esc(solveError)}</p>`:""}
+
+        <div class="hydro-section-label">Centre of gravity</div>
+        <div class="hydro-cg-grid">
+          <label><span>LCG · x</span><input id="hydro-lcg" type="number" step="0.01" value="${esc(lcg)}" placeholder="0"></label>
+          <label><span>TCG · y</span><input id="hydro-tcg" type="number" step="0.01" value="${esc(tcg)}" placeholder="0"></label>
+          <label><span>KG · z</span><input id="hydro-kg" type="number" step="0.01" value="${esc(kg)}" placeholder="required"></label>
+        </div>
+
+        <div class="hydro-section-label">Attitude</div>
+        <div class="hydro-attitude-grid">
+          <label><span>Heel</span><div><input id="hydro-heel" type="number" step="0.5" value="${esc(heel)}"><span>°</span></div></label>
+          <label><span>Trim</span><div><input id="hydro-trim" type="number" step="0.25" value="${esc(trim)}"><span>°</span></div></label>
+        </div>
+        <div class="hydro-action-grid">
+          <button class="btn" id="hydro-attitude" ${kg===""?"disabled":""}>Analyze attitude</button>
+          <button class="btn" id="hydro-gz" ${kg===""?"disabled":""}>GZ curve</button>
+          <button class="btn" id="hydro-equilibrium-heel" ${kg===""?"disabled":""}>Solve heel</button>
+          <button class="btn" id="hydro-equilibrium-trim" ${kg===""?"disabled":""}>Solve trim</button>
+        </div>
         ${gzError?`<p class="hydro-solve-error">${esc(gzError)}</p>`:""}
+        ${attitudeError?`<p class="hydro-solve-error">${esc(attitudeError)}</p>`:""}
+        ${attitude?`<div class="hydro-attitude-result">
+          <strong>${attitudeAction==="heelEq"?"Heel equilibrium":attitudeAction==="trimEq"?"Trim equilibrium":"Attitude result"}</strong>
+          <span>heel ${Number(attitude.heelDeg).toFixed(3)}° · trim ${Number(attitude.trimDeg).toFixed(3)}°</span>
+          <span>draft ${Number(attitude.waterline).toFixed(4)} m · CB (${attitude.centerOfBuoyancy.map(v=>Number(v).toFixed(3)).join(", ")}) m</span>
+          <span>roll arm ${Number(attitude.rollLever).toFixed(5)} m · pitch arm ${Number(attitude.pitchLever).toFixed(5)} m</span>
+          ${Number.isFinite(Number(attitude.equilibriumAngle))?`<span>equilibrium ${Number(attitude.equilibriumAngle).toFixed(4)}° · residual ${Number(attitude.residual).toExponential(2)} m</span>`:""}
+        </div>`:""}
       </div>
       ${geometryWarnings.length?`<div class="geometry-warning"><strong>Geometry warning</strong><span>${geometryWarnings.length} included component(s) are not watertight. Hydro results may be invalid.</span></div>`:""}
       <p class="muted hydro-note">Calculations run in a Web Worker from imported ModelDocument geometry in world-space metres.</p>
