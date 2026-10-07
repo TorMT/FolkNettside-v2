@@ -79,7 +79,8 @@ export function answerQuestion(quiz,attempt,index,choice){
   next.answers=[...next.answers];
   next.answers[index]=numeric;
   next.current=index;
-  next.completed=next.answers.every(value=>value!==null);
+  // Completion is explicit so the final question can show its feedback before results.
+  next.completed=false;
   next.updatedAt=Date.now();
   return next;
 }

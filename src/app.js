@@ -1,32 +1,33 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {mountViewer} from "./viewer.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {loadContent} from "./content.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {renderResourceTree} from "./components/resource-tree.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {buildSearchIndex} from "./search/search-index.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {createSearchController} from "./components/search-dialog.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {activeTools} from "./tools/tool-registry.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {loadModelDocument} from "./model/load-model.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {mountModelScene} from "./model/model-scene.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=d71d2fb13620dbcdd6640a1a0706bb1ec5e4e58b";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {mountViewer} from "./viewer.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {loadContent} from "./content.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {renderResourceTree} from "./components/resource-tree.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {hydroPanelHTML} from "./engineering/hydro-panel.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {buildSearchIndex} from "./search/search-index.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {createSearchController} from "./components/search-dialog.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {activeTools} from "./tools/tool-registry.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {loadModelDocument} from "./model/load-model.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {mountModelScene} from "./model/model-scene.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=4f96120049cd91bc89369b363db6c9d63719a367";
 
 initSettings();
 
@@ -86,9 +87,23 @@ function getEngineeringDocument(){
   return engineeringDocumentPromise;
 }
 
+function engineeringModelReadinessLabel(item){
+  const names=["hydro","structure","resistance","propulsion"];
+  const ready=names.filter(name=>analysisCapability(item,name).enabled).length;
+  if(ready===names.length)return "all analyses ready";
+  if(ready===0)return "visual only";
+  return `${ready}/${names.length} analyses ready`;
+}
+
 function engineeringModelSelectHTML(){
   if(engineeringModels.length<2)return "";
-  return `<label class="engineering-model-select"><span>Model</span><select id="engineering-model-select">${engineeringModels.map(item=>`<option value="${item.id}" ${item.id===engineeringModelId?"selected":""}>${item.label||item.name}</option>`).join("")}</select></label>`;
+  const capability=engineeringMode==="Model"
+    ?analysisCapability(model,"model")
+    :analysisCapability(model,engineeringMode.toLowerCase());
+  return `<div class="engineering-model-control">
+    <label class="engineering-model-select"><span>Model</span><select id="engineering-model-select">${engineeringModels.map(item=>`<option value="${item.id}" ${item.id===engineeringModelId?"selected":""}>${item.label||item.name} · ${engineeringModelReadinessLabel(item)}</option>`).join("")}</select></label>
+    <span class="engineering-mode-capability ${capability.enabled?"ready":"blocked"}">${capabilityLabel(capability)}</span>
+  </div>`;
 }
 
 function selectEngineeringModel(id){
@@ -117,6 +132,50 @@ function selectEngineeringModel(id){
 function bindEngineeringModelSelector(){
   app.querySelector("#engineering-model-select")?.addEventListener("change",event=>{
     if(selectEngineeringModel(event.currentTarget.value))engineeringPage();
+  });
+}
+
+function blockedEngineeringWorkspaceHTML(documentModel,mode,capability){
+  const requirements=capability.requirements?.length
+    ?`<div class="engineering-requirements"><strong>Required before analysis</strong><ul>${capability.requirements.map(item=>`<li>${item}</li>`).join("")}</ul></div>`
+    :"";
+  return `<main class="workspace">
+    <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
+      ${["Model","Hydro","Structure","Resistance","Propulsion"].map(item=>`<button data-engineering-mode="${item}" class="${mode===item?"active":""}">${item}</button>`).join("")}
+    </div></div>
+    <aside class="tree">
+      <div class="tree-label">Analysis capability</div>
+      <div class="tree-row selected"><span>!</span><span class="tree-row-copy">${mode}<small>${capabilityLabel(capability)}</small></span></div>
+      <div class="tree-label">Model source</div>
+      <div class="tree-row"><span>◇</span><span class="tree-row-copy">${model.name}<small>${model.source?.datasetVersion?"dataset "+model.source.datasetVersion:"configured model"}</small></span></div>
+    </aside>
+    <section class="viewport"><div id="engineering-scene" class="engineering-scene"></div><div class="hud">${mode} · sourced geometry only</div></section>
+    <aside class="inspector">
+      <h3>${mode} unavailable</h3>
+      <div class="readout"><span>Status</span><strong class="status-warn">${capabilityLabel(capability)}</strong></div>
+      <p class="muted hydro-note">${capability.reason||"This analysis is not configured for the selected model."}</p>
+      ${requirements}
+    </aside>
+    <section class="results">
+      <div class="results-summary"><strong>No fabricated result</strong><div class="readout"><span>Model</span><strong>${documentModel.name}</strong></div></div>
+      <div class="engineering-empty-analysis"><strong>${mode} is capability-gated</strong><p>${capability.reason||"Required analysis inputs are not available."}</p></div>
+    </section>
+    <footer class="statusbar"><span>Units SI</span><span>${capabilityLabel(capability)}</span><span>Mode ${mode}</span><span class="top-spacer"></span><span>Sourced geometry</span></footer>
+  </main><div class="preview-badge">${mode} · capability gated</div>`;
+}
+
+function bindBlockedEngineeringWorkspace(documentModel,renderId){
+  bindNav();
+  bindEngineeringModelSelector();
+  app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
+  mountModelScene(app.querySelector("#engineering-scene"),documentModel,{
+    showSidebar:false,selectedComponentId
+  }).then(handle=>{
+    if(renderId!==engineeringRenderId){handle.cleanup();return}
+    engineeringCleanup=handle.cleanup;
+  }).catch(error=>{
+    const target=app.querySelector("#engineering-scene");
+    if(target)target.innerHTML=`<pre class="code-view">3D render error: ${String(error?.message||error)}</pre>`;
   });
 }
 
@@ -527,12 +586,21 @@ async function engineeringPage(){
 
   if(engineeringMode==="Structure"){
     try{
+      const capability=analysisCapability(model,"structure");
+      if(!capability.enabled){
+        const documentModel=await getEngineeringDocument();
+        if(renderId!==engineeringRenderId)return;
+        app.innerHTML=top("engineering")+blockedEngineeringWorkspaceHTML(documentModel,"Structure",capability);
+        bindBlockedEngineeringWorkspace(documentModel,renderId);
+        return;
+      }
+
       const fixture=await loadStructureFixture();
       if(renderId!==engineeringRenderId)return;
       const structure=structurePanelHTML(fixture,{loadFy:structureLoadKn*1000});
       const caseModel=structure.model;
       app.innerHTML=top("engineering")+`<main class="workspace">
-        <div class="workspace-bar"><strong>${caseModel.name}</strong><div class="mode-tabs">
+        <div class="workspace-bar"><strong>${caseModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
           ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
         </div></div>
         <aside class="tree">
@@ -540,13 +608,16 @@ async function engineeringPage(){
           ${caseModel.nodes.map(node=>`<div class="tree-row"><span>○</span>${node.id} <span class="muted">(${node.x}, ${node.y})</span></div>`).join("")}
           <div class="tree-label">Elements</div>
           ${caseModel.elements.map(element=>`<div class="tree-row"><span>─</span>${element.id} <span class="muted">${element.n1}→${element.n2}</span></div>`).join("")}
+          <div class="tree-label">Capability</div>
+          <div class="tree-row selected"><span>✓</span><span class="tree-row-copy">Structure<small>${capabilityLabel(capability)}</small></span></div>
         </aside>
         <section class="viewport">${structure.viewport}<div class="hud">2D frame FEM · Euler–Bernoulli</div></section>
         <aside class="inspector">${structure.inspector}</aside>
         <section class="results"><div class="results-summary">${structure.summary}</div>${structure.results}</section>
-        <footer class="statusbar"><span>Units SI</span><span>2D frame</span><span>Mode Structure</span><span class="top-spacer"></span><span>Linear static</span></footer>
+        <footer class="statusbar"><span>Units SI</span><span>2D frame</span><span>${capabilityLabel(capability)}</span><span class="top-spacer"></span><span>Linear static</span></footer>
       </main><div class="preview-badge">Structure · tested frame FEM</div>`;
       bindNav();
+      bindEngineeringModelSelector();
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       app.querySelector("#structure-load")?.addEventListener("change",event=>{
         structureLoadKn=Number(event.target.value)||0;
@@ -562,11 +633,20 @@ async function engineeringPage(){
 
   if(engineeringMode==="Resistance"){
     try{
+      const capability=analysisCapability(model,"resistance");
+      if(!capability.enabled){
+        const documentModel=await getEngineeringDocument();
+        if(renderId!==engineeringRenderId)return;
+        app.innerHTML=top("engineering")+blockedEngineeringWorkspaceHTML(documentModel,"Resistance",capability);
+        bindBlockedEngineeringWorkspace(documentModel,renderId);
+        return;
+      }
+
       const fixture=await loadResistanceFixture();
       if(renderId!==engineeringRenderId)return;
       const resistance=resistancePanelHTML(fixture,{speedKnots:resistanceSpeedKn});
       app.innerHTML=top("engineering")+`<main class="workspace">
-        <div class="workspace-bar"><strong>${fixture.name}</strong><div class="mode-tabs">
+        <div class="workspace-bar"><strong>${fixture.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
           ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
         </div></div>
         <aside class="tree">
@@ -575,13 +655,16 @@ async function engineeringPage(){
           <div class="tree-label">Inputs</div>
           <div class="tree-row"><span>L</span>Length <span class="muted">${fixture.length} m</span></div>
           <div class="tree-row"><span>S</span>Wetted surface <span class="muted">${fixture.wettedSurface} m²</span></div>
+          <div class="tree-label">Capability</div>
+          <div class="tree-row selected"><span>✓</span><span class="tree-row-copy">Resistance<small>${capabilityLabel(capability)}</small></span></div>
         </aside>
         <section class="viewport">${resistance.viewport}<div class="hud">Resistance · friction baseline</div></section>
         <aside class="inspector">${resistance.inspector}</aside>
         <section class="results"><div class="results-summary">${resistance.summary}</div>${resistance.results}</section>
-        <footer class="statusbar"><span>Units SI</span><span>ITTC-1957</span><span>Mode Resistance</span><span class="top-spacer"></span><span>Not total resistance</span></footer>
+        <footer class="statusbar"><span>Units SI</span><span>ITTC-1957</span><span>${capabilityLabel(capability)}</span><span class="top-spacer"></span><span>Not total resistance</span></footer>
       </main><div class="preview-badge">Resistance · ITTC friction baseline</div>`;
       bindNav();
+      bindEngineeringModelSelector();
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       app.querySelector("#resistance-speed")?.addEventListener("change",event=>{
         resistanceSpeedKn=Number(event.target.value)||0;
@@ -603,18 +686,19 @@ async function engineeringPage(){
       ]);
       if(renderId!==engineeringRenderId)return;
 
+      const capability=analysisCapability(model,"propulsion");
       const thrusters=documentModel?semanticComponents(documentModel,{role:"thruster"}).map(node=>node.component):[];
       const sourceThruster=thrusters.find(component=>component.id===selectedComponentId)||thrusters[0]||null;
       const sourceSemantic=sourceThruster?componentSemantic(sourceThruster):null;
       const sourceCase=sourceSemantic?.thruster||{};
-      const hasForceModel=!sourceThruster||(
+      const hasForceModel=capability.enabled&&(!sourceThruster||(
         sourceCase.forceModel!=="unset"
         &&sourceCase.thrust!==null&&sourceCase.thrust!==undefined&&sourceCase.thrust!==""
         &&Number.isFinite(Number(sourceCase.thrust))
         &&Number(sourceCase.diameter)>0
-      );
+      ));
 
-      if(sourceThruster&&!hasForceModel){
+      if(!capability.enabled||sourceThruster&&!hasForceModel){
         const ratedPower=Number(sourceCase.ratedPowerKw);
         app.innerHTML=top("engineering")+`<main class="workspace">
           <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}<div class="mode-tabs">
@@ -630,13 +714,15 @@ async function engineeringPage(){
             <div class="readout"><span>Type</span><strong>${sourceSemantic?.subtype||"thruster"}</strong></div>
             <div class="readout"><span>Rated power</span><strong>${Number.isFinite(ratedPower)?ratedPower+" kW":"—"}</strong></div>
             <div class="readout"><span>Source node</span><strong>${sourceThruster.sourceObjectId||"—"}</strong></div>
-            <div class="readout"><span>Force model</span><strong class="status-warn">Not configured</strong></div>
-            <p class="muted hydro-note">Geometry and component identity are sourced. Thrust, actuator diameter and local thrust axis are intentionally not inferred from rated power or appearance.</p>
+            <div class="readout"><span>Capability</span><strong class="status-warn">${capabilityLabel(capability)}</strong></div>
+            <div class="readout"><span>Force model</span><strong class="status-warn">${hasForceModel?"Configured":"Not configured"}</strong></div>
+            <p class="muted hydro-note">${capability.reason||"Geometry and component identity are sourced. Thrust, actuator diameter and local thrust axis are intentionally not inferred from rated power or appearance."}</p>
+            ${capability.requirements?.length?`<div class="engineering-requirements"><strong>Required before analysis</strong><ul>${capability.requirements.map(item=>`<li>${item}</li>`).join("")}</ul></div>`:""}
           </aside>
           <section class="results"><div class="results-summary"><strong>Propulsion analysis blocked</strong><div class="readout"><span>Reason</span><strong>Missing force model</strong></div></div>
             <div class="engineering-empty-analysis"><strong>No fabricated thrust result</strong><p>Add sourced or explicitly assumed thrust/diameter/axis metadata before actuator-disk and rigid-body force/moment analysis is enabled.</p></div>
           </section>
-          <footer class="statusbar"><span>Units SI</span><span>Sourced identity</span><span>No thrust assumption</span><span class="top-spacer"></span><span>ModelDocument</span></footer>
+          <footer class="statusbar"><span>Units SI</span><span>${capabilityLabel(capability)}</span><span>No thrust assumption</span><span class="top-spacer"></span><span>ModelDocument</span></footer>
         </main><div class="preview-badge">Propulsion · sourced identity only</div>`;
 
         bindNav();
@@ -785,15 +871,20 @@ async function engineeringPage(){
   let hydro=null;
   if(engineeringMode==="Hydro"){
     const config=model.hydro||{};
-    if(config.enabled===false){
-      const reason=config.reason||"Hydro analysis is not enabled for this model.";
+    const capability=analysisCapability(model,"hydro");
+    if(!capability.enabled||config.enabled===false){
+      const reason=capability.reason||config.reason||"Hydro analysis is not enabled for this model.";
+      const requirements=capability.requirements?.length
+        ?`<div class="engineering-requirements"><strong>Required before analysis</strong><ul>${capability.requirements.map(item=>`<li>${item}</li>`).join("")}</ul></div>`
+        :"";
       hydro={
         inspector:`<h3>Hydro validation required</h3>
-          <div class="geometry-warning"><strong>Analysis blocked</strong><span>${reason}</span></div>
+          <div class="geometry-warning"><strong>${capabilityLabel(capability)}</strong><span>${reason}</span></div>
           <div class="readout"><span>Model</span><strong>${documentModel.name}</strong></div>
           <div class="readout"><span>Geometry</span><strong>Sourced visual assembly</strong></div>
-          <p class="muted hydro-note">The 3D model remains available for inspection. Use a validated watertight external hull surface before enabling displacement, stability or GZ calculations.</p>`,
-        summary:`<strong>Hydro not yet validated</strong><div class="readout"><span>Status</span><strong class="status-warn">Blocked</strong></div>`,
+          <p class="muted hydro-note">The 3D model remains available for inspection. Hydrostatic results stay disabled until the capability requirements are met.</p>
+          ${requirements}`,
+        summary:`<strong>Hydro not yet validated</strong><div class="readout"><span>Status</span><strong class="status-warn">${capabilityLabel(capability)}</strong></div>`,
         results:`<div class="engineering-empty-analysis"><strong>No hydrostatic result shown</strong><p>${reason}</p></div>`,
         draft:Number(config.defaultDraft)||0,
         density:Number(config.density)||1025,

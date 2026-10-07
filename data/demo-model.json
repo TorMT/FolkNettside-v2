@@ -56,5 +56,32 @@
     "defaultDraft": 1.2,
     "minDraft": 0,
     "maxDraft": 2
+  },
+  "analysisCapabilities": {
+    "model": {
+      "enabled": true,
+      "status": "fixture",
+      "reason": "Deterministic ModelDocument fixture for rendering and component tests."
+    },
+    "hydro": {
+      "enabled": true,
+      "status": "fixture",
+      "reason": "Analytic watertight fixture geometry is validated against closed-form hydrostatics."
+    },
+    "structure": {
+      "enabled": true,
+      "status": "fixture",
+      "reason": "Dedicated deterministic 2D frame fixture is used for the Structure workspace."
+    },
+    "resistance": {
+      "enabled": true,
+      "status": "fixture",
+      "reason": "Dedicated deterministic ITTC-1957 friction fixture is used for the Resistance workspace."
+    },
+    "propulsion": {
+      "enabled": true,
+      "status": "fixture",
+      "reason": "Dedicated deterministic actuator-disk and semantic thruster fixture is used for the Propulsion workspace."
+    }
   }
 }
