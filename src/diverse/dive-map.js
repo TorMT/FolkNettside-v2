@@ -1,4 +1,4 @@
-import {diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveStats,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js";
+import {diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeatureQuality,diveStats,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -44,7 +44,8 @@ export function diveMapHTML(){
     <section class="dive-controls">
       <label class="dive-search"><span>Search</span><input id="dive-query" type="search" placeholder="Site, wreck, wildlife, area…"></label>
       <label><span>Level</span><select id="dive-level"><option value="all">All</option><option>P1</option><option>P2</option><option>P3</option><option value="TECH">Technical</option><option value="UNKNOWN">Unrated</option></select></label>
-      <label><span>Type</span><select id="dive-kind"><option value="all">All</option><option value="nature">Nature</option><option value="wreck">Wreck</option></select></label>
+      <label><span>Type</span><select id="dive-kind"><option value="all">All</option><option value="nature">Nature / area</option><option value="wreck">Wreck</option></select></label>
+      <label><span>Data quality</span><select id="dive-quality"><option value="all">All</option><option value="A">A · strongest</option><option value="B">B · usable</option><option value="C">C · verify</option></select></label>
       <label><span>Max depth</span><input id="dive-depth" type="number" min="0" step="1" placeholder="m"></label>
       <label><span>Sort</span><select id="dive-sort"><option value="name">Name</option><option value="depth">Depth</option><option value="level">Level</option></select></label>
     </section>
@@ -61,13 +62,13 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
   let disposed=false;
   let map=null;
   let layer=null;
-  const state={query:"",level:"all",kind:"all",maxDepth:"",sort:"name",selected:null};
+  const state={query:"",level:"all",kind:"all",quality:"all",maxDepth:"",sort:"name",selected:null};
   const response=await fetch(dataUrl,{cache:"no-cache"});
   if(!response.ok)throw new Error(`Dive dataset HTTP ${response.status}`);
   const data=await response.json();
   const features=data.features||[];
   const elements={
-    query:root.querySelector("#dive-query"),level:root.querySelector("#dive-level"),kind:root.querySelector("#dive-kind"),
+    query:root.querySelector("#dive-query"),level:root.querySelector("#dive-level"),kind:root.querySelector("#dive-kind"),quality:root.querySelector("#dive-quality"),
     depth:root.querySelector("#dive-depth"),sort:root.querySelector("#dive-sort"),stats:root.querySelector("#dive-stats"),
     list:root.querySelector("#dive-list"),inspector:root.querySelector("#dive-inspector"),map:root.querySelector("#dive-map-canvas"),
     note:root.querySelector("#dive-map-note")
@@ -86,14 +87,14 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
   const render=()=>{
     const visible=sortDiveFeatures(filterDiveFeatures(features,state),state.sort);
     const stats=diveStats(visible);
-    elements.stats.innerHTML=`<strong>${stats.total}</strong> shown · ${stats.nature} nature · ${stats.wrecks} wreck · ${stats.withDepth} with documented max depth`;
+    elements.stats.innerHTML=`<strong>${stats.total}</strong> shown · ${stats.nature} nature/area · ${stats.wrecks} wreck · ${stats.withCoordinates} mapped · ${stats.withDepth} with documented max depth`;
     elements.list.innerHTML=visible.map(feature=>{
       const p=feature.properties||{};
       const max=diveFeatureMaxDepth(feature);
       return `<button class="dive-list-item ${state.selected===p.ID?"selected":""}" data-dive-id="${esc(p.ID)}">
         <span class="dive-list-title"><strong>${esc(p.Navn)}</strong><em>${diveFeatureLevel(feature)}</em></span>
         <span>${esc(p.Område||"")}</span>
-        <small>${esc(p.Kategori||"")}${max===null?"":` · max ${max} m`}</small>
+        <small>${esc(p.Kategori||"")}${max===null?"":` · max ${max} m`} · quality ${diveFeatureQuality(feature)}${feature.geometry?"":" · no public coordinates"}</small>
       </button>`;
     }).join("")||'<div class="dive-empty"><strong>No matching sites</strong><span>Adjust filters to show more locations.</span></div>';
     elements.list.querySelectorAll("[data-dive-id]").forEach(button=>{
@@ -108,8 +109,9 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
         const [lon,lat]=feature.geometry?.coordinates||[];
         if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
         const isWreck=diveFeatureKind(feature)==="wreck";
+        const quality=diveFeatureQuality(feature);
         const marker=window.L.circleMarker([lat,lon],{
-          radius:isWreck?7:6,weight:2,color:accent,fillColor:isWreck?"#173b50":accent,fillOpacity:.78
+          radius:isWreck?7:6,weight:2,color:accent,fillColor:isWreck?"#173b50":accent,fillOpacity:quality==="A"?.9:quality==="B"?.72:.5
         }).addTo(layer);
         marker.bindTooltip(esc(feature.properties?.Navn||""),{direction:"top"});
         marker.bindPopup(featureDetail(feature),{maxWidth:340});
@@ -122,7 +124,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
   };
 
   for(const [element,key,event] of [
-    [elements.query,"query","input"],[elements.level,"level","change"],[elements.kind,"kind","change"],
+    [elements.query,"query","input"],[elements.level,"level","change"],[elements.kind,"kind","change"],[elements.quality,"quality","change"],
     [elements.depth,"maxDepth","input"],[elements.sort,"sort","change"]
   ]){
     element?.addEventListener(event,ev=>{state[key]=ev.currentTarget.value;render()});
