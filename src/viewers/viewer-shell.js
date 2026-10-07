@@ -1,5 +1,5 @@
-import {loadAdapter} from "./registry.js?v=8dcf3d7c6b9c4b0a0379a7bd0104f2d22c90e32d";
-import {escapeHTML} from "./utils.js?v=8dcf3d7c6b9c4b0a0379a7bd0104f2d22c90e32d";
+import {loadAdapter} from "./registry.js?v=0d6d070d4ad40d57089981159c6bb61cda4c27e6";
+import {escapeHTML} from "./utils.js?v=0d6d070d4ad40d57089981159c6bb61cda4c27e6";
 
 export async function mountViewer(root,resource,onBack){
   root.__viewerCleanup?.();
@@ -30,10 +30,24 @@ export async function mountViewer(root,resource,onBack){
     <div class="viewer-main">
       <section class="viewer-canvas" id="viewer-canvas"><div class="viewer-loading">Loading…</div></section>
       <aside class="viewer-panel">
-        <div class="panel-tabs"><button class="active">Files</button><button>Info</button></div>
-        <strong>${escapeHTML(resource.name)}</strong>
-        <p class="muted">${escapeHTML(resource.kind)} · ${escapeHTML(resource.source||"site")}</p>
-        <p class="muted">Viewer controls are enabled only when supported by this file type.</p>
+        <div class="panel-tabs"><button class="active" data-viewer-panel="file">File</button><button data-viewer-panel="info">Info</button></div>
+        <div data-viewer-panel-content="file">
+          <strong>${escapeHTML(resource.name)}</strong>
+          <p class="muted">${escapeHTML(resource.kind)} · ${escapeHTML(resource.source||"site")}</p>
+          ${Array.isArray(resource.folders)&&resource.folders.length?`<p class="viewer-path">${resource.folders.map(escapeHTML).join(" / ")}</p>`:""}
+          <p class="muted">Viewer controls are enabled only when supported by this file type.</p>
+        </div>
+        <div data-viewer-panel-content="info" hidden>
+          <div class="viewer-info-list">
+            <div><span>Course</span><strong>${escapeHTML(resource.courseCode||"—")}</strong></div>
+            <div><span>Semester</span><strong>${escapeHTML(resource.semester||"—")}</strong></div>
+            <div><span>Section</span><strong>${escapeHTML(resource.section||"—")}</strong></div>
+            <div><span>Type</span><strong>${escapeHTML(resource.kind||"FILE")}</strong></div>
+            <div><span>Source</span><strong>${escapeHTML(resource.source||"site")}</strong></div>
+          </div>
+          <div class="viewer-info-path"><span>Path</span><code>${escapeHTML(resource.relativePath||resource.path||resource.url||"—")}</code></div>
+          <button class="btn" id="viewer-copy-path">Copy path</button>
+        </div>
       </aside>
     </div>
     <footer class="viewer-status">
@@ -52,6 +66,24 @@ export async function mountViewer(root,resource,onBack){
   const fitButton=toolbar.querySelector('[data-action="fit"]');
   const resetButton=toolbar.querySelector('[data-action="resetZoom"]');
 
+  const panelButtons=[...root.querySelectorAll("[data-viewer-panel]")];
+  const panelContents=[...root.querySelectorAll("[data-viewer-panel-content]")];
+  panelButtons.forEach(button=>button.addEventListener("click",()=>{
+    const id=button.dataset.viewerPanel;
+    panelButtons.forEach(item=>item.classList.toggle("active",item===button));
+    panelContents.forEach(content=>content.hidden=content.dataset.viewerPanelContent!==id);
+  }));
+  root.querySelector("#viewer-copy-path")?.addEventListener("click",async event=>{
+    const value=resource.relativePath||resource.path||resource.url||"";
+    try{
+      await navigator.clipboard.writeText(value);
+      event.currentTarget.textContent="Copied";
+      setTimeout(()=>{if(event.currentTarget?.isConnected)event.currentTarget.textContent="Copy path"},1200);
+    }catch{
+      event.currentTarget.textContent="Copy unavailable";
+    }
+  });
+
   root.querySelector("#viewer-back").onclick=()=>{
     root.__viewerCleanup?.();
     root.__viewerCleanup=null;
@@ -63,7 +95,8 @@ export async function mountViewer(root,resource,onBack){
   try{
     const adapter=await loadAdapter(resource);
     const result=await adapter.render(canvas,resource);
-    root.__viewerCleanup=result?.cleanup || null;
+    const adapterCleanup=result?.cleanup || null;
+    root.__viewerCleanup=adapterCleanup;
     status.textContent=result?.info || "."+adapter.extension;
 
     const actions=result?.actions||{};
@@ -91,6 +124,20 @@ export async function mountViewer(root,resource,onBack){
           findWrap.hidden=true;
         }
       });
+      const shortcut=event=>{
+        if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="f"){
+          event.preventDefault();
+          findWrap.hidden=false;
+          findInput.focus();
+          findInput.select();
+        }
+      };
+      window.addEventListener("keydown",shortcut);
+      const previousCleanup=root.__viewerCleanup;
+      root.__viewerCleanup=()=>{
+        window.removeEventListener("keydown",shortcut);
+        previousCleanup?.();
+      };
     }
 
     if(typeof actions.fit==="function"){
