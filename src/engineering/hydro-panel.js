@@ -1,4 +1,5 @@
 import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js";
+import {gzMetrics} from "../hydro/gz.js";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -115,6 +116,7 @@ export function hydroPanelHTML({
   const hasKg=kg!==""&&Number.isFinite(Number(kg));
   const particulars=hydrostaticParticulars(result,{density,kg:hasKg?Number(kg):null});
   const curveRows=hydrostaticCurveRows(curve,{density,kg:hasKg?Number(kg):null});
+  const gzSummary=gzMetrics(gz);
 
   return {
     inspector:`
@@ -189,6 +191,12 @@ export function hydroPanelHTML({
         </div>
         <div class="hydro-curves-column">
           <p class="muted hydro-stability-note">LCF/TCF are the waterplane centroid. TPC is tonnes per centimetre immersion. BM/KM/GM are initial small-angle values; GZ resolves a new waterline at constant displacement for every heel angle.</p>
+          ${gzSummary.valid?`<div class="gz-metrics">
+            <div><span>Max GZ</span><strong>${fmt(gzSummary.maxGz,3)} m</strong></div>
+            <div><span>Angle @ max</span><strong>${fmt(gzSummary.angleAtMaxGz,1)}°</strong></div>
+            <div><span>Area +heel</span><strong>${fmt(gzSummary.areaPositiveMrad,3)} m·rad</strong></div>
+            <div><span>GM from first GZ point</span><strong>${gzSummary.initialGmEstimate===null?"—":fmt(gzSummary.initialGmEstimate,3)+" m"}</strong></div>
+          </div>`:""}
           ${gzSVG(gz)}
           ${hydrostaticCurvesHTML(curveRows,{hasKg})}
           ${hydrostaticTableHTML(curveRows,{hasKg})}
