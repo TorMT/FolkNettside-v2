@@ -28,10 +28,22 @@ try{
  const csv=workspace.files?.find(file=>file.name==="calculation.csv");
  if(!csv||!new TextDecoder().decode(csv.bytes).includes("area,40"))
    throw new Error("Generated CSV was not returned to viewer for download");
+ const plot=await session.run([
+   "import matplotlib",
+   "matplotlib.use('Agg')",
+   "import matplotlib.pyplot as plt",
+   "plt.figure()",
+   "plt.plot([0,1,2], [0,1,4])",
+   "plt.savefig('reference-plot.pdf')"
+ ].join("\n"));
+ if(!plot.figures?.some(image=>image.startsWith("data:image/png;base64,")))
+   throw new Error("Matplotlib plot PNG preview not captured");
+ if(!plot.files?.some(file=>file.name==="reference-plot.pdf"))
+   throw new Error("Saved matplotlib PDF is missing from generated downloads");
  session.stop();
  const fresh=await session.run("print(6*7)");
  if(!fresh.stdout.includes("42"))throw new Error("Fresh worker run after Stop failed");
- document.body.dataset.status="pass";result.textContent="Real Pyodide executes Python, imports local .py/data, exports CSV and restarts after Stop";
+ document.body.dataset.status="pass";result.textContent="Real Pyodide executes Python, imports local .py/data, previews matplotlib, exports CSV/PDF and restarts after Stop";
 }catch(error){document.body.dataset.status="fail";result.textContent=String(error.stack||error)}
 finally{session.dispose()}
 </script></body></html>
