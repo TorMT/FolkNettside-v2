@@ -1034,3 +1034,20 @@
 .model-wave-estimates .model-wave-fields{margin-top:10px}
 .model-wave-estimates button{margin:10px 0;border:1px solid var(--line);padding:8px;background:var(--surface-sunk);color:var(--ink);border-radius:7px;cursor:pointer}
 .model-wave-estimates pre{max-width:100%;overflow:auto;white-space:pre-wrap;font:10px/1.5 ui-monospace,Consolas,monospace}
+
+.python-stdin-label{display:grid;gap:7px;min-width:0;font-size:11px;color:var(--ink-2)}
+.python-stdin-label textarea{
+  display:block;box-sizing:border-box;width:100%;min-height:58px;max-height:180px;
+  resize:vertical;padding:9px 11px;border:1px solid var(--line);
+  border-radius:8px;background:var(--surface-sunk);color:var(--ink);
+  font:12px/1.5 ui-monospace,Consolas,monospace;
+}
+.python-upload-label{display:inline-flex;align-items:center;gap:6px;
+  padding:7px 10px;border:1px solid var(--line);border-radius:7px;
+  background:var(--surface-sunk);color:var(--ink);font-size:11px;cursor:pointer}
+.python-files-status{font-size:10px;color:var(--ink-2)}
+.python-output-files:empty{display:none}
+.python-output-files{display:flex;flex-wrap:wrap;gap:7px;padding:0 12px 12px}
+.python-output-files a{display:inline-block;padding:7px 10px;border:1px solid var(--line);
+  border-radius:7px;color:var(--accent);text-decoration:none;font-size:11px;
+  max-width:100%;overflow-wrap:anywhere}
