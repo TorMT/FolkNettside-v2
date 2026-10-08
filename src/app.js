@@ -1476,7 +1476,7 @@ async function engineeringPage(){
       <div class="readout"><span>Boundary edges</span><strong>${selectedDiagnostics.boundaryEdges}</strong></div>
       <div class="readout"><span>Non-manifold</span><strong>${selectedDiagnostics.nonManifoldEdges}</strong></div>
       <div class="readout"><span>Degenerate</span><strong>${selectedDiagnostics.degenerateTriangles}</strong></div>
-    `:""}`;
+    `:""}`);
   const summary=hydro?hydro.summary:`
     <strong>Model summary</strong>
     <div class="readout"><span>Components</span><strong>${semanticInfo.components}</strong></div>
@@ -1510,6 +1510,22 @@ async function engineeringPage(){
   bindNav();
   bindEngineeringModelSelector();
   bindEngineeringCaseExport(engineeringReport);
+  app.querySelectorAll("[data-hydro-import-part]").forEach(input=>input.addEventListener("change",()=>{
+    if(!importedHydroDocument||model.id!==LOCAL_HYDRO_MODEL_ID)return;
+    const selected=[...app.querySelectorAll("[data-hydro-import-part]:checked")].map(node=>node.dataset.hydroImportPart);
+    importedHydroDocument=withHydroSurfaceSelection(importedHydroDocument,selected);
+    engineeringDocument=importedHydroDocument;
+    engineeringDocumentPromise=Promise.resolve(importedHydroDocument);
+    hydroCurveCache={model:null,data:null};
+    hydroGzRequested=false;hydroAttitudeAction="";
+    engineeringPage();
+  }));
+  app.querySelector("#engineering-confirm-import")?.addEventListener("click",()=>{
+    if(model.id!==LOCAL_HYDRO_MODEL_ID)return;
+    model.analysisCapabilities.hydro={enabled:true,status:"exploratory · geometry-only",
+      reason:"User-confirmed axes and units. Hull source, surface isolation and loading condition are not independently validated."};
+    engineeringPage();
+  });
   let sceneHandle=null;
   const updateSelection=component=>{
     if(!component)return;
