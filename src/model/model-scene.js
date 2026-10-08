@@ -64,6 +64,7 @@ export async function mountModelScene(container,documentModel,options={}){
       mesh.applyMatrix4(matrix);
     }
     root.add(mesh);
+    mesh.userData.restPosition=mesh.position.clone();
     meshes.push(mesh);
   }
 
@@ -74,6 +75,66 @@ export async function mountModelScene(container,documentModel,options={}){
     const size=box.getSize(new THREE.Vector3());
     const radius=Math.max(size.length()/2,.1);
     return {box,center,size,radius};
+  }
+
+  let explodedFactor=0;
+  const axesHelper=new THREE.AxesHelper(Math.max(bounds().radius*.55,.5));
+  axesHelper.visible=false;scene.add(axesHelper);
+  const boxHelper=new THREE.Box3Helper(bounds().box.clone(),0xe3b25f);
+  boxHelper.visible=false;scene.add(boxHelper);
+  const edgeLines=[];
+  for(const mesh of meshes){
+    const geometry=new THREE.EdgesGeometry(mesh.geometry,25);
+    const material=new THREE.LineBasicMaterial({color:0x3ee4ed,transparent:true,opacity:.5});
+    const edges=new THREE.LineSegments(geometry,material);
+    edges.visible=false;mesh.add(edges);edgeLines.push(edges);
+  }
+  function updateBoxHelper(){
+    if(boxHelper.visible){
+      boxHelper.box.copy(bounds().box);boxHelper.updateMatrixWorld(true);
+    }
+  }
+  function setAxes(visible=false){axesHelper.visible=Boolean(visible);draw()}
+  function setBoundingBox(visible=false){
+    boxHelper.visible=Boolean(visible);updateBoxHelper();draw();
+  }
+  function setEdges(visible=false){edgeLines.forEach(line=>line.visible=Boolean(visible));draw()}
+  function setShading(mode="smooth"){
+    if(!["smooth","flat"].includes(mode))throw new Error("Unsupported 3D shading");
+    for(const mesh of meshes){mesh.material.flatShading=mode==="flat";mesh.material.needsUpdate=true}
+    draw();
+  }
+  function setExplode(value=0){
+    const factor=Number(value);
+    if(!Number.isFinite(factor)||factor<0||factor>3)
+      throw new Error("Explosion amount must be 0–3");
+    explodedFactor=factor;
+    const baseBox=new THREE.Box3();
+    for(const mesh of meshes){
+      mesh.position.copy(mesh.userData.restPosition);
+      mesh.updateMatrixWorld(true);baseBox.union(new THREE.Box3().setFromObject(mesh));
+    }
+    const center=baseBox.getCenter(new THREE.Vector3());
+    for(const mesh of meshes){
+      const part=new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3());
+      const delta=part.sub(center).multiplyScalar(factor*.5);
+      mesh.position.copy(mesh.userData.restPosition).add(delta);
+    }
+    root.updateMatrixWorld(true);updateBoxHelper();refreshWaterlineContours();draw();
+  }
+  const markerGroup=new THREE.Group();scene.add(markerGroup);
+  function setMarkers({cg=null,cb=null}={}){
+    for(const marker of [...markerGroup.children]){
+      markerGroup.remove(marker);marker.geometry.dispose();marker.material.dispose();
+    }
+    const size=Math.max(bounds().radius/45,.03);
+    for(const [name,coord,color] of [["CG",cg,0xe8ab46],["CB",cb,0x20d4d9]]){
+      if(!Array.isArray(coord)||coord.length!==3||!coord.every(Number.isFinite))continue;
+      const sphere=new THREE.Mesh(new THREE.SphereGeometry(size,14,10),
+        new THREE.MeshBasicMaterial({color,depthTest:false}));
+      sphere.name=name;sphere.position.set(...coord);markerGroup.add(sphere);
+    }
+    draw();
   }
 
   let currentBounds=bounds();
@@ -534,6 +595,11 @@ export async function mountModelScene(container,documentModel,options={}){
     controls.dispose();
     canvas.removeEventListener("pointerdown",onPointerDown);
     clearMeasurements();
+    for(const line of edgeLines){line.parent?.remove(line);line.geometry.dispose();line.material.dispose()}
+    scene.remove(axesHelper);axesHelper.geometry.dispose();axesHelper.material.dispose();
+    scene.remove(boxHelper);boxHelper.geometry.dispose();boxHelper.material.dispose();
+    for(const marker of markerGroup.children){marker.geometry.dispose();marker.material.dispose()}
+    scene.remove(markerGroup);
     if(waveFrame!==null)cancelAnimationFrame(waveFrame);
     clearContours();scene.remove(contourGroup);contourMaterial.dispose();
     scene.remove(waveMesh);waveGeometry.dispose();waveMaterial.dispose();
@@ -558,6 +624,12 @@ export async function mountModelScene(container,documentModel,options={}){
       setRotation,
       resetAttitude,
       setAppearance,
+      setAxes,
+      setBoundingBox,
+      setEdges,
+      setShading,
+      setExplode,
+      setMarkers,
       setClipping,
       setMeasurement(enabled){measureEnabled=Boolean(enabled);firstMeasurePoint=null;return measureEnabled},
       setMeasurementSnap({mode="none",tolerance=.01}={}){
