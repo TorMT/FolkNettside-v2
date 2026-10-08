@@ -970,3 +970,18 @@
 .code-view.no-line-numbers .code-line{grid-template-columns:minmax(0,1fr)}
 .code-view.no-line-numbers .code-line-number{display:none}
 @media(max-width:760px){.code-meta{flex-wrap:wrap;gap:8px}.code-view-actions{width:100%}}
+
+/* ViewerShell scroll ownership: each adapter has a scrollport, not a page-height
+   overflow that can hide its controls/status below the browser viewport. */
+.viewer{min-height:0;max-width:100%;overflow:hidden}
+.viewer-head,.viewer-toolbar,.viewer-status{min-width:0}
+.viewer-main{min-width:0;min-height:0;overflow:hidden}
+.viewer-canvas{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.viewer-panel{min-width:0;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable}
+.viewer-toolbar{min-width:0}
+.viewer-status{overflow:hidden}
+.viewer-status span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:760px){
+  .viewer-canvas{scrollbar-gutter:auto}
+  .viewer-toolbar{overscroll-behavior-x:contain}
+}
