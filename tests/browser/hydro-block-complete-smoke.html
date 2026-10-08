@@ -1,0 +1,70 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Complete Hydro block-worker functional test</title>
+<link rel="stylesheet" href="../../assets/style.css"><link rel="stylesheet" href="../../assets/engineering.css">
+</head><body data-status="running"><main id="case"></main><pre id="result">Running</pre>
+<script type="module">
+import {boxMesh} from "../../src/hydro/fixtures.js";
+import {validateHydroAsync,analyzeHydroAsync,hydroCurveAsync,solveHydroDraftAsync,
+  gzCurveAsync,attitudeHydroAsync,attitudeCurveAsync,solveAttitudeEquilibriumAsync,
+  disposeHydroWorker} from "../../src/hydro/hydro-client.js";
+import {hydrostaticParticulars} from "../../src/hydro/stability.js";
+import {hydroPanelHTML} from "../../src/engineering/hydro-panel.js";
+
+const near=(x,y,tol=1e-6)=>{if(!Number.isFinite(x)||Math.abs(x-y)>tol)
+  throw new Error('Expected '+x+' ≈ '+y+' ±'+tol)};
+const assert=(x,msg)=>{if(!x)throw new Error(msg)};
+const model={name:"10×4×3 m block · worker",unitScaleToMeters:1,components:[
+  {id:"hull",name:"Closed block",geometry:boxMesh({L:10,B:4,H:3}),metadata:{hydro:true}}
+]};
+const run=async()=>{
+ const passed=[];
+ const gate=await validateHydroAsync(model);
+ assert(gate.passed,'preflight failed: '+JSON.stringify(gate.errors));passed.push('geometry');
+ const hydro=await analyzeHydroAsync(model,1);
+ near(hydro.volume,40);near(hydro.centerOfBuoyancy[2],.5);
+ near(hydro.waterplane.area,40);near(hydro.waterplane.ixx,53.333333333333);
+ near(hydro.waterplane.iyy,333.333333333333);passed.push('displacement & waterplane');
+ const p=hydrostaticParticulars(hydro,{density:1025,kg:.5});
+ near(p.displacementTonnes,41);near(p.tonnesPerCm,.41);near(p.gmTransverse,4/3);passed.push('TPC & GM');
+ const curve=await hydroCurveAsync(model,{minWaterline:.25,maxWaterline:1.75,samples:7});
+ assert(curve.length===7,'Hydro curve sample count');passed.push('hydro curves');
+ const solved=await solveHydroDraftAsync(model,52,{minWaterline:0,maxWaterline:3,tolerance:1e-8});
+ near(solved.waterline,1.3);assert(solved.converged,'Inverse solver not converged');passed.push('draft solve');
+ const gz=await gzCurveAsync(model,{targetVolume:40,kg:.5,minHeel:-10,maxHeel:10,step:5});
+ assert(gz.length===5,'GZ curve sample count');
+ near(gz[0].gz,-gz[4].gz,3e-5);near(gz[1].gz,-gz[3].gz,3e-5);
+ assert(gz[4].gz>0&&gz[0].gz<0,'Signed righting arms should be odd');passed.push('signed GZ');
+ const cg=[0,0,.5];
+ const upright=await attitudeHydroAsync(model,{targetVolume:40,centerOfGravity:cg});
+ near(upright.waterline,1);near(upright.rollMoment,0);near(upright.pitchMoment,0);
+ const rolled=await attitudeHydroAsync(model,{targetVolume:40,centerOfGravity:cg,heelDeg:5});
+ near(rolled.volume,40);passed.push('heel/trim attitude');
+ const heel=await attitudeCurveAsync(model,{axis:"heel",start:-5,end:5,step:5,targetVolume:40,centerOfGravity:cg});
+ const trim=await attitudeCurveAsync(model,{axis:"trim",start:-3,end:3,step:3,targetVolume:40,centerOfGravity:cg});
+ assert(heel.length===3&&trim.length===3,'Attitude curve sizing failed');passed.push('attitude curves');
+ const eqHeel=await solveAttitudeEquilibriumAsync(model,{axis:"heel",minAngle:-12,maxAngle:12,
+   targetVolume:40,centerOfGravity:[0,.1,.5],leverTolerance:1e-6});
+ const eqTrim=await solveAttitudeEquilibriumAsync(model,{axis:"trim",minAngle:-12,maxAngle:12,
+   targetVolume:40,centerOfGravity:[.35,0,.5],leverTolerance:1e-6});
+ assert(Math.abs(eqHeel.residual)<1e-6&&Math.abs(eqTrim.residual)<1e-6,
+   'Equilibrium residual not converged');passed.push('heel/trim equilibrium');
+ const panel=hydroPanelHTML({modelDocument:model,result:hydro,curve,gz,draft:1,kg:.5,
+   lcg:0,tcg:0,hydroValidation:gate,config:{density:1025,minDraft:0,maxDraft:3}});
+ assert(panel.qualityAudit.status==="pass",'Hydro audit not green');
+ assert(panel.gmCrossCheck?.status==="pass",'GM/GZ crosscheck failed');
+ document.querySelector("#case").innerHTML=
+   '<aside class="inspector">'+panel.inspector+'</aside>'+
+   '<section class="results"><div class="results-summary">'+panel.summary+'</div>'+panel.results+'</section>';
+ for(const id of ['hydro-draft','hydro-target','hydro-lcg','hydro-tcg','hydro-kg','hydro-heel',
+    'hydro-trim','hydro-solve','hydro-gz','hydro-attitude','hydro-equilibrium-heel',
+    'hydro-equilibrium-trim','hydro-export-table','hydro-export-gz']){
+   assert(document.getElementById(id),'Missing control '+id);
+ }
+ passed.push('Hydro interface & export controls');
+ document.body.dataset.status='pass';
+ document.querySelector("#result").textContent='PASS: '+passed.join(' · ');
+};
+run().catch(e=>{
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(e.stack||e);
+}).finally(()=>disposeHydroWorker());
+</script></body></html>
