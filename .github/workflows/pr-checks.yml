@@ -178,3 +178,13 @@ jobs:
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4201/tests/browser/model-waves-smoke.html 70 1400,900
+
+      - name: Complete ViewerShell file-format matrix in real Chrome
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4202 --bind 127.0.0.1 >/tmp/viewer-matrix-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/viewer-matrix-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4202/tests/browser/viewer-matrix-smoke.html 90 1400,900
