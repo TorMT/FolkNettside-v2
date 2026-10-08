@@ -1,7 +1,7 @@
-import {escapeHTML,fetchJSON} from "../utils.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
-import {createDomFinder} from "../dom-search.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
-import {createPythonSession} from "../python-session.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
+import {escapeHTML,fetchJSON} from "../utils.js?v=5608baab66976446246f638432ec57af03b6a1ec";
+import {createDomFinder} from "../dom-search.js?v=5608baab66976446246f638432ec57af03b6a1ec";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=5608baab66976446246f638432ec57af03b6a1ec";
+import {createPythonSession} from "../python-session.js?v=5608baab66976446246f638432ec57af03b6a1ec";
 
 export const cellText=value=>Array.isArray(value)?value.join(""):String(value||"");
 export function renderNotebookOutput(output={}){

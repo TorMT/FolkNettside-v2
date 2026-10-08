@@ -1,5 +1,5 @@
-import {escapeHTML} from "./utils.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
-import {getHighlighter} from "../vendor/highlight.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
+import {escapeHTML} from "./utils.js?v=5608baab66976446246f638432ec57af03b6a1ec";
+import {getHighlighter} from "../vendor/highlight.js?v=5608baab66976446246f638432ec57af03b6a1ec";
 
 // Shared editable/preview code cell for .py and .ipynb.
 export function mountPythonCodeCell(container,{
