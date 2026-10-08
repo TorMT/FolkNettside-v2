@@ -88,3 +88,15 @@
   .workspace>.results{scrollbar-gutter:stable;overscroll-behavior:contain;overflow:auto}
   .workspace-results-handle{display:none}
 }
+
+/* The generic Three.js viewer defaults to a 520px canvas. Engineering
+   owns the viewport height, so its model canvas must contract with the
+   resizable result pane instead of painting beneath it. */
+@media(min-width:761px){
+  .workspace #engineering-scene{min-width:0;min-height:0;overflow:hidden}
+  .workspace #engineering-scene .three-stage,
+  .workspace #engineering-scene .three-canvas{
+    min-height:0!important;height:100%;max-height:100%;overflow:hidden
+  }
+  .workspace .viewport{min-height:0;min-width:0;overflow:hidden}
+}
