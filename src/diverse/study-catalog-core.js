@@ -40,7 +40,8 @@ export function validateDiverseCatalog(value,kind){
     return item;
   });
   return {items,verified:value.verified===true,sourceUrl:safeCatalogUrl(value.sourceUrl),
-    source:norm(value.source),kind:expected};
+    source:norm(value.source),kind:expected,
+    welcomeImage:expected==="laos"?safeCatalogUrl(value.welcomeImage,{allowRelative:true}):""};
 }
 export function filterKokSites(items,{query="",study="all",specialization="all",cohort="all",sort="name"}={}){
   const q=searchValue(query);
