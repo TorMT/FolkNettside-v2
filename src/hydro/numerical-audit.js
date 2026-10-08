@@ -80,3 +80,32 @@ export function draftSolutionResidual(solved,targetVolume,tolerance=1e-6){
     absoluteResidual:Math.abs(residual),volumeTolerance:allowed,
     reason:Math.abs(residual)<=allowed?"Converged volume target":"Volume residual exceeds requested tolerance"};
 }
+
+
+/**
+ * GMt from upright waterplane inertia must agree with GZ/sin(phi) in the
+ * small-angle limit for an upright, symmetric loading case (TCG=0).
+ * Evaluate only positive heel samples up to maxAngleDeg, never infer
+ * a verified GM from coarse 10°/30° stability-curve samples.
+ */
+export function auditSmallAngleGz(curve,gmTransverse,{
+  maxAngleDeg=5,relativeTolerance=0.08,absoluteTolerance=0.025
+}={}){
+  const gm=Number(gmTransverse);
+  if(!Number.isFinite(gm))return {status:"unavailable",passed:false,
+    reason:"GM must be calculated from a known KG and upright hydrostatics"};
+  const candidates=(curve||[]).filter(p=>
+    Number.isFinite(p?.heelDeg)&&Number.isFinite(p?.gz)&&
+    p.heelDeg>0&&p.heelDeg<=maxAngleDeg).sort((a,b)=>a.heelDeg-b.heelDeg);
+  if(!candidates.length)return {status:"unavailable",passed:false,
+    reason:"GZ curve has no positive small-angle samples within "+maxAngleDeg+"°"};
+  const point=candidates[0];
+  const estimated=point.gz/Math.sin(point.heelDeg*Math.PI/180);
+  const error=estimated-gm;
+  const allowed=absoluteTolerance+relativeTolerance*Math.max(Math.abs(gm),Math.abs(estimated));
+  const passed=Math.abs(error)<=allowed;
+  return {status:passed?"pass":"review",passed,
+    angleDeg:point.heelDeg,estimatedGm:estimated,hydrostaticGm:gm,
+    error,allowedError:allowed,
+    reason:passed?"Small-angle GZ/GM consistent at sampled heel":"GZ/GM disagreement; check KG, TCG, datum and model source"};
+}
