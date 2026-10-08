@@ -53,7 +53,9 @@ export function readWaveCollection(storage=globalThis.localStorage){
     if(!Array.isArray(value))return [];
     return value.slice(-MAX_WAVE_CASES).map(record=>makeWaveRecord({
       ...record,points:record.points,
-      wave:record.wave?.waterDepthM==null?{...record.wave,waterDepthM:Infinity}:record.wave
+      wave:record.wave
+        ?{...record.wave,waterDepthM:record.wave.waterDepthM==null?Infinity:record.wave.waterDepthM}
+        :null
     }));
   }catch{return []}
 }
