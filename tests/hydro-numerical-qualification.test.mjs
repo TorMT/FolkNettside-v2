@@ -131,4 +131,6 @@ test("Hydro UI shows GM/GZ only for same displacement and symmetric transverse l
  assert.equal(mismatch.gmCrossCheck,null);
  const offsetCG=hydroPanelHTML({...options,tcg:1});
  assert.equal(offsetCG.gmCrossCheck,null);
+ const longitudinalOffset=hydroPanelHTML({...options,lcg:1});
+ assert.equal(longitudinalOffset.gmCrossCheck,null);
 });
