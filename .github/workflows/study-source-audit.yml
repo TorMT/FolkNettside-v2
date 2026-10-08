@@ -167,3 +167,60 @@ jobs:
             git commit -m "Mirror public LAOS PDFs and their verified source index"
             git push origin HEAD:feature/import-verified-kok-source
           fi
+
+  import-original-andrekok:
+    if: github.head_ref == 'feature/import-verified-kok-source' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: true
+      - name: Convert original AndreKokSider embedded records to JSON
+        run: |
+          python3 - <<'PY'
+          import json, re, pathlib, urllib.request
+          url="https://tormt.folk.ntnu.no/diverse/AndreKokSider/"
+          with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'FolkNettside-v2-readonly-source-migration/1.0'}),timeout=30) as r:
+              raw=r.read(300000).decode('utf-8','replace')
+          section=re.search(r'const\s+pages\s*=\s*\[([\s\S]*?)\]\s*;',raw)
+          if not section:
+              raise RuntimeError('Original page did not contain a pages array; refusing to replace catalog')
+          body=section.group(1)
+          pattern=r'\{\s*id:\s*(\d+),\s*title:\s*["\']([^"\']+)["\'],\s*study:\s*["\']([^"\']+)["\'],\s*specialization:\s*["\']([^"\']+)["\'],\s*rating:\s*(\d+),\s*year:\s*(\d+),\s*passwordProtected:\s*(true|false)\s*,?\s*\}'
+          records=re.findall(pattern,body)
+          if not 20<=len(records)<=200 or len(set(r[0] for r in records))!=len(records):
+              raise RuntimeError('Unexpected directory size or duplicate IDs: '+str(len(records)))
+          previous=json.loads(pathlib.Path('data/diverse/kok-sites.json').read_text(encoding='utf-8'))
+          descriptions={e['name'].casefold():e for e in previous.get('items',[]) if e.get('description')}
+          entries=[]
+          for id,title,study,specialization,rating,year,locked in records:
+              supplement=descriptions.get(title.casefold())
+              entries.append({
+                'name':title,
+                'url':'https://folk.ntnu.no/'+title.lower()+'/',
+                'study':study,'specialization':specialization,'cohort':year,
+                'rating':int(rating),'ratingScale':10,
+                'sourceId':int(id),'passwordProtected':locked=='true',
+                'description':supplement['description'] if supplement else '',
+                'descriptionSource':supplement['source'] if supplement else '',
+                'source':url
+              })
+          manifest={'schemaVersion':1,'source':'Original AndreKokSider embedded directory, fetched from public HTML',
+                    'sourceUrl':url,'verified':True,'items':entries}
+          pathlib.Path('data/diverse/kok-sites.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print('ORIGINAL ANDREKOK IMPORT',len(entries),'IDs',[e['sourceId'] for e in entries])
+          print('OTHER SOURCE SUPPLEMENTED DESCRIPTIONS',sum(bool(e['description']) for e in entries))
+          for marker in ('folk.ntnu.no','title.toLowerCase','passwordProtected'):
+              m=re.search(re.escape(marker),raw,re.I)
+              if m:print('ORIGINAL LINK/LOCK EVIDENCE',marker,repr(raw[max(0,m.start()-120):m.start()+230]))
+          PY
+      - name: Commit original directory to migration branch only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/diverse/kok-sites.json
+          if git diff --cached --quiet; then echo "Already up to date"; else
+            git commit -m "Import original AndreKokSider records and preserve sourced descriptions"
+            git push origin HEAD:feature/import-verified-kok-source
+          fi
