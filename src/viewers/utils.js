@@ -8,7 +8,7 @@ export function extension(path){
   const clean=String(path||"").split(/[?#]/,1)[0].replace(/\\/g,"/");
   const file=clean.slice(clean.lastIndexOf("/")+1);
   const dot=file.lastIndexOf(".");
-  return dot<=0||dot===file.length-1?"":file.slice(dot+1).toLowerCase();
+  return dot<0||dot===file.length-1?"":file.slice(dot+1).toLowerCase();
 }
 
 const DEFAULT_MAX_TEXT_BYTES=8*1024*1024;
