@@ -8,6 +8,7 @@ import {karakterwebUrl} from "./courses/external-links.js";
 import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js";
 import {hydrostaticParticulars} from "./hydro/stability.js";
 import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js";
+import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js";
 import {renderProjectCard,renderProjectDetail} from "./components/project-card.js";
 import {buildSearchIndex} from "./search/search-index.js";
 import {createSearchController} from "./components/search-dialog.js";
@@ -80,6 +81,8 @@ let hydroKg="";
 let hydroLcg="";
 let hydroTcg="";
 let hydroPointWeightsText="";
+let hullMassText="";
+let hullAreaLoadsText="";
 let hydroPointWeightSummary=null;
 let hydroPointBaseline=null;
 let hydroPointError=null;
@@ -174,6 +177,8 @@ function selectEngineeringModel(id){
   hydroLcg="";
   hydroTcg="";
   hydroPointWeightsText="";
+  hullMassText="";
+  hullAreaLoadsText="";
   hydroPointWeightSummary=null;
   hydroPointBaseline=null;
   hydroPointError=null;
@@ -1440,6 +1445,8 @@ async function engineeringPage(){
         draft:hydroDraft,
         targetDisplacementTonnes:hydroTargetTonnes,
         pointWeightsText:hydroPointWeightsText,
+        hullMassText,
+        areaLoadsText:hullAreaLoadsText,
         pointWeightSummary:hydroPointWeightSummary,
         pointWeightError:hydroPointError,
         loadedGM,
@@ -1472,6 +1479,8 @@ async function engineeringPage(){
           density,
           centerOfGravity:hasKg?centerOfGravity:null,
           pointWeights:hydroPointWeightSummary?.pointWeights||[],
+          areaLoads:hydroPointWeightSummary?.areaLoads||[],
+          hullMassTonnes:hullMassText===""?null:Number(hullMassText),
           pointWeightBaseline:hydroPointBaseline,
           heelDeg:Number(hydroHeel)||0,
           trimDeg:Number(hydroTrim)||0
@@ -1705,28 +1714,38 @@ async function engineeringPage(){
   };
 
   const pointInput=app.querySelector("#hydro-point-weights");
+  const areaInput=app.querySelector("#hydro-area-loads");
+  const massInput=app.querySelector("#hydro-hull-mass");
   pointInput?.addEventListener("input",()=>{hydroPointWeightsText=pointInput.value});
+  areaInput?.addEventListener("input",()=>{hullAreaLoadsText=areaInput.value});
+  massInput?.addEventListener("input",()=>{hullMassText=massInput.value});
   app.querySelector("#hydro-point-apply")?.addEventListener("click",()=>{
     readHydroCaseInputs();
     hydroPointWeightsText=pointInput?.value||"";
+    hullAreaLoadsText=areaInput?.value||"";
+    hullMassText=massInput?.value||"";
     try{
       const weights=pointWeightsFromLines(hydroPointWeightsText);
-      if(!weights.length)throw new Error("Enter at least one point weight");
+      const areas=areaLoadsFromLines(hullAreaLoadsText);
+      const explicitHullMass=hullMassText.trim()!==""?Number(hullMassText):null;
+      if(hullMassText.trim()===""&&!weights.length&&!areas.length)
+        throw new Error("Enter a hull mass or at least one additional mass load");
       if(!hydroPointBaseline){
-        if(!hydro?.particulars?.displacementTonnes)
-          throw new Error("Baseline displacement has not been calculated");
+        if(!hydro?.particulars?.displacementTonnes&&!Number.isFinite(explicitHullMass))
+          throw new Error("Reference displacement is not calculated");
         if(hydroKg===""||!Number.isFinite(Number(hydroKg)))
-          throw new Error("Enter baseline KG before applying point weights");
+          throw new Error("Enter hull/reference KG before applying loads");
         hydroPointBaseline={
-          massTonnes:hydro.particulars.displacementTonnes,
+          massTonnes:explicitHullMass??hydro.particulars.displacementTonnes,
           draft:hydroDraft,
-          cg:[Number(hydroLcg)||0,Number(hydroTcg)||0,Number(hydroKg)]
+          cg:[Number(hydroLcg)||0,Number(hydroTcg)||0,Number(hydroKg)],
+          source:explicitHullMass===null?"reference draft":"entered hull mass"
         };
       }
-      const summary=combinePointWeights({
-        baselineMassTonnes:hydroPointBaseline.massTonnes,
-        baselineCG:hydroPointBaseline.cg,
-        pointWeights:weights
+      const summary=combineHullLoading({
+        hullMassTonnes:hydroPointBaseline.massTonnes,
+        hullCG:hydroPointBaseline.cg,
+        pointWeights:weights,areaLoads:areas
       });
       hydroPointWeightSummary=summary;
       hydroPointError=null;
@@ -1746,7 +1765,7 @@ async function engineeringPage(){
     hydroTcg=String(baseline.cg[1]);hydroDraft=baseline.draft;
     hydroTargetTonnes="";
     hydroPointWeightSummary=null;hydroPointBaseline=null;
-    hydroPointWeightsText="";hydroPointError=null;
+    hydroPointWeightsText="";hullAreaLoadsText="";hydroPointError=null;
     hydroGzRequested=false;hydroAttitudeAction="";
     engineeringPage();
   });
