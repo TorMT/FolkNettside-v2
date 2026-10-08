@@ -4,7 +4,7 @@ on:
     branches: [main]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   inspect-laos-public:
     if: github.head_ref == 'feature/import-verified-kok-source'
@@ -66,3 +66,63 @@ jobs:
                       print("FILE:",repr(f),"url=",url,"status=",resp.status,"content_type=",resp.headers.get("Content-Type"),"size=",resp.headers.get("Content-Length"),"magic=",head.hex())
               except Exception as e:print("FILE FAILURE",repr(f),type(e).__name__,str(e)[:250])
           PY
+
+  import-verified-laos-pdfs:
+    if: github.head_ref == 'feature/import-verified-kok-source' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: true
+      - name: Import the publicly indexed LAOS PDF files
+        run: |
+          python3 - <<'PY'
+          import json, pathlib, hashlib, urllib.request, urllib.parse, datetime
+          base='https://tormt.folk.ntnu.no/diverse/LAOS/filer/'
+          headers={'User-Agent':'FolkNettside-v2-read-only-laos-import/1.0'}
+          with urllib.request.urlopen(urllib.request.Request(base+'index.json',headers=headers),timeout=30) as r:
+              index=json.loads(r.read().decode('utf-8-sig'))
+          entries=[]
+          target=pathlib.Path('data/diverse/laos-files')
+          target.mkdir(parents=True,exist_ok=True)
+          for group,info in index.items():
+              if not isinstance(info,dict) or info.get('beskyttet'):
+                  continue
+              for name in info.get('files',[]):
+                  if not isinstance(name,str) or name != pathlib.Path(name).name or not name.lower().endswith('.pdf'):
+                      raise RuntimeError('Unexpected indexed filename: '+repr(name))
+                  url=base+urllib.parse.quote(name,safe='')
+                  with urllib.request.urlopen(urllib.request.Request(url,headers=headers),timeout=40) as r:
+                      content=r.read(10_000_001)
+                      content_type=r.headers.get('Content-Type','')
+                  if len(content)>10_000_000 or not content.startswith(b'%PDF-'):
+                      raise RuntimeError('Not a small valid PDF: '+url+' '+content_type)
+                  (target/name).write_bytes(content)
+                  digest=hashlib.sha256(content).hexdigest()
+                  print('COPIED',name,len(content),'sha256',digest,'from',url)
+                  entries.append({
+                      'title':name.removesuffix('.pdf').replace('_',' '),
+                      'url':'./data/diverse/laos-files/'+urllib.parse.quote(name,safe=''),
+                      'courseCode':'',
+                      'semester':'',
+                      'category':'LAOS / '+group,
+                      'source':url,
+                      'sha256':digest
+                  })
+          if not entries:
+              raise RuntimeError('LAOS file index has no public PDF records, stopping instead of creating an empty copy')
+          catalog={'schemaVersion':1,'source':'Public original LAOS filer/index.json, mirrored from source',
+                   'sourceUrl':base+'index.json','verified':True,'items':entries}
+          pathlib.Path('data/diverse/laos-assignments.json').write_text(json.dumps(catalog,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print('IMPORTED',len(entries),'PDF records. Original protected entries were skipped.')
+          PY
+      - name: Commit verified source files to migration branch only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/diverse/laos-files data/diverse/laos-assignments.json
+          if git diff --cached --quiet; then echo "Already up to date"; else
+            git commit -m "Mirror public LAOS PDFs and their verified source index"
+            git push origin HEAD:feature/import-verified-kok-source
+          fi
