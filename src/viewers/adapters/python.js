@@ -12,6 +12,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
       <div class="python-workbench-actions">
         <button type="button" id="python-open-vscode">VS Code</button>
         <button type="button" id="python-download">Save .py</button>
+        <label class="python-upload-label">Add data / .py modules<input id="python-local-files" type="file" multiple hidden></label>
         <button type="button" id="python-restart">Reset Python</button>
       </div>
     </div>
@@ -47,6 +48,27 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     link.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
   });
   if(resource.initialEdit)host.querySelector("[data-py-edit]")?.click();
+  const localFiles=container.querySelector("#python-local-files");
+  const fileStatus=document.createElement("span");
+  fileStatus.className="python-files-status";
+  localFiles.closest("label").append(fileStatus);
+  localFiles.addEventListener("change",async()=>{
+    const selected=[...localFiles.files||[]];
+    if(!selected.length)return;
+    try{
+      const files=[];
+      for(const file of selected)files.push({
+        name:file.name,data:new Uint8Array(await file.arrayBuffer())
+      });
+      const result=await session.mount(files);
+      fileStatus.textContent=result.mounted+" file(s) mounted";
+      cell.setStatus("Data and module files ready");
+    }catch(error){
+      fileStatus.textContent=String(error?.message||error);
+      cell.setStatus("File import error");
+    }
+    localFiles.value="";
+  });
   container.querySelector("#python-restart").addEventListener("click",()=>{
     session.stop();cell.setStatus("Runtime reset");cell.setRunning(false);
   });
