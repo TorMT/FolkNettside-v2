@@ -36,15 +36,17 @@ export function mountPythonCodeCell(container,{
     `<span class="python-code-line"><span class="python-code-number">${index+1}</span><span class="python-code-content">${line||" "}</span></span>`
   ).join("\n");
   async function refresh(){
-    const value=editor.value;let html=escapeHTML(value);
-    try{
-      const hljs=await getHighlighter();
-      html=hljs.highlight(value,{language:"python",ignoreIllegals:true}).value;
-    }catch{/* offline syntax fallback shows readable text */}
-    if(disposed)return;
-    code.innerHTML=escapeLines(html);
+    const value=editor.value;
+    // Render readable code and line numbers immediately; highlighting may
+    // arrive asynchronously and can fail offline without blanking the UI.
+    code.innerHTML=escapeLines(escapeHTML(value));
     preview.classList.toggle("no-lines",!lines);
     preview.classList.toggle("soft-wrap",wrap);
+    try{
+      const hljs=await getHighlighter();
+      const html=hljs.highlight(value,{language:"python",ignoreIllegals:true}).value;
+      if(!disposed&&editor.value===value)code.innerHTML=escapeLines(html);
+    }catch{/* fallback is already visible */}
   }
   function setRunning(running){
     runButton.disabled=running;stopButton.disabled=!running;
