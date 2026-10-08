@@ -229,23 +229,32 @@ export function solvePreparedWaterlineForVolume(prepared,targetVolume,{
 }={}){
   const target=Number(targetVolume);
   if(!Number.isFinite(target)||target<0)throw new Error("targetVolume must be a finite non-negative number");
+  if(!(Number.isFinite(tolerance)&&tolerance>0))
+    throw new Error("Draft solver tolerance must be finite and positive");
+  if(!Number.isSafeInteger(maxIterations)||maxIterations<1||maxIterations>500)
+    throw new Error("Draft solver maxIterations must be an integer between 1 and 500");
   let low=Number(minWaterline),high=Number(maxWaterline);
-  if(!(high>low))throw new Error("maxWaterline must be greater than minWaterline");
+  if(!Number.isFinite(low)||!Number.isFinite(high)||!(high>low))
+    throw new Error("maxWaterline must be finite and greater than minWaterline");
 
   let lowResult=analyzePreparedHydro(prepared,low);
   let highResult=analyzePreparedHydro(prepared,high);
+  if(highResult.volume<lowResult.volume-tolerance){
+    throw new Error("Hydro draft solver bracket has decreasing displaced volume; inspect source mesh");
+  }
   if(target<lowResult.volume-tolerance||target>highResult.volume+tolerance){
     throw new Error(`Target volume ${target} m^3 is outside the bracket [${lowResult.volume}, ${highResult.volume}]`);
   }
-  if(Math.abs(lowResult.volume-target)<=tolerance)return {waterline:low,result:lowResult,iterations:0};
-  if(Math.abs(highResult.volume-target)<=tolerance)return {waterline:high,result:highResult,iterations:0};
+  if(Math.abs(lowResult.volume-target)<=tolerance)return {waterline:low,result:lowResult,iterations:0,volumeResidual:lowResult.volume-target,converged:true};
+  if(Math.abs(highResult.volume-target)<=tolerance)return {waterline:high,result:highResult,iterations:0,volumeResidual:highResult.volume-target,converged:true};
 
   let mid=(low+high)/2,midResult;
   for(let iteration=1;iteration<=maxIterations;iteration++){
     midResult=analyzePreparedHydro(prepared,mid);
     const error=midResult.volume-target;
-    if(Math.abs(error)<=tolerance||Math.abs(high-low)<=tolerance){
-      return {waterline:mid,result:midResult,iterations:iteration};
+    if(Math.abs(error)<=tolerance){
+      const solved={waterline:mid,result:midResult,iterations:iteration};
+      return {...solved,volumeResidual:error,converged:true};
     }
 
     if(error<0){low=mid;lowResult=midResult}
@@ -262,7 +271,14 @@ export function solvePreparedWaterlineForVolume(prepared,targetVolume,{
       ?newton
       :(low+high)/2;
   }
-  return {waterline:mid,result:midResult,iterations:maxIterations};
+  const error=new Error("Hydro draft solver did not converge to requested volume within "+
+    maxIterations+" iterations; residual "+(midResult?.volume-target)+" m^3 exceeds "+
+    tolerance+" m^3 tolerance");
+  error.code="HYDRO_DRAFT_NOT_CONVERGED";
+  error.targetVolume=target;
+  error.volumeResidual=midResult?.volume-target;
+  error.tolerance=tolerance;
+  throw error;
 }
 
 export function solveWaterlineForVolume(modelDocument,targetVolume,{
