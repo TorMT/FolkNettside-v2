@@ -1,4 +1,5 @@
 import {createHydroInclude} from "../hydro/hydro-selection.js";
+import {inspectMeshIntersections} from "./mesh-intersections.js";
 
 const IDENTITY=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
 const finite=n=>typeof n==="number"&&Number.isFinite(n);
@@ -76,13 +77,28 @@ export function validateHydroGeometry(geometry,{transform=null,scale=1,tolerance
   if(windingConflicts)errors.push(format(windingConflicts)+" inconsistently oriented edges");
   if(!(signedVolume>Math.max(1e-12,size[0]*size[1]*size[2]*1e-10)))
     errors.push("Outward signed volume must be positive and non-zero");
-  // Topological closure alone does NOT guarantee an isolated physical hull:
-  // coincident, interpenetrating or nested watertight shells may remain.
-  warnings.push("Self-intersections, enclosed voids, external hull isolation, units/axes and vessel baseline require independent verification.");
+  // Bounding-volume hierarchy screens triangles without O(n^2) all-pairs.
+  // If the budget is exceeded, block instead of asserting a false pass.
+  const surfaceIntersectionScan=errors.length?null:
+    inspectMeshIntersections(vertices,idx,ids,{tolerance});
+  if(surfaceIntersectionScan?.hits.length)
+    errors.push(surfaceIntersectionScan.hits.length+
+      (surfaceIntersectionScan.hitLimitReached?"+":"")+
+      " intersecting non-adjacent triangle pairs (first face indices: "+
+      surfaceIntersectionScan.hits[0].join(" / ")+")");
+  if(surfaceIntersectionScan&&!surfaceIntersectionScan.exhaustive)
+    errors.push("Self-intersection scan exceeded safe comparison limit");
+  // Triangle pairs sharing welded vertices are intentionally skipped:
+  // distinguish true penetrating contacts at shared vertices independently.
+  // Topological closure alone does not prove the source is the external hull.
+  warnings.push("Vertex-sharing face contacts, enclosed voids, external hull isolation, units/axes and vessel baseline still require independent verification.");
   return {passed:errors.length===0,errors,warnings,
     metrics:{sourceVertices:count,weldedVertices:welded.size,triangleCount,
       degenerateTriangles,boundaryEdges,nonManifoldEdges,windingConflicts,
-      signedVolume,bounds:{min,max,size},tolerance}};
+      signedVolume,bounds:{min,max,size},tolerance,
+      selfIntersections:surfaceIntersectionScan?.hits.length??null,
+      intersectionCandidatePairs:surfaceIntersectionScan?.candidatePairs??null,
+      intersectionScanExhaustive:surfaceIntersectionScan?.exhaustive??false}};
 }
 
 export function validateHydroModel(modelDocument,{include=createHydroInclude(modelDocument),tolerance=1e-7}={}){
