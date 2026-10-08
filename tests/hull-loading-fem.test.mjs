@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {boxMesh} from "../src/hydro/fixtures.js";
+import {boxMesh,wedgePrismMesh} from "../src/hydro/fixtures.js";
 import {executeHydroRequest} from "../src/hydro/hydro-service.js";
 import {hydrostaticParticulars} from "../src/hydro/stability.js";
 import {areaLoadsFromLines,combineHullLoading} from "../src/hydro/hull-loading.js";
@@ -116,4 +116,28 @@ test("area mass patch becomes exact piecewise uniform structural force and react
  const loaded=beam.lineLoads.find(load=>load.from===2);
  const outside=beam.lineLoads.find(load=>load.from===0);
  assert.ok(loaded.qy<outside.qy);
+});
+
+test("sloping-deck wedge hull: both GM axes match independent partial-waterplane integrals",()=>{
+ const L=10,B=4,H0=.5,H1=2,T=1.2,rho=1025,KG=.8;
+ const documentModel={name:"Deck wedge",unitScaleToMeters:1,components:[{
+    id:"wedge",name:"Sloping deck",geometry:wedgePrismMesh({L,B,H0,H1}),
+    metadata:{hydro:true}
+ }]};
+ const dH=H1-H0,partial=(H1-T)/dH;
+ const Lwet=L*partial;
+ const volume=B*L*(T-(T-H0)**2/(2*dH));
+ const kbMoment=B/2*(L/dH*(T**3-H0**3)/3+L*partial*T*T);
+ const KB=kbMoment/volume;
+ const Ixx=Lwet*B**3/12;
+ const Iyy=B*Lwet**3/12;
+ const hydro=executeHydroRequest(documentModel,"analyze",{waterline:T});
+ const particulars=hydrostaticParticulars(hydro,{density:rho,kg:KG});
+ near(hydro.volume,volume,1e-7);
+ near(hydro.waterplane.area,B*Lwet,1e-7);
+ near(hydro.waterplane.ixx,Ixx,1e-7);
+ near(hydro.waterplane.iyy,Iyy,1e-7);
+ near(hydro.centerOfBuoyancy[2],KB,1e-7);
+ near(particulars.gmTransverse,KB+Ixx/volume-KG,1e-7);
+ near(particulars.gmLongitudinal,KB+Iyy/volume-KG,1e-7);
 });
