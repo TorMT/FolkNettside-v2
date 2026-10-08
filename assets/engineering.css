@@ -38,3 +38,5 @@
 .hydro-numerical-audit p{margin:0;color:var(--ink-2);line-height:1.5}
 .hydro-numerical-audit small{font-size:10px;color:var(--ink-3);line-height:1.4}
 @media(max-width:600px){.hydro-numerical-audit{padding:10px 11px}}
+
+.hydro-numerical-audit.needs-review{border-left-color:var(--warn)}
