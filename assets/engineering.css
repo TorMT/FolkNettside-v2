@@ -40,3 +40,51 @@
 @media(max-width:600px){.hydro-numerical-audit{padding:10px 11px}}
 
 .hydro-numerical-audit.needs-review{border-left-color:var(--warn)}
+
+/* Engineering workspace: independent scroll regions with a keyboard/drag-resizable
+   analysis pane. Controls and plots never extend underneath the status bar. */
+@media(min-width:761px){
+  .workspace{
+    min-width:0;
+    grid-template-rows:minmax(44px,auto) minmax(120px,1fr)
+      minmax(190px,var(--workspace-results-size,clamp(245px,36dvh,480px))) 28px;
+  }
+  .workspace>.tree,.workspace>.inspector{
+    min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;
+    overscroll-behavior:contain;scrollbar-gutter:stable;
+  }
+  .workspace>.results{
+    position:relative;min-height:0;min-width:0;overflow:auto;
+    overscroll-behavior:contain;scrollbar-gutter:stable;
+    grid-template-columns:minmax(160px,240px) minmax(0,1fr);
+  }
+  .workspace>.results>.results-summary{
+    align-self:start;position:sticky;left:0;top:0;z-index:1;
+    min-width:0;overflow-wrap:anywhere;
+  }
+  .workspace>.results>:not(.results-summary){min-width:0;max-width:100%}
+  .workspace>.results .hydro-results-wrap{min-width:0;overflow-wrap:anywhere}
+  .workspace>.results .hydro-grid{min-width:0}
+  .workspace>.results .hydro-curves-column{min-width:0}
+  .workspace>.results .hydro-table{max-width:100%;overflow-x:auto}
+  .workspace>.statusbar{min-height:0;overflow:hidden}
+  .workspace-results-handle{
+    position:absolute;top:0;left:50%;transform:translateX(-50%);
+    z-index:8;width:86px;height:15px;border:0;border-radius:0 0 9px 9px;
+    color:var(--ink-2);background:var(--surface-sunk);cursor:ns-resize;
+    display:grid;place-items:center;box-shadow:0 1px 5px rgb(0 0 0/.16);
+    touch-action:none;
+  }
+  .workspace-results-handle:before{
+    content:"";display:block;width:42px;height:3px;border-radius:3px;
+    background:var(--ink-3);
+  }
+  .workspace-results-handle:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+}
+@media(min-width:761px) and (max-width:1100px){
+  .workspace>.results{grid-template-columns:minmax(145px,200px) minmax(0,1fr)}
+}
+@media(max-width:760px){
+  .workspace>.results{scrollbar-gutter:stable;overscroll-behavior:contain;overflow:auto}
+  .workspace-results-handle{display:none}
+}
