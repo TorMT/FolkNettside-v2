@@ -12,7 +12,7 @@ dV/dT = A_wp(T)
 
 `src/hydro/numerical-audit.js` checks numerical monotonicity, finite values and sampled finite differences against the mean waterplane area of adjacent hydrostatic-curve points.
 
-The finite-difference comparison is approximate on coarse intervals and near chines, changing curvature or discontinuous derivatives; such departures are flagged **review**, not silently treated as proof of a bad vessel. Decreasing displacement beyond a mixed absolute/relative tolerance is **fail**.
+The finite-difference comparison is approximate on coarse intervals and near chines, changing curvature or discontinuous derivatives; such departures are flagged **review**, not silently treated as proof of a bad vessel. Decreasing displacement beyond a mixed absolute/relative tolerance is **fail** and the Hydro service refuses to return the corresponding curve. Non-finite or negative hydrostatic values also block the curve.
 
 Results, pass/review/fail classifications, interval diagnostics and maximum relative derivative deviation are included in the Engineering Hydro UI and engineering report. The check does not by itself lift the independent hull provenance/capability gates.
 
