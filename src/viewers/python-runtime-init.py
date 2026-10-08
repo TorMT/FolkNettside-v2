@@ -71,7 +71,7 @@ def _viewer_capture(fig):
 def _viewer_patch_pyplot():
     global _viewer_patching
     pyplot = _sys.modules.get("matplotlib.pyplot")
-    if pyplot is None or _viewer_patching or getattr(pyplot.show, "_folk_viewer_show", False):
+    if pyplot is None or _viewer_patching or not callable(getattr(pyplot, "show", None)) or getattr(pyplot.show, "_folk_viewer_show", False):
         return
     _viewer_patching = True
     try:
