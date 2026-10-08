@@ -6,7 +6,7 @@ import {medisinStorageKey,medisinTimers,medisinDoses,medisinNextAt,medisinRemain
 const LEGACY_URL="https://tormt.folk.ntnu.no/diverse/MedisinTimer/";
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 const date=value=>new Intl.DateTimeFormat("nb-NO",{dateStyle:"short",timeStyle:"short"}).format(value instanceof Date?value:new Date(value));
-const num=value=>Number(value).toLocaleString("nb-NO",{maximumFractionDigits:2});
+const num=value=>{const n=Number(value);return !Number.isFinite(n)?"—":n!==0&&Math.abs(n)<0.0001?n.toExponential(3):n.toLocaleString("nb-NO",{maximumFractionDigits:5});};
 const uuid=()=>globalThis.crypto?.randomUUID?.()||Date.now()+"-"+Math.random().toString(36).slice(2);
 function accountId(){
   const a=getGoogleSessionSnapshot();
