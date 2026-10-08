@@ -1559,7 +1559,16 @@ async function engineeringPage(){
       }).join("")}</div>
     </aside>
     <section class="viewport"><div id="engineering-scene" class="engineering-scene"></div><div class="hud">${engineeringMode==="Hydro"?"Hydro · 3D waterline and hull intersection":"Selected: "+(selected?.name||"—")}</div></section>
-    <aside class="inspector">${inspector}${engineeringMode==="Hydro"?`<div id="engineering-wave-tools"></div>`:""}</aside>
+    <aside class="inspector">${inspector}
+      ${engineeringMode==="Hydro"||engineeringMode==="Model"?
+        `<section class="engineering-waterline-controls">
+          <strong>3D waterline · visual reference</strong>
+          <label>Water surface elevation Z (m) <input id="engineering-water-z" type="number" step=".1" value="0"></label>
+          <label><input id="engineering-water-show" type="checkbox" checked> Show hull intersection and still-water plane</label>
+          <span id="engineering-water-status" role="status">Loading 3D hull intersection…</span>
+          <small>Geometric preview only. Still-water Hydro and imported wave records are separate calculations.</small>
+        </section><div id="engineering-wave-tools"></div>`:""}
+    </aside>
     <section class="results"><div class="results-summary">${summary}</div>${resultContent}</section>
     <footer class="statusbar"><span>Units SI</span><span>Source ${documentModel.unit}</span><span>Mode ${engineeringMode}</span><span>Semantic ModelDocument</span><span class="top-spacer"></span><span>Ready</span></footer>
   </main><div class="preview-badge">${engineeringMode==="Hydro"?"Hydro · stability workspace":"Semantic ModelDocument"}</div>`;
@@ -1606,9 +1615,29 @@ async function engineeringPage(){
     if(renderId!==engineeringRenderId){handle.cleanup();return}
     sceneHandle=handle;
     let waves=null;
-    if(engineeringMode==="Hydro"&&hydro){
-      handle.actions.setWaterline({visible:true,z:Number(hydro.draft)||0});
-      handle.actions.setRotation({x:Number(hydroHeel)||0,y:Number(hydroTrim)||0});
+    if(engineeringMode==="Hydro"||engineeringMode==="Model"){
+      const sceneBounds=handle.actions.getBounds();
+      const initialZ=engineeringMode==="Hydro"&&hydro?Number(hydro.draft):
+        sceneBounds.min[2]+sceneBounds.size[2]/2;
+      if(engineeringMode==="Hydro"&&hydro)
+        handle.actions.setRotation({x:Number(hydroHeel)||0,y:Number(hydroTrim)||0});
+      const waterInput=app.querySelector("#engineering-water-z");
+      const waterToggle=app.querySelector("#engineering-water-show");
+      const waterStatus=app.querySelector("#engineering-water-status");
+      waterInput.value=String(initialZ);
+      function updateSceneWaterline(){
+        try{
+          const info=handle.actions.setWaterline({
+            visible:waterToggle.checked,z:Number(waterInput.value)
+          });
+          waterStatus.textContent=info.status==="ok"?
+            info.loops.length+" actual 3D hull intersection contour(s)":
+            info.reason||"Waterline hidden";
+        }catch(error){waterStatus.textContent=String(error?.message||error)}
+      }
+      waterInput.addEventListener("change",updateSceneWaterline);
+      waterToggle.addEventListener("change",updateSceneWaterline);
+      updateSceneWaterline();
       const waveHost=app.querySelector("#engineering-wave-tools");
       if(waveHost)waves=mountWaveControls(waveHost,handle);
     }
