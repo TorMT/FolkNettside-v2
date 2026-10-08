@@ -82,7 +82,7 @@ try{
  assert(readWaveCollection().length===2,"Wave JSON restoration failed: "+
    details.querySelector(".model-wave-status")?.textContent);
  details.querySelector("[data-wave-show]").click();
- assert(details.querySelector("[data-wave-show]").textContent==="Show waves",
+ assert(details.querySelector("[data-wave-show]").textContent==="Show waves in 3D",
    "3D wave hide toggle did not disable saved-wave replay");
  details.querySelector("[data-wave-show]").click();
  assert(details.querySelector("[data-wave-show]").textContent==="Hide waves",
