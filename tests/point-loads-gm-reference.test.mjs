@@ -87,3 +87,29 @@ test("structural 2D point force at free end matches independent cantilever beam 
   near(axial.nodes[1].ux,12000*L/(E*A),1e-10);
   near(axial.nodes[0].rx,-12000,1e-7);
 });
+
+test("interior point force on Euler-Bernoulli cantilever matches exact tip deflection, rotation and reactions",()=>{
+  const L=3,a=1.5,P=-20000,E=210e9,I=8e-6,A=.02;
+  const model={nodes:[{id:"root",x:0,y:0},{id:"tip",x:L,y:0}],
+    elements:[{id:"beam",n1:"root",n2:"tip",E,A,I}],
+    supports:[{node:"root",ux:true,uy:true,rz:true}],
+    loads:[],
+    pointLoads:[{element:"beam",position:a,fy:P}]};
+  const result=solveFrame2D(model),tip=result.nodes[1],root=result.nodes[0];
+  near(tip.uy,P*a*a*(3*L-a)/(6*E*I),1e-10);
+  near(tip.rz,P*a*a/(2*E*I),1e-10);
+  near(root.ry,-P,1e-6);
+  near(Math.abs(root.rm),Math.abs(P*a),1e-5);
+  // End force at x=L must reproduce original nodal-tip load case.
+  model.pointLoads[0].position=L;
+  const end=solveFrame2D(model);
+  near(end.nodes[1].uy,P*L**3/(3*E*I),1e-10);
+  near(end.nodes[0].ry,-P,1e-6);
+  // Root load at a=0 causes reaction but no beam bending displacement.
+  model.pointLoads[0].position=0;
+  const atRoot=solveFrame2D(model);
+  near(atRoot.nodes[1].uy,0,1e-10);
+  near(atRoot.nodes[0].ry,-P,1e-6);
+  model.pointLoads[0].position=L+1;
+  assert.throws(()=>solveFrame2D(model),/position/);
+});
