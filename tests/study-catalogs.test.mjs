@@ -44,14 +44,14 @@ test("LAOS source catalog and already-indexed Courses assignments remain separat
  assert.equal(resources.length,1);
  assert.equal(resources[0].route,"/viewer/3/TMR1234/0");
 });
-test("native catalog pages keep working legacy links, no embedded iframe",()=>{
+test("native catalog pages retain source attribution but no obsolete embedded iframe",()=>{
  for(const kind of ["laos","kok"]){
    const html=studyCatalogPageHTML(kind);
    assert.match(html,/id="catalog-results"/);
    assert.match(html,/id="catalog-search"/);
-   assert.match(html,/Gammel side/);
-   assert.match(html,/data-legacy-src=/);
-   assert.match(html,/loading="lazy"/);
+   assert.match(html,/Opprinnelig kilde/);
+   assert.doesNotMatch(html,/<iframe/);
+   assert.doesNotMatch(html,/data-legacy-src=/);
  }
  assert.match(studyCatalogPageHTML("kok"),/catalog-specialization/);
  assert.match(studyCatalogPageHTML("laos"),/catalog-course-resources/);
