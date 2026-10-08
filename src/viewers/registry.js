@@ -5,7 +5,7 @@ const adapterLoaders={
   ipynb:()=>import("./adapters/notebook.js"),tex:()=>import("./adapters/latex.js"),
   mp4:()=>import("./adapters/video.js"),webm:()=>import("./adapters/video.js"),mkv:()=>import("./adapters/video.js"),
   stl:()=>import("./adapters/stl.js"),"3mf":()=>import("./adapters/three-mf.js"),
-  md:()=>import("./adapters/text.js"),txt:()=>import("./adapters/text.js"),py:()=>import("./adapters/text.js"),
+  md:()=>import("./adapters/text.js"),txt:()=>import("./adapters/text.js"),py:()=>import("./adapters/python.js"),
   js:()=>import("./adapters/text.js"),mjs:()=>import("./adapters/text.js"),ts:()=>import("./adapters/text.js"),
   tsx:()=>import("./adapters/text.js"),jsx:()=>import("./adapters/text.js"),json:()=>import("./adapters/text.js"),
   yaml:()=>import("./adapters/text.js"),yml:()=>import("./adapters/text.js"),c:()=>import("./adapters/text.js"),
