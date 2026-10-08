@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="no"><head><meta charset="utf-8"><title>Native study catalogs smoke</title></head>
+<body data-status="running"><main id="mount"></main><pre id="result">Running</pre>
+<script type="module">
+import {studyCatalogPageHTML,mountStudyCatalog} from "../../src/diverse/study-catalog-pages.js";
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+const originalFetch=globalThis.fetch;
+globalThis.fetch=async url=>{
+ const isKok=String(url).includes("kok-sites");
+ return new Response(JSON.stringify({
+   schemaVersion:1,verified:true,source:"deterministic browser fixture",items:isKok?[
+     {name:"Example B",url:"https://example.org/b",study:"Marine",specialization:"Hydro",cohort:"25",rating:4},
+     {name:"Example A",url:"https://example.org/a",study:"Chem",specialization:"Process",cohort:"24",rating:5}
+   ]:[{title:"Oblig 1",url:"https://example.org/oblig.pdf",courseCode:"TMR1234"}]
+ }),{status:200,headers:{"Content-Type":"application/json"}});
+};
+try{
+ const root=document.getElementById("mount");
+ root.innerHTML=studyCatalogPageHTML("kok");
+ const first=await mountStudyCatalog(root,{kind:"kok"});
+ assert(root.querySelectorAll(".study-catalog-card").length===2,"Expected two student sites");
+ const study=root.querySelector("#catalog-study");study.value="Marine";study.dispatchEvent(new Event("change",{bubbles:true}));
+ assert(root.querySelectorAll(".study-catalog-card").length===1,"Study filter failed");
+ assert(root.querySelector(".study-catalog-card h3")?.textContent==="Example B","Wrong result");
+ first.cleanup();
+ root.innerHTML=studyCatalogPageHTML("laos");
+ let navigated="";
+ const second=await mountStudyCatalog(root,{
+   kind:"laos",semesters:[{id:3,courses:[{code:"TMR1234",resources:[{title:"Oblig 2",path:"f.pdf"}]}]}],
+   onNavigate:route=>navigated=route
+ });
+ assert(root.querySelectorAll("#catalog-results .study-catalog-card").length===1,"LAOS import missing");
+ assert(root.querySelectorAll("#catalog-course-resources .study-catalog-card").length===1,"Courses files missing");
+ root.querySelector("[data-catalog-route]").click();
+ assert(navigated==="/viewer/3/TMR1234/0","Viewer integration failed");
+ second.cleanup();globalThis.fetch=originalFetch;
+ document.body.dataset.status="pass";
+ document.getElementById("result").textContent="Native LAOS and student sites filters/viewer: PASS";
+}catch(error){
+ globalThis.fetch=originalFetch;
+ document.body.dataset.status="fail";
+ document.getElementById("result").textContent=String(error?.stack||error);
+}
+</script></body></html>
