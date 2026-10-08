@@ -46,3 +46,23 @@ jobs:
               print('INLINE:',inline[:4000])
           print('END PUBLIC INSPECTION')
           PY
+
+      - name: Inspect LAOS authoritative JSON and PDF links
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, urllib.parse, hashlib
+          base="https://tormt.folk.ntnu.no/diverse/LAOS/filer/"
+          with urllib.request.urlopen(base+"index.json",timeout=25) as r:
+              raw=r.read()
+          print("INDEX:",raw.decode("utf-8","replace"))
+          data=json.loads(raw.decode("utf-8-sig"))
+          files=[filename for k,v in data.items() if isinstance(v,dict) and not v.get("beskyttet") for filename in v.get("files",[])]
+          print("LAOS file names:",repr(files))
+          for f in files:
+              url=base+urllib.parse.quote(f,safe="/")
+              try:
+                  with urllib.request.urlopen(url,timeout=25) as resp:
+                      head=resp.read(16)
+                      print("FILE:",repr(f),"url=",url,"status=",resp.status,"content_type=",resp.headers.get("Content-Type"),"size=",resp.headers.get("Content-Length"),"magic=",head.hex())
+              except Exception as e:print("FILE FAILURE",repr(f),type(e).__name__,str(e)[:250])
+          PY
