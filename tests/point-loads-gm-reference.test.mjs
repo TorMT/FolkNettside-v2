@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {boxMesh} from "../src/hydro/fixtures.js";
 import {executeHydroRequest} from "../src/hydro/hydro-service.js";
 import {hydrostaticParticulars} from "../src/hydro/stability.js";
+import {hydroPanelHTML} from "../src/engineering/hydro-panel.js";
 import {combinePointWeights,pointWeightsFromLines} from "../src/hydro/point-loads.js";
 import {solveFrame2D} from "../src/structure/frame2d.js";
 import {structurePanelHTML} from "../src/engineering/structure-panel.js";
@@ -175,3 +176,35 @@ test("point loads above/below CG produce correct signed changes in both GMs afte
   assert.ok(low.GM.gmTransverse>high.GM.gmTransverse);
   assert.ok(low.GM.gmLongitudinal>high.GM.gmLongitudinal);
 });
+
+test("baseline and loaded GM both axes remain distinct; removing same point mass restores draft and GM",()=>{
+ const hull=box(),initial=executeHydroRequest(hull,"analyze",{waterline:1});
+ const start=hydrostaticParticulars(initial,{density:1025,kg:.5});
+ const added=combinePointWeights({baselineMassTonnes:start.displacementTonnes,
+   baselineCG:[0,0,.5],pointWeights:pointWeightsFromLines("1, 2, 1, 2")});
+ const loadedDraft=executeHydroRequest(hull,"solve",{
+   targetVolume:added.totalMassTonnes*1000/1025,minWaterline:0,maxWaterline:3,
+   tolerance:1e-9,maxIterations:80
+ }).waterline;
+ const loaded=hydrostaticParticulars(executeHydroRequest(hull,"analyze",{
+   waterline:loadedDraft
+ }),{density:1025,kg:added.centerOfGravity[2]});
+ near(loaded.gmTransverse,loaded.kb+loaded.ixx/loaded.volume-added.centerOfGravity[2]);
+ near(loaded.gmLongitudinal,loaded.kb+loaded.iyy/loaded.volume-added.centerOfGravity[2]);
+ const restored=hydrostaticParticulars(executeHydroRequest(hull,"analyze",{waterline:1}),
+   {density:1025,kg:.5});
+ near(restored.gmTransverse,start.gmTransverse);
+ near(restored.gmLongitudinal,start.gmLongitudinal);
+ const ui=hydroPanelHTMLForPointWeightTest(hull,initial,added,loadedDraft,loaded);
+ assert.match(ui.inspector,/id="hydro-point-reset"/);
+ assert.match(ui.inspector,/GM transverse/);
+ assert.match(ui.inspector,/GM longitudinal/);
+});
+function hydroPanelHTMLForPointWeightTest(hull,result,pointWeightSummary,draft,loaded){
+ return hydroPanelHTML({modelDocument:hull,result,
+   curve:executeHydroRequest(hull,"curve",{minWaterline:.25,maxWaterline:2.5,samples:7}),
+   draft:1,kg:.5,pointWeightSummary,
+   loadedGM:{draft,gmTransverse:loaded.gmTransverse,
+     gmLongitudinal:loaded.gmLongitudinal},
+   config:{minDraft:0,maxDraft:3,density:1025}});
+}
