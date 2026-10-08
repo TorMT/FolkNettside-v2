@@ -184,11 +184,11 @@ export function courseTableConfig(fluid){
   // critical temperatures. In particular CO2 has no liquid-vapour saturation
   // below ~5.18 bar (the triple-point pressure).
   const saturationTemperatures={
-    CO2:"-50\\n-30\\n-10\\n10",
-    Oxygen:"-200\\n-190\\n-170\\n-140",
-    Nitrogen:"-205\\n-190\\n-170\\n-150",
-    Methane:"-175\\n-150\\n-125\\n-100",
-    Propane:"-40\\n-20\\n0\\n20"
+    CO2:"-50\n-30\n-10\n10",
+    Oxygen:"-200\n-190\n-170\n-140",
+    Nitrogen:"-205\n-190\n-170\n-150",
+    Methane:"-175\n-150\n-125\n-100",
+    Propane:"-40\n-20\n0\n20"
   };
   return {
     label:`${fluid} · native CoolProp basis`,
