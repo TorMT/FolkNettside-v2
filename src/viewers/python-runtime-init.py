@@ -95,7 +95,10 @@ def _viewer_patch_pyplot():
 
 def _viewer_import(name, globals=None, locals=None, fromlist=(), level=0):
     result = _viewer_original_import(name, globals, locals, fromlist, level)
-    if not _viewer_patching and "matplotlib.pyplot" in _sys.modules:
+    if not _viewer_patching and (
+        name in ("matplotlib.pyplot", "pylab") or
+        (name == "matplotlib" and "pyplot" in (fromlist or ()))
+    ):
         _viewer_patch_pyplot()
     return result
 
