@@ -39,7 +39,8 @@ export function solveHullGirder({
       throw new Error("Area load "+(index+1)+" extends outside the beam span");
   }
   const coords=[a,b,...Array.from({length:n-1},(_,i)=>a+(i+1)*span/n),
-    ...loading.areaLoads.flatMap(area=>[area.x0,area.x1])];
+    ...loading.areaLoads.flatMap(area=>[area.x0,area.x1]),
+    ...loading.pointWeights.map(weight=>weight.x)];
   coords.sort((x,y)=>x-y);
   const xs=coords.filter((x,i)=>i===0||x-coords[i-1]>tol);
   const nodes=xs.map((x,i)=>({id:"h"+i,x,y:0}));
@@ -55,17 +56,19 @@ export function solveHullGirder({
     lineLoads.push({from:xs[i],to:xs[i+1],qy});
     return {element:element.id,qy};
   });
-  const interior=loading.pointWeights.map(w=>{
-    const i=Math.min(elements.length-1,Math.max(0,
-      xs.findIndex((x,j)=>j<xs.length-1&&w.x<=xs[j+1]+tol)));
-    return {element:elements[i].id,position:Math.max(0,Math.min(xs[i+1]-xs[i],w.x-xs[i])),
-      fx:0,fy:-w.massTonnes*1000*G};
+  // Split elements at every force application coordinate. This makes shear
+  // jumps and extrema exact instead of smoothing point forces inside an element.
+  const pointLoads=loading.pointWeights.map(w=>{
+    const node=nodes.find((node)=>Math.abs(node.x-w.x)<=tol);
+    if(!node)throw new Error("Point load could not be matched to a FEM node");
+    return {node:node.id,fy:-w.massTonnes*1000*G};
   });
   const frame={name:"Global hull-girder fixture",nodes,elements,
     supports:[{node:nodes[0].id,ux:true,uy:true},{node:nodes.at(-1).id,uy:true}],
-    pointLoads:interior,distributedLoads};
+    loads:pointLoads,distributedLoads};
   const analysis=solveFrame2D(frame);
   const moments=[],shears=[],fem=analysis.elements;
+  const sampleResults=[];
   for(let i=0;i<fem.length;i++){
     const actions=fem[i].localEndForces,L=xs[i+1]-xs[i],q=distributedLoads[i].qy;
     const moment=s=>-actions[2]+actions[1]*s+q*s*s/2;
@@ -76,6 +79,21 @@ export function solveHullGirder({
     }
     for(const d of candidates)moments.push({x:xs[i]+d,value:moment(d)});
     shears.push({x:xs[i],value:actions[1]},{x:xs[i+1],value:actions[1]+q*L});
+    const [v1,t1,,v2,t2]=[
+      fem[i].localDisplacements[1],fem[i].localDisplacements[2],0,
+      fem[i].localDisplacements[4],fem[i].localDisplacements[5]
+    ];
+    // Cubic Hermite interpolation for the FE deflection field.
+    for(let j=0;j<=16;j++){
+      const tau=j/16,t2x=tau*tau,t3x=t2x*tau;
+      const w=(1-3*t2x+2*t3x)*v1
+        +L*(tau-2*t2x+t3x)*t1
+        +(3*t2x-2*t3x)*v2
+        +L*(-t2x+t3x)*t2;
+      const localX=tau*L,M=moment(localX);
+      sampleResults.push({x:xs[i]+localX,deflectionM:w,momentNm:M,
+        stressPa:M*c/inertia,shearN:actions[1]+q*localX});
+    }
   }
   const peak= moments.reduce((top,entry)=>
     !top||Math.abs(entry.value)>Math.abs(top.value)?entry:top,null);
@@ -86,7 +104,7 @@ export function solveHullGirder({
   const verticalLoadN=-loading.totalMassTonnes*1000*G;
   const reactionN=reactions.reduce((sum,r)=>sum+r.verticalN,0);
   return {method:"Euler-Bernoulli simply-supported hull girder (global beam proxy)",
-    loading,frame,analysis,reactions,lineLoads,moments,shears,
+    loading,frame,analysis,reactions,lineLoads,moments,shears,field:sampleResults,
     maxMomentNm:Math.abs(peak.value),
     momentAtMax:peak.x,
     maxStressPa:Math.abs(peak.value)*c/inertia,
