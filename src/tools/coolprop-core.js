@@ -145,7 +145,7 @@ export const COURSE_TABLE_CONFIGS={
   Water:{
     label:"Water · Tables A-2 / A-3 / A-4 / A-5",
     tables:[
-      {id:"A-2",label:"Saturated water · temperature table",mode:"sat-T",defaultRows:"0\n20\n50\n100",inputHint:"One temperature per line"},
+      {id:"A-2",label:"Saturated water · temperature table",mode:"sat-T",defaultRows:"1\n20\n50\n100",inputHint:"One temperature per line"},
       {id:"A-3",label:"Saturated water · pressure table",mode:"sat-P",defaultRows:"0.5\n1\n5\n10",inputHint:"One pressure per line"},
       {id:"A-4",label:"Superheated water vapour",mode:"superheated",defaultRows:"150,1\n200,5\n400,10",inputHint:"Temperature, pressure per line"},
       {id:"A-5",label:"Compressed liquid water",mode:"compressed",defaultRows:"25,50\n100,100\n200,200",inputHint:"Temperature, pressure per line"}
@@ -500,7 +500,7 @@ export function removeBookBasis(engine,fluid,prop,value,enabled=false){
   return Number(value)-(tableReferenceOffsets(engine,fluid)[prop]||0);
 }
 
-export function courseCalibrationSummary(engine,fluid,{energyTolerance=5000,entropyTolerance=150}={}){
+export function courseCalibrationSummary(engine,fluid,{energyTolerance=500,entropyTolerance=2}={}){
   const config=courseTableConfig(fluid);
   if(!config)return {fluid,status:"unavailable",tables:[]};
   const profile=tableReferenceProfile(fluid);
