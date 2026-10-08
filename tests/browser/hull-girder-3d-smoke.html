@@ -1,0 +1,65 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>Hull girder FEM 3D color and load controls smoke</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/engineering.css"></head>
+<body data-status="running"><div id="host" style="width:100%;height:560px"></div>
+<div id="panel"></div><pre id="result">running</pre>
+<script type="module">
+import {boxMesh} from "../../src/hydro/fixtures.js";
+import {mountModelScene} from "../../src/model/model-scene.js";
+import {solveHullGirder} from "../../src/structure/hull-girder.js";
+import {hullGirderPanelHTML} from "../../src/engineering/hull-girder-panel.js";
+import {combineHullLoading,areaLoadsFromLines} from "../../src/hydro/hull-loading.js";
+const assert=(truth,message)=>{if(!truth)throw Error(message)};
+const model={format:"STL",name:"10 x 4 x 3 metre FEM reference block",
+ unit:"meter",unitScaleToMeters:1,components:[{id:"hull",
+ name:"Rectangular hull",type:"mesh",metadata:{hydro:true},
+ geometry:boxMesh({L:10,B:4,H:3})}]};
+let scene=null;
+try{
+ const loads=combineHullLoading({hullMassTonnes:20,hullCG:[0,0,1],
+    pointWeights:[{massTonnes:2,x:0,y:0,z:2}],
+    areaLoads:areaLoadsFromLines("0.1,-3,3,-1,1,2")});
+ assert(loads.totalMassTonnes===23.2,"Mass assembly incorrect");
+ const result=solveHullGirder({
+  xMin:-5,xMax:5,hullMassTonnes:20,hullCG:[0,0,1],
+  pointWeights:[{massTonnes:2,x:0,y:0,z:2}],
+  areaLoads:areaLoadsFromLines("0.1,-3,3,-1,1,2"),
+  E:210e9,I:.08,extremeFiberM:1,segments:12
+ });
+ const panel=hullGirderPanelHTML({result,caseInput:{
+  hullMassTonnes:20,cg:[0,0,1],pointText:"2,0,0,2",
+  areaText:"0.1,-3,3,-1,1,2",eGpa:210,iM4:.08,
+  extremeFiberM:1,neutralZ:1,segments:12
+ }});
+ document.querySelector("#panel").innerHTML=panel.inspector+panel.results;
+ for(const id of ["girder-hull-mass","girder-i","girder-c",
+  "girder-points","girder-areas","girder-run","girder-color-mode"])
+  assert(document.getElementById(id),"Missing FEM input/control "+id);
+ assert(document.querySelectorAll(".hull-fem-diagram").length===2,
+   "Stress and deflection diagrams missing");
+ assert(document.querySelector(".hull-fem-gradient"),
+   "Fusion-style signed stress color legend missing");
+ scene=await mountModelScene(document.querySelector("#host"),model,
+   {showSidebar:false});
+ const active=scene.actions.setHullGirderContour({
+   girder:result,neutralZ:1,visible:true
+ });
+ assert(active.enabled&&active.maxMPa>0&&active.minMPa<0,
+  "No signed 3D stress field on actual hull mesh");
+ assert(document.querySelector("#host canvas"),
+  "No 3D hull canvas");
+ const clear=scene.actions.setHullGirderContour({visible:false});
+ assert(!clear.enabled,"Hull stress colors cannot be reset");
+ const restored=scene.actions.setHullGirderContour({
+  girder:result,neutralZ:1,visible:true
+ });
+ assert(restored.enabled,"Hull stress colors cannot be reapplied");
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent=
+  "PASS: point and area mass, beam stress FEM, diagrams, 3D mesh color/reset";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error.stack||error);
+}finally{scene?.cleanup?.()}
+</script></body></html>
