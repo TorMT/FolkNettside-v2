@@ -86,6 +86,24 @@ export function solveFrame2D(model){
     elementCache.push({element,matrices,dofs});
   }
 
+  // Uniform element loads, local coordinates: qx axial, qy transverse N/m.
+  // Euler-Bernoulli consistent force vector, exactly integrated (not nodal
+  // lumping). Same local correction enters the recovered end actions.
+  for(const load of model.distributedLoads||[]){
+    const cache=elementCache.find(item=>String(item.element.id)===String(load.element));
+    if(!cache)throw new Error("Unknown distributed-load element: "+String(load.element));
+    const L=cache.matrices.length;
+    const qx=Number(load.qx??0),qy=Number(load.qy??0);
+    if(!Number.isFinite(qx)||!Number.isFinite(qy))
+      throw new Error("Distributed loads require finite qx and qy in N/m");
+    const local=[qx*L/2,qy*L/2,qy*L*L/12,
+      qx*L/2,qy*L/2,-qy*L*L/12];
+    if(!cache.consistentPointForces)cache.consistentPointForces=Array(6).fill(0);
+    for(let i=0;i<6;i++)cache.consistentPointForces[i]+=local[i];
+    const global=matVec(transpose(cache.matrices.transform),local);
+    cache.dofs.forEach((dof,i)=>F[dof]+=global[i]);
+  }
+
   // Arbitrary interior point forces/moments use exact Hermite consistent
   // nodal loads, not a nearest-node approximation. fx/fy are GLOBAL N,
   // mz is a moment about +Z (N*m); position is metres from element.n1.
