@@ -119,6 +119,15 @@ async function run(code,stdin="",sourceURL=""){
   if(typeof code!=="string"||code.length>500000)
     throw new Error("Python source must be text under 500 KB");
   setSourceBase(sourceURL);
+  // Provide a real __file__ path so Path(__file__).parent works in local
+  // course scripts, including those loading sibling CSV/JSON dependencies.
+  let scriptName="scratch.py";
+  if(sourceBase&&sourceURL){
+    try{scriptName=safeName(decodeURIComponent(
+      new URL(sourceURL,self.location.href).pathname.split("/").pop()))}
+    catch{scriptName="script.py"}
+  }
+  py.globals.set("__file__",WORKSPACE+"/"+scriptName);
   fetchAttempts=0;missingFiles.clear();
   py.runPython("_viewer_images.clear()");
   let stdout="",stderr="";
