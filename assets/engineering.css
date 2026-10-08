@@ -100,3 +100,19 @@
   }
   .workspace .viewport{min-height:0;min-width:0;overflow:hidden}
 }
+
+/* Geometric waterline and wave exploration is available on both Model and Hydro
+   tabs; neither panel changes the load-case numerical results implicitly. */
+.engineering-waterline-controls{
+  display:grid;gap:9px;padding:12px;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:var(--surface);color:var(--ink-2);font-size:11px;
+}
+.engineering-waterline-controls>strong{font-size:12px;color:var(--ink)}
+.engineering-waterline-controls label{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.engineering-waterline-controls input[type=number]{
+  width:120px;min-width:0;padding:7px 9px;border:1px solid var(--line);
+  border-radius:6px;background:var(--surface-sunk);color:var(--ink)
+}
+.engineering-waterline-controls>span{overflow-wrap:anywhere;line-height:1.45}
+.engineering-waterline-controls>small{line-height:1.45;color:var(--ink-3)}
