@@ -15,6 +15,7 @@ export function createPythonSession({workerFactory=()=>new Worker(
       const entry=pending.get(msg.id);
       if(!entry)return;
       if(msg.phase==="loading"){entry.status?.("Loading Python runtime and packages…");return}
+      if(msg.phase==="output"){entry.onOutput?.(msg.output);return}
       pending.delete(msg.id);
       msg.ok?entry.resolve(msg):entry.reject(Object.assign(new Error(
         msg.error||"Python execution error"),{stdout:msg.stdout,stderr:msg.stderr}));
@@ -28,16 +29,18 @@ export function createPythonSession({workerFactory=()=>new Worker(
     for(const entry of pending.values())entry.reject(reason);
     pending.clear();worker?.terminate();worker=null;
   };
-  const request=(type,payload={},status=null)=>{
+  const request=(type,payload={},status=null,onOutput=null)=>{
     const active=init(),id=++seq;
     return new Promise((resolve,reject)=>{
-      pending.set(id,{resolve,reject,status});
+      pending.set(id,{resolve,reject,status,onOutput});
       try{active.postMessage({id,type,...payload})}
       catch(error){pending.delete(id);reject(error)}
     });
   };
   return {
-    run(code,{status,stdin=""}={}){return request("run",{code,stdin},status)},
+    run(code,{status,stdin="",sourceURL="",onOutput}={}){
+      return request("run",{code,stdin,sourceURL},status,onOutput)
+    },
     mount(files,{status}={}){return request("mount",{files},status)},
     stop(){reset()},
     dispose(){disposed=true;reset(new Error("Python viewer closed"))},
