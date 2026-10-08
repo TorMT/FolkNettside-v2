@@ -8,11 +8,24 @@ export function validateMedisinBackup(value){
   if(!value||typeof value!=="object"||Array.isArray(value)||value.schema!==1||!Array.isArray(value.entries))
     throw new Error("Unsupported MedisinTimer backup schema");
   if(value.entries.length>10000||JSON.stringify(value).length>2_000_000)throw new Error("Backup too large");
+  const ids=new Set();
   for(const entry of value.entries){
     if(!entry||typeof entry!=="object"||!String(entry.id||"").trim()||
-       !Number.isFinite(Date.parse(entry.updatedAt))||!Number.isFinite(Number(entry.durationSeconds))||
-       Number(entry.durationSeconds)<0)
-      throw new Error("Invalid timer entry");
+       ids.has(entry.id)||!Number.isFinite(Date.parse(entry.updatedAt))||
+       !Number.isFinite(Number(entry.durationSeconds))||Number(entry.durationSeconds)<0)
+      throw new Error("Invalid timer entry or duplicate ID");
+    ids.add(entry.id);
+    if(entry.type==="timer"){
+      if(typeof entry.name!=="string"||!entry.name.trim()||entry.name.length>160||
+        !(Number(entry.durationSeconds)>0)||!Number.isFinite(Number(entry.halfLifeSeconds))||
+        Number(entry.halfLifeSeconds)<0||!(Number(entry.amount)>0)||
+        !["mg","mcg","g","IU","enheter"].includes(entry.unit))
+        throw new Error("Invalid timer fields");
+    }else if(entry.type==="dose"){
+      if(!String(entry.timerId||"").trim()||!Number.isFinite(Date.parse(entry.takenAt))||
+        !(Number(entry.amount)>0)||!["mg","mcg","g","IU","enheter"].includes(entry.unit))
+        throw new Error("Invalid dose fields");
+    }
   }
   return value;
 }
@@ -24,7 +37,8 @@ export function mergeMedisinBackups(local,remote){
   const merged=new Map();
   for(const entry of [...remote.entries,...local.entries]){
     const previous=merged.get(entry.id);
-    if(!previous||Date.parse(entry.updatedAt)>Date.parse(previous.updatedAt))
+    if(!previous||Date.parse(entry.updatedAt)>Date.parse(previous.updatedAt)||
+      (Date.parse(entry.updatedAt)===Date.parse(previous.updatedAt)&&entry.deleted&&!previous.deleted))
       merged.set(entry.id,entry);
   }
   return newMedisinBackup([...merged.values()].sort((a,b)=>a.id.localeCompare(b.id)));
