@@ -66,7 +66,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
   }
   for(let i=0;i<cells.length;i++){
     const data=cells[i],section=document.createElement("section");
-    section.className="notebook-entry";section.dataset.cellIndex=String(i);
+    section.className="notebook-entry nb-cell";section.dataset.cellIndex=String(i);
     const title=document.createElement("div");title.className="nb-kind";
     title.textContent=(data.cell_type||"cell")+" · cell "+(i+1);
     section.append(title);
