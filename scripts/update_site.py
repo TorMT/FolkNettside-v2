@@ -300,6 +300,39 @@ def stable_for_check(data: dict) -> dict:
                 item.pop("modified", None)
     return clone
 
+def choose_scope(source: Path) -> tuple[int | None, str | None]:
+    """Prompt for a scope; empty input means all. No hardcoded semesters/courses."""
+    if not source.is_dir():
+        raise FileNotFoundError(f"semester source not found: {source}")
+    semester_ids = sorted(
+        int(path.name) for path in source.iterdir()
+        if path.is_dir() and path.name.isdecimal()
+    )
+    print("Available semesters:", ", ".join(map(str, semester_ids)) or "(none)")
+    raw = input("Semester number (Enter = all, q = cancel): ").strip()
+    if raw.lower() in {"q", "quit"}:
+        raise KeyboardInterrupt
+    if not raw:
+        return None, None
+    if not raw.isdecimal() or int(raw) not in semester_ids:
+        raise ValueError(f"Unknown semester: {raw}")
+    semester = int(raw)
+    courses = sorted(
+        (path.name for path in (source / str(semester)).iterdir() if path.is_dir()),
+        key=str.casefold,
+    )
+    print("Available courses:", ", ".join(courses) or "(none)")
+    raw = input("Course code (Enter = whole semester, q = cancel): ").strip()
+    if raw.lower() in {"q", "quit"}:
+        raise KeyboardInterrupt
+    if not raw:
+        return semester, None
+    matches = [course for course in courses if course.casefold() == raw.casefold()]
+    if not matches:
+        raise ValueError(f"Unknown course: {raw}")
+    return semester, matches[0]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
@@ -307,8 +340,11 @@ def main() -> int:
     parser.add_argument("--semester", type=int, help="Only update one semester")
     parser.add_argument("--course", help="Only update one course; requires --semester")
     parser.add_argument("--check", action="store_true", help="Fail if the full committed manifest is stale")
+    parser.add_argument("--interactive", action="store_true", help="Choose the semester and course from discovered folders")
     args = parser.parse_args()
 
+    if args.interactive and (args.check or args.semester is not None or args.course):
+        parser.error("--interactive cannot be combined with --check, --semester or --course")
     if args.course and args.semester is None:
         parser.error("--course requires --semester")
     if args.check and (args.semester is not None or args.course):
@@ -317,6 +353,15 @@ def main() -> int:
     source = args.source if args.source.is_absolute() else ROOT / args.source
     output = args.output if args.output.is_absolute() else ROOT / args.output
     started = time.perf_counter()
+    if args.interactive:
+        try:
+            args.semester, args.course = choose_scope(source)
+        except (KeyboardInterrupt, EOFError):
+            print("\\nCancelled. No files changed.")
+            return 0
+        except (ValueError, FileNotFoundError) as error:
+            print(f"Selection error: {error}. No files changed.", file=sys.stderr)
+            return 2
 
     if args.semester is None:
         manifest = build_full_manifest(source)
