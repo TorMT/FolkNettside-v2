@@ -18,6 +18,10 @@ import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js";
 import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js";
 import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js";
 import {loadModelDocument} from "./model/load-model.js";
+import {parseModelBuffer} from "./tools/model-inspector-core.js";
+import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js";
+import {UNIT_SCALE_TO_METERS} from "./model/model-document.js";
+import {validateHydroModel} from "./model/hull-surface-validator.js";
 import {mountModelScene} from "./model/model-scene.js";
 import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js";
 import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js";
@@ -52,6 +56,12 @@ const engineeringModels=content.models?.length?content.models:[content.model];
 let engineeringModelId=engineeringModels[0]?.id||"fixture";
 let model=engineeringModels.find(item=>item.id===engineeringModelId)||engineeringModels[0]||content.model;
 let configuredComponents=model?.components||[];
+const LOCAL_HYDRO_MODEL_ID="uploaded-hydro-model";
+let importedHydroOriginal=null;
+let importedHydroDocument=null;
+let importedHydroUnit="meter";
+let importedHydroAxis="z-up";
+const safeImportName=value=>String(value??"").replace(/[&<>"'\\\x00-\x1f]/g,"_").slice(0,160);
 
 let engineeringDocument=null;
 let engineeringDocumentPromise=null;
@@ -96,7 +106,9 @@ let brewingMountId=0;
 
 function getEngineeringDocument(){
   if(!engineeringDocumentPromise){
-    engineeringDocumentPromise=loadModelDocument(model).then(documentModel=>{
+    engineeringDocumentPromise=(model.id===LOCAL_HYDRO_MODEL_ID
+      ?Promise.resolve(importedHydroDocument)
+      :loadModelDocument(model)).then(documentModel=>{
       engineeringDocument=documentModel;
       selectedComponentId=selectedComponentId
         || documentModel.components.find(component=>componentSemantic(component).role==="hull"&&component.geometry)?.id
@@ -118,12 +130,21 @@ function engineeringModelReadinessLabel(item){
 }
 
 function engineeringModelSelectHTML(){
-  if(engineeringModels.length<2)return "";
   const capability=engineeringMode==="Model"
     ?analysisCapability(model,"model")
     :analysisCapability(model,engineeringMode.toLowerCase());
+  const uploaded=model?.id===LOCAL_HYDRO_MODEL_ID;
   return `<div class="engineering-model-control">
     <label class="engineering-model-select"><span>Model</span><select id="engineering-model-select">${engineeringModels.map(item=>`<option value="${item.id}" ${item.id===engineeringModelId?"selected":""}>${item.label||item.name} · ${engineeringModelReadinessLabel(item)}</option>`).join("")}</select></label>
+    <button type="button" class="btn" id="engineering-import-hull">Import STL/3MF</button>
+    <input type="file" id="engineering-hull-file" accept=".stl,.3mf" hidden>
+    ${uploaded&&importedHydroOriginal?.format==="STL"
+      ?`<label class="engineering-model-select"><span>STL source units</span><select id="engineering-hull-unit">${Object.keys(UNIT_SCALE_TO_METERS).map(unit=>`<option value="${unit}" ${unit===importedHydroUnit?"selected":""}>${unit}</option>`).join("")}</select></label>`:""}
+    ${uploaded?`<label class="engineering-model-select"><span>Source up axis</span><select id="engineering-hull-axis">
+      <option value="z-up" ${importedHydroAxis==="z-up"?"selected":""}>Z-up (as stored)</option>
+      <option value="y-up" ${importedHydroAxis==="y-up"?"selected":""}>Y-up → Z-up</option>
+      <option value="x-up" ${importedHydroAxis==="x-up"?"selected":""}>X-up → Z-up</option>
+    </select></label>`:""}
     <span class="engineering-mode-capability ${capability.enabled?"ready":"blocked"}">${capabilityLabel(capability)}</span>
   </div>`;
 }
@@ -154,6 +175,82 @@ function selectEngineeringModel(id){
 function bindEngineeringModelSelector(){
   app.querySelector("#engineering-model-select")?.addEventListener("change",event=>{
     if(selectEngineeringModel(event.currentTarget.value))engineeringPage();
+  });
+  const fileInput=app.querySelector("#engineering-hull-file");
+  app.querySelector("#engineering-import-hull")?.addEventListener("click",()=>fileInput?.click());
+  fileInput?.addEventListener("change",async()=>{
+    const file=fileInput.files?.[0];if(!file)return;
+    try{
+      if(file.size>40_000_000)throw new Error("File exceeds 40 MB safe import limit");
+      const parsed=await parseModelBuffer(await file.arrayBuffer(),file.name);
+      parsed.name=safeImportName(file.name);
+      const ids=new Map(parsed.components.map((component,index)=>[component.id,"uploaded-component-"+(index+1)]));
+      for(const component of parsed.components){
+        component.parentId=ids.get(component.parentId)||null;
+        component.id=ids.get(component.id);
+        component.name=safeImportName(component.name);
+        component.sourceObjectId=safeImportName(component.sourceObjectId||"");
+      }
+      if(parsed.components.filter(c=>c.geometry).reduce((sum,c)=>sum+(c.geometry.indices?.length||c.geometry.positions.length/3)/3,0)>350000)
+        throw new Error("Model exceeds 350,000 triangle safety limit");
+      importedHydroOriginal=parsed;
+      importedHydroUnit=parsed.format==="STL"?"meter":parsed.unit;
+      importedHydroAxis="z-up";
+      importedHydroDocument=prepareGenericHydroImport(parsed,{unit:importedHydroUnit,upAxis:importedHydroAxis});
+      const localConfig={
+        id:LOCAL_HYDRO_MODEL_ID,
+        name:parsed.name,label:parsed.name,format:parsed.format,
+        components:importedHydroDocument.components.map(c=>({id:c.id,name:c.name,type:c.type})),
+        hydro:{enabled:true,minDraft:0,maxDraft:1,defaultDraft:.5,density:1025},
+        analysisCapabilities:{
+          model:{enabled:true,status:"local file"},
+          hydro:{enabled:false,status:"confirm units/axes",
+            reason:"Confirm source units and Z-up orientation, then explicitly select the external displacement surface."},
+          structure:{enabled:false,status:"not configured"},
+          resistance:{enabled:false,status:"not configured"},
+          propulsion:{enabled:false,status:"not configured"}
+        }
+      };
+      const i=engineeringModels.findIndex(m=>m.id===LOCAL_HYDRO_MODEL_ID);
+      if(i>=0)engineeringModels[i]=localConfig;else engineeringModels.push(localConfig);
+      selectEngineeringModel(engineeringModels.find(m=>m.id===LOCAL_HYDRO_MODEL_ID).id);
+      const bounds=analyzeModelDiagnostics(importedHydroDocument).bounds;
+      localConfig.hydro.minDraft=bounds.min[2];localConfig.hydro.maxDraft=bounds.max[2];
+      localConfig.hydro.defaultDraft=(bounds.min[2]+bounds.max[2])/2;
+      hydroDraft=localConfig.hydro.defaultDraft;
+      engineeringMode="Hydro";
+      engineeringPage();
+    }catch(error){
+      const button=app.querySelector("#engineering-import-hull");
+      if(button)button.textContent="Import failed: "+String(error?.message||error).slice(0,110);
+    }
+  });
+  function applyImportedSettings(){
+    if(!importedHydroOriginal||model.id!==LOCAL_HYDRO_MODEL_ID)return;
+    const selected=selectedHydroSurfaceIds(importedHydroDocument);
+    importedHydroDocument=withHydroSurfaceSelection(
+      prepareGenericHydroImport(importedHydroOriginal,{
+        unit:importedHydroUnit,upAxis:importedHydroAxis
+      }),selected);
+    model.analysisCapabilities.hydro.enabled=false;
+    model.analysisCapabilities.hydro.status="confirm units/axes";
+    engineeringDocument=importedHydroDocument;
+    engineeringDocumentPromise=Promise.resolve(importedHydroDocument);
+    hydroCurveCache={model:null,data:null};
+    hydroGzRequested=false;hydroAttitudeAction="";
+    const bounds=analyzeModelDiagnostics(importedHydroDocument).bounds;
+    model.hydro.minDraft=bounds.min[2];model.hydro.maxDraft=bounds.max[2];
+    hydroDraft=(bounds.min[2]+bounds.max[2])/2;
+    model.hydro.defaultDraft=hydroDraft;
+    engineeringPage();
+  }
+  app.querySelector("#engineering-hull-unit")?.addEventListener("change",event=>{
+    importedHydroUnit=event.currentTarget.value;
+    applyImportedSettings();
+  });
+  app.querySelector("#engineering-hull-axis")?.addEventListener("change",event=>{
+    importedHydroAxis=event.currentTarget.value;
+    applyImportedSettings();
   });
 }
 
@@ -1380,7 +1477,17 @@ async function engineeringPage(){
 
   const semanticRoleText=Object.entries(semanticInfo.roles)
     .map(([role,count])=>`${role} ${count}`).join(" · ")||"unclassified";
-  const inspector=hydro?hydro.inspector:`
+  const importedControls=model.id===LOCAL_HYDRO_MODEL_ID?`<section class="hydro-import-controls">
+    <h3>Imported hull selection</h3>
+    <p class="muted">Temporary local file. Choose which surfaces displace water. Do not include equipment, enclosed tanks or interior shells. Verify source units and select the correct up-axis in the toolbar before confirming.</p>
+    <div class="hydro-import-surfaces">${uiComponents.filter(c=>c.geometry).map(c=>`<label>
+      <input type="checkbox" data-hydro-import-part="${c.id}" ${c.metadata?.hydro===true?"checked":""}>
+      <span>${c.name}</span>
+    </label>`).join("")}</div>
+    <button type="button" class="btn" id="engineering-confirm-import" ${model.analysisCapabilities.hydro.enabled?"disabled":""}>${model.analysisCapabilities.hydro.enabled?"Axes + units acknowledged":"Confirm units and up-axis"}</button>
+    <small>Exploratory geometry only. Mesh closure does not prove external-hull isolation, self-intersection freedom, true datum or certified stability.</small>
+  </section>`:"";
+  const inspector=importedControls+(hydro?hydro.inspector:`
     <h3>Properties</h3>
     <div class="readout"><span>Component</span><strong id="prop-component">${selected?.name||"—"}</strong></div>
     <div class="readout"><span>Semantic role</span><strong id="prop-role">${selectedSemantic?.subtype||selectedSemantic?.role||selected?.type||"—"}</strong></div>
@@ -1393,7 +1500,7 @@ async function engineeringPage(){
       <div class="readout"><span>Boundary edges</span><strong>${selectedDiagnostics.boundaryEdges}</strong></div>
       <div class="readout"><span>Non-manifold</span><strong>${selectedDiagnostics.nonManifoldEdges}</strong></div>
       <div class="readout"><span>Degenerate</span><strong>${selectedDiagnostics.degenerateTriangles}</strong></div>
-    `:""}`;
+    `:""}`);
   const summary=hydro?hydro.summary:`
     <strong>Model summary</strong>
     <div class="readout"><span>Components</span><strong>${semanticInfo.components}</strong></div>
@@ -1427,6 +1534,22 @@ async function engineeringPage(){
   bindNav();
   bindEngineeringModelSelector();
   bindEngineeringCaseExport(engineeringReport);
+  app.querySelectorAll("[data-hydro-import-part]").forEach(input=>input.addEventListener("change",()=>{
+    if(!importedHydroDocument||model.id!==LOCAL_HYDRO_MODEL_ID)return;
+    const selected=[...app.querySelectorAll("[data-hydro-import-part]:checked")].map(node=>node.dataset.hydroImportPart);
+    importedHydroDocument=withHydroSurfaceSelection(importedHydroDocument,selected);
+    engineeringDocument=importedHydroDocument;
+    engineeringDocumentPromise=Promise.resolve(importedHydroDocument);
+    hydroCurveCache={model:null,data:null};
+    hydroGzRequested=false;hydroAttitudeAction="";
+    engineeringPage();
+  }));
+  app.querySelector("#engineering-confirm-import")?.addEventListener("click",()=>{
+    if(model.id!==LOCAL_HYDRO_MODEL_ID)return;
+    model.analysisCapabilities.hydro={enabled:true,status:"exploratory · geometry-only",
+      reason:"User-confirmed axes and units. Hull source, surface isolation and loading condition are not independently validated."};
+    engineeringPage();
+  });
   let sceneHandle=null;
   const updateSelection=component=>{
     if(!component)return;

@@ -74,3 +74,13 @@ jobs:
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4192/tests/browser/hydro-preflight-smoke.html
+
+      - name: Generic STL Hydro import Chrome end-to-end
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4193 --bind 127.0.0.1 >/tmp/generic-hydro-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9516 --allowed-ips=127.0.0.1 >/tmp/generic-hydro-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_generic_hydro_browser.py 'http://127.0.0.1:4193/#/engineering/hydro'
