@@ -96,8 +96,8 @@ export function integrateWaterplaneContours(segments,options={}){
   if(!loops.length)return {area:0,centroid:[0,0],ixx:0,iyy:0,ixy:0,
     loops:[],outerContours:0,holeContours:0};
   const origin=loops[0][0],moments=loops.map(loop=>polygonMoments(loop,origin));
-  let area=0,mx=0,my,ixxOrigin=0,iyyOrigin=0,ixyOrigin=0;
-  my=0;let outerContours=0,holeContours=0;
+  let area=0,mx=0,my=0,ixxOrigin=0,iyyOrigin=0,ixyOrigin=0;
+  let outerContours=0,holeContours=0;
   for(let i=0;i<loops.length;i++){
     const depth=loops.reduce((count,other,j)=>i!==j&&containsPoint(loops[i][0],other)?count+1:count,0);
     const sign=depth%2===0?1:-1;
