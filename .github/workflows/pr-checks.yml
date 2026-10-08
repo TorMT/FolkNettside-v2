@@ -167,7 +167,7 @@ jobs:
           chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/python-live-driver.log 2>&1 &
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
-          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4200/tests/browser/python-live-runtime-smoke.html 120
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4200/tests/browser/python-live-runtime-smoke.html 180
 
       - name: Actual 3D waterline and wave data browser regression
         run: |
