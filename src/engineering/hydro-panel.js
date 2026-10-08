@@ -145,7 +145,7 @@ export function hydroPanelHTML({
   const canCompareGm=hasKg&&Math.abs(Number(tcg)||0)<1e-9&&sameUprightVolume;
   const gmCrossCheck=canCompareGm?
     auditSmallAngleGz(gz,particulars.gmTransverse):null;
-  const numericalSummary=`<section class="hydro-numerical-audit" aria-label="Hydro numerical qualification">
+  const numericalSummary=`<section class="hydro-numerical-audit ${qualityAudit.status==="pass"?"":"needs-review"}" aria-label="Hydro numerical qualification">
     <strong>Numerical consistency · ${esc(qualityAudit.status)}</strong>
     <span>V(T) monotonicity: ${qualityAudit.passed?"passed":"FAILED"} ·
       dV/dT vs A<sub>wp</sub>: ${qualityAudit.warnings.length?
