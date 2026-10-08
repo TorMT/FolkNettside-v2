@@ -1,6 +1,6 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=5608baab66976446246f638432ec57af03b6a1ec";
-import {gzMetrics} from "../hydro/gz.js?v=5608baab66976446246f638432ec57af03b6a1ec";
-import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=5608baab66976446246f638432ec57af03b6a1ec";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
+import {gzMetrics} from "../hydro/gz.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
+import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -194,6 +194,7 @@ export function hydroPanelHTML({
             <textarea id="hydro-point-weights" rows="3" placeholder="1, 2, 1, 2" spellcheck="false">${esc(pointWeightsText)}</textarea>
           </label>
           <button type="button" class="btn" id="hydro-point-apply" ${kg===""?"disabled":""}>Apply point weights and recalculate</button>
+          <button type="button" class="btn" id="hydro-point-reset" ${pointWeightSummary?"":"disabled"}>Restore baseline loading</button>
           ${pointWeightError?`<p class="hydro-solve-error">${esc(pointWeightError)}</p>`:""}
           ${pointWeightSummary?`<div class="hydro-point-summary">
             <strong>Loaded condition · added ${fmt(pointWeightSummary.addedMassTonnes,3)} t</strong>
