@@ -1,7 +1,4 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js";
-import {createHydroInclude} from "./hydro-selection.js";
-import {gzCurve} from "./gz.js";
-import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js";
+import {executeHydroRequest} from "./hydro-service.js";
 
 let worker=null;
 let currentModel=null;
@@ -50,49 +47,49 @@ export async function analyzeHydroAsync(modelDocument,waterline){
   await ensureModel(modelDocument);
   const queued=request("analyze",{waterline});
   if(queued)return queued;
-  return analyzeModelDocument(modelDocument,waterline,{include:createHydroInclude(modelDocument)});
+  return executeHydroRequest(modelDocument,"analyze",{waterline});
 }
 
 export async function hydroCurveAsync(modelDocument,options){
   await ensureModel(modelDocument);
   const queued=request("curve",options);
   if(queued)return queued;
-  return hydroCurve(modelDocument,{...options,include:createHydroInclude(modelDocument)});
+  return executeHydroRequest(modelDocument,"curve",options);
 }
 
 export async function solveHydroDraftAsync(modelDocument,targetVolume,options){
   await ensureModel(modelDocument);
   const queued=request("solve",{targetVolume,...options});
   if(queued)return queued;
-  return solveWaterlineForVolume(modelDocument,targetVolume,{...options,include:createHydroInclude(modelDocument)});
+  return executeHydroRequest(modelDocument,"solve",{targetVolume,...options});
 }
 
 export async function attitudeHydroAsync(modelDocument,options){
   await ensureModel(modelDocument);
   const queued=request("attitude",options);
   if(queued)return queued;
-  return attitudeHydro(modelDocument,{...options,include:createHydroInclude(modelDocument)});
+  return executeHydroRequest(modelDocument,"attitude",options);
 }
 
 export async function attitudeCurveAsync(modelDocument,options){
   await ensureModel(modelDocument);
   const queued=request("attitudeCurve",options);
   if(queued)return queued;
-  return attitudeCurve(modelDocument,{...options,include:createHydroInclude(modelDocument)});
+  return executeHydroRequest(modelDocument,"attitudeCurve",options);
 }
 
 export async function solveAttitudeEquilibriumAsync(modelDocument,options){
   await ensureModel(modelDocument);
   const queued=request("equilibrium",options);
   if(queued)return queued;
-  return solveAttitudeEquilibrium(modelDocument,{...options,include:createHydroInclude(modelDocument)});
+  return executeHydroRequest(modelDocument,"equilibrium",options);
 }
 
 export async function gzCurveAsync(modelDocument,options){
   await ensureModel(modelDocument);
   const queued=request("gz",options);
   if(queued)return queued;
-  return gzCurve(modelDocument,{...options,include:createHydroInclude(modelDocument)});
+  return executeHydroRequest(modelDocument,"gz",options);
 }
 
 export function disposeHydroWorker(){
@@ -100,4 +97,11 @@ export function disposeHydroWorker(){
   worker=null;
   currentModel=null;
   pending.clear();
+}
+
+export async function validateHydroAsync(modelDocument){
+  await ensureModel(modelDocument);
+  const queued=request("validate",{});
+  if(queued)return queued;
+  return executeHydroRequest(modelDocument,"validate",{});
 }

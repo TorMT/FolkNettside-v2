@@ -4,7 +4,7 @@ import {mountViewer} from "./viewer.js";
 import {loadContent} from "./content.js";
 import {renderResourceTree} from "./components/resource-tree.js";
 import {karakterwebUrl} from "./courses/external-links.js";
-import {hydroPanelHTML} from "./engineering/hydro-panel.js";
+import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js";
 import {renderProjectCard,renderProjectDetail} from "./components/project-card.js";
 import {buildSearchIndex} from "./search/search-index.js";
 import {createSearchController} from "./components/search-dialog.js";
@@ -21,7 +21,7 @@ import {loadModelDocument} from "./model/load-model.js";
 import {mountModelScene} from "./model/model-scene.js";
 import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js";
 import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js";
-import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync} from "./hydro/hydro-client.js";
+import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js";
 import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js";
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js";
@@ -1188,7 +1188,11 @@ async function engineeringPage(){
     const maxWaterline=Number(config.maxDraft??10);
     const samples=Math.max(3,Number(config.curveSamples??9));
     const density=Number(config.density)||1025;
+    let hydroValidation=null;
     try{
+      hydroValidation=await validateHydroAsync(documentModel);
+      if(renderId!==engineeringRenderId)return;
+      if(!hydroValidation.passed)throw new Error("Selected hull surface failed geometry preflight");
       const analysisPromise=analyzeHydroAsync(documentModel,hydroDraft);
       const curvePromise=hydroCurveCache.model===documentModel&&hydroCurveCache.data
         ? Promise.resolve(hydroCurveCache.data)
@@ -1295,6 +1299,7 @@ async function engineeringPage(){
         attitudeError:attitudeState?.error||null,
         attitudeAction:hydroAttitudeAction,
         geometryWarnings,
+        hydroValidation,
         config
       });
       engineeringReport=engineeringCaseReport({
@@ -1328,11 +1333,26 @@ async function engineeringPage(){
       });
     }catch(error){
       if(renderId!==engineeringRenderId)return;
+      const invalidHull=hydroValidation&&!hydroValidation.passed;
+      const safeMessage=String(error?.message||error).replace(/[&<>"]/g,char=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"
+      }[char]));
       hydro={
-        inspector:`<h3>Hydro error</h3><p class="hydro-solve-error">${String(error?.message||error)}</p>`,
-        summary:"<strong>Hydro unavailable</strong>",results:"",
+        inspector:invalidHull
+          ?`<h3>Hull surface validation</h3>${hydroPreflightHTML(hydroValidation)}`
+          :`<h3>Hydro error</h3><p class="hydro-solve-error">${safeMessage}</p>`,
+        summary:invalidHull?"<strong>Hydro blocked · invalid geometry</strong>":"<strong>Hydro unavailable</strong>",
+        results:invalidHull?`<div class="engineering-empty-analysis"><strong>No hydro results computed</strong><p>Repair the indicated hull geometry and reimport it before continuing.</p></div>`:"",
         draft:hydroDraft,density:Number(model.hydro?.density)||1025,waterlinePercent:0
       };
+      engineeringReport=engineeringCaseReport({
+        modelConfig:model,modelDocument:documentModel,mode:"Hydro",capability,
+        method:{name:invalidHull?"geometry preflight gate":"hydro analysis error",scope:"no unvalidated output"},
+        inputs:{draft:hydroDraft,density},
+        results:{status:invalidHull?"blocked-invalid-hull":"error",
+          geometryValidation:hydroValidation},
+        warnings:invalidHull?hydroValidation.errors:[String(error?.message||error)]
+      });
     }
     }
   }
