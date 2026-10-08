@@ -1,7 +1,35 @@
 {
   "schemaVersion": 1,
-  "source": "Legacy LAOS site (awaiting source file inventory)",
-  "sourceUrl": "https://tormt.folk.ntnu.no/diverse/LAOS/",
-  "verified": false,
-  "items": []
+  "source": "Public original LAOS filer/index.json, mirrored from source",
+  "sourceUrl": "https://tormt.folk.ntnu.no/diverse/LAOS/filer/index.json",
+  "verified": true,
+  "items": [
+    {
+      "title": "Gruppemodul MTKJ",
+      "url": "./data/diverse/laos-files/Gruppemodul_MTKJ.pdf",
+      "courseCode": "",
+      "semester": "",
+      "category": "LAOS / Gruppemodul_MTKJ.pdf",
+      "source": "https://tormt.folk.ntnu.no/diverse/LAOS/filer/Gruppemodul_MTKJ.pdf",
+      "sha256": "c14d7132e2c153b33daa95eb0b49c7f08394cbf01ac3e957e055d134875e70eb"
+    },
+    {
+      "title": "Refleksjon Lab Del",
+      "url": "./data/diverse/laos-files/Refleksjon%20Lab%20Del.pdf",
+      "courseCode": "",
+      "semester": "",
+      "category": "LAOS / Refleksjon Lab Del.pdf",
+      "source": "https://tormt.folk.ntnu.no/diverse/LAOS/filer/Refleksjon%20Lab%20Del.pdf",
+      "sha256": "028658990e58b4659fd3e6779ead6b7f7359a9afb72721abc1bff5af071c9672"
+    },
+    {
+      "title": "Refleksjon Øving Del",
+      "url": "./data/diverse/laos-files/Refleksjon%20%C3%98ving%20Del.pdf",
+      "courseCode": "",
+      "semester": "",
+      "category": "LAOS / Refleksjon Øving Del.pdf",
+      "source": "https://tormt.folk.ntnu.no/diverse/LAOS/filer/Refleksjon%20%C3%98ving%20Del.pdf",
+      "sha256": "3254ec70611bb61e53ab955d5d4d8646941e3ac27c1531ada5e5ed3fcc6a9268"
+    }
+  ]
 }
