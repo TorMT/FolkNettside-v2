@@ -15,6 +15,13 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
           <button type="button" data-model-align-reset>Reset align</button>
           <button type="button" data-model-png>PNG</button>
         </div>
+        <label class="model-viewer-label">Camera
+          <select data-model-view>
+            <option value="iso">Isometric</option><option value="front">Front</option>
+            <option value="rear">Rear</option><option value="port">Port</option>
+            <option value="starboard">Starboard</option><option value="top">Top</option>
+          </select>
+        </label>
         <label class="model-viewer-label">Appearance
           <select data-model-appearance>
             <option value="solid">Solid</option>
@@ -24,6 +31,24 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
         <label class="model-viewer-label">Opacity
           <input data-model-opacity type="range" min=".1" max="1" step=".05" value="1">
         </label>
+        <label class="model-viewer-label">Shading
+          <select data-model-shading><option value="smooth">Smooth</option><option value="flat">Flat</option></select>
+        </label>
+        <div class="model-viewer-checkbox"><label><input data-model-axes type="checkbox"> Axes</label>
+          <label><input data-model-bbox type="checkbox"> Bounds</label>
+          <label><input data-model-edges type="checkbox"> Edges</label></div>
+        <label class="model-viewer-label">Explode assembly (visual only)
+          <input data-model-explode type="range" min="0" max="2" step=".05" value="0">
+        </label>
+      </div>
+      <div class="model-viewer-section">
+        <strong>Visual heel / trim / yaw</strong>
+        <div class="model-wave-fields">
+          <label>Heel X (°)<input data-model-roll type="number" step="1" value="0"></label>
+          <label>Trim Y (°)<input data-model-trim type="number" step="1" value="0"></label>
+          <label>Yaw Z (°)<input data-model-yaw type="number" step="1" value="0"></label>
+        </div>
+        <button type="button" data-model-reset-rotation>Reset attitude</button>
       </div>
       <div class="model-viewer-section">
         <strong>Still-waterline (3D)</strong>
@@ -47,6 +72,14 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
           <button type="button" data-model-undo>Undo measure</button>
           <button type="button" data-model-clear>Clear</button>
         </div>
+        <label class="model-viewer-label">Snap mode
+          <select data-model-snap><option value="none">None</option>
+            <option value="vertex">Vertex</option><option value="edge">Edge</option><option value="both">Both</option>
+          </select>
+        </label>
+        <label class="model-viewer-label">Snap tolerance (m)
+          <input data-model-snap-tol type="number" min="0" step=".001" value=".01">
+        </label>
         <div class="model-viewer-measurements" aria-live="polite">Click two points on the 3D surface to measure.</div>
       </div>
       <div data-model-waves></div>
@@ -95,6 +128,37 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
   };
   $("[data-model-appearance]").addEventListener("change",appearance);
   $("[data-model-opacity]").addEventListener("input",appearance);
+  $("[data-model-view]").addEventListener("change",event=>
+    scene.actions.setView(event.currentTarget.value));
+  $("[data-model-shading]").addEventListener("change",event=>
+    scene.actions.setShading(event.currentTarget.value));
+  for(const [selector,action] of [
+    ["[data-model-axes]","setAxes"],["[data-model-bbox]","setBoundingBox"],
+    ["[data-model-edges]","setEdges"]
+  ])$(selector).addEventListener("change",event=>
+    scene.actions[action](event.currentTarget.checked));
+  $("[data-model-explode]").addEventListener("input",event=>{
+    scene.actions.setExplode(Number(event.currentTarget.value));
+    updateWaterline();
+  });
+  const applyRotation=()=>{
+    scene.actions.setRotation({
+      x:Number($("[data-model-roll]").value),
+      y:Number($("[data-model-trim]").value),
+      z:Number($("[data-model-yaw]").value)
+    });updateWaterline();
+  };
+  for(const selector of ["[data-model-roll]","[data-model-trim]","[data-model-yaw]"])
+    $(selector).addEventListener("change",applyRotation);
+  $("[data-model-reset-rotation]").addEventListener("click",()=>{
+    for(const selector of ["[data-model-roll]","[data-model-trim]","[data-model-yaw]"])
+      $(selector).value="0";
+    scene.actions.resetAttitude();updateWaterline();
+  });
+  const setSnap=()=>scene.actions.setMeasurementSnap({
+    mode:$("[data-model-snap]").value,tolerance:Number($("[data-model-snap-tol]").value)});
+  $("[data-model-snap]").addEventListener("change",setSnap);
+  $("[data-model-snap-tol]").addEventListener("change",setSnap);
   const clip=()=>scene.actions.setClipping({
     enabled:$("[data-model-clip]").checked,
     axis:$("[data-model-clip-axis]").value,
