@@ -7,8 +7,9 @@ if %errorlevel%==0 (
 ) else (
   python scripts\update_site.py --interactive
 )
+set "exitcode=%errorlevel%"
 echo.
-if errorlevel 1 (
+if not "%exitcode%"=="0" (
   echo SiteUpdater encountered an error. Review the message above.
 ) else (
   echo SiteUpdater finished.
