@@ -72,9 +72,10 @@ export const DIVERSE_MODULES=[
     status:"preserved",
     access:"public",
     category:"Prototype",
-    summary:"Fullskjerm testdemo for leseglede, fokus og progresjon. Demoen skal forbli stabil og datainnsamlingen urørt mens videre utvikling skjer separat.",
-    legacyUrl:"https://tormt.folk.ntnu.no/diverse/LeseRavnen-v0.9.0-demo/",
-    storage:"legacy-app",
+    summary:"Ekstern fullskjerm-demo for leseglede, fokus og progresjon. Åpnes direkte på GitHub Pages; testdata og apputvikling holdes helt adskilt fra FolkNettside v2.",
+    legacyUrl:null,
+    externalUrl:"https://tormt.github.io/LeseRavnen/",
+    storage:"separate-external-demo",
     sync:"separate-demo"
   },
   {
