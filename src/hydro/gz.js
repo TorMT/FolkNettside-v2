@@ -76,8 +76,10 @@ export function gzCurve(modelDocument,{
   maxIterations=60,
   include=createHydroInclude(modelDocument)
 }={}){
-  const start=Number(minHeel),end=Number(maxHeel),increment=Math.abs(Number(step)||5);
-  if(!(end>=start))throw new Error("maxHeel must be >= minHeel");
+  const start=Number(minHeel),end=Number(maxHeel),increment=Number(step);
+  if(![start,end,increment].every(Number.isFinite)||!(increment>0)||!(end>=start))
+    throw new Error("GZ curve requires finite ordered heel limits and a positive step");
+  if((end-start)/increment>360)throw new Error("GZ curve exceeds 361 sample limit");
   const values=[];
   for(let heel=start;heel<=end+increment*1e-9;heel+=increment){
     values.push(gzAtHeel(modelDocument,{
