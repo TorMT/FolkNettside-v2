@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {boxMesh} from "../src/hydro/fixtures.js";
+import {boxMesh,reverseWinding} from "../src/hydro/fixtures.js";
 import {attitudeMatrix,modelFileKind,modelHydroSummary,modelHydroSummaryAtAttitude,transformedModelDocument} from "../src/tools/model-inspector-core.js";
 
 test("model inspector accepts STL and 3MF only",()=>{
@@ -38,4 +38,21 @@ test("attitude transform changes world centroid consistently",()=>{
 
 test("attitude matrix returns identity at zero angles",()=>{
   assert.deepEqual(attitudeMatrix({heel:0,trim:0,yaw:0}),[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
+});
+
+test("model inspector blocks inverted hull instead of displaying absolute volume",()=>{
+  const model={unitScaleToMeters:1,components:[{
+    id:"hull",name:"Hull",metadata:{hydro:true},geometry:reverseWinding(boxMesh({L:10,B:4,H:2}))
+  }]};
+  assert.throws(()=>modelHydroSummary(model,1,1000),/Hull preflight blocked/);
+});
+test("model inspector ignores geometry explicitly excluded from Hydro",()=>{
+  const model={unitScaleToMeters:1,components:[
+    {id:"hull",name:"Hull",geometry:boxMesh({L:10,B:4,H:2}),metadata:{hydro:true}},
+    {id:"gear",name:"Gear",geometry:reverseWinding(boxMesh({L:2,B:2,H:2})),metadata:{hydro:false}}
+  ]};
+  const result=modelHydroSummary(model,1,1000);
+  assert.equal(result.geometryValidation.passed,true);
+  assert.equal(result.geometryValidation.components.length,1);
+  assert.ok(Math.abs(result.volume-40)<1e-8);
 });
