@@ -17,10 +17,10 @@ try{
  ]);
  if(mounted.mounted!==2)throw new Error("Failed to mount sibling Python and input text files");
  const workspace=await session.run(
-   "from helper import product\\nfrom pathlib import Path\\n"+
-   "print('helper='+str(product(6,7)))\\n"+
-   "print('data='+Path('observations.txt').read_text())\\n"+
-   "Path('calculation.csv').write_text('name,value\\\\narea,40')"
+   "from helper import product\nfrom pathlib import Path\\n"+
+   "print('helper='+str(product(6,7)))\n"+
+   "print('data='+Path('observations.txt').read_text())\n"+
+   "Path('calculation.csv').write_text('name,value\\narea,40')"
  );
  if(!workspace.stdout.includes("helper=42")||!workspace.stdout.includes("data=2,3,5"))
    throw new Error("Python workspace module/data import failed: "+workspace.stdout);
