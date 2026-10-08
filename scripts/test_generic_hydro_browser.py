@@ -100,6 +100,23 @@ def main(url):
         loaded=js(sid,"return document.querySelector('.hydro-point-summary')?.innerText||''")
         if "31.750" not in loaded:raise RuntimeError("Point-weight mass balance failed: "+repr(loaded))
         if "Loaded GM unavailable" in loaded:raise RuntimeError("Point-weight draft/GM solver did not converge")
+        values=js(sid,'''const cells=[...document.querySelectorAll('.hydro-loaded-gm-grid strong')];
+            return cells.map(cell=>Number.parseFloat(cell.textContent));''')
+        if not values or len(values)!=4:raise RuntimeError("Loaded GM axes missing in Engineering results")
+        mass,draft,gmt,gml=values
+        rho=1025.0
+        expected_mass=31.75
+        expected_draft=(expected_mass*1000/rho)/(10*3)
+        expected_kg=(30.75*.5+1*2)/expected_mass
+        expected_gmt=expected_draft/2+3**2/(12*expected_draft)-expected_kg
+        expected_gml=expected_draft/2+10**2/(12*expected_draft)-expected_kg
+        checks=[(mass,expected_mass,.001,"mass"),
+          (draft,expected_draft,.0001,"draft"),
+          (gmt,expected_gmt,.0002,"GM transverse"),
+          (gml,expected_gml,.0002,"GM longitudinal")]
+        for actual,expected,tol,name in checks:
+            if abs(actual-expected)>tol:
+                raise RuntimeError(f"Wrong loaded {name}: {actual}, expected {expected}")
         print("GENERIC HYDRO BROWSER PASS: 2 STL shells, unit/axis gate, selection, volume, KG, GZ, draft solve, attitude, heel/trim equilibrium point weights, loaded GM in both axes and export controls")
     finally:
         if sid:
