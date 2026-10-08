@@ -16,7 +16,10 @@ export function analyticsConsent(){
 export function setAnalyticsConsent(value){
   try{localStorage.setItem(CONSENT_KEY,value?"granted":"denied")}catch{}
   if(!value && typeof globalThis.gtag==="function")globalThis.gtag("consent","update",{analytics_storage:"denied"});
-  if(value)enableAnalytics();
+  if(value){
+    if(enabled&&typeof globalThis.gtag==="function")globalThis.gtag("consent","update",{analytics_storage:"granted"});
+    enableAnalytics();
+  }
 }
 let enabled=false;
 export function enableAnalytics(){
