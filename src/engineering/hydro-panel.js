@@ -1,5 +1,5 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=9ba544c6579d47d9412094088927a3839d39f7a0";
-import {gzMetrics} from "../hydro/gz.js?v=9ba544c6579d47d9412094088927a3839d39f7a0";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=5f9ff415aa0bec861a5c1a299b4268e6a8cb0b9a";
+import {gzMetrics} from "../hydro/gz.js?v=5f9ff415aa0bec861a5c1a299b4268e6a8cb0b9a";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -10,7 +10,7 @@ export function hydroPreflightHTML(validation){
   const heading=validation.passed?"Mesh preflight passed":"Hydro blocked: hull mesh failed validation";
   const entries=(validation.components||[]).map(item=>{
     const m=item.metrics;
-    const counts=m?`<span>${m.triangleCount} triangles · ${m.boundaryEdges} open edges · ${m.nonManifoldEdges} non-manifold · ${m.windingConflicts} winding conflicts</span>`:"";
+    const counts=m?`<span>${m.triangleCount} triangles · ${m.boundaryEdges} open edges · ${m.nonManifoldEdges} non-manifold · ${m.windingConflicts} winding conflicts${m.selfIntersections!==null&&m.selfIntersections!==undefined?` · ${m.selfIntersections} triangle collisions`:""}${m.edgeConnectedShells!==null&&m.edgeConnectedShells!==undefined?` · ${m.edgeConnectedShells} edge-connected shells`:""}</span>`:"";
     return `<li><strong>${esc(item.name||item.componentId)}</strong>
       ${counts}
       ${item.errors.length?`<ul>${item.errors.map(error=>`<li>${esc(error)}</li>`).join("")}</ul>`:""}</li>`;
