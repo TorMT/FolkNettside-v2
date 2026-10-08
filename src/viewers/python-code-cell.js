@@ -1,5 +1,5 @@
-import {escapeHTML} from "./utils.js?v=6c4cc3557b13b5654450274a995d12c977c89852";
-import {getHighlighter} from "../vendor/highlight.js?v=6c4cc3557b13b5654450274a995d12c977c89852";
+import {escapeHTML} from "./utils.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
+import {getHighlighter} from "../vendor/highlight.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
 
 // Shared editable/preview code cell for .py and .ipynb.
 export function mountPythonCodeCell(container,{
@@ -54,6 +54,17 @@ export function mountPythonCodeCell(container,{
     stopButton.disabled=false; // Stop also resets an idle Python interpreter.
     status.textContent=running?"Running…":"Ready";
   }
+  function pushOutput(output){
+    if(disposed||output?.type!=="image")return;
+    const src=output.src;
+    if(typeof src!=="string"||
+       !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(src))return;
+    const img=document.createElement("img");
+    img.src=src;
+    img.alt="Python plot from show()";
+    $(".python-output-figures").append(img);
+    $(".python-output-text").textContent="Figure displayed below";
+  }
   function showOutput(result={}){
     const stdout=String(result.stdout||""),stderr=String(result.stderr||"");
     const tail=result.result==null?"":String(result.result);
@@ -104,7 +115,8 @@ export function mountPythonCodeCell(container,{
     try{await navigator.clipboard.writeText(editor.value);event.currentTarget.textContent="Copied"}
     catch{event.currentTarget.textContent="Unavailable"}
   });
-  const api={getSource:()=>editor.value,setRunning,showOutput,setStatus:s=>status.textContent=String(s),
+  const api={getSource:()=>editor.value,setRunning,showOutput,pushOutput,
+    setStatus:s=>status.textContent=String(s),
     dispose:()=>{disposed=true;
       $(".python-output-files").querySelectorAll("a[data-blob-url]").forEach(a=>URL.revokeObjectURL(a.dataset.blobUrl));
     }};

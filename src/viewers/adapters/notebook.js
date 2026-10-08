@@ -1,7 +1,7 @@
-import {escapeHTML,fetchJSON} from "../utils.js?v=6c4cc3557b13b5654450274a995d12c977c89852";
-import {createDomFinder} from "../dom-search.js?v=6c4cc3557b13b5654450274a995d12c977c89852";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=6c4cc3557b13b5654450274a995d12c977c89852";
-import {createPythonSession} from "../python-session.js?v=6c4cc3557b13b5654450274a995d12c977c89852";
+import {escapeHTML,fetchJSON} from "../utils.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
+import {createDomFinder} from "../dom-search.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
+import {createPythonSession} from "../python-session.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
 
 export const cellText=value=>Array.isArray(value)?value.join(""):String(value||"");
 export function renderNotebookOutput(output={}){
@@ -61,7 +61,9 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     try{
       const result=await session.run(entry.cell.getSource(),{
         status:s=>entry.cell.setStatus(s),
-        stdin:container.querySelector("[data-nb-stdin]")?.value||""
+        stdin:container.querySelector("[data-nb-stdin]")?.value||"",
+        sourceURL:resource.path?new URL(resource.path,document.baseURI).href:"",
+        onOutput:output=>entry.cell.pushOutput(output)
       });
       if(!disposed&&!stopped)entry.cell.showOutput(result);
     }catch(error){
