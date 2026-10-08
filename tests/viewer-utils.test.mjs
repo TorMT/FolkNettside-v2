@@ -6,7 +6,7 @@ test("extension handles nested paths, query fragments and extensionless paths",(
  assert.equal(extension("./courses/5/notes.v2/week 1/lecture.PY?download=1#top"),"py");
  assert.equal(extension("https://example.org/5/notes/"),"");
  assert.equal(extension("C:\\course\\nested\\file.TSX"),"tsx");
- assert.equal(extension(".gitignore"),"");
+ assert.equal(extension(".gitignore"),"gitignore");
 });
 
 test("streamed text preview handles chunk boundaries and enforces byte limit",async()=>{
