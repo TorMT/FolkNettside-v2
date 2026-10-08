@@ -64,6 +64,7 @@ function hydrostaticCurvesHTML(rows,{hasKg=false}={}){
     ${hydroCurveSVG(rows,"waterplaneArea","Waterplane area","m²",{digits:1})}
     ${hydroCurveSVG(rows,"kb","KB","m",{digits:2})}
     ${hydroCurveSVG(rows,hasKg?"gmTransverse":"kmTransverse",hasKg?"GM transverse":"KM transverse","m",{digits:2})}
+    ${hydroCurveSVG(rows,hasKg?"gmLongitudinal":"kmLongitudinal",hasKg?"GM longitudinal":"KM longitudinal","m",{digits:2})}
   </div>`;
 }
 
@@ -74,12 +75,12 @@ function hydrostaticTableHTML(rows,{hasKg=false}={}){
     <div class="hydro-curve-head"><span>Hydrostatic table</span><span class="muted">${rows.length} calculated drafts</span></div>
     <table class="hydro-table">
       <thead><tr>
-        <th>Draft m</th><th>Disp. t</th><th>Aw m²</th><th>LCB m</th><th>KB m</th><th>LCF m</th><th>TPC t/cm</th><th>${hasKg?"GMt":"KMt"} m</th>
+        <th>Draft m</th><th>Disp. t</th><th>Aw m²</th><th>LCB m</th><th>KB m</th><th>LCF m</th><th>TPC t/cm</th><th>${hasKg?"GMt":"KMt"} m</th><th>${hasKg?"GMl":"KMl"} m</th>
       </tr></thead>
       <tbody>${selected.map(row=>`<tr>
         <td>${fmt(row.draft,2)}</td><td>${fmt(row.displacementTonnes,1)}</td><td>${fmt(row.waterplaneArea,2)}</td>
         <td>${fmt(row.lcb,2)}</td><td>${fmt(row.kb,2)}</td><td>${fmt(row.lcf,2)}</td>
-        <td>${fmt(row.tonnesPerCm,3)}</td><td>${fmt(hasKg?row.gmTransverse:row.kmTransverse,2)}</td>
+        <td>${fmt(row.tonnesPerCm,3)}</td><td>${fmt(hasKg?row.gmTransverse:row.kmTransverse,2)}</td><td>${fmt(hasKg?row.gmLongitudinal:row.kmLongitudinal,2)}</td>
       </tr>`).join("")}</tbody>
     </table>
   </div>`;
@@ -238,6 +239,16 @@ export function hydroPanelHTML({
     results:`
       <div class="hydro-results-wrap">
         ${numericalSummary}
+        ${pointWeightSummary&&loadedGM?`<section class="hydro-loaded-gm" aria-label="Recalculated loading condition">
+          <strong>With point weights · recalculated loaded draft</strong>
+          <div class="hydro-loaded-gm-grid">
+            <div><span>Loaded displacement</span><strong>${fmt(loadedGM.displacementTonnes,3)} t</strong></div>
+            <div><span>Loaded draft</span><strong>${fmt(loadedGM.draft,4)} m</strong></div>
+            <div><span>Loaded GM transverse</span><strong>${fmt(loadedGM.gmTransverse,4)} m</strong></div>
+            <div><span>Loaded GM longitudinal</span><strong>${fmt(loadedGM.gmLongitudinal,4)} m</strong></div>
+          </div>
+          <small>Values below are for the original reference draft. Loaded GM above uses the new solved displacement and combined KG.</small>
+        </section>`:""}
         <div class="hydro-grid hydro-particular-grid">
           <div><span class="muted">CB / LCB · TCB · KB</span><strong>(${cb.map(v=>v.toFixed(3)).join(", ")}) m</strong></div>
           <div><span class="muted">Waterplane area</span><strong>${particulars.waterplaneArea.toFixed(3)} m²</strong></div>
