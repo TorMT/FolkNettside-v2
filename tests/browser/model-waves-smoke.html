@@ -82,7 +82,11 @@ try{
  assert(readWaveCollection().length===2,"Wave JSON restoration failed: "+
    details.querySelector(".model-wave-status")?.textContent);
  details.querySelector("[data-wave-show]").click();
- assert(details.querySelector("[data-wave-show]").textContent==="Hide waves","3D wave toggle not connected");
+ assert(details.querySelector("[data-wave-show]").textContent==="Show waves",
+   "3D wave hide toggle did not disable saved-wave replay");
+ details.querySelector("[data-wave-show]").click();
+ assert(details.querySelector("[data-wave-show]").textContent==="Hide waves",
+   "3D wave toggle did not reenable the sea surface");
  details.querySelector("[data-wave-show]").click();
  localStorage.removeItem("folknet-v2:wave-observations:v1");
  workbench.cleanup();workbench=null;
