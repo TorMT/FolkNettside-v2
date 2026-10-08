@@ -40,6 +40,7 @@ export function studyCatalogPageHTML(kind){
       </div></details>
       <div class="study-catalog-result-head"><strong id="catalog-count">—</strong><span id="catalog-status"></span></div>
       <div class="study-catalog-results" id="catalog-results" aria-live="polite"></div>
+      ${!kok?`<details class="study-catalog-welcome" id="catalog-welcome" hidden><summary>Vis originalt LAOS-velkomstbilde</summary><img id="catalog-welcome-image" loading="lazy" alt="Originalt LAOS-velkomstbilde"></details>`:""}
       ${!kok?`<section class="study-catalog-course-section"><h2>Øvingsfiler i Courses</h2>
        <p class="muted">Viser øvings- og obligatoriske ressurser som allerede finnes i v2-manifestet. Dette er ikke nødvendigvis den gamle LAOS-samlingen.</p>
        <div id="catalog-course-resources" class="study-catalog-results"></div></section>`:""}
@@ -89,6 +90,12 @@ export async function mountStudyCatalog(root,{kind,semesters=[],onBack=()=>{},on
     const filters=values(),kok=kind==="kok";
     const items=kok?filterKokSites(current.items,filters):filterLAOSAssignments(current.items,filters);
     count.textContent=items.length+" av "+current.items.length+" katalogoppføringer";
+    const welcome=root.querySelector("#catalog-welcome");
+    if(welcome){
+      welcome.hidden=!current.welcomeImage;
+      const image=welcome.querySelector("img");
+      if(current.welcomeImage&&image&&image.getAttribute("src")!==current.welcomeImage)image.setAttribute("src",current.welcomeImage);
+    }
     provenance.textContent=!current.items.length?
       "Ingen katalogoppføringer tilgjengelig. Sjekk kildefilen og prøv på nytt.":
       current.verified&&!localPreview?"Katalog fra verifisert kilde: "+(current.source||"publisert uttrekk"):
