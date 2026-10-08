@@ -1,6 +1,6 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {gzMetrics} from "../hydro/gz.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {gzMetrics} from "../hydro/gz.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -115,6 +115,8 @@ export function hydroPanelHTML({
   draft,
   targetDisplacementTonnes="",
   pointWeightsText="",
+  areaLoadsText="",
+  hullMassText="",
   pointWeightSummary=null,
   pointWeightError=null,
   loadedGM=null,
@@ -188,23 +190,34 @@ export function hydroPanelHTML({
           <label><span>KG · z</span><input id="hydro-kg" type="number" step="0.01" value="${esc(kg)}" placeholder="required"></label>
         </div>
 
-        <section class="hydro-point-weights" aria-label="Hydro discrete point weights">
-          <div class="hydro-section-label">Discrete point weights · static mass</div>
+        <section class="hydro-point-weights" aria-label="Hydro hull and added mass loads">
+          <div class="hydro-section-label">Hull mass and combined loads</div>
+          <label class="field"><span>Hull mass (t) · excluding added weights</span>
+            <input id="hydro-hull-mass" type="number" min="0.001" step="0.1"
+              value="${esc(hullMassText)}" placeholder="Optional: use reference-draft mass">
+          </label>
+          <small>Enter actual hull mass and baseline LCG, TCG, KG above. Leaving hull mass blank uses the pre-load displacement at the reference draft; this is not an independently known hull weight.</small>
+          <div class="hydro-section-label">Discrete point masses (positive = added, negative = removed)</div>
           <label class="field"><span>Mass (tonnes), X, Y, Z (m) · one point per line</span>
             <textarea id="hydro-point-weights" rows="3" placeholder="1, 2, 1, 2" spellcheck="false">${esc(pointWeightsText)}</textarea>
           </label>
-          <button type="button" class="btn" id="hydro-point-apply" ${kg===""?"disabled":""}>Apply point weights and recalculate</button>
+          <label class="field"><span>Uniform deck mass loads · t/m², x0, x1, y0, y1, z</span>
+            <textarea id="hydro-area-loads" rows="3" spellcheck="false"
+              placeholder="0.25, -2, 2, -1, 1, 2">${esc(areaLoadsText)}</textarea>
+          </label>
+          <button type="button" class="btn" id="hydro-point-apply" ${kg===""?"disabled":""}>Apply all loads and recalculate</button>
           <button type="button" class="btn" id="hydro-point-reset" ${pointWeightSummary?"":"disabled"}>Restore baseline loading</button>
           ${pointWeightError?`<p class="hydro-solve-error">${esc(pointWeightError)}</p>`:""}
           ${pointWeightSummary?`<div class="hydro-point-summary">
             <strong>Loaded condition · added ${fmt(pointWeightSummary.addedMassTonnes,3)} t</strong>
+            <span>Point mass ${fmt(pointWeightSummary.pointMassTonnes??pointWeightSummary.addedMassTonnes,3)} t · area mass ${fmt(pointWeightSummary.areaMassTonnes??0,3)} t</span>
             <span>New displacement ${fmt(pointWeightSummary.totalMassTonnes,3)} t</span>
             <span>CG: (${pointWeightSummary.centerOfGravity.map(x=>fmt(x,3)).join(", ")}) m</span>
             ${loadedGM?`<span>New draft ${fmt(loadedGM.draft,4)} m</span>
               <span>GM transverse ${fmt(loadedGM.gmTransverse,4)} m · GM longitudinal ${fmt(loadedGM.gmLongitudinal,4)} m</span>`:
               `<span>Loaded GM unavailable until the target draft solver converges.</span>`}
           </div>`:""}
-          <p class="muted hydro-note">The initial draft and CG define a baseline without these weights. Positive mass adds weight; negative mass removes it. This is not a point force on a structural frame.</p>
+          <p class="muted hydro-note">Actual hull mass and CG define the baseline if entered. Otherwise the reference draft supplies an inferred baseline mass. Point and area mass change the rigid-body equilibrium; structural stresses require a separate FEM model.</p>
         </section>
         <div class="hydro-section-label">Attitude</div>
         <div class="hydro-attitude-grid">
@@ -241,7 +254,7 @@ export function hydroPanelHTML({
       <div class="hydro-results-wrap">
         ${numericalSummary}
         ${pointWeightSummary&&loadedGM?`<section class="hydro-loaded-gm" aria-label="Recalculated loading condition">
-          <strong>With point weights · recalculated loaded draft</strong>
+          <strong>With combined loads · recalculated loaded draft</strong>
           <div class="hydro-loaded-gm-grid">
             <div><span>Loaded displacement</span><strong>${fmt(loadedGM.displacementTonnes,3)} t</strong></div>
             <div><span>Loaded draft</span><strong>${fmt(loadedGM.draft,4)} m</strong></div>

@@ -1,55 +1,58 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {mountViewer} from "./viewer.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {render as renderPythonWorkbench} from "./viewers/adapters/python.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {loadContent} from "./content.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {renderResourceTree} from "./components/resource-tree.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {karakterwebUrl} from "./courses/external-links.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {hydrostaticParticulars} from "./hydro/stability.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {buildSearchIndex} from "./search/search-index.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {createSearchController} from "./components/search-dialog.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {activeTools} from "./tools/tool-registry.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {loadModelDocument} from "./model/load-model.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {parseModelBuffer} from "./tools/model-inspector-core.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {UNIT_SCALE_TO_METERS} from "./model/model-document.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {validateHydroModel} from "./model/hull-surface-validator.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {mountModelScene} from "./model/model-scene.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {mountWaveControls} from "./model/model-wave-controls.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {diversePageHTML} from "./diverse/diverse-page.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {DIVERSE_MODULES} from "./diverse/diverse-registry.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {diveMapHTML,mountDiveMap} from "./diverse/dive-map.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {sandalenPageHTML} from "./diverse/sandalen-page.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {studyCatalogPageHTML,mountStudyCatalog} from "./diverse/study-catalog-pages.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {matprisPageHTML,mountMatpris} from "./diverse/matpris-page.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {mountViewer} from "./viewer.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {render as renderPythonWorkbench} from "./viewers/adapters/python.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {loadContent} from "./content.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {renderResourceTree} from "./components/resource-tree.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {karakterwebUrl} from "./courses/external-links.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {hydrostaticParticulars} from "./hydro/stability.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {buildSearchIndex} from "./search/search-index.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {createSearchController} from "./components/search-dialog.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {activeTools} from "./tools/tool-registry.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {loadModelDocument} from "./model/load-model.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {parseModelBuffer} from "./tools/model-inspector-core.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {UNIT_SCALE_TO_METERS} from "./model/model-document.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {validateHydroModel} from "./model/hull-surface-validator.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {mountModelScene} from "./model/model-scene.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {mountWaveControls} from "./model/model-wave-controls.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {solveHullGirder} from "./structure/hull-girder.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {diversePageHTML} from "./diverse/diverse-page.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {DIVERSE_MODULES} from "./diverse/diverse-registry.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {diveMapHTML,mountDiveMap} from "./diverse/dive-map.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {sandalenPageHTML} from "./diverse/sandalen-page.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {studyCatalogPageHTML,mountStudyCatalog} from "./diverse/study-catalog-pages.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {matprisPageHTML,mountMatpris} from "./diverse/matpris-page.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
 
 initSettings();
 initGoogleSession();
@@ -80,6 +83,8 @@ let hydroKg="";
 let hydroLcg="";
 let hydroTcg="";
 let hydroPointWeightsText="";
+let hullMassText="";
+let hullAreaLoadsText="";
 let hydroPointWeightSummary=null;
 let hydroPointBaseline=null;
 let hydroPointError=null;
@@ -88,6 +93,11 @@ let hydroTrim=0;
 let hydroGzRequested=false;
 let hydroAttitudeAction="";
 let hydroCurveCache={model:null,data:null};
+let structureMode="girder";
+let girderRunRequested=false;
+let girderForm={hullMassTonnes:"",cg:[0,0,0],pointText:"",areaText:"",
+  eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false};
+let girderComputeError="";
 let structureLoadKn=-20;
 let structureLoadPosition=3;
 let resistanceSpeedKn=10;
@@ -174,6 +184,8 @@ function selectEngineeringModel(id){
   hydroLcg="";
   hydroTcg="";
   hydroPointWeightsText="";
+  hullMassText="";
+  hullAreaLoadsText="";
   hydroPointWeightSummary=null;
   hydroPointBaseline=null;
   hydroPointError=null;
@@ -183,6 +195,9 @@ function selectEngineeringModel(id){
   hydroAttitudeAction="";
   hydroCurveCache={model:null,data:null};
   propulsionInitialized=false;
+  girderRunRequested=false;girderComputeError="";
+  girderForm={hullMassTonnes:"",cg:[0,0,0],pointText:"",areaText:"",
+    eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false};
   return true;
 }
 
@@ -940,6 +955,164 @@ async function engineeringPage(){
   document.documentElement.dataset.lens="workspace";
   const modes=["Model","Hydro","Structure","Resistance","Propulsion"];
 
+  if(engineeringMode==="Structure"&&structureMode==="girder"){
+    try{
+      const documentModel=await getEngineeringDocument();
+      if(renderId!==engineeringRenderId)return;
+      const diagnostics=analyzeModelDiagnostics(documentModel);
+      const bounds=diagnostics.bounds;
+      if(!(bounds.size[0]>0)||diagnostics.geometryComponents===0)
+        throw new Error("Hull girder preview requires geometry with positive longitudinal X length");
+      const derived={
+        ...girderForm,
+        hullMassTonnes:hullMassText||girderForm.hullMassTonnes,
+        pointText:hydroPointWeightsText||girderForm.pointText,
+        areaText:hullAreaLoadsText||girderForm.areaText,
+        // Structural mass bookkeeping needs the UNLOADED hull CG.
+        // Reusing the already combined CG would count deck/point loads twice.
+        cg:hydroPointBaseline?.cg||(
+          hydroKg!==""?[
+            Number(hydroLcg)||0,Number(hydroTcg)||0,Number(hydroKg)
+          ]:girderForm.cg
+        )
+      };
+      let girder=null;
+      if(girderRunRequested){
+        try{
+          if(!girderForm.axisConfirmed)
+            throw new Error("Confirm the imported model longitudinal axis is world X before running the beam calculation");
+          girder=solveHullGirder({
+            xMin:bounds.min[0],xMax:bounds.max[0],
+            hullMassTonnes:Number(derived.hullMassTonnes),hullCG:derived.cg,
+            pointWeights:pointWeightsFromLines(derived.pointText),
+            areaLoads:areaLoadsFromLines(derived.areaText),
+            E:Number(derived.eGpa)*1e9,
+            I:Number(derived.iM4),extremeFiberM:Number(derived.extremeFiberM),
+            segments:Number(derived.segments)
+          });
+          girderComputeError="";
+        }catch(error){
+          girderComputeError=String(error?.message||error);
+        }
+      }
+      const panel=hullGirderPanelHTML({caseInput:derived,result:girder,
+        error:girderComputeError,modelName:documentModel.name,bounds});
+      app.innerHTML=top("engineering")+`<main class="workspace">
+        <div class="workspace-bar"><strong>${documentModel.name}</strong>
+          ${engineeringModelSelectHTML()}${engineeringExportButtonHTML(Boolean(girder))}
+          <div class="mode-tabs">${modes.map(mode=>
+            `<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`
+          ).join("")}</div>
+        </div>
+        <aside class="tree">
+          <div class="tree-label">Global structure model</div>
+          <div class="tree-row selected"><span>⌗</span>Euler–Bernoulli beam approximation</div>
+          <div class="tree-label">Geometry</div>
+          <div class="tree-row">World X: ${bounds.min[0].toFixed(2)}–${bounds.max[0].toFixed(2)} m</div>
+          <div class="tree-row">World Z: ${bounds.min[2].toFixed(2)}–${bounds.max[2].toFixed(2)} m</div>
+          <div class="tree-label">Support idealisation</div>
+          <div class="tree-row">Pinned/roller at extreme X</div>
+          <div class="tree-label">Approval</div>
+          <div class="tree-row"><strong>Uncertified structural preview</strong></div>
+        </aside>
+        <section class="viewport"><div id="engineering-scene"></div>
+          <div class="hud">Global beam stress colors · not shell FEM</div>
+          ${girder?`<div class="hull-fem-3d-legend" id="girder-3d-legend">
+            <strong>Signed longitudinal bending</strong>
+            <div class="hull-fem-gradient"></div>
+            <span>Blue −${(girder.maxStressPa/1e6).toFixed(2)} MPa ·
+              red +${(girder.maxStressPa/1e6).toFixed(2)} MPa</span>
+          </div>`:""}
+        </section>
+        <aside class="inspector">
+          <label class="engineering-girder-axis"><input id="girder-axis-confirm"
+            type="checkbox" ${girderForm.axisConfirmed?"checked":""}>
+            World X is the ship's longitudinal direction, and mass coordinates are in metres.</label>
+          ${panel.inspector}
+        </aside>
+        <section class="results"><div class="results-summary">${panel.summary}</div>
+          ${panel.results}</section>
+        <footer class="statusbar"><span>Global beam FEM · linear static</span>
+          <span>Manual E, I and support assumptions</span>
+          <span>Not a floating or local plate-stress solver</span></footer>
+      </main>`;
+      bindNav();bindEngineeringModelSelector();
+      mountWorkspaceResultsResize(app.querySelector(".workspace"));
+      const report=girder?engineeringCaseReport({
+        modelConfig:model,modelDocument:documentModel,mode:"Structure",
+        method:{name:"global Euler–Bernoulli girder proxy",scope:"simply supported laboratory idealisation"},
+        inputs:{...derived,bounds,axisConfirmed:girderForm.axisConfirmed},
+        results:{girder},
+        assumptions:["not structural shell FEM","supports at ends—not hydrostatic buoyancy",
+          "manual E/I/neutral axis","uniform hull mass per beam length"]
+      }):null;
+      bindEngineeringCaseExport(report);
+      app.querySelectorAll("[data-engineering-mode]").forEach(button=>
+        button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
+      const readForm=()=>{
+        girderForm={
+          hullMassTonnes:app.querySelector("#girder-hull-mass").value,
+          cg:["x","y","z"].map(axis=>Number(app.querySelector("#girder-cg-"+axis).value)),
+          pointText:app.querySelector("#girder-points").value,
+          areaText:app.querySelector("#girder-areas").value,
+          eGpa:app.querySelector("#girder-e").value,
+          iM4:app.querySelector("#girder-i").value,
+          extremeFiberM:app.querySelector("#girder-c").value,
+          neutralZ:Number(app.querySelector("#girder-neutral-z").value),
+          segments:Number(app.querySelector("#girder-segments").value),
+          axisConfirmed:app.querySelector("#girder-axis-confirm").checked
+        };
+      };
+      app.querySelector("#girder-run")?.addEventListener("click",()=>{
+        readForm();girderRunRequested=true;
+        hullMassText=girderForm.hullMassTonnes;
+        hydroPointWeightsText=girderForm.pointText;
+        hullAreaLoadsText=girderForm.areaText;
+        [hydroLcg,hydroTcg,hydroKg]=girderForm.cg.map(String);
+        hydroPointWeightSummary=null;hydroPointBaseline=null;
+        engineeringPage();
+      });
+      app.querySelector("#girder-frame-example")?.addEventListener("click",()=>{
+        structureMode="frame";engineeringPage();
+      });
+      let sceneHandle=null;
+      mountModelScene(app.querySelector("#engineering-scene"),documentModel,{showSidebar:false})
+        .then(handle=>{
+          if(renderId!==engineeringRenderId){handle.cleanup();return}
+          sceneHandle=handle;
+          if(girder){
+            const legend=handle.actions.setHullGirderContour({
+              girder,neutralZ:Number(derived.neutralZ),visible:true
+            });
+            const note=app.querySelector("#girder-3d-legend span");
+            if(note)note.textContent=
+              "−"+(legend.maxMPa).toFixed(2)+" MPa to +"+(legend.maxMPa).toFixed(2)+" MPa"+
+              " · global beam projection";
+          }
+          app.querySelector("#girder-color-mode")?.addEventListener("change",event=>{
+            const visible=event.target.value==="stress"&&Boolean(girder);
+            const field=handle.actions.setHullGirderContour({
+              girder,neutralZ:Number(derived.neutralZ),visible
+            });
+            const label=app.querySelector("#girder-3d-legend");
+            if(label)label.hidden=!visible;
+          });
+          engineeringCleanup=()=>handle.cleanup();
+        }).catch(error=>{
+          const viewport=app.querySelector("#engineering-scene");
+          if(viewport)viewport.textContent="3D rendering unavailable: "+String(error?.message||error);
+        });
+    }catch(error){
+      if(renderId!==engineeringRenderId)return;
+      app.innerHTML=top("engineering")+`<main class="study">
+        <section class="study-main"><h1>Global hull-girder preview unavailable</h1>
+          <p>${String(error?.message||error).replace(/[&<>]/g,"")}</p></section>
+        </main>`;
+      bindNav();
+    }
+    return;
+  }
+
   if(engineeringMode==="Structure"){
     try{
       const capability=analysisCapability(model,"structure");
@@ -984,6 +1157,11 @@ async function engineeringPage(){
         results:structure.result,
         assumptions:["2D frame idealisation","linear elastic response","small displacements"]
       }));
+      app.querySelector(".inspector")?.insertAdjacentHTML("afterbegin",
+        '<button type="button" class="btn" id="structure-show-girder">Use hull-girder FEM</button>');
+      app.querySelector("#structure-show-girder")?.addEventListener("click",()=>{
+        structureMode="girder";girderRunRequested=false;engineeringPage();
+      });
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       for(const id of ["#structure-load","#structure-load-position"]){
         app.querySelector(id)?.addEventListener("change",()=>{
@@ -1440,6 +1618,8 @@ async function engineeringPage(){
         draft:hydroDraft,
         targetDisplacementTonnes:hydroTargetTonnes,
         pointWeightsText:hydroPointWeightsText,
+        hullMassText,
+        areaLoadsText:hullAreaLoadsText,
         pointWeightSummary:hydroPointWeightSummary,
         pointWeightError:hydroPointError,
         loadedGM,
@@ -1472,6 +1652,8 @@ async function engineeringPage(){
           density,
           centerOfGravity:hasKg?centerOfGravity:null,
           pointWeights:hydroPointWeightSummary?.pointWeights||[],
+          areaLoads:hydroPointWeightSummary?.areaLoads||[],
+          hullMassTonnes:hullMassText===""?null:Number(hullMassText),
           pointWeightBaseline:hydroPointBaseline,
           heelDeg:Number(hydroHeel)||0,
           trimDeg:Number(hydroTrim)||0
@@ -1705,28 +1887,38 @@ async function engineeringPage(){
   };
 
   const pointInput=app.querySelector("#hydro-point-weights");
+  const areaInput=app.querySelector("#hydro-area-loads");
+  const massInput=app.querySelector("#hydro-hull-mass");
   pointInput?.addEventListener("input",()=>{hydroPointWeightsText=pointInput.value});
+  areaInput?.addEventListener("input",()=>{hullAreaLoadsText=areaInput.value});
+  massInput?.addEventListener("input",()=>{hullMassText=massInput.value});
   app.querySelector("#hydro-point-apply")?.addEventListener("click",()=>{
     readHydroCaseInputs();
     hydroPointWeightsText=pointInput?.value||"";
+    hullAreaLoadsText=areaInput?.value||"";
+    hullMassText=massInput?.value||"";
     try{
       const weights=pointWeightsFromLines(hydroPointWeightsText);
-      if(!weights.length)throw new Error("Enter at least one point weight");
+      const areas=areaLoadsFromLines(hullAreaLoadsText);
+      const explicitHullMass=hullMassText.trim()!==""?Number(hullMassText):null;
+      if(hullMassText.trim()===""&&!weights.length&&!areas.length)
+        throw new Error("Enter a hull mass or at least one additional mass load");
       if(!hydroPointBaseline){
-        if(!hydro?.particulars?.displacementTonnes)
-          throw new Error("Baseline displacement has not been calculated");
+        if(!hydro?.particulars?.displacementTonnes&&!Number.isFinite(explicitHullMass))
+          throw new Error("Reference displacement is not calculated");
         if(hydroKg===""||!Number.isFinite(Number(hydroKg)))
-          throw new Error("Enter baseline KG before applying point weights");
+          throw new Error("Enter hull/reference KG before applying loads");
         hydroPointBaseline={
-          massTonnes:hydro.particulars.displacementTonnes,
+          massTonnes:explicitHullMass??hydro.particulars.displacementTonnes,
           draft:hydroDraft,
-          cg:[Number(hydroLcg)||0,Number(hydroTcg)||0,Number(hydroKg)]
+          cg:[Number(hydroLcg)||0,Number(hydroTcg)||0,Number(hydroKg)],
+          source:explicitHullMass===null?"reference draft":"entered hull mass"
         };
       }
-      const summary=combinePointWeights({
-        baselineMassTonnes:hydroPointBaseline.massTonnes,
-        baselineCG:hydroPointBaseline.cg,
-        pointWeights:weights
+      const summary=combineHullLoading({
+        hullMassTonnes:hydroPointBaseline.massTonnes,
+        hullCG:hydroPointBaseline.cg,
+        pointWeights:weights,areaLoads:areas
       });
       hydroPointWeightSummary=summary;
       hydroPointError=null;
@@ -1746,7 +1938,7 @@ async function engineeringPage(){
     hydroTcg=String(baseline.cg[1]);hydroDraft=baseline.draft;
     hydroTargetTonnes="";
     hydroPointWeightSummary=null;hydroPointBaseline=null;
-    hydroPointWeightsText="";hydroPointError=null;
+    hydroPointWeightsText="";hullAreaLoadsText="";hydroPointError=null;
     hydroGzRequested=false;hydroAttitudeAction="";
     engineeringPage();
   });

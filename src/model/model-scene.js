@@ -1,6 +1,7 @@
-import {getThreeRuntime} from "./three-runtime.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {modelWaterlineContours} from "./waterline-preview.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
-import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=5d3b7e74c647e4c2c90043ead7e407cde35dd9f8";
+import {getThreeRuntime} from "./three-runtime.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {modelWaterlineContours} from "./waterline-preview.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;
@@ -44,6 +45,7 @@ export async function mountModelScene(container,documentModel,options={}){
   const baseColor=new THREE.Color(0x8aa7b5);
   let appearanceOpacity=1;
   let selectedMesh=null;
+  let hullContourOn=false;
 
   for(const component of documentModel.components){
     if(!component.geometry)continue;
@@ -192,7 +194,7 @@ export async function mountModelScene(container,documentModel,options={}){
     selectedMesh=mesh||null;
     for(const item of meshes){
       const isOther=Boolean(mesh)&&item!==mesh;
-      item.material.color.copy(item===mesh?new THREE.Color(0xb3157a):baseColor);
+      item.material.color.copy(hullContourOn?new THREE.Color(0xffffff):item===mesh?new THREE.Color(0xb3157a):baseColor);
       item.material.opacity=isOther?Math.min(appearanceOpacity,.32):appearanceOpacity;
       item.material.transparent=item.material.opacity<1;
     }
@@ -491,6 +493,48 @@ export async function mountModelScene(container,documentModel,options={}){
     draw();
   }
 
+  function setHullGirderContour({girder=null,neutralZ=0,visible=true}={}){
+    if(!visible||!girder){
+      hullContourOn=false;
+      for(const mesh of meshes){
+        mesh.geometry.deleteAttribute("color");
+        mesh.material.vertexColors=false;
+        mesh.material.needsUpdate=true;
+      }
+      select(selectedMesh,false);
+      draw();
+      return {enabled:false};
+    }
+    root.updateMatrixWorld(true);
+    const samples=[];
+    const point=new THREE.Vector3();
+    const neutral=Number(neutralZ);
+    if(!Number.isFinite(neutral))throw new Error("Neutral axis elevation must be finite");
+    for(const mesh of meshes){
+      const position=mesh.geometry.getAttribute("position");
+      const values=new Float64Array(position.count);
+      for(let i=0;i<position.count;i++){
+        point.fromBufferAttribute(position,i).applyMatrix4(mesh.matrixWorld);
+        values[i]=stressAtHullPoint(girder,point.x,point.z,{neutralZ:neutral});
+        if(!Number.isFinite(values[i]))throw new Error("Non-finite global bending stress");
+      }
+      samples.push({mesh,values});
+    }
+    const max=Math.max(1,Math.abs(Number(girder.maxStressPa)||0));
+    let range=max;
+    for(const {values} of samples)for(const value of values)range=Math.max(range,Math.abs(value));
+    hullContourOn=true;
+    for(const {mesh,values} of samples){
+      const colors=new Float32Array(values.length*3);
+      for(let i=0;i<values.length;i++)colors.set(stressRGB(values[i],range),i*3);
+      mesh.geometry.setAttribute("color",new THREE.BufferAttribute(colors,3));
+      mesh.material.vertexColors=true;
+      mesh.material.needsUpdate=true;
+    }
+    select(selectedMesh,false);draw();
+    return {enabled:true,...stressLegend(range),rangePa:range};
+  }
+
   function screenshot(filename="model.png"){
     draw();
     const url=canvas.toDataURL("image/png");
@@ -642,6 +686,7 @@ export async function mountModelScene(container,documentModel,options={}){
       clearMeasurements,
       undoMeasurement,
       setWaterline,
+      setHullGirderContour,
       getWaterlineInfo:()=>waterlineInfo,
       setWave,
       screenshot,
