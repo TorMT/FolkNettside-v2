@@ -1028,3 +1028,9 @@
   .model-viewer-inspector{max-height:none;overflow:visible;border-left:0;border-top:1px solid var(--line)}
   .model-viewer-section{padding:10px}
 }
+
+.model-wave-estimates{margin:0 12px 12px;border:1px solid var(--line);border-radius:8px;padding:9px;color:var(--ink);font-size:11px}
+.model-wave-estimates>summary{cursor:pointer;font-weight:650;line-height:1.45}
+.model-wave-estimates .model-wave-fields{margin-top:10px}
+.model-wave-estimates button{margin:10px 0;border:1px solid var(--line);padding:8px;background:var(--surface-sunk);color:var(--ink);border-radius:7px;cursor:pointer}
+.model-wave-estimates pre{max-width:100%;overflow:auto;white-space:pre-wrap;font:10px/1.5 ui-monospace,Consolas,monospace}
