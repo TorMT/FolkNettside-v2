@@ -1,0 +1,56 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>Python and notebook workbench smoke</title>
+<link rel="stylesheet" href="../../assets/style.css"></head>
+<body data-status="running"><div id="host"></div><pre id="result">running</pre>
+<script type="module">
+import {loadAdapter} from "../../src/viewers/registry.js";
+import * as pythonAdapter from "../../src/viewers/adapters/python.js";
+import * as notebookAdapter from "../../src/viewers/adapters/notebook.js";
+const host=document.querySelector("#host"),result=document.querySelector("#result");
+const assert=(x,msg)=>{if(!x)throw new Error(msg)};
+const tick=()=>new Promise(resolve=>setTimeout(resolve,50));
+class FakeSession{
+ constructor(){this.calls=[];this.stops=0;this.closed=false}
+ async run(code,{status}={}){
+   this.calls.push(code);status?.("Mock Python ready");
+   return {stdout:"Executed: "+code.slice(0,22),stderr:"",figures:[]};
+ }
+ stop(){this.stops++}
+ dispose(){this.closed=true}
+}
+let latest;
+const sessionFactory=()=>{latest=new FakeSession();return latest};
+try{
+ const pythonResource={kind:"FILE",path:"../../examples/semesters/5/TMR4182/Kok/hydro-demo.py",label:"Hydro sample.py"};
+ assert((await loadAdapter(pythonResource)).extension==="py","Py registry missing");
+ const a=await pythonAdapter.render(host,pythonResource,{sessionFactory});
+ assert(host.querySelector(".python-workbench"),"PyView workbench not rendered");
+ assert(host.querySelector(".python-code-line"),"Python line numbers not rendered");
+ const edit=host.querySelector("[data-py-edit]");
+ edit.click();
+ const editor=host.querySelector(".python-code-edit");
+ assert(!editor.hidden,"Editor did not open");
+ editor.value="print(42)";
+ host.querySelector("[data-py-run]").click();await tick();
+ assert(latest.calls.at(-1)==="print(42)","PyRun did not execute edited source");
+ assert(host.querySelector(".python-output-text").textContent.includes("print(42)"),"Python stdout missing");
+ host.querySelector("[data-py-stop]").click();
+ assert(latest.stops===1,"PyStop did not reset session");
+ host.querySelector("#python-restart").click();
+ assert(latest.stops===2,"Python reset failed");
+ a.cleanup();assert(latest.closed,"PyView failed to clean its Worker");
+
+ const noteResource={kind:"FILE",path:"../../examples/semesters/5/TMR4182/Kok/hydro-demo.ipynb",label:"Hydro.ipynb"};
+ const b=await notebookAdapter.render(host,noteResource,{sessionFactory});
+ assert(host.querySelectorAll(".nb-cell").length>=2,"Notebook cells missing");
+ assert(host.querySelectorAll("[data-py-run]").length>0,"Notebook code cell is not executable");
+ host.querySelector("[data-nb-run-all]").click();await tick();
+ assert(latest.calls.length>0,"Run all did not execute notebook code");
+ assert(host.querySelector(".python-output-text").textContent.includes("Executed"),"Notebook output not displayed");
+ host.querySelector("[data-nb-stop]").click();
+ assert(latest.stops===1,"Notebook stop not routed");
+ b.cleanup();assert(latest.closed,"Notebook Worker not disposed");
+ document.body.dataset.status="pass";
+ result.textContent="PyView editing/execution/output/stop/reset; Jupyter run all/stop/cleanup PASS";
+}catch(e){document.body.dataset.status="fail";result.textContent=String(e.stack||e)}
+</script></body></html>
