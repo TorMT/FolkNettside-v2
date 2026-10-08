@@ -22,10 +22,10 @@ The calculation engine is **already implemented**, including clipped-triangle hy
 
 ## Phase 3 — Hydrostatic numerical qualification
 
-- Check `V(T)` monotonicity for a known watertight hull, enforce converged target displacement and explain out-of-range conditions.
+- **Implemented:** finite-volume V(T) monotonicity and sampled dV/dT vs waterplane A(T) review diagnostics; strict target-volume residual convergence, bounded iteration errors and explicit out-of-range conditions.
 - Analytic fixture matrix: rectangle, wedge, skewed hull, disconnected permissible bodies, eccentric cross section, non-zero Ixy, dry/full, heel, trim and varying density. Cross-check against independent reference implementations or published hydrostatic particulars (with source and tolerances).
 - Waterplane curves and reports: displacement, KB, LCB, TCB, LCF, TCF, TPC, transverse/longitudinal BM/KM/GM, sectional area data and clear uncertainty flags.
-- Validate initial GM against the near-zero-angle derivative of GZ and GZ symmetry for a symmetric hull. Include loading condition, KG, LCG/TCG, margin on bounds and residuals in every export.
+- **Partially implemented:** sampled small-angle GM/GZ cross-check for matching upright displacement and zero TCG, with structured numerical diagnostics and draft solver residuals in reports; still need vessel-specific loading, full precision, symmetry and stability criteria.
 - Stress-test >100k triangles, memory consumption, cancellation and stale worker responses when switching models.
 
 ## Phase 4 — Engineering import and real-vessel acceptance
