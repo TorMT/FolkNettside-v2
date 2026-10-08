@@ -142,3 +142,18 @@ test("invalid box surfaces fail closed for every numerical Hydro operation",()=>
    assert.throws(()=>dispatch(m,type,payload),/Hydro preflight blocked/);
  }
 });
+
+test("invalid curve steps and insufficient equilibrium iterations explicitly fail, never loop indefinitely",()=>{
+ const m=block();
+ for(const [type,payload] of [
+   ["gz",{targetVolume:40,kg:KG,minHeel:-10,maxHeel:10,step:0}],
+   ["gz",{targetVolume:40,kg:KG,minHeel:-10,maxHeel:10,step:.0001}],
+   ["attitudeCurve",{axis:"heel",start:-10,end:10,step:0,targetVolume:40,centerOfGravity:[0,0,KG]}],
+   ["attitudeCurve",{axis:"trim",start:-10,end:10,step:.0001,targetVolume:40,centerOfGravity:[0,0,KG]}]
+ ]){
+   assert.throws(()=>dispatch(m,type,payload),/positive step|sample limit/);
+ }
+ assert.throws(()=>dispatch(m,"equilibrium",{axis:"heel",minAngle:-12,maxAngle:12,
+   targetVolume:40,centerOfGravity:[0,.1,KG],leverTolerance:1e-12,
+   maxIterations:1}),e=>e.code==="EQUILIBRIUM_NOT_CONVERGED");
+});
