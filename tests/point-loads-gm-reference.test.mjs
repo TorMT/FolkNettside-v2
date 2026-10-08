@@ -129,3 +129,49 @@ test("Structure UI visibly places interior point force and exposes editable posi
   near(panel.model.pointLoads[0].position,1.5);
   near(panel.result.nodes[1].uy,-20000*1.5**2*(3*3-1.5)/(6*210e9*8e-6),1e-10);
 });
+
+test("small-angle roll and pitch lever slopes independently reproduce transverse and longitudinal GM",()=>{
+  const hull=box();
+  const hydro=executeHydroRequest(hull,"analyze",{waterline:1});
+  const p=hydrostaticParticulars(hydro,{density:1025,kg:.5});
+  const angle=0.1,rad=angle*Math.PI/180;
+  const options={targetVolume:40,centerOfGravity:[0,0,.5],density:1025,
+    tolerance:1e-9,maxIterations:80};
+  const heelPlus=executeHydroRequest(hull,"attitude",{...options,heelDeg:angle});
+  const heelMinus=executeHydroRequest(hull,"attitude",{...options,heelDeg:-angle});
+  const pitchPlus=executeHydroRequest(hull,"attitude",{...options,trimDeg:angle});
+  const pitchMinus=executeHydroRequest(hull,"attitude",{...options,trimDeg:-angle});
+  near(heelPlus.volume,40,1e-7);near(pitchPlus.volume,40,1e-7);
+  const gmFromHeel=Math.abs((heelPlus.rollLever-heelMinus.rollLever)/(2*rad));
+  const gmFromTrim=Math.abs((pitchPlus.pitchLever-pitchMinus.pitchLever)/(2*rad));
+  near(gmFromHeel,p.gmTransverse,0.003);
+  near(gmFromTrim,p.gmLongitudinal,0.003);
+  assert.ok(gmFromTrim>gmFromHeel*6,"Roll/pitch GM axes were mixed up");
+});
+test("point loads above/below CG produce correct signed changes in both GMs after redraft",()=>{
+  const hull=box();
+  const initial=executeHydroRequest(hull,"analyze",{waterline:1});
+  const baselineMass=initial.volume*1025/1000;
+  const solveLoad=(z)=>{
+    const weights=combinePointWeights({
+      baselineMassTonnes:baselineMass,baselineCG:[0,0,.5],
+      pointWeights:[{massTonnes:2,x:0,y:0,z}]
+    });
+    const result=executeHydroRequest(hull,"solve",{
+      targetVolume:weights.totalMassTonnes*1000/1025,
+      minWaterline:0,maxWaterline:3,tolerance:1e-8,maxIterations:80
+    });
+    const hydro=executeHydroRequest(hull,"analyze",{waterline:result.waterline});
+    return {weights,GM:hydrostaticParticulars(hydro,{density:1025,kg:weights.centerOfGravity[2]})};
+  };
+  const low=solveLoad(-.5),high=solveLoad(3);
+  near(low.weights.totalMassTonnes,43);
+  near(high.weights.totalMassTonnes,43);
+  near(low.GM.volume,43*1000/1025,1e-7);
+  near(high.GM.volume,43*1000/1025,1e-7);
+  const deltaKg=2*(3-(-.5))/43;
+  near(low.GM.gmTransverse-high.GM.gmTransverse,deltaKg,1e-9);
+  near(low.GM.gmLongitudinal-high.GM.gmLongitudinal,deltaKg,1e-9);
+  assert.ok(low.GM.gmTransverse>high.GM.gmTransverse);
+  assert.ok(low.GM.gmLongitudinal>high.GM.gmLongitudinal);
+});
