@@ -49,10 +49,11 @@ try{
    "import matplotlib.pyplot as plt",
    "plt.figure()",
    "plt.plot([0,1,2], [0,1,4])",
-   "plt.savefig('reference-plot.pdf')"
+   "plt.savefig('reference-plot.pdf')",
+   "print('PLOT_DEBUG='+str((len(plt.get_fignums()),getattr(plt,'_folk_viewer_patched',None))))"
  ].join("\n"));
  if(!plot.figures?.some(image=>image.startsWith("data:image/png;base64,")))
-   throw new Error("Matplotlib plot PNG preview not captured");
+   throw new Error("Matplotlib plot PNG preview not captured: "+JSON.stringify({stdout:plot.stdout,stderr:plot.stderr,figures:plot.figures?.length}));
  if(!plot.files?.some(file=>file.name==="reference-plot.pdf"))
    throw new Error("Saved matplotlib PDF is missing from generated downloads");
  const stream=[];
