@@ -35,7 +35,7 @@ def main(url):
         session=response.get("sessionId")
         if not session:raise RuntimeError("ChromeDriver did not return a session ID")
         call("POST",f"/session/{session}/url",{"url":url},timeout=15)
-        deadline=time.monotonic()+30
+        deadline=time.monotonic()+int(sys.argv[2]) if len(sys.argv)>2 else time.monotonic()+30
         latest=None
         while time.monotonic()<deadline:
             latest=call("POST",f"/session/{session}/execute/sync",{
