@@ -26,9 +26,12 @@ export function validateDiverseCatalog(value,kind){
       item.study=norm(entry.study).slice(0,100);
       item.specialization=norm(entry.specialization).slice(0,100);
       item.cohort=norm(entry.cohort).slice(0,24);
+      item.ratingScale=entry.ratingScale===10?10:5;
       item.rating=entry.rating===undefined||entry.rating===null||entry.rating===""?null:Number(entry.rating);
-      if(item.rating!==null&&(!Number.isFinite(item.rating)||item.rating<0||item.rating>5))
+      if(item.rating!==null&&(!Number.isFinite(item.rating)||item.rating<0||item.rating>item.ratingScale))
         throw new Error("Ugyldig rating "+index);
+      item.description=norm(entry.description).slice(0,1500);
+      item.sourceId=entry.sourceId===undefined?null:Number(entry.sourceId);
     }else{
       item.courseCode=norm(entry.courseCode).slice(0,40);
       item.semester=norm(entry.semester).slice(0,30);
