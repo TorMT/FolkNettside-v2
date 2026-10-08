@@ -6,6 +6,7 @@ import {executeHydroRequest} from "../src/hydro/hydro-service.js";
 import {initialStability,rectangularBargeStability} from "../src/hydro/stability.js";
 import {gzCurve,gzAtHeel} from "../src/hydro/gz.js";
 import {auditHydroCurve,auditSmallAngleGz,draftSolutionResidual} from "../src/hydro/numerical-audit.js";
+import {hydroPanelHTML} from "../src/engineering/hydro-panel.js";
 
 const near=(actual,expected,tol=1e-7)=>assert.ok(Math.abs(actual-expected)<tol,
   `Expected ${actual} ≈ ${expected}, tolerance ${tol}`);
@@ -112,4 +113,22 @@ test("sloped wedge matches independent closed-form V(T) and A(T), including exac
    near(row.volume,expectedVolume,1e-7);
    near(row.waterplane.area,expectedArea,1e-7);
  }
+});
+
+test("Hydro UI shows GM/GZ only for same displacement and symmetric transverse loading",()=>{
+ const ship={...model(boxMesh({L:10,B:4,H:3})),name:"Reference hull"};
+ const result=executeHydroRequest(ship,"analyze",{waterline:1});
+ const curve=executeHydroRequest(ship,"curve",{minWaterline:.25,maxWaterline:1.75,samples:7});
+ const gz=gzCurve(ship,{targetVolume:result.volume,kg:.5,minHeel:0,maxHeel:5,step:5});
+ const options={modelDocument:ship,result,curve,draft:1,kg:.5,gz,
+    tcg:0,config:{density:1025,minDraft:0,maxDraft:3}};
+ const ui=hydroPanelHTML(options);
+ assert.equal(ui.qualityAudit.status,"pass");
+ assert.equal(ui.gmCrossCheck.status,"pass",JSON.stringify(ui.gmCrossCheck));
+ assert.match(ui.results,/Numerical consistency/);
+ assert.match(ui.results,/Small-angle GZ\/GM/);
+ const mismatch=hydroPanelHTML({...options,result:executeHydroRequest(ship,"analyze",{waterline:1.5})});
+ assert.equal(mismatch.gmCrossCheck,null);
+ const offsetCG=hydroPanelHTML({...options,tcg:1});
+ assert.equal(offsetCG.gmCrossCheck,null);
 });
