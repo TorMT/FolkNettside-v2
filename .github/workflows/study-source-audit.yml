@@ -1,0 +1,48 @@
+name: study-source-audit
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect-laos-public:
+    if: github.head_ref == 'feature/import-verified-kok-source'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect public LAOS HTML and script source references
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from urllib.parse import urljoin
+          from urllib.request import Request, urlopen
+          import re
+          url='https://tormt.folk.ntnu.no/diverse/LAOS/'
+          data=urlopen(Request(url,headers={'User-Agent':'FolkNettside-v2-readonly-migration-audit/1.0'}),timeout=22).read()
+          text=data.decode('utf-8','replace')
+          print('MAIN HTML length',len(data),'URL',url)
+          class P(HTMLParser):
+              def __init__(self):super().__init__();self.scripts=[];self.inline=[];self.active=False
+              def handle_starttag(self,tag,attrs):
+                  a=dict(attrs)
+                  if tag=='script':
+                      if a.get('src'):self.scripts.append(urljoin(url,a['src']))
+                      else:self.active=True
+              def handle_endtag(self,tag):
+                  if tag=='script':self.active=False
+              def handle_data(self,txt):
+                  if self.active:self.inline.append(txt)
+          p=P();p.feed(text)
+          print('SCRIPT REFERENCES:',p.scripts)
+          for script in p.scripts[:12]:
+              try:
+                  s=urlopen(Request(script,headers={'User-Agent':'FolkNettside-v2-readonly-migration-audit/1.0'}),timeout=15).read(250000).decode('utf-8','replace')
+                  print('SCRIPT:',script,'length:',len(s))
+                  for term in ['fetch(','.json','api/','list.php','files.php','øving','oving','LAOS','file-list']:
+                      for m in list(re.finditer(re.escape(term),s,re.I))[:7]:
+                          print('  MATCH',term,'context=',repr(s[max(0,m.start()-110):m.end()+210]))
+              except Exception as e:print('  SCRIPT ERROR',str(e)[:200])
+          for inline in p.inline[:15]:
+              print('INLINE:',inline[:4000])
+          print('END PUBLIC INSPECTION')
+          PY
