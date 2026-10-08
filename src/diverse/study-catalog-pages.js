@@ -61,7 +61,7 @@ function options(select,values,label){
 function renderCards(entries,{kind,onNavigate}){
   return entries.map(item=>{
     const external=Boolean(item.url);
-    const href=external?safeCatalogUrl(item.url):"";
+    const href=external?safeCatalogUrl(item.url,{allowRelative:kind==="laos"}):"";
     if(external&&!href)return "";
     const metadata=kind==="kok"?[item.study,item.specialization,item.cohort?("Klasse "+item.cohort):"",
       item.rating===null?"":("Rating "+item.rating+"/"+(item.ratingScale||5))]:[item.courseCode,item.semester?("Semester "+item.semester):"",item.category];
