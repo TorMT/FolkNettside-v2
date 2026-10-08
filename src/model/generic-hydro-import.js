@@ -57,7 +57,18 @@ export function splitSurfaceBodies(geometry,{tolerance=null,maxTriangles=350000}
   });
 }
 
-export function prepareGenericHydroImport(original,{unit=null,splitSTL=true}={}){
+const AXIS_TRANSFORMS={
+  "z-up":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+  "y-up":[1,0,0,0,0,0,1,0,0,-1,0,0,0,0,0,1],
+  "x-up":[0,0,1,0,0,1,0,0,-1,0,0,0,0,1]
+};
+function multiplyTransform(a,b){
+  const m=new Array(16).fill(0);
+  for(let column=0;column<4;column++)for(let row=0;row<4;row++)
+    for(let k=0;k<4;k++)m[column*4+row]+=a[k*4+row]*b[column*4+k];
+  return m;
+}
+export function prepareGenericHydroImport(original,{unit=null,splitSTL=true,upAxis="z-up"}={}){
   if(!original||!Array.isArray(original.components)||!original.components.some(c=>c.geometry))
     throw new Error("No model surface geometry is available");
   if(unit&&!Object.hasOwn(UNIT_SCALE_TO_METERS,unit))throw new Error("Unsupported import unit");
@@ -79,12 +90,22 @@ export function prepareGenericHydroImport(original,{unit=null,splitSTL=true}={})
     }
     components=split;
   }
+  if(!Object.hasOwn(AXIS_TRANSFORMS,upAxis))throw new Error("Unsupported source up axis");
+  if(upAxis!=="z-up"){
+    const rotation=AXIS_TRANSFORMS[upAxis];
+    components=components.map(component=>({
+      ...component,
+      transform:multiplyTransform(rotation,component.transform||
+        AXIS_TRANSFORMS["z-up"])
+    }));
+  }
   const actualUnit=unit||original.unit;
   return {
     ...original,
     unit:actualUnit,
     unitScaleToMeters:UNIT_SCALE_TO_METERS[actualUnit],
     components,
+    importUpAxis:upAxis,
     sourceType:"local-import",
     geometryReviewRequired:true
   };
