@@ -5,6 +5,7 @@ import {executeHydroRequest} from "../src/hydro/hydro-service.js";
 import {hydrostaticParticulars} from "../src/hydro/stability.js";
 import {combinePointWeights,pointWeightsFromLines} from "../src/hydro/point-loads.js";
 import {solveFrame2D} from "../src/structure/frame2d.js";
+import {structurePanelHTML} from "../src/engineering/structure-panel.js";
 
 const near=(a,b,tolerance=1e-7)=>assert.ok(Number.isFinite(a)&&Math.abs(a-b)<=tolerance,
   `Expected ${a} = ${b} (±${tolerance})`);
@@ -112,4 +113,19 @@ test("interior point force on Euler-Bernoulli cantilever matches exact tip defle
   near(atRoot.nodes[0].ry,-P,1e-6);
   model.pointLoads[0].position=L+1;
   assert.throws(()=>solveFrame2D(model),/position/);
+});
+
+test("Structure UI visibly places interior point force and exposes editable position",()=>{
+  const L=3;
+  const base={name:"Beam",nodes:[{id:"root",x:0,y:0},{id:"tip",x:L,y:0}],
+    elements:[{id:"beam",n1:"root",n2:"tip",E:210e9,A:.02,I:8e-6}],
+    supports:[{node:"root",ux:true,uy:true,rz:true}],
+    loads:[{node:"tip",fx:0,fy:-20000,mz:0}]};
+  const panel=structurePanelHTML(base,{loadFy:-20000,loadPosition:1.5});
+  assert.match(panel.inspector,/id="structure-load-position"/);
+  assert.match(panel.inspector,/value="1.5"/);
+  assert.match(panel.viewport,/structure-point-load-marker/);
+  assert.match(panel.results,/structure-point-load-marker/);
+  near(panel.model.pointLoads[0].position,1.5);
+  near(panel.result.nodes[1].uy,-20000*1.5**2*(3*3-1.5)/(6*210e9*8e-6),1e-10);
 });
