@@ -153,8 +153,24 @@ jobs:
                   })
           if not entries:
               raise RuntimeError('LAOS file index has no public PDF records, stopping instead of creating an empty copy')
+          welcome=index.get('welcome')
+          welcome_meta={}
+          if isinstance(welcome,str) and welcome==pathlib.Path(welcome).name and welcome.lower().endswith(('.jpg','.jpeg','.png')):
+              image_url=base+urllib.parse.quote(welcome,safe='')
+              try:
+                  with urllib.request.urlopen(urllib.request.Request(image_url,headers=headers),timeout=30) as image_resp:
+                      image_data=image_resp.read(10_000_001)
+                  jpeg=image_data.startswith(bytes.fromhex('ffd8ff'))
+                  png=image_data.startswith(bytes.fromhex('89504e470d0a1a0a'))
+                  if len(image_data)<=10_000_000 and (jpeg or png):
+                      (target/welcome).write_bytes(image_data)
+                      welcome_meta={'welcomeImage':'./data/diverse/laos-files/'+urllib.parse.quote(welcome,safe=''),
+                                    'welcomeSha256':hashlib.sha256(image_data).hexdigest()}
+                      print('WELCOME IMAGE COPIED',welcome,len(image_data))
+                  else:print('WELCOME IMAGE not valid or too large')
+              except Exception as error:print('WELCOME IMAGE unavailable:',type(error).__name__,str(error)[:180])
           catalog={'schemaVersion':1,'source':'Public original LAOS filer/index.json, mirrored from source',
-                   'sourceUrl':base+'index.json','verified':True,'items':entries}
+                   'sourceUrl':base+'index.json','verified':True,'items':entries,**welcome_meta}
           pathlib.Path('data/diverse/laos-assignments.json').write_text(json.dumps(catalog,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
           print('IMPORTED',len(entries),'PDF records. Original protected entries were skipped.')
           PY
