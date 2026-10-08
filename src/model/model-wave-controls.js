@@ -1,4 +1,5 @@
 import {normaliseWaveCase,waveObservationsCSV} from "./wave-core.js";
+import {legacyAddedWaveResistance,legacyMorisonWaveForce} from "./wave-concept-estimates.js";
 import {appendWaveRecord,importWaveCSV,readWaveCollection,
   sampleWaveRecord,writeWaveCollection} from "./wave-collection.js";
 
@@ -49,6 +50,18 @@ export function mountWaveControls(host,scene,{open=false}={}){
       </div>
       <div class="model-wave-entries"></div>
     </div>
+    <details class="model-wave-estimates">
+      <summary>Legacy HydroLab concept loads · requires vessel inputs</summary>
+      <div class="model-wave-fields">
+        <label>Waterline length (m)<input data-wave-lwl type="number" min="0.01" step=".1" placeholder="Required"></label>
+        <label>Waterline beam (m)<input data-wave-bwl type="number" min="0.01" step=".1" placeholder="Required"></label>
+        <label>Vessel speed (m/s)<input data-wave-speed type="number" min="0" step=".1" placeholder="Required"></label>
+        <label>Projected area (m²)<input data-wave-area type="number" min="0.01" step=".1" placeholder="Required"></label>
+        <label>Displaced volume (m³)<input data-wave-volume type="number" min="0.01" step=".1" placeholder="Required"></label>
+      </div>
+      <button type="button" data-wave-estimate>Calculate concept estimates</button>
+      <pre data-wave-estimate-output role="status">No wave loads calculated.</pre>
+    </details>
     <p class="model-wave-note">Synthetic series are explicitly labeled. CSV columns: time_s,eta_m. Imported measurements do not automatically become spatial waves or validated wave loads. Records stay in this browser until exported or cleared.</p>`;
   host.append(root);
   const $=query=>root.querySelector(query);
@@ -114,6 +127,24 @@ export function mountWaveControls(host,scene,{open=false}={}){
       status.textContent="Imported "+record.points.length+" wave observations from "+file.name;
     }catch(error){status.textContent=String(error?.message||error)}
     event.target.value="";
+  });
+  $("[data-wave-estimate]").addEventListener("click",()=>{
+    const output=$("[data-wave-estimate-output]");
+    try{
+      const wave=options();
+      const added=legacyAddedWaveResistance({
+        lwlM:$("[data-wave-lwl]").value,bwlM:$("[data-wave-bwl]").value,
+        shipSpeedMs:$("[data-wave-speed]").value,
+        waveHeightM:wave.heightM,waveHeadingDeg:wave.headingDeg
+      });
+      const morison=legacyMorisonWaveForce({
+        waveHeightM:wave.heightM,wavePeriodS:wave.periodS,headingDeg:wave.headingDeg,
+        projectedAreaM2:$("[data-wave-area]").value,volumeM3:$("[data-wave-volume]").value
+      });
+      output.textContent="Added resistance (concept): "+added.addedResistanceN.toFixed(1)+
+        " N\nMorison force peak (concept): "+morison.forcePeakN.toFixed(1)+
+        " N\nNot verified wave loads. No ship motions/RAOs or diffraction.";
+    }catch(error){output.textContent="No result: "+String(error?.message||error)}
   });
   $("[data-wave-export]").addEventListener("click",()=>downloadText(
     JSON.stringify({schemaVersion:1,kind:"wave-collection",records},null,2),
