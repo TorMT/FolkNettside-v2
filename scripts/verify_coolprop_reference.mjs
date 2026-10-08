@@ -11,7 +11,8 @@ import {
   applyBookBasis,
   phaseDescription,
   removeBookBasis,
-  verifyTableReference
+  verifyTableReference,computeCourseReferenceTable,courseTableConfig,
+  courseTableDefaultRows,courseCalibrationSummary
 } from "../src/tools/coolprop-core.js";
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
@@ -148,6 +149,39 @@ try{
     }
   }
 
+  console.log("\nCourse/native reference table generation matrix");
+  const matrix={
+    Water:["A-2","A-3","A-4","A-5"],
+    Ammonia:["A-13","A-14","A-15"],
+    R134a:["A-10","A-11","A-12"],
+    Propane:["Native-TP","Native-sat-T","Native-sat-P","Native-vapour"],
+    CO2:["Native-sat-T","Native-sat-P"],
+    Methane:["Native-sat-T"],Oxygen:["Native-sat-T"],Nitrogen:["Native-sat-T"]
+  };
+  for(const [fluid,tableIds] of Object.entries(matrix)){
+    for(const tableId of tableIds){
+      assert.ok(courseTableConfig(fluid)?.tables?.some(table=>table.id===tableId));
+      const defaults=courseTableDefaultRows(fluid,tableId);
+      const rows=computeCourseReferenceTable(engine,{
+        fluid,tableId,rows:defaults,bookBasis:Boolean(TABLE_REFERENCE_PROFILES[fluid])
+      });
+      assert.ok(rows.length>0,fluid+" "+tableId+" returned no rows");
+      const failed=rows.filter(row=>row.Status!=="OK");
+      assert.equal(failed.length,0,
+        fluid+" "+tableId+" has failed reference presets: "+
+        failed.map(row=>row.Row+":"+row.Error).join("; "));
+      console.log(fluid.padEnd(9),tableId.padEnd(14),rows.length+" rows: OK");
+    }
+  }
+  for(const fluid of ["Air","Ammonia"]){
+    const audit=courseCalibrationSummary(engine,fluid);
+    assert.equal(audit.status,"within-tolerance",fluid+" calibration not within verified limits");
+    console.log(fluid+" calibration: "+audit.status+" ("+audit.rows.length+" checkpoints)");
+  }
+  for(const fluid of ["Water","R134a","CO2"]){
+    assert.equal(courseCalibrationSummary(engine,fluid).status,"native-only",
+      "Unverified textbook calibration must not be claimed for "+fluid);
+  }
   console.log("\nCoolProp numerical and diagram reference verification passed.");
 } finally {
   rmSync(scratch,{recursive:true,force:true});
