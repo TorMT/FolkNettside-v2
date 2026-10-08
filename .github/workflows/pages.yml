@@ -76,7 +76,9 @@ jobs:
           PY
           python -m http.server 4174 --bind 127.0.0.1 >/tmp/gunnerus-browser-server.log 2>&1 &
           server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/gunnerus-chromedriver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python - <<'PY'
           import time, urllib.request
           for _ in range(50):
@@ -88,14 +90,8 @@ jobs:
           else:
               raise SystemExit("Gunnerus browser smoke server did not start")
           PY
-          "$browser" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=45000 \
-            --dump-dom 'http://127.0.0.1:4174/tests/browser/gunnerus-glb-smoke.html?local=1' \
-            >/tmp/gunnerus-glb-smoke-dom.html
-          grep -q 'data-status="pass"' /tmp/gunnerus-glb-smoke-dom.html || {
-            cat /tmp/gunnerus-glb-smoke-dom.html
-            exit 1
-          }
-          grep '<pre id="result">' /tmp/gunnerus-glb-smoke-dom.html || true
+          python3 scripts/test_hydro_worker_browser.py \
+            'http://127.0.0.1:4174/tests/browser/gunnerus-glb-smoke.html?local=1'
       - name: Study workspace browser smoke
         run: |
           browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
