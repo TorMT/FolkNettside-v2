@@ -10,7 +10,7 @@
 <div id="app"></div>
 <pre id="result">running</pre>
 <script type="module">
-import {diveMapHTML} from "../../src/diverse/dive-map.js";
+import {diveMapHTML,mountDiveMap} from "../../src/diverse/dive-map.js";
 import {diveFeatureLevel,diveStats,filterDiveFeatures} from "../../src/diverse/dive-core.js";
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 try{
@@ -29,6 +29,74 @@ try{
   for(const id of ["dive-query","dive-level","dive-kind","dive-quality","dive-depth","dive-sort","dive-export-csv","dive-export-geojson","dive-map-canvas","dive-list","dive-inspector"]){
     assert(document.getElementById(id),id+" missing");
   }
+
+  // Dependency-injected Leaflet stand-in verifies icon creation and all map UI
+  // controls without relying on the availability of a third-party CDN in CI.
+  const icons=[],markerNodes=[],markerClicks=[];
+  const L={
+    map(el){
+      return {element:el,zoom:10,getZoom(){return this.zoom},
+        fitBounds(){return this},setView(){return this},
+        invalidateSize(){},remove(){}};
+    },
+    divIcon(options){icons.push(options);return options},
+    tileLayer(){return {addTo(){return this}}},
+    layerGroup(){return {
+      addTo(){return this},
+      clearLayers(){
+        markerNodes.splice(0).forEach(el=>el.remove());
+      }
+    }},
+    marker(coords,options){
+      let el;
+      return {
+        addTo(){
+          el=document.createElement("div");
+          el.className="leaflet-marker-icon";
+          el.innerHTML=options.icon.html;
+          document.querySelector("#dive-map-canvas").append(el);
+          markerNodes.push(el);
+          return this;
+        },
+        bindTooltip(){return this},bindPopup(){return this},
+        on(name,callback){if(name==="click")markerClicks.push(callback);return this},
+        getElement(){return el},getLatLng(){return coords},
+        openPopup(){return this}
+      };
+    }
+  };
+  const cleanup=await mountDiveMap(document.querySelector("#app"),{
+    dataUrl:"../../data/diving/trondheim-sites.geojson",leaflet:L
+  });
+  assert(icons.length>=stats.withCoordinates,"SVG pins were not generated");
+  assert(icons.every(icon=>icon.html.includes("<svg")),"Dive marker icon must include embedded SVG");
+  assert(icons.some(icon=>icon.html.includes("dive-map-marker--wreck")),"Wreck logos missing");
+  assert(icons.some(icon=>icon.html.includes("dive-map-marker--nature")),"Nature dive logos missing");
+  assert(document.querySelector(".dive-map-legend"),"Visible category legend missing");
+  const list=()=>document.querySelectorAll(".dive-list-item").length;
+  assert(list()===features.length,"Initial dive listing missing features");
+  const dropdown=document.querySelector("#dive-wildlife");
+  assert(dropdown.options.length>1,"Wildlife dropdown was never populated");
+  dropdown.value=dropdown.options[1].value;
+  dropdown.dispatchEvent(new Event("change",{bubbles:true}));
+  const matched=list();
+  assert(matched>0&&matched<features.length,"Wildlife inclusion filter did not work");
+  const mode=document.querySelector("#dive-wildlife-mode");
+  mode.value="exclude";mode.dispatchEvent(new Event("change",{bubbles:true}));
+  assert(list()===features.length-matched,"Wildlife exclusion filter did not work");
+  dropdown.value="all";dropdown.dispatchEvent(new Event("change",{bubbles:true}));
+  const query=document.querySelector("#dive-query");
+  query.value="Ladekaia";query.dispatchEvent(new Event("input",{bubbles:true}));
+  assert(list()===1,"Dive name search did not update listing");
+  document.querySelector(".dive-list-item").click();
+  assert(document.querySelector("#dive-inspector").textContent.includes("Ladekaia"),
+    "Feature details did not open on selection");
+  query.value="";query.dispatchEvent(new Event("input",{bubbles:true}));
+  document.querySelector("#dive-kind").value="wreck";
+  document.querySelector("#dive-kind").dispatchEvent(new Event("change",{bubbles:true}));
+  assert(list()===stats.wrecks,"Wreck-only filter did not update list");
+  assert(icons.length>0&&markerClicks.length>0,"Map markers are not interactive");
+  cleanup();
   document.body.dataset.status="pass";
   document.querySelector("#result").textContent=JSON.stringify({records:features.length,mapped:stats.withCoordinates,unmapped:features.length-stats.withCoordinates});
 }catch(error){
