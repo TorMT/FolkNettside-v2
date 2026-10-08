@@ -93,3 +93,28 @@ test("generic source axes can be reoriented to Z-up using rigid rotations",()=>{
  assert.equal(prepared.importUpAxis,"y-up");
  assert.throws(()=>prepareGenericHydroImport(source,{upAxis:"down"}),/Unsupported source up axis/);
 });
+
+test("multiple overlapping imported shells fail conservatively to avoid double counting",()=>{
+ const source=createModelDocument({name:"interior shell",format:"STL",
+   components:[{id:"original",geometry:combine(
+     boxMesh({L:10,B:4,H:3}),
+     boxMesh({L:1,B:1,H:1,origin:[0,0,1]})
+   )}]});
+ const imported=prepareGenericHydroImport(source);
+ const selected=withHydroSurfaceSelection(imported,imported.components.map(c=>c.id));
+ const gate=validateHydroModel(selected);
+ assert.equal(gate.passed,false);
+ assert.match(gate.errors.join(" "),/overlapping bounding volumes/);
+ assert.throws(()=>executeHydroRequest(selected,"analyze",{waterline:1}),/preflight blocked/);
+});
+test("two spatially disjoint imported bodies can both contribute displacement",()=>{
+ const source=createModelDocument({name:"two pontoons",format:"STL",
+   components:[{id:"original",geometry:combine(
+     boxMesh({L:6,B:2,H:2,origin:[0,-3,0]}),
+     boxMesh({L:6,B:2,H:2,origin:[0,3,0]})
+   )}]});
+ const imported=prepareGenericHydroImport(source);
+ const selected=withHydroSurfaceSelection(imported,imported.components.map(c=>c.id));
+ assert.equal(validateHydroModel(selected).passed,true);
+ assert.ok(Math.abs(executeHydroRequest(selected,"analyze",{waterline:1}).volume-24)<1e-7);
+});
