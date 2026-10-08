@@ -94,6 +94,8 @@ test("true 3D watertight rectangular moonpool hull returns analytic displacement
  const viaService=executeHydroRequest(document,"analyze",{waterline:1});
  near(viaService.volume,56);
  near(viaService.waterplane.area,56);
+ assert.equal(viaService.waterplane.holeContours,1);
+ assert.equal(viaService.waterplane.outerContours,1);
  const curve=executeHydroRequest(document,"curve",{minWaterline:.25,maxWaterline:1.75,samples:4});
  for(const row of curve){
    near(row.waterplane.area,56);
