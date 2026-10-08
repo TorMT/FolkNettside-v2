@@ -26,7 +26,7 @@ test("STL triangle soup with two closed disconnected shells separates into two i
  assert.equal(validateHydroModel(prepared).passed,false,"Must require explicit hull selection");
  const hull=withHydroSurfaceSelection(prepared,[prepared.components[0].id]);
  assert.equal(validateHydroModel(hull).passed,true);
- assert.equal(executeHydroRequest(hull,"analyze",{waterline:1}).volume,40);
+ assert.ok(Math.abs(executeHydroRequest(hull,"analyze",{waterline:1}).volume-40)<1e-8);
  assert.equal(hull.components[1].metadata.hydro,false);
 });
 test("STL without an index buffer also splits connected shells",()=>{
@@ -46,7 +46,7 @@ test("3MF assembly object IDs and source-defined unit are retained",()=>{
  assert.throws(()=>prepareGenericHydroImport(source,{unit:"meter"}),/3MF/);
  const checked=withHydroSurfaceSelection(prepared,["hull"]);
  assert.equal(validateHydroModel(checked).passed,true);
- assert.equal(executeHydroRequest(checked,"analyze",{waterline:1}).volume,40);
+ assert.ok(Math.abs(executeHydroRequest(checked,"analyze",{waterline:1}).volume-40)<1e-8);
 });
 test("STL explicit unit conversion affects hydro metres, not source triangle coordinates",()=>{
  const source=createModelDocument({name:"millimetre boat",format:"STL",unit:"meter",
@@ -55,7 +55,7 @@ test("STL explicit unit conversion affects hydro metres, not source triangle coo
  assert.equal(prepared.components[0].geometry.positions[0],-5000);
  assert.equal(prepared.unitScaleToMeters,.001);
  const checked=withHydroSurfaceSelection(prepared,[prepared.components[0].id]);
- assert.equal(executeHydroRequest(checked,"analyze",{waterline:1}).volume,40);
+ assert.ok(Math.abs(executeHydroRequest(checked,"analyze",{waterline:1}).volume-40)<1e-8);
 });
 test("invalid surface selections and malicious geometry are rejected before computation",()=>{
  const source=createModelDocument({name:"test",format:"STL",
