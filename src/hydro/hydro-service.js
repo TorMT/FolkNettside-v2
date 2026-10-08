@@ -1,8 +1,9 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=5f9ff415aa0bec861a5c1a299b4268e6a8cb0b9a";
-import {createHydroInclude} from "./hydro-selection.js?v=5f9ff415aa0bec861a5c1a299b4268e6a8cb0b9a";
-import {validateHydroModel} from "../model/hull-surface-validator.js?v=5f9ff415aa0bec861a5c1a299b4268e6a8cb0b9a";
-import {gzCurve} from "./gz.js?v=5f9ff415aa0bec861a5c1a299b4268e6a8cb0b9a";
-import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js?v=5f9ff415aa0bec861a5c1a299b4268e6a8cb0b9a";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=8265cf341efb16c34da7e86656d3fa7e1f89be8d";
+import {createHydroInclude} from "./hydro-selection.js?v=8265cf341efb16c34da7e86656d3fa7e1f89be8d";
+import {validateHydroModel} from "../model/hull-surface-validator.js?v=8265cf341efb16c34da7e86656d3fa7e1f89be8d";
+import {auditHydroCurve} from "./numerical-audit.js?v=8265cf341efb16c34da7e86656d3fa7e1f89be8d";
+import {gzCurve} from "./gz.js?v=8265cf341efb16c34da7e86656d3fa7e1f89be8d";
+import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js?v=8265cf341efb16c34da7e86656d3fa7e1f89be8d";
 
 export function executeHydroRequest(modelDocument,type,payload={}){
   if(!modelDocument)throw new Error("Hydro service has no model loaded");
@@ -18,12 +19,17 @@ export function executeHydroRequest(modelDocument,type,payload={}){
     return analyzeModelDocument(modelDocument,payload.waterline,{include});
   }
   if(type==="curve"){
-    return hydroCurve(modelDocument,{
+    const curve=hydroCurve(modelDocument,{
       minWaterline:payload.minWaterline,
       maxWaterline:payload.maxWaterline,
       samples:payload.samples,
       include
     });
+    const audit=auditHydroCurve(curve);
+    if(!audit.passed)
+      throw new Error("Hydro numerical consistency blocked: "+
+        audit.errors.slice(0,3).join("; "));
+    return curve;
   }
   if(type==="solve"){
     return solveWaterlineForVolume(modelDocument,payload.targetVolume,{

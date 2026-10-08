@@ -1,4 +1,4 @@
-import {integrateWaterplaneContours} from "./waterplane-contours.js?v=5f9ff415aa0bec861a5c1a299b4268e6a8cb0b9a";
+import {integrateWaterplaneContours} from "./waterplane-contours.js?v=8265cf341efb16c34da7e86656d3fa7e1f89be8d";
 
 const EPS=1e-10;
 
@@ -30,13 +30,23 @@ function clipTriangleBelowPlane(vertices,waterline){
 }
 
 function trianglePlaneSegment(vertices,waterline){
+  const distances=vertices.map(v=>v[2]-waterline);
+  const on=distances.map((d,i)=>Math.abs(d)<=EPS?i:-1).filter(i=>i>=0);
+  // Half-open convention for a face exactly tangent at an edge:
+  // count the edge once from the submerged side, not from an above-water
+  // face or a coplanar top/bottom face.
+  if(on.length===3)return null;
+  if(on.length===2){
+    const other=[0,1,2].find(i=>!on.includes(i));
+    return distances[other]<-EPS?
+      on.map(i=>[vertices[i][0],vertices[i][1]]):null;
+  }
   const points=[];
+  if(on.length===1)points.push([vertices[on[0]][0],vertices[on[0]][1]]);
   for(let i=0;i<3;i++){
-    const a=vertices[i],b=vertices[(i+1)%3];
-    const da=a[2]-waterline,db=b[2]-waterline;
-    if(Math.abs(da)<=EPS)points.push([a[0],a[1]]);
+    const j=(i+1)%3,da=distances[i],db=distances[j];
     if(da*db<0){
-      const p=lerpPlane(a,b,waterline);
+      const p=lerpPlane(vertices[i],vertices[j],waterline);
       points.push([p[0],p[1]]);
     }
   }
@@ -229,23 +239,32 @@ export function solvePreparedWaterlineForVolume(prepared,targetVolume,{
 }={}){
   const target=Number(targetVolume);
   if(!Number.isFinite(target)||target<0)throw new Error("targetVolume must be a finite non-negative number");
+  if(!(Number.isFinite(tolerance)&&tolerance>0))
+    throw new Error("Draft solver tolerance must be finite and positive");
+  if(!Number.isSafeInteger(maxIterations)||maxIterations<1||maxIterations>500)
+    throw new Error("Draft solver maxIterations must be an integer between 1 and 500");
   let low=Number(minWaterline),high=Number(maxWaterline);
-  if(!(high>low))throw new Error("maxWaterline must be greater than minWaterline");
+  if(!Number.isFinite(low)||!Number.isFinite(high)||!(high>low))
+    throw new Error("maxWaterline must be finite and greater than minWaterline");
 
   let lowResult=analyzePreparedHydro(prepared,low);
   let highResult=analyzePreparedHydro(prepared,high);
+  if(highResult.volume<lowResult.volume-tolerance){
+    throw new Error("Hydro draft solver bracket has decreasing displaced volume; inspect source mesh");
+  }
   if(target<lowResult.volume-tolerance||target>highResult.volume+tolerance){
     throw new Error(`Target volume ${target} m^3 is outside the bracket [${lowResult.volume}, ${highResult.volume}]`);
   }
-  if(Math.abs(lowResult.volume-target)<=tolerance)return {waterline:low,result:lowResult,iterations:0};
-  if(Math.abs(highResult.volume-target)<=tolerance)return {waterline:high,result:highResult,iterations:0};
+  if(Math.abs(lowResult.volume-target)<=tolerance)return {waterline:low,result:lowResult,iterations:0,volumeResidual:lowResult.volume-target,converged:true};
+  if(Math.abs(highResult.volume-target)<=tolerance)return {waterline:high,result:highResult,iterations:0,volumeResidual:highResult.volume-target,converged:true};
 
   let mid=(low+high)/2,midResult;
   for(let iteration=1;iteration<=maxIterations;iteration++){
     midResult=analyzePreparedHydro(prepared,mid);
     const error=midResult.volume-target;
-    if(Math.abs(error)<=tolerance||Math.abs(high-low)<=tolerance){
-      return {waterline:mid,result:midResult,iterations:iteration};
+    if(Math.abs(error)<=tolerance){
+      const solved={waterline:mid,result:midResult,iterations:iteration};
+      return {...solved,volumeResidual:error,converged:true};
     }
 
     if(error<0){low=mid;lowResult=midResult}
@@ -262,7 +281,14 @@ export function solvePreparedWaterlineForVolume(prepared,targetVolume,{
       ?newton
       :(low+high)/2;
   }
-  return {waterline:mid,result:midResult,iterations:maxIterations};
+  const error=new Error("Hydro draft solver did not converge to requested volume within "+
+    maxIterations+" iterations; residual "+(midResult?.volume-target)+" m^3 exceeds "+
+    tolerance+" m^3 tolerance");
+  error.code="HYDRO_DRAFT_NOT_CONVERGED";
+  error.targetVolume=target;
+  error.volumeResidual=midResult?.volume-target;
+  error.tolerance=tolerance;
+  throw error;
 }
 
 export function solveWaterlineForVolume(modelDocument,targetVolume,{
