@@ -35,9 +35,27 @@ export async function render(container,resource){
   }
 
   container.innerHTML=`<div class="code-shell">
-    <div class="code-meta"><span>${escapeHTML(labelByExtension[ext]||ext.toUpperCase())}</span><button class="code-copy">Copy</button></div>
+    <div class="code-meta"><span>${escapeHTML(labelByExtension[ext]||ext.toUpperCase())}</span>
+      <div class="code-view-actions">
+        <button type="button" class="code-wrap" aria-pressed="false">Wrap</button>
+        <button type="button" class="code-lines" aria-pressed="true">Lines</button>
+        <button type="button" class="code-copy">Copy</button>
+      </div>
+    </div>
     <pre class="code-view"><code>${withLineNumbers(highlighted)}</code></pre>
   </div>`;
+
+  const block=container.querySelector(".code-view");
+  container.querySelector(".code-wrap").addEventListener("click",event=>{
+    const enabled=event.currentTarget.getAttribute("aria-pressed")!=="true";
+    event.currentTarget.setAttribute("aria-pressed",String(enabled));
+    block.classList.toggle("is-wrapped",enabled);
+  });
+  container.querySelector(".code-lines").addEventListener("click",event=>{
+    const enabled=event.currentTarget.getAttribute("aria-pressed")!=="true";
+    event.currentTarget.setAttribute("aria-pressed",String(enabled));
+    block.classList.toggle("no-line-numbers",!enabled);
+  });
 
   container.querySelector(".code-copy").onclick=async event=>{
     await navigator.clipboard?.writeText(text);

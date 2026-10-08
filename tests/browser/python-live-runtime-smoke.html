@@ -1,0 +1,52 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Pyodide live execution smoke</title></head>
+<body data-status="running" data-phase="loading"><pre id="result">Starting real Python Worker…</pre>
+<script type="module">
+import {createPythonSession} from "../../src/viewers/python-session.js";
+const session=createPythonSession();
+const result=document.querySelector("#result");
+try{
+ const value=await session.run("import math\nprint(2 + 3)\nprint(math.sqrt(9))",
+  {status:message=>{document.body.dataset.phase=message}});
+ if(!value.stdout.includes("5")||!value.stdout.includes("3.0"))throw new Error("Bad live Python output: "+value.stdout);
+ const interactive=await session.run("name=input('Name? ');print('Hello '+name)",{stdin:"Ada"});
+ if(!interactive.stdout.includes("Hello Ada"))
+   throw new Error("Legacy input() script did not receive supplied stdin");
+ const again=await session.run("print(math.factorial(5))");
+ if(!again.stdout.includes("120"))throw new Error("Python state did not persist across cells");
+ const encoder=new TextEncoder();
+ const mounted=await session.mount([
+   {name:"helper.py",data:encoder.encode("def product(a,b):\n    return a*b\n")},
+   {name:"observations.txt",data:encoder.encode("2,3,5")}
+ ]);
+ if(mounted.mounted!==2)throw new Error("Failed to mount sibling Python and input text files");
+ const workspace=await session.run([
+   "from helper import product",
+   "from pathlib import Path",
+   "print('helper='+str(product(6,7)))",
+   "print('data='+Path('observations.txt').read_text())",
+   "Path('calculation.csv').write_text('name,value\\narea,40')"
+ ].join("\n"));
+ if(!workspace.stdout.includes("helper=42")||!workspace.stdout.includes("data=2,3,5"))
+   throw new Error("Python workspace module/data import failed: "+workspace.stdout);
+ const csv=workspace.files?.find(file=>file.name==="calculation.csv");
+ if(!csv||!new TextDecoder().decode(csv.bytes).includes("area,40"))
+   throw new Error("Generated CSV was not returned to viewer for download");
+ const plot=await session.run([
+   "import matplotlib",
+   "matplotlib.use('Agg')",
+   "import matplotlib.pyplot as plt",
+   "plt.figure()",
+   "plt.plot([0,1,2], [0,1,4])",
+   "plt.savefig('reference-plot.pdf')"
+ ].join("\n"));
+ if(!plot.figures?.some(image=>image.startsWith("data:image/png;base64,")))
+   throw new Error("Matplotlib plot PNG preview not captured");
+ if(!plot.files?.some(file=>file.name==="reference-plot.pdf"))
+   throw new Error("Saved matplotlib PDF is missing from generated downloads");
+ session.stop();
+ const fresh=await session.run("print(6*7)");
+ if(!fresh.stdout.includes("42"))throw new Error("Fresh worker run after Stop failed");
+ document.body.dataset.status="pass";result.textContent="Real Pyodide executes Python, imports local .py/data, previews matplotlib, exports CSV/PDF and restarts after Stop";
+}catch(error){document.body.dataset.status="fail";result.textContent=String(error.stack||error)}
+finally{session.dispose()}
+</script></body></html>

@@ -27,15 +27,16 @@ def main(url):
                 break
             except Exception:time.sleep(.15)
         else:raise RuntimeError("ChromeDriver did not start")
+        window_size=sys.argv[3] if len(sys.argv)>3 else "800,600"
         response=call("POST","/session",{"capabilities":{"alwaysMatch":{
             "browserName":"chrome",
             "goog:chromeOptions":{"args":["--headless=new","--no-sandbox",
-                "--disable-gpu","--disable-dev-shm-usage"]}
+                "--disable-gpu","--disable-dev-shm-usage","--window-size="+window_size]}
         }}})
         session=response.get("sessionId")
         if not session:raise RuntimeError("ChromeDriver did not return a session ID")
         call("POST",f"/session/{session}/url",{"url":url},timeout=15)
-        deadline=time.monotonic()+30
+        deadline=time.monotonic()+int(sys.argv[2]) if len(sys.argv)>2 else time.monotonic()+30
         latest=None
         while time.monotonic()<deadline:
             latest=call("POST",f"/session/{session}/execute/sync",{
