@@ -127,3 +127,14 @@
 .hydro-point-summary{display:grid;gap:5px;padding:10px;border:1px solid var(--line);border-radius:8px;
   background:var(--surface-sunk);color:var(--ink-2);font-size:11px;overflow-wrap:anywhere}
 .hydro-point-summary strong{color:var(--ink);font-size:12px}
+
+/* Show loaded, redrafted GM in BOTH directions separately from baseline reference GM. */
+.hydro-loaded-gm{display:grid;gap:9px;border:1px solid var(--line);
+  border-radius:10px;padding:12px 14px;background:var(--surface)}
+.hydro-loaded-gm>strong{font-size:12px;color:var(--ink)}
+.hydro-loaded-gm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.hydro-loaded-gm-grid>div{display:grid;gap:3px;min-width:0}
+.hydro-loaded-gm-grid span{font-size:10px;color:var(--ink-2)}
+.hydro-loaded-gm-grid strong{font-size:15px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.hydro-loaded-gm small{font-size:10px;color:var(--ink-3);line-height:1.5}
+@media(max-width:760px){.hydro-loaded-gm-grid{grid-template-columns:minmax(0,1fr)}}
