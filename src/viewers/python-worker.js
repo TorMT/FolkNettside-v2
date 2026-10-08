@@ -6,16 +6,56 @@
 const PYODIDE_VERSION="0.27.7";
 const PYODIDE_BASE="https://cdn.jsdelivr.net/pyodide/v"+PYODIDE_VERSION+"/full/";
 let runtime=null,bootstrap=null;
+const WORKSPACE="/home/pyodide/workspace";
+const uploadedFiles=new Set();
 const send=(message)=>self.postMessage(message);
 async function ensurePython(){
   if(runtime)return runtime;
   if(!bootstrap)bootstrap=(async()=>{
     importScripts(PYODIDE_BASE+"pyodide.js");
     const loaded=await self.loadPyodide({indexURL:PYODIDE_BASE});
+    loaded.FS.mkdirTree(WORKSPACE);
+    loaded.runPython('import os; os.chdir("/home/pyodide/workspace")');
     return loaded;
   })();
   try{runtime=await bootstrap;return runtime}
   catch(error){bootstrap=null;throw error}
+}
+function safeName(name){
+  const value=String(name||"").replace(/\\/g,"/");
+  const base=value.split("/").pop();
+  if(!base||base==="."||base===".."||!/[a-zA-Z0-9]/.test(base))
+    throw new Error("Invalid Python workspace filename");
+  return base.replace(/[^a-zA-Z0-9_.() +\-]/g,"_").slice(0,140);
+}
+async function mountFiles(files){
+  if(!Array.isArray(files)||files.length>40)
+    throw new Error("Choose at most 40 local files");
+  const py=await ensurePython();
+  let total=0;
+  for(const file of files){
+    const name=safeName(file?.name);
+    const bytes=file?.data instanceof Uint8Array?file.data:new Uint8Array(file?.data||0);
+    if(bytes.length>8_000_000||(total+=bytes.length)>25_000_000)
+      throw new Error("Input files exceed the 8 MB per-file / 25 MB total limit");
+    py.FS.writeFile(WORKSPACE+"/"+name,bytes);
+    uploadedFiles.add(name);
+  }
+  return {mounted:files.length,filenames:[...uploadedFiles]};
+}
+function generatedFiles(py){
+  const outputs=[];
+  for(const name of py.FS.readdir(WORKSPACE)){
+    if(uploadedFiles.has(name)||name==="."||name===".."||name==="__pycache__")continue;
+    if(name.startsWith("."))continue;
+    const path=WORKSPACE+"/"+name;
+    let stat;
+    try{stat=py.FS.stat(path)}catch{continue}
+    if(!py.FS.isFile(stat.mode)||stat.size>4_000_000||stat.size<1)continue;
+    if(outputs.length>=15)break;
+    outputs.push({name,bytes:py.FS.readFile(path)});
+  }
+  return outputs;
 }
 async function run(code){
   const py=await ensurePython();
@@ -55,7 +95,7 @@ _result_images`);
       plots.destroy?.();
     }catch(error){stderr=append(stderr,"Plot preview: "+String(error))}
   }
-  return {stdout,stderr,result,figures};
+  return {stdout,stderr,result,figures,files:generatedFiles(py)};
 }
 self.onmessage=async({data})=>{
   const id=data?.id,command=data?.type;
@@ -63,6 +103,10 @@ self.onmessage=async({data})=>{
     if(command==="run"){
       send({id,phase:"loading"});
       const result=await run(data.code);
+      send({id,phase:"done",ok:true,...result});
+    }else if(command==="mount"){
+      send({id,phase:"loading"});
+      const result=await mountFiles(data.files);
       send({id,phase:"done",ok:true,...result});
     }else if(command==="ping"){
       send({id,phase:"done",ok:true,message:"Python Worker ready"});
