@@ -28,16 +28,17 @@ export function createPythonSession({workerFactory=()=>new Worker(
     for(const entry of pending.values())entry.reject(reason);
     pending.clear();worker?.terminate();worker=null;
   };
+  const request=(type,payload={},status=null)=>{
+    const active=init(),id=++seq;
+    return new Promise((resolve,reject)=>{
+      pending.set(id,{resolve,reject,status});
+      try{active.postMessage({id,type,...payload})}
+      catch(error){pending.delete(id);reject(error)}
+    });
+  };
   return {
-    run(code,{status}={}){
-      const active=init();
-      const id=++seq;
-      return new Promise((resolve,reject)=>{
-        pending.set(id,{resolve,reject,status});
-        try{active.postMessage({id,type:"run",code})}
-        catch(error){pending.delete(id);reject(error)}
-      });
-    },
+    run(code,{status}={}){return request("run",{code},status)},
+    mount(files,{status}={}){return request("mount",{files},status)},
     stop(){reset()},
     dispose(){disposed=true;reset(new Error("Python viewer closed"))},
     get running(){return pending.size>0}
