@@ -104,8 +104,10 @@ export function attitudeCurve(modelDocument,{
   ...options
 }={}){
   if(!["heel","trim"].includes(axis))throw new Error("axis must be heel or trim");
-  const first=Number(start),last=Number(end),increment=Math.abs(Number(step)||2);
-  if(!(last>=first))throw new Error("end must be >= start");
+  const first=Number(start),last=Number(end),increment=Number(step);
+  if(![first,last,increment].every(Number.isFinite)||!(increment>0)||!(last>=first))
+    throw new Error("Attitude curve requires finite ordered angles and a positive step");
+  if((last-first)/increment>360)throw new Error("Attitude curve exceeds 361 sample limit");
   const values=[];
   for(let angle=first;angle<=last+increment*1e-9;angle+=increment){
     values.push(attitudeHydro(modelDocument,{
@@ -129,7 +131,11 @@ export function solveAttitudeEquilibrium(modelDocument,{
 }={}){
   if(!["heel","trim"].includes(axis))throw new Error("axis must be heel or trim");
   let low=Number(minAngle),high=Number(maxAngle);
-  if(!(high>low))throw new Error("maxAngle must be greater than minAngle");
+  if(![low,high,angleTolerance,leverTolerance].every(Number.isFinite)||!(high>low)||
+     !(angleTolerance>0)||!(leverTolerance>0))
+    throw new Error("Equilibrium solver requires finite bounds and positive tolerances");
+  if(!Number.isSafeInteger(maxIterations)||maxIterations<1||maxIterations>500)
+    throw new Error("Equilibrium solver maxIterations must be an integer between 1 and 500");
 
   const evaluate=angle=>{
     const result=attitudeHydro(modelDocument,{
@@ -161,7 +167,7 @@ export function solveAttitudeEquilibrium(modelDocument,{
   for(let iteration=1;iteration<=maxIterations;iteration++){
     const angle=(low+high)/2;
     mid=evaluate(angle);
-    if(Math.abs(mid.residual)<=leverTolerance||Math.abs(high-low)<=angleTolerance){
+    if(Math.abs(mid.residual)<=leverTolerance){
       return {
         ...mid.result,
         axis,
@@ -178,11 +184,9 @@ export function solveAttitudeEquilibrium(modelDocument,{
       b=mid;
     }
   }
-  return {
-    ...mid.result,
-    axis,
-    equilibriumAngle:mid.angle,
-    residual:mid.residual,
-    equilibriumIterations:maxIterations
-  };
+  const failure=new Error("Hydro "+axis+" equilibrium did not converge to lever tolerance "+
+    leverTolerance+" m in "+maxIterations+" iterations; residual "+mid.residual+" m");
+  failure.code="EQUILIBRIUM_NOT_CONVERGED";
+  failure.residual=mid.residual;
+  throw failure;
 }
