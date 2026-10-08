@@ -15,7 +15,7 @@ export function validateHydroGeometry(geometry,{transform=null,scale=1,tolerance
   if(!finite(tolerance)||tolerance<=0)errors.push("Vertex welding tolerance must be finite and positive");
   if(transform&&(transform.length!==16||Array.from(transform).some(v=>!finite(v))))errors.push("Invalid 4x4 world transform");
   if(p&&Array.from(p).some(v=>!finite(v)))errors.push("Non-finite vertex coordinates");
-  if(rawIndex&&(!rawIndex.length||rawIndex.length%3!==0))errors.push("Triangle indices are incomplete");
+  if(rawIndex&&rawIndex.length&&rawIndex.length%3!==0)errors.push("Triangle indices are incomplete");
   if(rawIndex&&Array.from(rawIndex).some(v=>!Number.isSafeInteger(v)||v<0||v>=p.length/3))errors.push("Triangle index is outside the vertex buffer");
   if(errors.length)return {passed:false,errors,warnings,metrics:null};
   const count=p.length/3;
@@ -85,9 +85,7 @@ export function validateHydroGeometry(geometry,{transform=null,scale=1,tolerance
       signedVolume,bounds:{min,max,size},tolerance}};
 }
 
-const memo=new WeakMap();
-export function validateHydroModel(modelDocument,{include=createHydroInclude(modelDocument),tolerance=1e-7,cache=true}={}){
-  if(cache&&memo.has(modelDocument)&&tolerance===1e-7&&include===undefined)return memo.get(modelDocument);
+export function validateHydroModel(modelDocument,{include=createHydroInclude(modelDocument),tolerance=1e-7}={}){
   const components=[],errors=[],warnings=[];
   const scale=modelDocument?.unitScaleToMeters??1;
   for(const component of modelDocument?.components||[]){
