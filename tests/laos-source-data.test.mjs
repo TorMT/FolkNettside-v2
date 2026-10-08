@@ -29,3 +29,11 @@ test("local LAOS URLs are accepted only under explicitly permitted relative mode
   assert.equal(safeCatalogUrl(relative,{allowRelative:true}),relative);
   assert.equal(safeCatalogUrl("//evil.example",{allowRelative:true}),"");
 });
+
+test("original LAOS welcome asset is mirrored and hash-pinned",()=>{
+  const image=manifest.welcomeImage;
+  assert.equal(image,"./data/diverse/laos-files/Laos-meme.jpg");
+  const bytes=readFileSync(new URL("../"+decodeURIComponent(image.slice(2)),import.meta.url));
+  assert.equal(bytes.subarray(0,3).toString("hex"),"ffd8ff");
+  assert.equal(createHash("sha256").update(bytes).digest("hex"),manifest.welcomeSha256);
+});
