@@ -17,6 +17,9 @@ export async function render(container,resource,{sessionFactory=createPythonSess
       </div>
     </div>
     <div id="python-script-cell"></div>
+    <label class="python-stdin-label">Input lines for Python input() (one response per line)
+      <textarea id="python-stdin" spellcheck="false" rows="2" placeholder="Optional stdin lines"></textarea>
+    </label>
     <p class="python-runtime-notice">Use only code you trust. A Web Worker keeps the page responsive but is not a security sandbox. Packages need an internet connection on first use.</p>
   </section>`;
   const host=container.querySelector("#python-script-cell");
@@ -25,7 +28,9 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     onRun:async api=>{
       api.setRunning(true);
       try{
-        const value=await session.run(api.getSource(),{status:message=>api.setStatus(message)});
+        const value=await session.run(api.getSource(),{
+          status:message=>api.setStatus(message),stdin:container.querySelector("#python-stdin").value
+        });
         api.showOutput(value);
       }catch(error){api.showOutput({error:String(error?.message||error),
         stdout:error.stdout||"",stderr:error.stderr||String(error)})}
