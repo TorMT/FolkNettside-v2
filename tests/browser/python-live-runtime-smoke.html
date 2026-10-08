@@ -8,6 +8,18 @@ try{
  const value=await session.run("import math\nprint(2 + 3)\nprint(math.sqrt(9))",
   {status:message=>{document.body.dataset.phase=message}});
  if(!value.stdout.includes("5")||!value.stdout.includes("3.0"))throw new Error("Bad live Python output: "+value.stdout);
+ const sourceURL=new URL("./python-deps/main.py",location.href).href;
+ const source=await (await fetch(sourceURL)).text();
+ const linked=await session.run(source,{sourceURL});
+ if(!linked.stdout.includes("auto_force=12.5")||
+    !linked.stdout.includes("auto_crest=1.0")||
+    !linked.stdout.includes("auto_data=t,eta"))
+   throw new Error("Automatic sibling .py/package/CSV import failed: "+linked.stdout);
+ // Repeat within the same interpreter: Python should reuse its imported modules.
+ const linkedAgain=await session.run("from samplelib.wave import crest;print('cached='+str(crest(8)))",
+   {sourceURL});
+ if(!linkedAgain.stdout.includes("cached=4.0"))
+   throw new Error("Repeated module import did not preserve session state");
  const interactive=await session.run("name=input('Name? ');print('Hello '+name)",{stdin:"Ada"});
  if(!interactive.stdout.includes("Hello Ada"))
    throw new Error("Legacy input() script did not receive supplied stdin");
@@ -43,10 +55,25 @@ try{
    throw new Error("Matplotlib plot PNG preview not captured");
  if(!plot.files?.some(file=>file.name==="reference-plot.pdf"))
    throw new Error("Saved matplotlib PDF is missing from generated downloads");
+ const stream=[];
+ const shown=await session.run([
+   "import matplotlib.pyplot as plt",
+   "plt.figure()",
+   "plt.plot([1,2],[4,6])",
+   "plt.show()",
+   "plt.figure()",
+   "plt.plot([1,2],[9,7])",
+   "plt.show()"
+ ].join("\\n"),{onOutput:event=>stream.push(event)});
+ if(stream.length!==2||
+    !stream.every(entry=>entry.type==="image"&&entry.src.startsWith("data:image/png;base64,")))
+   throw new Error("plt.show() did not stream both figures inline: "+stream.length);
+ if(shown.figures?.length!==2)
+   throw new Error("show() images were not preserved in completed output");
  session.stop();
  const fresh=await session.run("print(6*7)");
  if(!fresh.stdout.includes("42"))throw new Error("Fresh worker run after Stop failed");
- document.body.dataset.status="pass";result.textContent="Real Pyodide executes Python, imports local .py/data, previews matplotlib, exports CSV/PDF and restarts after Stop";
+ document.body.dataset.status="pass";result.textContent="Real Pyodide auto-imports sibling .py/packages/data, streams plt.show() figures, exports CSV/PDF and resets correctly";
 }catch(error){document.body.dataset.status="fail";result.textContent=String(error.stack||error)}
 finally{session.dispose()}
 </script></body></html>
