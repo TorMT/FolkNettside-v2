@@ -13,7 +13,8 @@
       "cohort": "25",
       "rating": 7,
       "sourceId": 3,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Olaask",
@@ -24,7 +25,8 @@
       "cohort": "27",
       "rating": 0,
       "sourceId": 5,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Haakoul",
@@ -35,7 +37,8 @@
       "cohort": "26",
       "rating": 9,
       "sourceId": 6,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Ingrisut",
@@ -46,7 +49,8 @@
       "cohort": "26",
       "rating": 0,
       "sourceId": 7,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Williaft",
@@ -57,7 +61,8 @@
       "cohort": "25",
       "rating": 0,
       "sourceId": 9,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Danieabr",
@@ -68,7 +73,8 @@
       "cohort": "25",
       "rating": 3,
       "sourceId": 10,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Vegargje",
@@ -79,7 +85,8 @@
       "cohort": "22",
       "rating": 3,
       "sourceId": 11,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Benjamli",
@@ -90,7 +97,8 @@
       "cohort": "28",
       "rating": 0,
       "sourceId": 12,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Kristbys",
@@ -101,7 +109,8 @@
       "cohort": "27",
       "rating": 8,
       "sourceId": 13,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Helleopd",
@@ -112,7 +121,8 @@
       "cohort": "27",
       "rating": 4,
       "sourceId": 14,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Andrhska",
@@ -123,7 +133,8 @@
       "cohort": "29",
       "rating": 6,
       "sourceId": 15,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Marikist",
@@ -134,7 +145,8 @@
       "cohort": "28",
       "rating": 8,
       "sourceId": 16,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Evenble",
@@ -145,7 +157,8 @@
       "cohort": "27",
       "rating": 4,
       "sourceId": 17,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Ingriksa",
@@ -156,7 +169,8 @@
       "cohort": "28",
       "rating": 6,
       "sourceId": 18,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Elineke",
@@ -167,7 +181,8 @@
       "cohort": "28",
       "rating": 4,
       "sourceId": 19,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Thushara",
@@ -178,7 +193,8 @@
       "cohort": "28",
       "rating": 0,
       "sourceId": 20,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Annikemu",
@@ -189,7 +205,8 @@
       "cohort": "28",
       "rating": 0,
       "sourceId": 21,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Lasseihi",
@@ -200,7 +217,8 @@
       "cohort": "29",
       "rating": 3,
       "sourceId": 22,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Astrimys",
@@ -211,7 +229,8 @@
       "cohort": "27",
       "rating": 4,
       "sourceId": 23,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Aleksaci",
@@ -222,7 +241,8 @@
       "cohort": "26",
       "rating": 5,
       "sourceId": 24,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Madshart",
@@ -233,7 +253,8 @@
       "cohort": "28",
       "rating": 0,
       "sourceId": 25,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Hannaae",
@@ -244,7 +265,8 @@
       "cohort": "29",
       "rating": 2,
       "sourceId": 26,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Tormt",
@@ -255,7 +277,8 @@
       "cohort": "29",
       "rating": 6,
       "sourceId": 27,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Datthind",
@@ -266,7 +289,8 @@
       "cohort": "29",
       "rating": 5,
       "sourceId": 28,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Gavinmk",
@@ -277,7 +301,8 @@
       "cohort": "29",
       "rating": 6,
       "sourceId": 29,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Mayate",
@@ -288,7 +313,8 @@
       "cohort": "29",
       "rating": 3,
       "sourceId": 30,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Sihathas",
@@ -299,7 +325,8 @@
       "cohort": "26",
       "rating": 3,
       "sourceId": 31,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Heidifal",
@@ -310,7 +337,8 @@
       "cohort": "29",
       "rating": 6,
       "sourceId": 32,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Andreoto",
@@ -321,7 +349,8 @@
       "cohort": "29",
       "rating": 3,
       "sourceId": 33,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     },
     {
       "name": "Jakobwh",
@@ -332,7 +361,8 @@
       "cohort": "28",
       "rating": 2,
       "sourceId": 34,
-      "source": "https://perrur.folk.ntnu.no/script.js"
+      "source": "https://perrur.folk.ntnu.no/script.js",
+      "ratingScale": 10
     }
   ]
 }
