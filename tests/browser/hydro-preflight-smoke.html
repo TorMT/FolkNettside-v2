@@ -3,8 +3,9 @@
 <body data-status="running"><pre id="result">Running</pre>
 <script type="module">
 import {boxMesh,reverseWinding} from "../../src/hydro/fixtures.js";
-import {validateHydroAsync,analyzeHydroAsync,disposeHydroWorker,gzCurveAsync} from "../../src/hydro/hydro-client.js";
-import {hydroPreflightHTML} from "../../src/engineering/hydro-panel.js";
+import {validateHydroAsync,analyzeHydroAsync,disposeHydroWorker,gzCurveAsync,hydroCurveAsync,solveHydroDraftAsync} from "../../src/hydro/hydro-client.js";
+import {hydroPreflightHTML,hydroPanelHTML} from "../../src/engineering/hydro-panel.js";
+import {auditHydroCurve,draftSolutionResidual} from "../../src/hydro/numerical-audit.js";
 document.body.dataset.phase="imports-ready";
 const assert=(condition,msg)=>{if(!condition)throw new Error(msg)};
 const model=(geometry,id)=>({unitScaleToMeters:1,components:[{id,name:"Hull",geometry,metadata:{hydro:true}}]});
@@ -19,6 +20,24 @@ try{
  document.body.dataset.phase="worker-validated-good";
  const result=await analyzeHydroAsync(good,1);
  assert(Math.abs(result.volume-30)<1e-8,"Worker displacement is incorrect");
+ document.body.dataset.phase="auditing-draft-curve";
+ const curve=await hydroCurveAsync(good,{minWaterline:.25,maxWaterline:1.75,samples:7});
+ const audit=auditHydroCurve(curve);
+ assert(audit.status==="pass","Worker hydro V(T)/dVdT audit failed: "+JSON.stringify(audit));
+ const solved=await solveHydroDraftAsync(good,21,{
+   minWaterline:0,maxWaterline:2,tolerance:1e-8,maxIterations:80
+ });
+ assert(draftSolutionResidual(solved,21,1e-8).passed,
+   "Worker declared a non-converged draft");
+ const screen=hydroPanelHTML({
+   modelDocument:{...good,name:"Reference barge"},result,curve,
+   solved,draft:1,kg:.5,hydroValidation:accepted,
+   config:{density:1025,minDraft:0,maxDraft:2}
+ });
+ assert(screen.results.includes("Numerical consistency"),
+   "Hydro UI does not display curve numerical self-check");
+ assert(screen.inspector.includes("volume residual"),
+   "Hydro UI does not expose solve volume residual");
  const invalid=model(reverseWinding(boxMesh({L:10,B:3,H:2})),"bad");
  const rejected=await validateHydroAsync(invalid);
  assert(!rejected.passed,"Inverted hull incorrectly passed");
