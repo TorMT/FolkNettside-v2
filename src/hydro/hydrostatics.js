@@ -30,13 +30,23 @@ function clipTriangleBelowPlane(vertices,waterline){
 }
 
 function trianglePlaneSegment(vertices,waterline){
+  const distances=vertices.map(v=>v[2]-waterline);
+  const on=distances.map((d,i)=>Math.abs(d)<=EPS?i:-1).filter(i=>i>=0);
+  // Half-open convention for a face exactly tangent at an edge:
+  // count the edge once from the submerged side, not from an above-water
+  // face or a coplanar top/bottom face.
+  if(on.length===3)return null;
+  if(on.length===2){
+    const other=[0,1,2].find(i=>!on.includes(i));
+    return distances[other]<-EPS?
+      on.map(i=>[vertices[i][0],vertices[i][1]]):null;
+  }
   const points=[];
+  if(on.length===1)points.push([vertices[on[0]][0],vertices[on[0]][1]]);
   for(let i=0;i<3;i++){
-    const a=vertices[i],b=vertices[(i+1)%3];
-    const da=a[2]-waterline,db=b[2]-waterline;
-    if(Math.abs(da)<=EPS)points.push([a[0],a[1]]);
+    const j=(i+1)%3,da=distances[i],db=distances[j];
     if(da*db<0){
-      const p=lerpPlane(a,b,waterline);
+      const p=lerpPlane(vertices[i],vertices[j],waterline);
       points.push([p[0],p[1]]);
     }
   }
