@@ -41,7 +41,8 @@ export function diversePageHTML(){
           </div>
           <div class="diverse-card-actions">
             ${module.route?`<button class="btn primary" data-go="${module.route}">Open v2</button>`:""}
-            ${module.legacyUrl?`<a class="btn" href="${module.legacyUrl}" target="_blank" rel="noopener">${module.status==="preserved"?"Open demo":module.status==="repair"?"Inspect legacy files":"Legacy reference"}</a>`:""}
+            ${module.externalUrl?`<a class="btn primary" href="${esc(module.externalUrl)}" target="_blank" rel="noopener noreferrer">Open demo ↗</a>`:""}
+            ${module.legacyUrl?`<a class="btn" href="${esc(module.legacyUrl)}" target="_blank" rel="noopener noreferrer">${module.status==="repair"?"Inspect legacy files":"Legacy reference"}</a>`:""}
           </div>
         </article>`;
       }).join("")}
