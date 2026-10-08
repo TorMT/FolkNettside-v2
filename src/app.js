@@ -24,6 +24,7 @@ import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurface
 import {UNIT_SCALE_TO_METERS} from "./model/model-document.js";
 import {validateHydroModel} from "./model/hull-surface-validator.js";
 import {mountModelScene} from "./model/model-scene.js";
+import {mountWaveControls} from "./model/model-wave-controls.js";
 import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js";
 import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js";
 import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js";
@@ -1543,7 +1544,7 @@ async function engineeringPage(){
     <div class="readout"><span>Size</span><strong>${diagnostics.bounds.size.map(v=>v.toFixed(3)).join(" × ")} m</strong></div>
     <div class="readout"><span>Format</span><strong>${documentModel.format}</strong></div>`;
   const resultContent=hydro?hydro.results:`<div class="chart"><svg viewBox="0 0 700 170"><path d="M20 135 C90 132 122 80 190 92 S315 60 372 82 S502 35 675 46" fill="none" stroke="var(--accent)" stroke-width="3"/><path d="M20 145H680M20 20V145" stroke="var(--line-strong)"/></svg></div>`;
-  const waterline=hydro?`<div class="workspace-waterline" style="bottom:${hydro.waterlinePercent}%"><span>WL ${hydro.draft.toFixed(2)} m</span></div>`:"";
+  // Waterline is now an actual 3D surface/mesh contour, never a viewport-positioned CSS line.
 
   app.innerHTML=top("engineering")+`<main class="workspace">
     <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
@@ -1557,8 +1558,8 @@ async function engineeringPage(){
         return `<div class="tree-row ${component.id===selectedComponentId?"selected":""}" data-component="${component.id}" data-component-name="${searchable}" style="padding-left:${8+depthFor(component,uiComponents)*16}px"><span class="tree-role-icon">${engineeringRoleIcon(component)}</span><span class="tree-row-copy">${component.name}<small>${semanticLabel}${semantic.subsystem?` · ${semantic.subsystem}`:""}</small></span></div>`;
       }).join("")}</div>
     </aside>
-    <section class="viewport"><div id="engineering-scene" class="engineering-scene"></div><div class="hud">${engineeringMode==="Hydro"?"Hydro · semantic hull selection":"Selected: "+(selected?.name||"—")}</div>${waterline}</section>
-    <aside class="inspector">${inspector}</aside>
+    <section class="viewport"><div id="engineering-scene" class="engineering-scene"></div><div class="hud">${engineeringMode==="Hydro"?"Hydro · 3D waterline and hull intersection":"Selected: "+(selected?.name||"—")}</div></section>
+    <aside class="inspector">${inspector}${engineeringMode==="Hydro"?`<div id="engineering-wave-tools"></div>`:""}</aside>
     <section class="results"><div class="results-summary">${summary}</div>${resultContent}</section>
     <footer class="statusbar"><span>Units SI</span><span>Source ${documentModel.unit}</span><span>Mode ${engineeringMode}</span><span>Semantic ModelDocument</span><span class="top-spacer"></span><span>Ready</span></footer>
   </main><div class="preview-badge">${engineeringMode==="Hydro"?"Hydro · stability workspace":"Semantic ModelDocument"}</div>`;
@@ -1603,7 +1604,15 @@ async function engineeringPage(){
     showSidebar:false,selectedComponentId,onSelect:updateSelection
   }).then(handle=>{
     if(renderId!==engineeringRenderId){handle.cleanup();return}
-    sceneHandle=handle;engineeringCleanup=handle.cleanup;
+    sceneHandle=handle;
+    let waves=null;
+    if(engineeringMode==="Hydro"&&hydro){
+      handle.actions.setWaterline({visible:true,z:Number(hydro.draft)||0});
+      handle.actions.setRotation({x:Number(hydroHeel)||0,y:Number(hydroTrim)||0});
+      const waveHost=app.querySelector("#engineering-wave-tools");
+      if(waveHost)waves=mountWaveControls(waveHost,handle);
+    }
+    engineeringCleanup=()=>{waves?.dispose();handle.cleanup()};
   }).catch(error=>{
     const target=app.querySelector("#engineering-scene");
     if(target)target.innerHTML=`<pre class="code-view">3D render error: ${String(error?.message||error)}</pre>`;
