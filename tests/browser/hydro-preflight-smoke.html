@@ -30,6 +30,22 @@ try{
  try{await gzCurveAsync(invalid,{targetVolume:30,kg:.5,density:1025,minHeel:-5,maxHeel:5})}
  catch(error){blocked=/Hydro preflight blocked/.test(String(error))}
  assert(blocked,"Hydro worker did not block invalid GZ");
+ const overlapA=boxMesh({L:4,B:4,H:2});
+ const overlapB=boxMesh({L:4,B:4,H:2,origin:[1,0,0]});
+ const crossed={
+   positions:[...overlapA.positions,...overlapB.positions],
+   indices:[...overlapA.indices,...overlapB.indices.map(i=>i+overlapA.positions.length/3)]
+ };
+ const intersectionModel=model(crossed,"intersection");
+ const intersectionGate=await validateHydroAsync(intersectionModel);
+ assert(!intersectionGate.passed,"Closed but intersecting shells passed Web Worker");
+ assert(intersectionGate.errors.some(item=>item.includes("intersecting non-adjacent")),
+   "Web Worker did not report penetrating faces");
+ blocked=false;
+ try{await analyzeHydroAsync(intersectionModel,1)}
+ catch(error){blocked=/Hydro preflight blocked/.test(String(error))}
+ assert(blocked,"Web Worker allowed displacement from penetrating watertight shells");
+
  disposeHydroWorker();
  document.body.dataset.status="pass";
  document.querySelector("#result").textContent="Hydro worker hull preflight: PASS";
