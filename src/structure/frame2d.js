@@ -86,6 +86,35 @@ export function solveFrame2D(model){
     elementCache.push({element,matrices,dofs});
   }
 
+  // Arbitrary interior point forces/moments use exact Hermite consistent
+  // nodal loads, not a nearest-node approximation. fx/fy are GLOBAL N,
+  // mz is a moment about +Z (N*m); position is metres from element.n1.
+  for(const load of model.pointLoads||[]){
+    const cache=elementCache.find(item=>String(item.element.id)===String(load.element));
+    if(!cache)throw new Error("Unknown point-load element: "+String(load.element));
+    const {length:L,c,s,transform:T}=cache.matrices;
+    const a=Number(load.position),fx=Number(load.fx??0),fy=Number(load.fy??0),mz=Number(load.mz??0);
+    if(![a,fx,fy,mz].every(Number.isFinite)||a<0||a>L)
+      throw new Error("Point load requires position in [0, element length] and finite fx/fy/mz");
+    const t=a/L,t2=t*t,t3=t2*t;
+    const localFx=c*fx+s*fy,localFy=-s*fx+c*fy;
+    const shape=[1-3*t2+2*t3,L*(t-2*t2+t3),3*t2-2*t3,L*(-t2+t3)];
+    const slope=[(-6*t+6*t2)/L,1-4*t+3*t2,
+      (6*t-6*t2)/L,-2*t+3*t2];
+    const local=[
+      localFx*(1-t),
+      localFy*shape[0]+mz*slope[0],
+      localFy*shape[1]+mz*slope[1],
+      localFx*t,
+      localFy*shape[2]+mz*slope[2],
+      localFy*shape[3]+mz*slope[3]
+    ];
+    if(!cache.consistentPointForces)cache.consistentPointForces=Array(6).fill(0);
+    for(let i=0;i<6;i++)cache.consistentPointForces[i]+=local[i];
+    const global=matVec(transpose(T),local);
+    cache.dofs.forEach((dof,i)=>F[dof]+=global[i]);
+  }
+
   for(const load of model.loads||[]){
     const [ux,uy,rz]=dofsFor(load.node);
     F[ux]+=Number(load.fx)||0;
@@ -122,10 +151,12 @@ export function solveFrame2D(model){
     rm:R[index*3+2]
   }));
 
-  const elementResults=elementCache.map(({element,matrices,dofs})=>{
+  const elementResults=elementCache.map(({element,matrices,dofs,consistentPointForces})=>{
     const globalDisplacements=dofs.map(dof=>U[dof]);
     const localDisplacements=matVec(matrices.transform,globalDisplacements);
-    const localEndForces=matVec(matrices.localStiffness,localDisplacements);
+    const localElasticForces=matVec(matrices.localStiffness,localDisplacements);
+    const localEndForces=localElasticForces.map((v,i)=>
+      v-(consistentPointForces?.[i]||0));
     return {
       id:element.id,
       n1:element.n1,

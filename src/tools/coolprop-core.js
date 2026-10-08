@@ -145,7 +145,7 @@ export const COURSE_TABLE_CONFIGS={
   Water:{
     label:"Water · Tables A-2 / A-3 / A-4 / A-5",
     tables:[
-      {id:"A-2",label:"Saturated water · temperature table",mode:"sat-T",defaultRows:"0\n20\n50\n100",inputHint:"One temperature per line"},
+      {id:"A-2",label:"Saturated water · temperature table",mode:"sat-T",defaultRows:"1\n20\n50\n100",inputHint:"One temperature per line"},
       {id:"A-3",label:"Saturated water · pressure table",mode:"sat-P",defaultRows:"0.5\n1\n5\n10",inputHint:"One pressure per line"},
       {id:"A-4",label:"Superheated water vapour",mode:"superheated",defaultRows:"150,1\n200,5\n400,10",inputHint:"Temperature, pressure per line"},
       {id:"A-5",label:"Compressed liquid water",mode:"compressed",defaultRows:"25,50\n100,100\n200,200",inputHint:"Temperature, pressure per line"}
@@ -176,6 +176,20 @@ export const COURSE_TABLE_LABELS=Object.fromEntries(
 export function courseTableConfig(fluid){
   if(COURSE_TABLE_CONFIGS[fluid])return COURSE_TABLE_CONFIGS[fluid];
   if(!DEFAULT_FLUIDS.includes(fluid))return null;
+  // No arbitrary textbook "A-" numbers: these are native tables generated
+  // from the fluid EOS, not independently calibrated textbook tables.
+  const phaseChange=["Propane","CO2","Methane","Oxygen","Nitrogen"].includes(fluid);
+  const lowT=["CO2","Oxygen","Nitrogen","Methane"].includes(fluid);
+  // Saturation presets must lie strictly between each fluid's triple and
+  // critical temperatures. In particular CO2 has no liquid-vapour saturation
+  // below ~5.18 bar (the triple-point pressure).
+  const saturationTemperatures={
+    CO2:"-50\n-30\n-10\n10",
+    Oxygen:"-200\n-190\n-170\n-140",
+    Nitrogen:"-205\n-190\n-170\n-150",
+    Methane:"-175\n-150\n-125\n-100",
+    Propane:"-40\n-20\n0\n20"
+  };
   return {
     label:`${fluid} · native CoolProp basis`,
     native:true,
@@ -184,9 +198,17 @@ export function courseTableConfig(fluid){
         id:"Native-TP",
         label:"Native T-P property table",
         mode:"native-tp",
-        defaultRows:"0,1\n25,1\n100,5\n200,10",
+        defaultRows:lowT?"-100,1\n-50,5\n0,10":"0,1\n25,1\n100,5\n200,10",
         inputHint:"Temperature, pressure per line"
-      }
+      },
+      ...(phaseChange?[
+        {id:"Native-sat-T",label:"Saturation · temperature",
+          mode:"sat-T",defaultRows:saturationTemperatures[fluid]},
+        {id:"Native-sat-P",label:"Saturation · pressure",
+          mode:"sat-P",defaultRows:fluid==="CO2"?"6\n10\n20\n40":"1\n2\n5\n10"},
+        {id:"Native-vapour",label:"Vapour · T/P property table",
+          mode:"superheated",defaultRows:lowT?"-50,1\n0,3\n50,5":"25,1\n60,2\n100,5"}
+      ]:[])
     ]
   };
 }
@@ -476,6 +498,29 @@ export function applyBookBasis(engine,fluid,prop,value,enabled=false){
 export function removeBookBasis(engine,fluid,prop,value,enabled=false){
   if(!enabled||!supportsTableReference(fluid,prop))return value;
   return Number(value)-(tableReferenceOffsets(engine,fluid)[prop]||0);
+}
+
+export function courseCalibrationSummary(engine,fluid,{energyTolerance=500,entropyTolerance=2}={}){
+  const config=courseTableConfig(fluid);
+  if(!config)return {fluid,status:"unavailable",tables:[]};
+  const profile=tableReferenceProfile(fluid);
+  if(!profile)return {fluid,status:"native-only",tables:config.tables,
+    note:"No independently sourced course-table checkpoint calibration. Values use native CoolProp thermodynamic reference."};
+  const rows=verifyTableReference(engine,fluid).map(point=>{
+    const dH=Number(point.errors.H),dU=Number(point.errors.U),dS=Number(point.errors.S);
+    const valid=[point.errors.H,point.errors.U,point.errors.S].every(
+      x=>x!==null&&x!==undefined&&Number.isFinite(Number(x)));
+    const within=valid&&Math.abs(dH)<=energyTolerance&&Math.abs(dU)<=energyTolerance&&
+      Math.abs(dS)<=entropyTolerance;
+    return {T:point.T??point.inputs?.[1],P:point.P??null,valid,within,
+      dH:valid?dH:null,dU:valid?dU:null,dS:valid?dS:null,
+      status:!valid?"FAIL":within?"WITHIN TOLERANCE":"REVIEW"};
+  });
+  return {fluid,status:rows.every(row=>row.within)?"within-tolerance":"review",
+    profileId:profile.id,profileLabel:profile.label,source:profile.source,
+    calibration:profile.calibration,tables:config.tables,rows,
+    energyTolerance,entropyTolerance,
+    note:"A constant H/U/S reference shift is aligned at one anchor state. This does not transform a real-fluid EOS into an ideal-gas textbook table."};
 }
 
 export function verifyTableReference(engine,fluid="Air"){

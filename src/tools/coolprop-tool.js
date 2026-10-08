@@ -1,11 +1,11 @@
 import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,TABLE4_PRESETS,
-  computeBatch,computeCourseReferenceTable,computeProcess,computeState,computeTable4,courseTableConfig,courseTableDefaultRows,courseTableLabel,processTargetOptions,
+  computeBatch,computeCourseReferenceTable,computeProcess,computeState,computeTable4,courseCalibrationSummary,courseTableConfig,courseTableDefaultRows,courseTableLabel,processTargetOptions,
   rowsToCSV,rowsToJSON,saturationWarning,tableReferenceProfile,unitLabel
-} from "./coolprop-core.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
-import {getCoolProp} from "../vendor/coolprop-runtime.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
-import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
-import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
+} from "./coolprop-core.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
+import {getCoolProp} from "../vendor/coolprop-runtime.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
+import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
+import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -214,7 +214,12 @@ function referenceHTML(s){
       <label class="field coolprop-span-2"><span>${inputHint}</span><textarea id="cp-reference-rows" rows="8">${esc(rows)}</textarea></label>
     </div>
     <div class="coolprop-table4-note"><strong>${esc(table.id)}</strong><span>${esc(table.label)} · ${esc(tableContext)}</span></div>
-    <div class="coolprop-actions"><button class="btn primary" id="cp-reference-run">Generate table</button><button class="btn" id="cp-reference-example">Reset rows</button></div>
+    <div class="coolprop-actions"><button class="btn primary" id="cp-reference-run">Generate table</button><button class="btn" id="cp-reference-example">Reset rows</button>
+      <button class="btn" id="cp-reference-audit">Check table calibration</button></div>
+    <div id="cp-reference-audit-results" class="coolprop-results" aria-live="polite">
+      <p class="muted">Calibration status: ${tableReferenceProfile(s.fluid)?
+      "Reference anchor available — run checkpoint comparison.":"Native CoolProp basis; no verified textbook H/U/S anchor for this fluid."}</p>
+    </div>
     <div id="cp-reference-results" class="coolprop-results"><div class="tool-result-card"><span>Reference</span><strong>${esc(table.id)}</strong><p>${esc(table.label)}</p></div></div>
   </section>`;
 }
@@ -633,6 +638,38 @@ export function bindCoolPropTool(root,state,onState){
     save({...syncGlobal(),tab:"reference",reference:{tableId,rows:referenceDefaults(fluid,table,readUnits(root))}},true);
   });
 
+  root.querySelector("#cp-reference-audit")?.addEventListener("click",async()=>{
+    const fluid=root.querySelector("#cp-fluid")?.value||s.fluid;
+    const target=root.querySelector("#cp-reference-audit-results");
+    if(!target)return;
+    target.innerHTML='<div class="viewer-loading">Checking thermodynamic reference states…</div>';
+    try{
+      const engine=await getEngine();
+      const audit=courseCalibrationSummary(engine,fluid);
+      if(audit.status==="native-only"){
+        target.innerHTML=`<div class="tool-result-card"><span>Native reference basis</span>
+          <strong>No verified textbook calibration</strong><p>${esc(audit.note)}</p></div>`;
+      }else{
+        const rows=audit.rows.map(item=>({
+          T_K:item.T,P_Pa:item.P,
+          dH_kJkg:item.dH==null?null:Math.round(item.dH/10)/100,
+          dU_kJkg:item.dU==null?null:Math.round(item.dU/10)/100,
+          dS_kJkgK:item.dS==null?null:Math.round(item.dS/10)/100,
+          Status:item.status
+        }));
+        target.innerHTML=`<div class="tool-result-card"><span>${esc(audit.profileLabel)}</span>
+          <strong>Calibration checkpoints: ${esc(audit.status)}</strong>
+          <p>Absolute deviation from separately supplied course-table reference values.
+          Tolerance: ±${audit.energyTolerance/1000} kJ/kg (H/U)
+          and ±${audit.entropyTolerance/1000} kJ/(kg·K) (S).
+          A zero shift at the anchor is not full-table agreement.</p></div>`+
+          genericTable(rows);
+      }
+    }catch(error){
+      target.innerHTML=`<div class="geometry-warning"><strong>Calibration check failed</strong>
+        <span>${esc(error?.message||error)}</span></div>`;
+    }
+  });
   root.querySelector("#cp-reference-run")?.addEventListener("click",async()=>{
     const fluid=root.querySelector("#cp-fluid")?.value||s.fluid;
     const reference={

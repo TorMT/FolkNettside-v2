@@ -1,4 +1,4 @@
-import {solveFrame2D} from "../structure/frame2d.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
+import {solveFrame2D} from "../structure/frame2d.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
 
 let fixturePromise;
 
@@ -14,9 +14,20 @@ export function loadStructureFixture(path="./examples/engineering/cantilever-fra
   }
   return fixturePromise;
 }
-export function evaluateStructureCase(baseCase,{loadFy}={}){
+export function evaluateStructureCase(baseCase,{loadFy,loadPosition}={}){
   const model=JSON.parse(JSON.stringify(baseCase));
-  if(model.loads?.length&&Number.isFinite(Number(loadFy)))model.loads[0].fy=Number(loadFy);
+  const element=model.elements?.[0];
+  if(!element)throw new Error("Reference frame has no element");
+  const n1=model.nodes.find(n=>String(n.id)===String(element.n1));
+  const n2=model.nodes.find(n=>String(n.id)===String(element.n2));
+  if(!n1||!n2)throw new Error("Reference frame nodes missing");
+  const length=Math.hypot(n2.x-n1.x,n2.y-n1.y);
+  const position=loadPosition===undefined?length:Number(loadPosition);
+  const fy=loadFy===undefined?Number(model.loads?.[0]?.fy||0):Number(loadFy);
+  if(!Number.isFinite(position)||position<0||position>length||!Number.isFinite(fy))
+    throw new Error("Point load position must be inside the element and Fy must be finite");
+  model.loads=(model.loads||[]).slice(1);
+  model.pointLoads=[{element:element.id,position,fx:0,fy,mz:0}];
   return {model,result:solveFrame2D(model)};
 }
 
@@ -42,23 +53,42 @@ function frameSVG(model,result,width=760,height=340){
     const p1=point(a,true),p2=point(b,true);
     return `<line x1="${p1[0]}" y1="${p1[1]}" x2="${p2[0]}" y2="${p2[1]}" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/>`;
   }).join("");
+  const pointLoadMarkers=(model.pointLoads||[]).map(load=>{
+    const element=model.elements.find(e=>String(e.id)===String(load.element));
+    if(!element)return "";
+    const a=model.nodes.find(n=>String(n.id)===String(element.n1));
+    const b=model.nodes.find(n=>String(n.id)===String(element.n2));
+    const length=Math.hypot(b.x-a.x,b.y-a.y),t=load.position/length;
+    const p=point({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
+    const fy=Number(load.fy)||0,from=p[1]+(fy<0?-36:36),to=p[1]+(fy<0?-8:8);
+    const direction=fy<0?-1:1;
+    return `<g class="structure-point-load-marker" role="img" aria-label="Point force at ${load.position} metres">
+      <line x1="${p[0]}" y1="${from}" x2="${p[0]}" y2="${to}" stroke="var(--danger)" stroke-width="3"/>
+      <path d="M${p[0]-6} ${to+direction*6} L${p[0]} ${to} L${p[0]+6} ${to+direction*6}"
+        fill="none" stroke="var(--danger)" stroke-width="2.5"/>
+      <circle cx="${p[0]}" cy="${p[1]}" r="5" fill="var(--danger)"/>
+      <text x="${p[0]+9}" y="${from}" fill="var(--danger)" font-size="11">${(fy/1000).toFixed(1)} kN</text>
+    </g>`;
+  }).join("");
   const nodes=model.nodes.map(node=>{const p=point(node,true);return `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="3"/>`}).join("");
-  return `<svg class="structure-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Frame deformation">${original}${deformed}${nodes}<text x="${pad}" y="24" fill="var(--ink-2)" font-size="12">deformation scale ×${deformScale.toFixed(1)}</text></svg>`;
+  return `<svg class="structure-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Frame deformation">${original}${deformed}${pointLoadMarkers}${nodes}<text x="${pad}" y="24" fill="var(--ink-2)" font-size="12">deformation scale ×${deformScale.toFixed(1)}</text></svg>`;
 }
 
-export function structurePanelHTML(baseCase,{loadFy}={}){
-  const {model,result}=evaluateStructureCase(baseCase,{loadFy});
+export function structurePanelHTML(baseCase,{loadFy,loadPosition}={}){
+  const {model,result}=evaluateStructureCase(baseCase,{loadFy,loadPosition});
   const root=result.nodes[0],tip=result.nodes[result.nodes.length-1],element=model.elements[0],er=result.elements[0];
-  const fy=Number(model.loads?.[0]?.fy)||0;
+  const fy=Number(model.pointLoads?.[0]?.fy)||0;
+  const position=Number(model.pointLoads?.[0]?.position)||0;
   return {
     inspector:`
       <h3>2D frame case</h3>
-      <label class="field"><span>Tip transverse load</span><div><input id="structure-load" type="number" step="1" value="${fy/1000}"><span> kN</span></div></label>
+      <label class="field"><span>Point force Fy (global)</span><div><input id="structure-load" type="number" step="1" value="${fy/1000}"><span> kN</span></div></label>
+      <label class="field"><span>Load position from element start</span><div><input id="structure-load-position" type="number" min="0" max="${er.length}" step="0.1" value="${position}"><span> m</span></div></label>
       <div class="readout"><span>E</span><strong>${(element.E/1e9).toFixed(1)} GPa</strong></div>
       <div class="readout"><span>A</span><strong>${element.A.toExponential(3)} m²</strong></div>
       <div class="readout"><span>I</span><strong>${element.I.toExponential(3)} m⁴</strong></div>
       <div class="readout"><span>Length</span><strong>${er.length.toFixed(3)} m</strong></div>
-      <p class="muted hydro-note">Euler–Bernoulli 2D frame element with axial and bending DOFs.</p>
+      <p class="muted hydro-note">Euler–Bernoulli 2D frame, with an exactly integrated interior point force. This is a static structural force, not a mass contribution to Hydro GM.</p>
     `,
     summary:`
       <strong>Structure summary</strong>

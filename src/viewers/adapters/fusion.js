@@ -1,6 +1,6 @@
-import {parseFusionArchive,FusionConversionRequiredError} from "../../model/parsers/fusion-archive.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
-import {renderModelWorkbench} from "../model-workbench.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
-import {extension} from "../utils.js?v=6d13dcb3027a80c38112f7315a9916cc1c23d1d3";
+import {parseFusionArchive,FusionConversionRequiredError} from "../../model/parsers/fusion-archive.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
+import {renderModelWorkbench} from "../model-workbench.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
+import {extension} from "../utils.js?v=5bf1d0032fb32a86a08e59c2518c330e59de38a2";
 
 function conversionNotice(container,resource,reason){
   const shell=document.createElement("section");shell.className="viewer-conversion-required";
