@@ -96,12 +96,12 @@ export const DIVERSE_MODULES=[
     title:"LAOS",
     short:"LAOS",
     route:"/diverse/laos",
-    status:"migration",
+    status:"native",
     access:"public",
     category:"Archive",
-    summary:"Ny v2-oversikt for LAOS og øvingsressurser i Courses. Originalt LAOS-filarkiv venter på verifisert innholdsuttrekk; gammel side er bevart.",
-    legacyUrl:"https://tormt.folk.ntnu.no/diverse/LAOS/",
-    storage:"local",
+    summary:"Alle tre originale LAOS-PDF-ene er overført til v2, med filintegritetstest og Courses-ressurser i samme oversikt.",
+    legacyUrl:null,
+    storage:"repository-files",
     sync:"none"
   },
   {
@@ -109,12 +109,12 @@ export const DIVERSE_MODULES=[
     title:"AndreKokSider",
     short:"KOK",
     route:"/diverse/andrekok",
-    status:"migration",
+    status:"native",
     access:"public",
     category:"Study",
-    summary:"Ny v2-katalog med søk, studie-, spesialisering- og årskullfilter og sortering. Oppføringer må overføres fra verifisert kilde; gammel side er bevart.",
-    legacyUrl:"https://tormt.folk.ntnu.no/diverse/AndreKokSider/",
-    storage:"local",
+    summary:"29 studentnettsider fra originalkatalogen med studie, spesialisering, årskull, rating, søk og sortering.",
+    legacyUrl:null,
+    storage:"versioned-catalog",
     sync:"none"
   }
 ];
