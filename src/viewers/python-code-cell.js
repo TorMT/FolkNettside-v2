@@ -10,7 +10,7 @@ export function mountPythonCodeCell(container,{
     <div class="python-cell-toolbar">
       <strong>${escapeHTML(title)}</strong>
       <button type="button" data-py-run>Run</button>
-      <button type="button" data-py-stop disabled>Stop</button>
+      <button type="button" data-py-stop>Stop</button>
       <button type="button" data-py-edit>Edit</button>
       <button type="button" data-py-wrap aria-pressed="false">Wrap</button>
       <button type="button" data-py-lines aria-pressed="true">Lines</button>
@@ -49,7 +49,8 @@ export function mountPythonCodeCell(container,{
     }catch{/* fallback is already visible */}
   }
   function setRunning(running){
-    runButton.disabled=running;stopButton.disabled=!running;
+    runButton.disabled=running;
+    stopButton.disabled=false; // Stop also resets an idle Python interpreter.
     status.textContent=running?"Running…":"Ready";
   }
   function showOutput(result={}){
