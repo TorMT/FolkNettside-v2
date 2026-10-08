@@ -35,6 +35,7 @@ import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsio
 import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js";
 import {renderTopShell,bindShellNavigation} from "./shell/navigation.js";
 import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js";
+import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js";
 import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js";
 import {diversePageHTML} from "./diverse/diverse-page.js";
 import {DIVERSE_MODULES} from "./diverse/diverse-registry.js";
@@ -1539,6 +1540,7 @@ async function engineeringPage(){
   </main><div class="preview-badge">${engineeringMode==="Hydro"?"Hydro · stability workspace":"Semantic ModelDocument"}</div>`;
 
   bindNav();
+  mountWorkspaceResultsResize(app.querySelector(".workspace"));
   bindEngineeringModelSelector();
   bindEngineeringCaseExport(engineeringReport);
   app.querySelectorAll("[data-hydro-import-part]").forEach(input=>input.addEventListener("change",()=>{
