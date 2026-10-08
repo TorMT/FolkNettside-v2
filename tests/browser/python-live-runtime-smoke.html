@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Pyodide live execution smoke</title></head>
+<body data-status="running" data-phase="loading"><pre id="result">Starting real Python Worker…</pre>
+<script type="module">
+import {createPythonSession} from "../../src/viewers/python-session.js";
+const session=createPythonSession();
+const result=document.querySelector("#result");
+try{
+ const value=await session.run("import math\nprint(2 + 3)\nprint(math.sqrt(9))",
+  {status:message=>{document.body.dataset.phase=message}});
+ if(!value.stdout.includes("5")||!value.stdout.includes("3.0"))throw new Error("Bad live Python output: "+value.stdout);
+ const again=await session.run("print(math.factorial(5))");
+ if(!again.stdout.includes("120"))throw new Error("Python state did not persist across cells");
+ session.stop();
+ const fresh=await session.run("print(6*7)");
+ if(!fresh.stdout.includes("42"))throw new Error("Fresh worker run after Stop failed");
+ document.body.dataset.status="pass";result.textContent="Real Pyodide executes Python, reuses interpreter and restarts after Stop";
+}catch(error){document.body.dataset.status="fail";result.textContent=String(error.stack||error)}
+finally{session.dispose()}
+</script></body></html>
