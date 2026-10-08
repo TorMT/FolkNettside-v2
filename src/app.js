@@ -33,6 +33,8 @@ import {componentSemantic,semanticComponents,semanticSummary} from "./model/sema
 import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js";
 import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js";
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
+import {solveHullGirder} from "./structure/hull-girder.js";
+import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js";
 import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js";
 import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js";
 import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js";
@@ -91,6 +93,11 @@ let hydroTrim=0;
 let hydroGzRequested=false;
 let hydroAttitudeAction="";
 let hydroCurveCache={model:null,data:null};
+let structureMode="girder";
+let girderRunRequested=false;
+let girderForm={hullMassTonnes:"",cg:[0,0,0],pointText:"",areaText:"",
+  eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false};
+let girderComputeError="";
 let structureLoadKn=-20;
 let structureLoadPosition=3;
 let resistanceSpeedKn=10;
@@ -188,6 +195,9 @@ function selectEngineeringModel(id){
   hydroAttitudeAction="";
   hydroCurveCache={model:null,data:null};
   propulsionInitialized=false;
+  girderRunRequested=false;girderComputeError="";
+  girderForm={hullMassTonnes:"",cg:[0,0,0],pointText:"",areaText:"",
+    eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false};
   return true;
 }
 
@@ -945,6 +955,160 @@ async function engineeringPage(){
   document.documentElement.dataset.lens="workspace";
   const modes=["Model","Hydro","Structure","Resistance","Propulsion"];
 
+  if(engineeringMode==="Structure"&&structureMode==="girder"){
+    try{
+      const documentModel=await getEngineeringDocument();
+      if(renderId!==engineeringRenderId)return;
+      const diagnostics=analyzeModelDiagnostics(documentModel);
+      const bounds=diagnostics.bounds;
+      if(!(bounds.size[0]>0)||diagnostics.geometryComponents===0)
+        throw new Error("Hull girder preview requires geometry with positive longitudinal X length");
+      const derived={
+        ...girderForm,
+        hullMassTonnes:hullMassText||girderForm.hullMassTonnes,
+        pointText:hydroPointWeightsText||girderForm.pointText,
+        areaText:hullAreaLoadsText||girderForm.areaText,
+        cg:hydroKg!==""?[
+          Number(hydroLcg)||0,Number(hydroTcg)||0,Number(hydroKg)
+        ]:girderForm.cg
+      };
+      let girder=null;
+      if(girderRunRequested){
+        try{
+          if(!girderForm.axisConfirmed)
+            throw new Error("Confirm the imported model longitudinal axis is world X before running the beam calculation");
+          girder=solveHullGirder({
+            xMin:bounds.min[0],xMax:bounds.max[0],
+            hullMassTonnes:Number(derived.hullMassTonnes),hullCG:derived.cg,
+            pointWeights:pointWeightsFromLines(derived.pointText),
+            areaLoads:areaLoadsFromLines(derived.areaText),
+            E:Number(derived.eGpa)*1e9,
+            I:Number(derived.iM4),extremeFiberM:Number(derived.extremeFiberM),
+            segments:Number(derived.segments)
+          });
+          girderComputeError="";
+        }catch(error){
+          girderComputeError=String(error?.message||error);
+        }
+      }
+      const panel=hullGirderPanelHTML({caseInput:derived,result:girder,
+        error:girderComputeError,modelName:documentModel.name,bounds});
+      app.innerHTML=top("engineering")+`<main class="workspace">
+        <div class="workspace-bar"><strong>${documentModel.name}</strong>
+          ${engineeringModelSelectHTML()}${engineeringExportButtonHTML(Boolean(girder))}
+          <div class="mode-tabs">${modes.map(mode=>
+            `<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`
+          ).join("")}</div>
+        </div>
+        <aside class="tree">
+          <div class="tree-label">Global structure model</div>
+          <div class="tree-row selected"><span>⌗</span>Euler–Bernoulli beam approximation</div>
+          <div class="tree-label">Geometry</div>
+          <div class="tree-row">World X: ${bounds.min[0].toFixed(2)}–${bounds.max[0].toFixed(2)} m</div>
+          <div class="tree-row">World Z: ${bounds.min[2].toFixed(2)}–${bounds.max[2].toFixed(2)} m</div>
+          <div class="tree-label">Support idealisation</div>
+          <div class="tree-row">Pinned/roller at extreme X</div>
+          <div class="tree-label">Approval</div>
+          <div class="tree-row"><strong>Uncertified structural preview</strong></div>
+        </aside>
+        <section class="viewport"><div id="engineering-scene"></div>
+          <div class="hud">Global beam stress colors · not shell FEM</div>
+          ${girder?`<div class="hull-fem-3d-legend" id="girder-3d-legend">
+            <strong>Signed longitudinal bending</strong>
+            <div class="hull-fem-gradient"></div>
+            <span>Blue −${(girder.maxStressPa/1e6).toFixed(2)} MPa ·
+              red +${(girder.maxStressPa/1e6).toFixed(2)} MPa</span>
+          </div>`:""}
+        </section>
+        <aside class="inspector">
+          <label class="engineering-girder-axis"><input id="girder-axis-confirm"
+            type="checkbox" ${girderForm.axisConfirmed?"checked":""}>
+            World X is the ship's longitudinal direction, and mass coordinates are in metres.</label>
+          ${panel.inspector}
+        </aside>
+        <section class="results"><div class="results-summary">${panel.summary}</div>
+          ${panel.results}</section>
+        <footer class="statusbar"><span>Global beam FEM · linear static</span>
+          <span>Manual E, I and support assumptions</span>
+          <span>Not a floating or local plate-stress solver</span></footer>
+      </main>`;
+      bindNav();bindEngineeringModelSelector();
+      mountWorkspaceResultsResize(app.querySelector(".workspace"));
+      const report=girder?engineeringCaseReport({
+        modelConfig:model,modelDocument:documentModel,mode:"Structure",
+        method:{name:"global Euler–Bernoulli girder proxy",scope:"simply supported laboratory idealisation"},
+        inputs:{...derived,bounds,axisConfirmed:girderForm.axisConfirmed},
+        results:{girder},
+        assumptions:["not structural shell FEM","supports at ends—not hydrostatic buoyancy",
+          "manual E/I/neutral axis","uniform hull mass per beam length"]
+      }):null;
+      bindEngineeringCaseExport(report);
+      app.querySelectorAll("[data-engineering-mode]").forEach(button=>
+        button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
+      const readForm=()=>{
+        girderForm={
+          hullMassTonnes:app.querySelector("#girder-hull-mass").value,
+          cg:["x","y","z"].map(axis=>Number(app.querySelector("#girder-cg-"+axis).value)),
+          pointText:app.querySelector("#girder-points").value,
+          areaText:app.querySelector("#girder-areas").value,
+          eGpa:app.querySelector("#girder-e").value,
+          iM4:app.querySelector("#girder-i").value,
+          extremeFiberM:app.querySelector("#girder-c").value,
+          neutralZ:Number(app.querySelector("#girder-neutral-z").value),
+          segments:Number(app.querySelector("#girder-segments").value),
+          axisConfirmed:app.querySelector("#girder-axis-confirm").checked
+        };
+      };
+      app.querySelector("#girder-run")?.addEventListener("click",()=>{
+        readForm();girderRunRequested=true;
+        hullMassText=girderForm.hullMassTonnes;
+        hydroPointWeightsText=girderForm.pointText;
+        hullAreaLoadsText=girderForm.areaText;
+        [hydroLcg,hydroTcg,hydroKg]=girderForm.cg.map(String);
+        hydroPointWeightSummary=null;hydroPointBaseline=null;
+        engineeringPage();
+      });
+      app.querySelector("#girder-frame-example")?.addEventListener("click",()=>{
+        structureMode="frame";engineeringPage();
+      });
+      let sceneHandle=null;
+      mountModelScene(app.querySelector("#engineering-scene"),documentModel,{showSidebar:false})
+        .then(handle=>{
+          if(renderId!==engineeringRenderId){handle.cleanup();return}
+          sceneHandle=handle;
+          if(girder){
+            const legend=handle.actions.setHullGirderContour({
+              girder,neutralZ:Number(derived.neutralZ),visible:true
+            });
+            const note=app.querySelector("#girder-3d-legend span");
+            if(note)note.textContent=
+              "−"+(legend.maxMPa).toFixed(2)+" MPa to +"+(legend.maxMPa).toFixed(2)+" MPa"+
+              " · global beam projection";
+          }
+          app.querySelector("#girder-color-mode")?.addEventListener("change",event=>{
+            const visible=event.target.value==="stress"&&Boolean(girder);
+            const field=handle.actions.setHullGirderContour({
+              girder,neutralZ:Number(derived.neutralZ),visible
+            });
+            const label=app.querySelector("#girder-3d-legend");
+            if(label)label.hidden=!visible;
+          });
+          engineeringCleanup=()=>handle.cleanup();
+        }).catch(error=>{
+          const viewport=app.querySelector("#engineering-scene");
+          if(viewport)viewport.textContent="3D rendering unavailable: "+String(error?.message||error);
+        });
+    }catch(error){
+      if(renderId!==engineeringRenderId)return;
+      app.innerHTML=top("engineering")+`<main class="study">
+        <section class="study-main"><h1>Global hull-girder preview unavailable</h1>
+          <p>${String(error?.message||error).replace(/[&<>]/g,"")}</p></section>
+        </main>`;
+      bindNav();
+    }
+    return;
+  }
+
   if(engineeringMode==="Structure"){
     try{
       const capability=analysisCapability(model,"structure");
@@ -989,6 +1153,11 @@ async function engineeringPage(){
         results:structure.result,
         assumptions:["2D frame idealisation","linear elastic response","small displacements"]
       }));
+      app.querySelector(".inspector")?.insertAdjacentHTML("afterbegin",
+        '<button type="button" class="btn" id="structure-show-girder">Use hull-girder FEM</button>');
+      app.querySelector("#structure-show-girder")?.addEventListener("click",()=>{
+        structureMode="girder";girderRunRequested=false;engineeringPage();
+      });
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       for(const id of ["#structure-load","#structure-load-position"]){
         app.querySelector(id)?.addEventListener("change",()=>{
