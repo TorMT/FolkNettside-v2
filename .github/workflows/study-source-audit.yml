@@ -67,6 +67,47 @@ jobs:
               except Exception as e:print("FILE FAILURE",repr(f),type(e).__name__,str(e)[:250])
           PY
 
+
+      - name: Inspect original AndreKokSider source links
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from urllib.parse import urljoin
+          from urllib.request import Request,urlopen
+          import re
+          url="https://tormt.folk.ntnu.no/diverse/AndreKokSider/"
+          with urlopen(Request(url,headers={'User-Agent':'FolkNettside-v2-read-only-migration/1.0'}),timeout=25) as resp:
+              html=resp.read(200000).decode("utf-8","replace")
+          print('ANDREKOK HTML LENGTH:',len(html))
+          print('ANDREKOK HTML SAMPLE:',repr(html[:13000]))
+          class Scripts(HTMLParser):
+              def __init__(self):super().__init__();self.srcs=[];self.isinline=False;self.inline=[]
+              def handle_starttag(self,tag,attrs):
+                  if tag=='script':
+                      source=dict(attrs).get('src')
+                      if source:self.srcs.append(urljoin(url,source))
+                      else:self.isinline=True
+              def handle_endtag(self,tag):
+                  if tag=='script':self.isinline=False
+              def handle_data(self,text):
+                  if self.isinline:self.inline.append(text)
+          p=Scripts();p.feed(html)
+          print("ANDREKOK SCRIPTS:",p.srcs)
+          for code in p.inline:
+              if any(t in code.lower() for t in ('fetch(','.json','koksider','script.js','pages')):
+                  print('ANDREKOK INLINE SOURCE:',repr(code[:4000]))
+          for source in p.srcs:
+              if not source.startswith('https://tormt.folk.ntnu.no/diverse/AndreKokSider/'):
+                  continue
+              try:
+                  with urlopen(Request(source,headers={'User-Agent':'FolkNettside-v2-read-only-migration/1.0'}),timeout=25) as resp:
+                      script=resp.read(300000).decode('utf-8','replace')
+                  print('ANDREKOK SCRIPT:',source,'length:',len(script))
+                  for term in ['fetch(','.json','const sites','const pages','filter','rating','student','studier']:
+                      for m in list(re.finditer(re.escape(term),script,re.I))[:8]:
+                          print(' MATCH',term,repr(script[max(0,m.start()-110):m.end()+230]))
+              except Exception as e:print('SCRIPT ERROR',source,type(e).__name__,str(e)[:200])
+          PY
   import-verified-laos-pdfs:
     if: github.head_ref == 'feature/import-verified-kok-source' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
