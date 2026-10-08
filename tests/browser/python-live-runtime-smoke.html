@@ -17,7 +17,7 @@ try{
  ]);
  if(mounted.mounted!==2)throw new Error("Failed to mount sibling Python and input text files");
  const workspace=await session.run(
-   "from helper import product\nfrom pathlib import Path\\n"+
+   "from helper import product\nfrom pathlib import Path\n"+
    "print('helper='+str(product(6,7)))\n"+
    "print('data='+Path('observations.txt').read_text())\n"+
    "Path('calculation.csv').write_text('name,value\\narea,40')"
