@@ -18,23 +18,30 @@
 <script>
 const rail=document.querySelector(".semester-tabs");
 const active=rail.querySelector(".active");
+const isDesktop=new URLSearchParams(location.search).has("desktop");
 active.scrollIntoView({block:"nearest",inline:"center"});
 requestAnimationFrame(()=>{
   const cs=getComputedStyle(rail);
   const activeShort=getComputedStyle(active.querySelector(".semester-label-short"));
   const activeLong=getComputedStyle(active.querySelector(".semester-label-long"));
   const checks={
-    mobile:innerWidth<=760,
+    viewportMatches:isDesktop?innerWidth>760:innerWidth<=760,
     horizontalOverflow:rail.scrollWidth>rail.clientWidth,
     overflowX:cs.overflowX==="auto"||cs.overflowX==="scroll",
     overflowY:cs.overflowY==="hidden",
+    hiddenScrollbar:cs.scrollbarWidth==="none",
     noBottomGutter:parseFloat(cs.paddingBottom)===0,
-    shortLabels:activeShort.display!=="none"&&activeLong.display==="none",
+    correctLabels:isDesktop
+      ?activeShort.display==="none"&&activeLong.display!=="none"
+      :activeShort.display!=="none"&&activeLong.display==="none",
     activeVisible:active.getBoundingClientRect().left>=-1&&active.getBoundingClientRect().right<=innerWidth+1
   };
   const pass=Object.values(checks).every(Boolean);
   document.body.dataset.status=pass?"pass":"fail";
-  document.querySelector("#result").textContent=JSON.stringify({...checks,scrollLeft:rail.scrollLeft,scrollWidth:rail.scrollWidth,clientWidth:rail.clientWidth});
+  document.querySelector("#result").textContent=JSON.stringify({
+    ...checks,mode:isDesktop?"desktop":"mobile",
+    scrollLeft:rail.scrollLeft,scrollWidth:rail.scrollWidth,clientWidth:rail.clientWidth
+  });
 });
 </script>
 </body>
