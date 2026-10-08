@@ -33,7 +33,7 @@ When the import passes these gates, the shared Hydro engine supports displacemen
 ## Known limitations / next engineering milestones
 
 1. Independent self-intersection detection for individual selected shells (spatial acceleration + precise triangle intersection).
-2. Contour validation and true nested hole handling for waterline cross-sections.
+2. **Waterplane contours implemented:** nested hole subtraction and closure/crossing checks; source waterline tangencies and independent real-vessel numerical comparison still require qualification.
 3. Editable reference vessel origin, baseline, longitudinal datum and consistent ship coordinate conventions; comparison against independently sourced principal dimensions.
 4. Reliable external-shell extraction and repair previews for mixed CAD assemblies; explicit provenance of repair operations.
 5. STEP/IGES triangulation workflow, not yet supported by direct local import.
