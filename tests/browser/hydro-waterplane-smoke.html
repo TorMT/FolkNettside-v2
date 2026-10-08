@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Hydro moonpool worker smoke</title></head>
+<body data-status="running"><pre id="result">Running</pre>
+<script type="module">
+import {analyzeHydroAsync,disposeHydroWorker} from "../../src/hydro/hydro-client.js";
+import {integrateWaterplaneContours} from "../../src/hydro/waterplane-contours.js";
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+const near=(a,b)=>Math.abs(a-b)<1e-7;
+function rect(l,b){return [[-l/2,-b/2],[l/2,-b/2],[l/2,b/2],[-l/2,b/2]];}
+function ring(){
+  const outer=rect(10,6),inner=rect(2,2),positions=[],indices=[];
+  function quad(p){
+    const start=positions.length/3;
+    for(const v of p)positions.push(...v);
+    indices.push(start,start+1,start+2,start,start+2,start+3);
+  }
+  for(let i=0;i<4;i++){
+    const j=(i+1)%4;
+    const ob=[...outer[i],0],on=[...outer[j],0],ot=[...outer[i],2],otn=[...outer[j],2];
+    const ib=[...inner[i],0],inext=[...inner[j],0],it=[...inner[i],2],itn=[...inner[j],2];
+    quad([ob,on,otn,ot]);quad([ib,it,itn,inext]);quad([ot,otn,itn,it]);quad([ob,ib,inext,on]);
+  }
+  return {positions,indices};
+}
+try{
+ const documentModel={unitScaleToMeters:1,components:[
+   {id:"hull",name:"Waterplane hole fixture",geometry:ring(),metadata:{hydro:true}}
+ ]};
+ const output=await analyzeHydroAsync(documentModel,1);
+ assert(near(output.volume,56),"Expected 56 cubic metres at z=1");
+ assert(near(output.waterplane.area,56),"Expected net 56 sqm after flooded well subtraction");
+ assert(near(output.waterplane.ixx,(10*216-2*8)/12),"Transverse second moment incorrect");
+ assert(near(output.waterplane.iyy,(6*1000-2*8)/12),"Longitudinal second moment incorrect");
+ assert(output.waterplane.holeContours===1,"Hole not classified");
+ assert(output.waterplane.outerContours===1,"Outer contour not classified");
+ // Unclosed pure segment graph must fail loudly.
+ const rectangle=[[0,0],[2,0],[2,1],[0,1]];
+ const open=rectangle.slice(0,3).map((p,i)=>[p,rectangle[i+1]]);
+ let failed=false;
+ try{integrateWaterplaneContours(open)}catch(error){failed=/not closed/.test(String(error))}
+ assert(failed,"Unclosed waterplane contour silently accepted");
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent="Hydro moonpool worker volume/area/inertia: PASS";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error?.stack||error);
+}finally{disposeHydroWorker()}
+</script></body></html>
