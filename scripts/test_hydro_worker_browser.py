@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dependency-free W3C WebDriver smoke for the actual Hydro module Worker."""
+"""Dependency-free W3C WebDriver status-wait for asynchronous browser smoke tests."""
 import json
 import sys
 import time
@@ -47,12 +47,12 @@ def main(url):
                 "args":[]
             })
             if latest.get("status")=="pass":
-                print("Hydro Chrome Worker test PASSED:",json.dumps(latest))
+                print("Browser smoke PASSED:",json.dumps(latest))
                 return 0
             if latest.get("status")=="fail":
-                raise RuntimeError("Hydro Worker test FAILED: "+json.dumps(latest))
+                raise RuntimeError("Browser smoke FAILED: "+json.dumps(latest))
             time.sleep(.25)
-        raise RuntimeError("Hydro Worker test timed out: "+json.dumps(latest))
+        raise RuntimeError("Browser smoke timed out: "+json.dumps(latest))
     finally:
         if session:
             try:call("DELETE",f"/session/{session}")
