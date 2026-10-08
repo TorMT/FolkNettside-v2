@@ -1,4 +1,6 @@
 import {mountModelScene} from "../model/model-scene.js";
+import {validateHydroModel} from "../model/hull-surface-validator.js";
+import {hydroPreflightHTML} from "../engineering/hydro-panel.js";
 import {modelHydroSummaryAtAttitude,parseModelBuffer} from "./model-inspector-core.js";
 
 function fmt(value,digits=4){
@@ -24,7 +26,7 @@ export function modelInspectorHTML(){
         '<div class="crystal-subpanel"><strong>Appearance</strong><label class="field"><span>Opacity</span><input id="model-opacity" type="range" min="0.1" max="1" step="0.05" value="1"></label><label class="field"><span>Model color</span><input id="model-color" type="color" value="#8aa7b5"></label><label class="field"><span>Background</span><input id="model-background" type="color" value="#081820"></label><label class="field"><span><input id="model-wireframe" type="checkbox"> Wireframe</span></label></div>'+
         '<div class="crystal-subpanel"><strong>Measure</strong><div class="crystal-toggle-grid"><button class="btn" id="model-measure">Measure</button><button class="btn" id="model-measure-undo">Undo</button><button class="btn" id="model-measure-clear">Clear</button></div><label class="field"><span>Snap</span><select id="model-snap-mode"><option value="none">None</option><option value="vertex">Vertex</option><option value="edge">Edge</option><option value="both">Vertex + edge</option></select></label><label class="field"><span>Snap tolerance (m)</span><input id="model-snap-tolerance" type="number" min="0" step="0.001" value="0.01"></label><div id="model-measure-list" class="muted">No measurements.</div></div>'+
         '<div class="crystal-subpanel"><strong>Clipping</strong><label class="field"><span><input id="model-clip-enabled" type="checkbox"> Enable clip</span></label><label class="field"><span>Axis</span><select id="model-clip-axis"><option value="x">X</option><option value="y">Y</option><option value="z">Z</option></select></label><label class="field"><span>Offset (m)</span><input id="model-clip-offset" type="number" step="0.05" value="0"></label><label class="field"><span><input id="model-clip-invert" type="checkbox"> Invert</span></label></div>'+
-        '<div class="crystal-subpanel"><strong>Hydro / waterline</strong><label class="field"><span>Waterline Z (m)</span><input id="model-waterline" type="number" step="0.05" value="0"></label><label class="field"><span><input id="model-waterline-visible" type="checkbox" checked> Show waterline</span></label><button class="btn primary" id="model-hydro-run">Recalculate hydro</button></div>'+
+        '<div class="crystal-subpanel"><strong>Hydro / waterline</strong><label class="field"><span>Waterline Z (m)</span><input id="model-waterline" type="number" step="0.05" value="0"></label><label class="field"><span><input id="model-waterline-visible" type="checkbox" checked> Show waterline</span></label><button class="btn primary" id="model-hydro-run">Validate hull + calculate</button></div>'+
         '<div class="crystal-toggle-grid"><button class="btn" id="model-png">Save PNG</button><button class="btn" id="model-help">Help</button></div>'+
       '</aside>'+
       '<section class="model-inspector-main"><div id="model-inspector-stage" class="model-inspector-stage"></div><div id="model-inspector-results" class="model-inspector-results"></div></section>'+
@@ -58,6 +60,12 @@ export async function bindModelInspector(root){
   function renderHydro(){
     if(!documentModel)return;
     const waterline=Number(root.querySelector("#model-waterline")?.value)||0;
+    const gate=validateHydroModel(documentModel);
+    if(!gate.passed){
+      results.innerHTML=hydroPreflightHTML(gate);
+      setStatus(documentModel.name+" · geometry preflight failed; no hydro results");
+      return;
+    }
     try{
       const summary=modelHydroSummaryAtAttitude(documentModel,waterline,1025,{
         heel:Number(root.querySelector("#model-rot-x")?.value)||0,
@@ -66,7 +74,7 @@ export async function bindModelInspector(root){
       });
       const cb=summary.centerOfBuoyancy;
       const cg=summary.solidCentroid;
-      results.innerHTML='<div class="tool-result-grid">'+
+      results.innerHTML=hydroPreflightHTML(summary.geometryValidation)+'<div class="tool-result-grid">'+
         resultCard("Topology",summary.diagnostics.watertight?"Watertight":"Check geometry",summary.diagnostics.triangles+" triangles")+
         resultCard("Solid volume",fmt(summary.solidVolume,4),"m³")+
         resultCard("Geometric centroid",cg.map(v=>fmt(v,3)).join(", "),"x, y, z m")+
@@ -78,7 +86,11 @@ export async function bindModelInspector(root){
         '</div>';
       setStatus(documentModel.name+" · "+documentModel.format);
     }catch(error){
-      results.innerHTML='<div class="geometry-warning"><strong>Hydro warning</strong><span>'+String(error?.message||error)+'</span></div>';
+      results.replaceChildren();
+      const warning=document.createElement("div");warning.className="geometry-warning";
+      const heading=document.createElement("strong");heading.textContent="Hydro warning";
+      const message=document.createElement("span");message.textContent=String(error?.message||error);
+      warning.append(heading,message);results.append(warning);
     }
   }
 
