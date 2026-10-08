@@ -102,3 +102,13 @@ test("true 3D watertight rectangular moonpool hull returns analytic displacement
    near(row.volume,56*row.waterline,1e-7);
  }
 });
+
+test("overlapping and bow-tie contours are rejected before waterplane area calculation",()=>{
+ const overlap=[
+   ...segments(square(-2,-2,1,1)),
+   ...segments(square(0,0,3,3))
+ ];
+ assert.throws(()=>integrateWaterplaneContours(overlap),/intersect or self-cross/);
+ const bowTie=segments([[0,0],[2,2],[0,2],[2,0]]);
+ assert.throws(()=>integrateWaterplaneContours(bowTie),/intersect or self-cross/);
+});
