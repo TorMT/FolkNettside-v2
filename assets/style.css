@@ -985,3 +985,46 @@
   .viewer-canvas{scrollbar-gutter:auto}
   .viewer-toolbar{overscroll-behavior-x:contain}
 }
+
+/* One ModelScene and one set of controls for STL, 3MF and convertible Fusion
+   assemblies. Keep the 3D viewport responsive independently of long tools. */
+.model-viewer-workbench{display:grid;grid-template-columns:minmax(0,1fr) minmax(245px,285px);height:100%;min-height:0;min-width:0;background:var(--surface)}
+.model-viewer-stage{min-height:0;min-width:0;overflow:hidden;background:#081820}
+.model-viewer-stage .three-stage,.model-viewer-stage .three-canvas{height:100%;min-height:0}
+.model-viewer-inspector{min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;background:var(--surface);border-left:1px solid var(--line);color:var(--ink)}
+.model-viewer-section{padding:12px;border-bottom:1px solid var(--line);display:grid;gap:10px}
+.model-viewer-section>strong{font-size:12px}
+.model-viewer-actions{display:flex;flex-wrap:wrap;gap:6px}
+.model-viewer-actions button,.model-wave-actions button,.model-wave-library-head button,
+.model-wave-import{border:1px solid var(--line);border-radius:7px;background:var(--surface-sunk);color:var(--ink);font:inherit;font-size:10px;padding:7px 9px;cursor:pointer}
+.model-viewer-label{display:grid;gap:4px;font-size:11px;color:var(--ink-2)}
+.model-viewer-label>input,.model-viewer-label>select{min-width:0;width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:7px;background:var(--surface-sunk);color:var(--ink);padding:7px}
+.model-viewer-checkbox{display:flex;gap:8px;align-items:flex-start;color:var(--ink-2);font-size:11px;line-height:1.4}
+.model-viewer-section p,.model-viewer-measurements{margin:0;font-size:10px;line-height:1.55;color:var(--ink-2);overflow-wrap:anywhere}
+.model-wave-controls{border-bottom:1px solid var(--line);background:var(--surface)}
+.model-wave-controls>summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:9px;padding:12px;font-size:12px;font-weight:750}
+.model-wave-controls>summary span{font-weight:450;color:var(--ink-3);font-size:9px}
+.model-wave-controls>div,.model-wave-controls>p{margin:0 12px 10px}
+.model-wave-fields{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.model-wave-fields label{display:grid;gap:4px;color:var(--ink-2);font-size:10px}
+.model-wave-fields input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);border-radius:6px;padding:6px;background:var(--surface-sunk);color:var(--ink);font:inherit}
+.model-wave-actions{display:flex;gap:6px;flex-wrap:wrap}
+.model-wave-controls .model-wave-status,.model-wave-controls .model-wave-note{font-size:10px;line-height:1.5;color:var(--ink-2);overflow-wrap:anywhere}
+.model-wave-library-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:10px}
+.model-wave-library-head strong{margin-right:auto}
+.model-wave-entries{display:grid;gap:6px;max-height:310px;overflow:auto;margin-top:10px}
+.model-wave-entry{display:grid;gap:5px;padding:8px;border-radius:7px;border:1px solid var(--line);background:var(--surface-sunk);min-width:0}
+.model-wave-entry strong{font-size:10px;overflow-wrap:anywhere}
+.model-wave-entry span{font-size:9px;color:var(--ink-2)}
+.model-wave-entry .wave-trace{display:block;width:100%;max-height:110px;overflow:visible;color:var(--ink-2)}
+.model-wave-import{display:inline-flex;align-items:center}
+.viewer-conversion-required{padding:28px;max-width:650px;background:var(--surface);color:var(--ink);margin:18px;border-radius:10px}
+.viewer-conversion-required h2{font-size:20px}
+.viewer-conversion-required p{line-height:1.55}
+@media(max-width:1050px){.model-viewer-workbench{grid-template-columns:minmax(0,1fr) 230px}}
+@media(max-width:760px){
+  .model-viewer-workbench{height:auto;min-height:100%;grid-template-columns:minmax(0,1fr)}
+  .model-viewer-stage,.model-viewer-stage .three-stage,.model-viewer-stage .three-canvas{height:54vh;min-height:290px}
+  .model-viewer-inspector{max-height:none;overflow:visible;border-left:0;border-top:1px solid var(--line)}
+  .model-viewer-section{padding:10px}
+}
