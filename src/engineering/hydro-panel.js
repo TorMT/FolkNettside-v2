@@ -10,7 +10,7 @@ export function hydroPreflightHTML(validation){
   const heading=validation.passed?"Mesh preflight passed":"Hydro blocked: hull mesh failed validation";
   const entries=(validation.components||[]).map(item=>{
     const m=item.metrics;
-    const counts=m?`<span>${m.triangleCount} triangles · ${m.boundaryEdges} open edges · ${m.nonManifoldEdges} non-manifold · ${m.windingConflicts} winding conflicts</span>`:"";
+    const counts=m?`<span>${m.triangleCount} triangles · ${m.boundaryEdges} open edges · ${m.nonManifoldEdges} non-manifold · ${m.windingConflicts} winding conflicts${m.selfIntersections!==null&&m.selfIntersections!==undefined?` · ${m.selfIntersections} triangle collisions`:""}${m.edgeConnectedShells!==null&&m.edgeConnectedShells!==undefined?` · ${m.edgeConnectedShells} edge-connected shells`:""}</span>`:"";
     return `<li><strong>${esc(item.name||item.componentId)}</strong>
       ${counts}
       ${item.errors.length?`<ul>${item.errors.map(error=>`<li>${esc(error)}</li>`).join("")}</ul>`:""}</li>`;
