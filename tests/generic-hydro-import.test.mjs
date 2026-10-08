@@ -74,3 +74,22 @@ test("unclosed shell remains blocked after manual selection",()=>{
  assert.equal(validateHydroModel(selected).passed,false);
  assert.throws(()=>executeHydroRequest(selected,"analyze",{waterline:1}),/preflight blocked/);
 });
+
+test("generic source axes can be reoriented to Z-up using rigid rotations",()=>{
+ const base=boxMesh({L:10,B:3,H:2});
+ // Input was exported Y-up: inverse transform of the canonical (x,y,z).
+ const yUp=base.positions.slice();
+ for(let i=0;i<yUp.length;i+=3){
+   const y=base.positions[i+1],z=base.positions[i+2];
+   yUp[i+1]=z;yUp[i+2]=-y;
+ }
+ const source=createModelDocument({name:"source-y-up",format:"STL",components:[
+   {id:"body",geometry:{positions:yUp,indices:base.indices}}
+ ]});
+ const prepared=prepareGenericHydroImport(source,{upAxis:"y-up"});
+ const selected=withHydroSurfaceSelection(prepared,[prepared.components[0].id]);
+ assert.equal(validateHydroModel(selected).passed,true);
+ assert.ok(Math.abs(executeHydroRequest(selected,"analyze",{waterline:1}).volume-30)<1e-7);
+ assert.equal(prepared.importUpAxis,"y-up");
+ assert.throws(()=>prepareGenericHydroImport(source,{upAxis:"down"}),/Unsupported source up axis/);
+});
