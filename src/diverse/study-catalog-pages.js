@@ -39,6 +39,12 @@ export function studyCatalogPageHTML(kind){
       </div>
       <div class="study-catalog-result-head"><strong id="catalog-count">—</strong><span id="catalog-status"></span></div>
       <div class="study-catalog-results" id="catalog-results" aria-live="polite"></div>
+      <details class="study-catalog-source-fallback">
+        <summary>Vis eksisterende ${title}-innhold i gammel visning</summary>
+        <p>Dette er midlertidig kildevisning for oppføringer som ennå ikke er migrert. Innholdet kommer fra den gamle nettsiden og følger ikke v2-filtrene.</p>
+        <iframe loading="lazy" title="${title} original visning" data-legacy-src="${URLS[kind].legacy}" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+        <p>Hvis innbygging blokkeres: <a href="${URLS[kind].legacy}" target="_blank" rel="noopener noreferrer">åpne originalen direkte</a>.</p>
+      </details>
       ${!kok?`<section class="study-catalog-course-section"><h2>Øvingsfiler i Courses</h2>
        <p class="muted">Viser øvings- og obligatoriske ressurser som allerede finnes i v2-manifestet. Dette er ikke nødvendigvis den gamle LAOS-samlingen.</p>
        <div id="catalog-course-resources" class="study-catalog-results"></div></section>`:""}
@@ -111,6 +117,12 @@ export async function mountStudyCatalog(root,{kind,semesters=[],onBack=()=>{},on
       '<div class="study-catalog-empty"><strong>Ingen tilsvarende ressurser funnet i Courses.</strong><p>Det betyr ikke at det gamle LAOS-arkivet er tomt.</p></div>';
   }
   function refresh(){render();renderExercises();}
+  root.querySelector(".study-catalog-source-fallback")?.addEventListener("toggle",event=>{
+    if(event.currentTarget.open){
+      const frame=event.currentTarget.querySelector("iframe[data-legacy-src]");
+      if(frame&&!frame.src)frame.src=frame.dataset.legacySrc;
+    }
+  },{signal:ac.signal});
   root.querySelector("[data-study-catalog-back]")?.addEventListener("click",onBack,{signal:ac.signal});
   root.querySelector("[data-catalog-upload]")?.addEventListener("click",()=>fileInput.click(),{signal:ac.signal});
   root.querySelector("[data-catalog-reset]")?.addEventListener("click",()=>{
