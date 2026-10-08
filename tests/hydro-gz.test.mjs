@@ -30,7 +30,8 @@ test("symmetric barge GZ is antisymmetric in signed geometry and restoring magni
   const upright=analyzeModelDocument(model,1);
   const positive=gzAtHeel(model,{heelDeg:10,targetVolume:upright.volume,kg:.5});
   const negative=gzAtHeel(model,{heelDeg:-10,targetVolume:upright.volume,kg:.5});
-  near(positive.gz,negative.gz,2e-5);
+  near(positive.gz,-negative.gz,2e-5);
+  near(positive.rightingMoment,-negative.rightingMoment,5);
   near(positive.signedLever,-negative.signedLever,2e-5);
 });
 
@@ -55,7 +56,7 @@ test("zero heel returns zero GZ",()=>{
 
 test("GZ metrics summarize maximum, positive area and first-point GM estimate",()=>{
   const curve=[
-    {heelDeg:-10,gz:.20,rightingMoment:10},
+    {heelDeg:-10,gz:-.20,rightingMoment:-10},
     {heelDeg:0,gz:0,rightingMoment:0},
     {heelDeg:5,gz:.10,rightingMoment:5},
     {heelDeg:10,gz:.16,rightingMoment:8},
@@ -63,8 +64,8 @@ test("GZ metrics summarize maximum, positive area and first-point GM estimate",(
   ];
   const metrics=gzMetrics(curve);
   assert.equal(metrics.valid,true);
-  near(metrics.maxGz,.20);
-  near(metrics.angleAtMaxGz,-10);
+  near(metrics.maxGz,.16);
+  near(metrics.angleAtMaxGz,10);
   near(metrics.initialGmEstimate,.10/Math.sin(5*Math.PI/180),1e-12);
   const expectedArea=((0+.10)/2*5+(.10+.16)/2*5+(.16+.12)/2*5)*Math.PI/180;
   near(metrics.areaPositiveMrad,expectedArea,1e-12);
