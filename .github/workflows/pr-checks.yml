@@ -94,3 +94,27 @@ jobs:
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4195/tests/browser/hydro-waterplane-smoke.html
+
+      - name: Semester rail hides scrollbar on mobile and desktop
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          python3 -m http.server 4186 --bind 127.0.0.1 >/tmp/semester-layout-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python3 - <<'PY'
+          import time,urllib.request
+          for _ in range(60):
+              try:
+                  urllib.request.urlopen('http://127.0.0.1:4186/tests/browser/semester-mobile-smoke.html',timeout=1).read(20)
+                  break
+              except Exception:time.sleep(.1)
+          else:raise SystemExit('Semester layout browser server failed')
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=390,844 --virtual-time-budget=5000 \
+            --dump-dom http://127.0.0.1:4186/tests/browser/semester-mobile-smoke.html >/tmp/semester-layout-mobile.html
+          grep -q 'data-status="pass"' /tmp/semester-layout-mobile.html || { cat /tmp/semester-layout-mobile.html; exit 1; }
+          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=900,844 --virtual-time-budget=5000 \
+            --dump-dom 'http://127.0.0.1:4186/tests/browser/semester-mobile-smoke.html?desktop=1' >/tmp/semester-layout-desktop.html
+          grep -q 'data-status="pass"' /tmp/semester-layout-desktop.html || { cat /tmp/semester-layout-desktop.html; exit 1; }
+          grep '<pre id="result">' /tmp/semester-layout-mobile.html /tmp/semester-layout-desktop.html
