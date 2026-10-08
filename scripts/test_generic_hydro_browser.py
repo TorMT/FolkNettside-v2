@@ -117,7 +117,47 @@ def main(url):
         for actual,expected,tol,name in checks:
             if abs(actual-expected)>tol:
                 raise RuntimeError(f"Wrong loaded {name}: {actual}, expected {expected}")
-        print("GENERIC HYDRO BROWSER PASS: 2 STL shells, unit/axis gate, selection, volume, KG, GZ, draft solve, attitude, heel/trim equilibrium point weights, loaded GM in both axes and export controls")
+        # Re-enter an explicit hull mass and area load; verify loaded GM
+        # numerically against an independent 10 x 3 m box formula.
+        js(sid,"document.querySelector('#hydro-point-reset').click();return true")
+        wait(sid,"return !!document.querySelector('#hydro-hull-mass')",
+             "Explicit hull mass input restored",seconds=35)
+        js(sid,"""const set=(id,value)=>{const el=document.querySelector(id);el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}))};
+          set('#hydro-hull-mass','30.75');
+          set('#hydro-point-weights','1,1,0.5,2');
+          set('#hydro-area-loads','0.25,-2,2,-1,1,2');
+          document.querySelector('#hydro-point-apply').click();
+          return true;""")
+        wait(sid,"return document.querySelector('.hydro-point-summary')?.innerText.includes('33.750')&&!!document.querySelector('.hydro-loaded-gm-grid')",
+             "Hull mass + point and rectangular deck mass leads to loaded GM",seconds=60)
+        new_values=js(sid,"return [...document.querySelectorAll('.hydro-loaded-gm-grid strong')].map(e=>Number.parseFloat(e.textContent))")
+        target=33.75
+        T_expected=(target*1000/1025)/(10*3)
+        kg_expected=(30.75*0.5+1*2+2*2)/target
+        expected=[target,T_expected,T_expected/2+3**2/(12*T_expected)-kg_expected,
+                  T_expected/2+10**2/(12*T_expected)-kg_expected]
+        for actual,reference,tolerance,label in zip(new_values,expected,[0.002,0.0002,0.0002,0.0002],["mass","draft","GMt","GMl"]):
+            if abs(actual-reference)>tolerance:
+                raise RuntimeError(f"Loaded area/point {label}: {actual}, expected {reference}")
+
+        js(sid,"[...document.querySelectorAll('[data-engineering-mode]')].find(e=>e.dataset.engineeringMode==='Structure').click();return true")
+        wait(sid,"return !!document.querySelector('#girder-run')",
+             "Global hull-girder structure controls visible",seconds=35)
+        read=js(sid,"return [document.querySelector('#girder-hull-mass').value,document.querySelector('#girder-cg-z').value]")
+        if read!=["30.75","0.5"]:
+            raise RuntimeError("Structure must use original hull mass/CG, not loaded CG: "+str(read))
+        js(sid,"""const set=(id,value)=>{document.querySelector(id).value=value};
+          set('#girder-e','210');set('#girder-i','0.08');
+          set('#girder-c','1');set('#girder-neutral-z','1');
+          document.querySelector('#girder-axis-confirm').checked=true;
+          document.querySelector('#girder-run').click();return true;""")
+        wait(sid,"return document.querySelectorAll('.hull-fem-diagram').length===2",
+             "Engineering Structure solve and colored stress/deflection diagrams",seconds=60)
+        wait(sid,"return !!document.querySelector('#girder-3d-legend')&&!!document.querySelector('#engineering-scene canvas')",
+             "3D hull colored by global FEM stress",seconds=60)
+        structure_error=js(sid,"return document.querySelector('.hydro-solve-error')?.textContent||''")
+        if structure_error:raise RuntimeError("Unexpected global FEM error: "+structure_error)
+        print("GENERIC HYDRO BROWSER PASS: 2 STL shells, unit/axis gate, selection, volume, KG, GZ, draft solve, attitude, heel/trim equilibrium point/area loads, loaded GM in both axes, structural contours and export controls")
     finally:
         if sid:
             try:call("DELETE",f"/session/{sid}")
