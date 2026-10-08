@@ -15,7 +15,8 @@ test("Dive map is native, Njord points into Engineering and LeseRavnen remains p
   assert.equal(diverseModule("njord").route,"/engineering");
   assert.equal(diverseModule("njord").status,"superseded");
   assert.equal(diverseModule("leseravnen").status,"preserved");
-  assert.match(diverseModule("leseravnen").legacyUrl,/LeseRavnen/);
+  assert.equal(diverseModule("leseravnen").legacyUrl,null);
+  assert.equal(diverseModule("leseravnen").externalUrl,"https://tormt.github.io/LeseRavnen/");
   assert.equal(diverseModule("matpris").status,"migration");
   assert.equal(diverseModule("matpris").route,"/diverse/matpris");
   assert.equal(diverseModule("sandalen").route,"/diverse/sandalen");
