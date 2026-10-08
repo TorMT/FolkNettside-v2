@@ -12,7 +12,7 @@
 - `src/diverse/study-catalog-core.js`: HTML-independent catalog validation, URL sanitisation, filtering and extraction of exercise-like resources from the **already published v2 Courses manifest**.
 - `data/diverse/laos-assignments.json` and `data/diverse/kok-sites.json`: schema-versioned source manifests, currently **explicitly empty and unverified**. Empty is not evidence that the legacy source has no records.
 - LAOS separately presents exercise-like resources already indexed by v2 Courses; it does **not** mislabel those as records copied from legacy LAOS.
-- The original pages remain accessible as external fallback until their full listings have been exported and parity reviewed.
+- The original pages remain accessible via direct links and a lazy, opt-in embedded source panel until their full listings have been exported and parity reviewed.
 
 ## Data import contract
 
