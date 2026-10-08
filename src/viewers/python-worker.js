@@ -57,7 +57,7 @@ function generatedFiles(py){
   }
   return outputs;
 }
-async function run(code){
+async function run(code,stdin=""){
   const py=await ensurePython();
   if(typeof code!=="string"||code.length>500000)
     throw new Error("Python source must be text under 500 KB");
@@ -66,6 +66,22 @@ async function run(code){
   const append=(target,msg)=>String(target+msg+"\n").slice(-limit);
   py.setStdout({batched:msg=>{stdout=append(stdout,msg)}});
   py.setStderr({batched:msg=>{stderr=append(stderr,msg)}});
+  if(typeof stdin!=="string"||stdin.length>100000)
+    throw new Error("Python stdin must be text under 100 KB");
+  py.globals.set("_viewer_stdin_text",stdin);
+  py.runPython(`import builtins
+if not hasattr(builtins, "_viewer_original_input"):
+    builtins._viewer_original_input = builtins.input
+_viewer_input_lines = iter(_viewer_stdin_text.splitlines())
+def _viewer_input(prompt=""):
+    if prompt:
+        print(prompt, end="")
+    try:
+        return next(_viewer_input_lines)
+    except StopIteration:
+        raise EOFError("No more supplied Python input lines")
+builtins.input = _viewer_input
+`);
   await py.loadPackagesFromImports(code);
   let result=null;
   try{
@@ -106,7 +122,7 @@ self.onmessage=async({data})=>{
   try{
     if(command==="run"){
       send({id,phase:"loading"});
-      const result=await run(data.code);
+      const result=await run(data.code,data.stdin||"");
       send({id,phase:"done",ok:true,...result});
     }else if(command==="mount"){
       send({id,phase:"loading"});
