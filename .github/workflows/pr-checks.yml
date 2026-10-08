@@ -18,7 +18,9 @@ jobs:
       - name: Run regression tests
         run: npm test
       - name: Verify all CoolProp native/reference tables with real WASM
-        run: node scripts/verify_coolprop_reference.mjs
+        run: |
+          python3 scripts/fetch_coolprop_wasm.py
+          node scripts/verify_coolprop_reference.mjs
 
       - name: MedisinTimer browser smoke
         run: |
