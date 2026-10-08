@@ -99,7 +99,7 @@ export const DIVERSE_MODULES=[
     status:"migration",
     access:"public",
     category:"Archive",
-    summary:"Eksisterende øvingsvisning er tilgjengelig gjennom v2 mens filinnholdet kartlegges til felles Courses-modell.",
+    summary:"Ny v2-oversikt for LAOS og øvingsressurser i Courses. Originalt LAOS-filarkiv venter på verifisert innholdsuttrekk; gammel side er bevart.",
     legacyUrl:"https://tormt.folk.ntnu.no/diverse/LAOS/",
     storage:"local",
     sync:"none"
@@ -112,7 +112,7 @@ export const DIVERSE_MODULES=[
     status:"migration",
     access:"public",
     category:"Study",
-    summary:"Eksisterende koksider, sortering og filtre er bevart gjennom v2 mens katalogen flyttes mot felles studieflate.",
+    summary:"Ny v2-katalog med søk, studie-, spesialisering- og årskullfilter og sortering. Oppføringer må overføres fra verifisert kilde; gammel side er bevart.",
     legacyUrl:"https://tormt.folk.ntnu.no/diverse/AndreKokSider/",
     storage:"local",
     sync:"none"
