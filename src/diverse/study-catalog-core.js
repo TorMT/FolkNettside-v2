@@ -19,7 +19,7 @@ export function validateDiverseCatalog(value,kind){
   const items=value.items.map((entry,index)=>{
     if(!entry||typeof entry!=="object")throw new Error("Ugyldig oppføring "+index);
     const name=norm(entry.name||entry.title);
-    const url=safeCatalogUrl(entry.url);
+    const url=safeCatalogUrl(entry.url,{allowRelative:expected==="laos"});
     if(!name||name.length>200||!url)throw new Error("Katalogoppføring mangler gyldig tittel/HTTPS-lenke "+index);
     const item={name,url,source:norm(entry.source||value.source).slice(0,220)};
     if(expected==="kok"){
