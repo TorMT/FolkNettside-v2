@@ -60,6 +60,52 @@ export function stitchWaterplaneContours(segments,{tolerance=DEFAULT_TOLERANCE}=
   return loops;
 }
 
+function cross2(a,b,c){
+  return (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+}
+function onSegment(a,b,p,tol){
+  return Math.min(a[0],b[0])-tol<=p[0]&&p[0]<=Math.max(a[0],b[0])+tol
+    &&Math.min(a[1],b[1])-tol<=p[1]&&p[1]<=Math.max(a[1],b[1])+tol;
+}
+function planarSegmentsMeet(a,b,c,d,tol){
+  const crossA=cross2(a,b,c),crossB=cross2(a,b,d);
+  const crossC=cross2(c,d,a),crossD=cross2(c,d,b);
+  const threshold=tol*Math.max(Math.hypot(b[0]-a[0],b[1]-a[1]),
+    Math.hypot(d[0]-c[0],d[1]-c[1]),tol);
+  if(crossA*crossB<0&&crossC*crossD<0)return true;
+  return (Math.abs(crossA)<=threshold&&onSegment(a,b,c,tol))
+    ||(Math.abs(crossB)<=threshold&&onSegment(a,b,d,tol))
+    ||(Math.abs(crossC)<=threshold&&onSegment(c,d,a,tol))
+    ||(Math.abs(crossD)<=threshold&&onSegment(c,d,b,tol));
+}
+function rejectCrossingContours(loops,tol){
+  const lines=[];
+  for(let loop=0;loop<loops.length;loop++)
+    for(let edge=0;edge<loops[loop].length;edge++){
+      const a=loops[loop][edge],b=loops[loop][(edge+1)%loops[loop].length];
+      lines.push({a,b,loop,edge,n:loops[loop].length,
+        minX:Math.min(a[0],b[0]),maxX:Math.max(a[0],b[0]),
+        minY:Math.min(a[1],b[1]),maxY:Math.max(a[1],b[1])});
+    }
+  lines.sort((a,b)=>a.minX-b.minX);
+  const active=[];
+  let comparisons=0;
+  for(const current of lines){
+    for(let i=active.length-1;i>=0;i--)if(active[i].maxX<current.minX-tol)active.splice(i,1);
+    for(const previous of active){
+      if(previous.maxY<current.minY-tol||previous.minY>current.maxY+tol)continue;
+      if(current.loop===previous.loop&&
+        (current.edge===previous.edge||Math.abs(current.edge-previous.edge)===1||
+        Math.abs(current.edge-previous.edge)===current.n-1))continue;
+      if(++comparisons>1000000)
+        throw new Error("Waterplane contour crossing check exceeded safe comparison limit");
+      if(planarSegmentsMeet(previous.a,previous.b,current.a,current.b,tol))
+        throw new Error("Waterplane contours intersect or self-cross; hull/waterline needs review");
+    }
+    active.push(current);
+  }
+}
+
 function containsPoint(point,polygon){
   // For independent nonintersecting loops their first vertices cannot be on
   // another contour boundary. Even-odd parity supports islands within holes.
@@ -95,6 +141,7 @@ export function integrateWaterplaneContours(segments,options={}){
   const loops=stitchWaterplaneContours(segments,options);
   if(!loops.length)return {area:0,centroid:[0,0],ixx:0,iyy:0,ixy:0,
     loops:[],outerContours:0,holeContours:0};
+  rejectCrossingContours(loops,options.tolerance??DEFAULT_TOLERANCE);
   const origin=loops[0][0],moments=loops.map(loop=>polygonMoments(loop,origin));
   let area=0,mx=0,my=0,ixxOrigin=0,iyyOrigin=0,ixyOrigin=0;
   let outerContours=0,holeContours=0;
