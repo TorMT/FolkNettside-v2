@@ -61,7 +61,9 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     try{
       const result=await session.run(entry.cell.getSource(),{
         status:s=>entry.cell.setStatus(s),
-        stdin:container.querySelector("[data-nb-stdin]")?.value||""
+        stdin:container.querySelector("[data-nb-stdin]")?.value||"",
+        sourceURL:resource.path?new URL(resource.path,document.baseURI).href:"",
+        onOutput:output=>entry.cell.pushOutput(output)
       });
       if(!disposed&&!stopped)entry.cell.showOutput(result);
     }catch(error){
