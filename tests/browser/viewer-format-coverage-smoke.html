@@ -1,0 +1,61 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>File format viewer coverage</title>
+<link rel="stylesheet" href="../../assets/style.css">
+</head><body data-status="running"><div id="host"></div><pre id="result">Testing viewer adapters...</pre>
+<script type="module">
+import {loadAdapter} from "../../src/viewers/registry.js";
+import {getJSZip} from "../../src/vendor/jszip.js";
+import * as imageViewer from "../../src/viewers/adapters/image.js";
+import * as audioViewer from "../../src/viewers/adapters/audio.js";
+import * as conversionViewer from "../../src/viewers/adapters/conversion.js";
+import * as unsupportedViewer from "../../src/viewers/adapters/unsupported.js";
+import * as archiveViewer from "../../src/viewers/adapters/archive.js";
+import * as objViewer from "../../src/viewers/adapters/obj.js";
+const host=document.querySelector("#host"),result=document.querySelector("#result");
+const assert=(ok,why)=>{if(!ok)throw new Error(why)};
+const tick=()=>new Promise(resolve=>setTimeout(resolve,60));
+const urls=[];
+try{
+ const img="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO1RUxQAAAAASUVORK5CYII=";
+ const image=await imageViewer.render(host,{path:img,name:"one.png"});
+ assert(host.querySelector(".image-viewer img"),"Image viewer is blank");
+ host.querySelector("[data-image-native]").click();
+ assert(host.querySelector("img").classList.contains("is-native"),"Native image zoom failed");
+ image.actions.resetZoom();
+ assert(!host.querySelector("img").classList.contains("is-native"),"Image reset failed");
+ await audioViewer.render(host,{path:"data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",name:"sound.wav"});
+ assert(host.querySelector("audio[controls]"),"Audio controls missing");
+ const conversion=await conversionViewer.render(host,{path:"model.step"});
+ assert(host.querySelector(".viewer-conversion-required"),"CAD conversion explanation missing");
+ assert(conversion.info.includes("conversion"),"False STEP preview");
+ await unsupportedViewer.render(host,{path:"unknown.7z"});
+ assert(host.textContent.includes("Download original file"),"Unsupported viewer lacks recovery");
+ const JSZip=await getJSZip(),zip=new JSZip();
+ zip.file("notes/readme.txt","test");
+ zip.file("data/table.csv","a,b\n1,2");
+ const archiveUrl=URL.createObjectURL(await zip.generateAsync({type:"blob"}));
+ urls.push(archiveUrl);
+ const archive=await archiveViewer.render(host,{path:archiveUrl,name:"notes.zip"});
+ assert(host.querySelectorAll("tbody tr").length===2,"ZIP archive list incomplete");
+ const search=host.querySelector(".archive-viewer-search");
+ search.value="csv";search.dispatchEvent(new Event("input",{bubbles:true}));
+ assert(host.querySelectorAll("tbody tr").length===1,"Archive filter not applied");
+ assert(host.querySelector("tbody").textContent.includes("table.csv"),"ZIP filtered wrong entry");
+ archive.cleanup();
+ const objText="v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n";
+ const objUrl=URL.createObjectURL(new Blob([objText],{type:"text/plain"}));
+ urls.push(objUrl);
+ const obj=await objViewer.render(host,{path:objUrl,name:"triangle.obj"});
+ assert(host.querySelector(".model-viewer-workbench"),"OBJ model workbench absent");
+ assert(host.querySelector(".three-canvas"),"OBJ not shown as real 3D preview");
+ obj.cleanup?.();
+ const all=await Promise.all(["glb","gltf","obj","png","zip","wav","step","7z"].map(async ext=>
+   (await loadAdapter({kind:"FILE",path:"test."+ext})).kind));
+ assert(all.join(",")==="gltf,gltf,obj,image,archive,audio,conversion,unsupported",
+   "Unexpected file adapter dispatch: "+all);
+ document.body.dataset.status="pass";
+ result.textContent="PASS: PNG image/zoom, WAV playback controls, STEP conversion, unknown fallback, searchable ZIP, 3D OBJ viewer and extension routing";
+}catch(error){
+ document.body.dataset.status="fail";
+ result.textContent=String(error.stack||error);
+}finally{urls.forEach(url=>URL.revokeObjectURL(url))}
+</script></body></html>
