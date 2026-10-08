@@ -181,7 +181,7 @@ export function courseTableConfig(fluid){
   const phaseChange=["Propane","CO2","Methane","Oxygen","Nitrogen"].includes(fluid);
   const lowT=["CO2","Oxygen","Nitrogen","Methane"].includes(fluid);
   return {
-    label:`${fluid} · native CoolProp property tables`,
+    label:`${fluid} · native CoolProp basis`,
     native:true,
     tables:[
       {
