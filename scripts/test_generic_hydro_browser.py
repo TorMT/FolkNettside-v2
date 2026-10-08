@@ -71,7 +71,28 @@ def main(url):
         wait(sid,"return document.querySelector('.hydro-preflight-pass')!==null","Hydro preflight accepted")
         readout=js(sid,"return document.querySelector('.results-summary')?.innerText||''")
         if "30" not in readout:raise RuntimeError("Expected 30 m3, got "+repr(readout))
-        print("GENERIC HYDRO BROWSER PASS: 2 STL shells, manual selection, confirmed axes, 30 m3 hydro")
+        # Exercise the actual Engineering event handlers, not only rendered controls.
+        js(sid,"const e=document.querySelector('#hydro-kg');e.value='0.5';e.dispatchEvent(new Event('change',{bubbles:true}));return true")
+        wait(sid,"return !!document.querySelector('#hydro-gz')&&!document.querySelector('#hydro-gz').disabled",
+             "KG enables GZ/attitude buttons")
+        js(sid,"document.querySelector('#hydro-gz').click();return true")
+        wait(sid,"return !!document.querySelector('.gz-curve svg')&&!document.querySelector('#hydro-export-gz')?.disabled",
+             "GZ button creates computed plot and downloadable table",seconds=60)
+        js(sid,"const t=document.querySelector('#hydro-target');t.value='30.75';document.querySelector('#hydro-solve').click();return true")
+        wait(sid,"return document.querySelector('.hydro-solve-result')?.innerText.includes('volume residual')",
+             "Solve draft updates Hydro result with volume residual",seconds=45)
+        js(sid,"document.querySelector('#hydro-attitude').click();return true")
+        wait(sid,"return !!document.querySelector('.hydro-attitude-result')",
+             "Attitude analysis action returns numerical result",seconds=60)
+        js(sid,"document.querySelector('#hydro-equilibrium-heel').click();return true")
+        wait(sid,"return !!document.querySelector('.hydro-attitude-result')&&document.querySelector('.hydro-attitude-result').innerText.includes('Heel equilibrium')",
+             "Heel equilibrium button updates Hydro inspector",seconds=60)
+        js(sid,"document.querySelector('#hydro-equilibrium-trim').click();return true")
+        wait(sid,"return !!document.querySelector('.hydro-attitude-result')&&document.querySelector('.hydro-attitude-result').innerText.includes('Trim equilibrium')",
+             "Trim equilibrium button updates Hydro inspector",seconds=60)
+        assert_exports=js(sid,"return !!document.querySelector('#hydro-export-table')&&!document.querySelector('#hydro-export-table').disabled")
+        if not assert_exports:raise RuntimeError("Hydrostatic CSV export is disabled")
+        print("GENERIC HYDRO BROWSER PASS: 2 STL shells, unit/axis gate, selection, volume, KG, GZ, draft solve, attitude, heel/trim equilibrium and export controls")
     finally:
         if sid:
             try:call("DELETE",f"/session/{sid}")

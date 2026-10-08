@@ -118,3 +118,23 @@ jobs:
             --dump-dom 'http://127.0.0.1:4186/tests/browser/semester-mobile-smoke.html?desktop=1' >/tmp/semester-layout-desktop.html
           grep -q 'data-status="pass"' /tmp/semester-layout-desktop.html || { cat /tmp/semester-layout-desktop.html; exit 1; }
           grep '<pre id="result">' /tmp/semester-layout-mobile.html /tmp/semester-layout-desktop.html
+
+      - name: Complete Hydro block numerical and worker browser check
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4197 --bind 127.0.0.1 >/tmp/hydro-complete-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/hydro-complete-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4197/tests/browser/hydro-block-complete-smoke.html
+
+      - name: Dive map icon and filter browser interaction check
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4196 --bind 127.0.0.1 >/tmp/dive-icon-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/dive-icon-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4196/tests/browser/diverse-dive-smoke.html

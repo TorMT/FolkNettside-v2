@@ -131,3 +131,21 @@
 .study-catalog-welcome{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
 .study-catalog-welcome>summary{cursor:pointer;padding:13px 15px;font-size:12px;color:var(--ink-2)}
 .study-catalog-welcome img{display:block;width:auto;max-width:100%;max-height:440px;object-fit:contain;margin:12px auto;border-radius:6px}
+
+/* Self-contained SVG map markers: no reliance on Leaflet PNG icons/CDN assets. */
+.dive-leaflet-marker{background:transparent;border:0}
+.dive-map-pin{display:grid;place-items:center;width:33px;height:33px;position:relative;
+  border:2px solid #fff;border-radius:50% 50% 50% 7px;transform:rotate(-45deg);
+  background:#14658a;color:#fff;box-shadow:0 2px 9px rgba(2,16,25,.55);
+  transition:transform .14s ease,box-shadow .14s ease}
+.dive-map-pin svg{width:20px;height:20px;transform:rotate(45deg);display:block;overflow:visible}
+.dive-map-pin.dive-map-marker--wreck{background:#79456b}
+.dive-map-pin.is-selected,.leaflet-marker-icon:hover .dive-map-pin{box-shadow:0 0 0 4px #e6b13a,0 4px 12px rgba(2,16,25,.5)}
+.dive-map-legend{position:absolute;top:12px;right:12px;z-index:500;display:flex;gap:8px;
+  flex-wrap:wrap;padding:7px 9px;background:rgb(8 31 44 / .91);color:#fff;
+  border:1px solid rgb(255 255 255 / .16);border-radius:9px;
+  font-size:10px;line-height:1.4;pointer-events:none}
+.dive-map-legend>span{display:flex;align-items:center;gap:6px}
+.dive-map-legend .dive-map-pin{width:20px;height:20px;min-width:20px;border-width:1px;box-shadow:none}
+.dive-map-legend .dive-map-pin svg{width:13px;height:13px}
+@media(max-width:760px){.dive-map-legend{top:auto;bottom:47px;left:9px;right:auto;font-size:9px}}

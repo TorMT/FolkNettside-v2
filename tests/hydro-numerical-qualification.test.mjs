@@ -93,7 +93,7 @@ test("GM inferred from small-angle GZ converges to independently calculated GM f
  const kg=.5,gm=initialStability(hydro,{kg}).gmTransverse;
  const positive=gzAtHeel(ship,{heelDeg:.5,targetVolume:hydro.volume,kg});
  const negative=gzAtHeel(ship,{heelDeg:-.5,targetVolume:hydro.volume,kg});
- near(positive.gz,negative.gz,1e-5);
+ near(positive.gz,-negative.gz,1e-5);
  const check=auditSmallAngleGz([negative,positive],gm,{maxAngleDeg:1});
  assert.equal(check.status,"pass",JSON.stringify(check));
  near(check.estimatedGm,gm,.01);

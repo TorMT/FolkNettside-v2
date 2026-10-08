@@ -45,7 +45,10 @@ export function gzAtHeel(modelDocument,{
   const centerOfGravity=transformPoint(rotation,[0,0,kgValue]);
   const centerOfBuoyancy=solved.result.centerOfBuoyancy;
   const signedLever=centerOfBuoyancy[1]-centerOfGravity[1];
-  const gz=heel===0?0:-Math.sign(heel)*signedLever;
+  // Signed righting arm in the vessel's roll convention:
+  // GZ is odd in heel for a laterally symmetric hull, whereas the
+  // stabilizing magnitude is |GZ| on either side.
+  const gz=heel===0?0:-signedLever;
   const displacementMass=volume*Number(density||1025);
 
   return {
@@ -73,8 +76,10 @@ export function gzCurve(modelDocument,{
   maxIterations=60,
   include=createHydroInclude(modelDocument)
 }={}){
-  const start=Number(minHeel),end=Number(maxHeel),increment=Math.abs(Number(step)||5);
-  if(!(end>=start))throw new Error("maxHeel must be >= minHeel");
+  const start=Number(minHeel),end=Number(maxHeel),increment=Number(step);
+  if(![start,end,increment].every(Number.isFinite)||!(increment>0)||!(end>=start))
+    throw new Error("GZ curve requires finite ordered heel limits and a positive step");
+  if((end-start)/increment>360)throw new Error("GZ curve exceeds 361 sample limit");
   const values=[];
   for(let heel=start;heel<=end+increment*1e-9;heel+=increment){
     values.push(gzAtHeel(modelDocument,{

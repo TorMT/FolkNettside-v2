@@ -1,5 +1,6 @@
 import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js";
 import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js";
+import {diveMapLegendHTML,diveMarkerClass,diveMarkerHTML} from "./dive-marker-icons.js";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -65,14 +66,14 @@ export function diveMapHTML(){
       </div>
     </section>
     <section class="dive-workspace">
-      <div class="dive-map-panel"><div id="dive-map-canvas" aria-label="Dive sites map"></div><div id="dive-map-note" class="dive-map-note">Map loading…</div></div>
+      <div class="dive-map-panel"><div id="dive-map-canvas" aria-label="Dive sites map"></div>${diveMapLegendHTML()}<div id="dive-map-note" class="dive-map-note">Map loading…</div></div>
       <aside class="dive-list-panel"><div id="dive-list" class="dive-list"></div></aside>
       <aside class="dive-inspector" id="dive-inspector"><div class="dive-empty"><strong>Select a site</strong><span>Details, caveats and source links appear here.</span></div></aside>
     </section>
   </main>`;
 }
 
-export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.geojson",onBack=()=>{}}={}){
+export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.geojson",onBack=()=>{},leaflet=null}={}){
   let disposed=false;
   let map=null;
   let layer=null;
@@ -92,16 +93,21 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
 
   const markers=new Map();
   const selectFeature=(feature,{zoom=true}={})=>{
-    state.selected=feature?.properties?.ID||null;
+    state.selected=feature?.properties?.ID==null?null:String(feature.properties.ID);
     elements.inspector.innerHTML=featureDetail(feature,{origin:state.origin});
     root.querySelectorAll("[data-dive-id]").forEach(node=>node.classList.toggle("selected",node.dataset.diveId===state.selected));
     const marker=markers.get(state.selected);
     if(marker&&map){marker.openPopup();if(zoom)map.setView(marker.getLatLng(),Math.max(map.getZoom(),11),{animate:true})}
+    elements.map?.querySelectorAll(".dive-map-pin").forEach(el=>el.classList.toggle("is-selected",el.closest(".leaflet-marker-icon")?.getAttribute("data-site-id")===state.selected));
   };
 
   const render=()=>{
     const visible=sortDiveFeatures(filterDiveFeatures(features,state),state.sort,{origin:state.origin});
     currentVisible=visible;
+    if(state.selected&&!visible.some(feature=>String(feature.properties?.ID)===state.selected)){
+      state.selected=null;
+      elements.inspector.innerHTML='<div class="dive-empty"><strong>Select a site</strong><span>Choose a visible map marker or listed dive site.</span></div>';
+    }
     const stats=diveStats(visible);
     elements.stats.innerHTML=`<strong>${stats.total}</strong> shown · ${stats.nature} nature/area · ${stats.wrecks} wreck · ${stats.withCoordinates} mapped · ${stats.withDepth} with documented max depth · ${stats.withWildlife} with wildlife${state.origin?" · distance enabled":""}`;
     elements.list.innerHTML=visible.map(feature=>{
@@ -122,20 +128,26 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
     if(layer&&map){
       layer.clearLayers();markers.clear();
       const bounds=[];
-      const accent=getComputedStyle(document.documentElement).getPropertyValue("--accent").trim()||"#b3157a";
       visible.forEach(feature=>{
         const [lon,lat]=feature.geometry?.coordinates||[];
         if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
-        const isWreck=diveFeatureKind(feature)==="wreck";
-        const quality=diveFeatureQuality(feature);
-        const marker=window.L.circleMarker([lat,lon],{
-          radius:isWreck?7:6,weight:2,color:accent,fillColor:isWreck?"#173b50":accent,fillOpacity:quality==="A"?.9:quality==="B"?.72:.5
+        const marker=window.L.marker([lat,lon],{
+          icon:window.L.divIcon({
+            className:`dive-leaflet-marker ${diveMarkerClass(feature)}`,
+            html:diveMarkerHTML(feature),iconSize:[36,42],iconAnchor:[18,40],popupAnchor:[0,-40]
+          }),keyboard:true,riseOnHover:true,title:String(feature.properties?.Navn||"Dykkested")
         }).addTo(layer);
+        marker.getElement?.()?.setAttribute("data-site-id",String(feature.properties?.ID||""));
         marker.bindTooltip(esc(feature.properties?.Navn||""),{direction:"top"});
         marker.bindPopup(featureDetail(feature,{origin:state.origin}),{maxWidth:340});
         marker.on("click",()=>selectFeature(feature,{zoom:false}));
-        markers.set(feature.properties?.ID,marker);bounds.push([lat,lon]);
+        markers.set(String(feature.properties?.ID),marker);bounds.push([lat,lon]);
       });
+      if(state.selected){
+        elements.map.querySelectorAll(".dive-map-pin").forEach(el=>
+          el.classList.toggle("is-selected",
+            el.closest(".leaflet-marker-icon")?.getAttribute("data-site-id")===state.selected));
+      }
       if(bounds.length>1)map.fitBounds(bounds,{padding:[24,24],maxZoom:11});
       else if(bounds.length===1)map.setView(bounds[0],11);
     }
@@ -143,15 +155,22 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
 
   for(const [element,key,event] of [
     [elements.query,"query","input"],[elements.level,"level","change"],[elements.kind,"kind","change"],[elements.quality,"quality","change"],
-    [elements.depth,"maxDepth","input"],[elements.sort,"sort","change"]
+    [elements.depth,"maxDepth","input"],[elements.sort,"sort","change"],
+    [elements.wildlife,"wildlife","change"]
   ]){
     element?.addEventListener(event,ev=>{state[key]=ev.currentTarget.value;render()});
   }
+  elements.wildlifeMode?.addEventListener("change",event=>{
+    state.excludeWildlife=event.currentTarget.value==="exclude";render();
+  });
+  const wildlifeChoices=diveWildlifeIndex(features);
+  elements.wildlife?.insertAdjacentHTML("beforeend",
+    wildlifeChoices.map(item=>`<option value="${esc(item.key)}">${esc(item.label)} (${item.count})</option>`).join(""));
   elements.csv?.addEventListener("click",()=>{
     downloadDiveText(diveFeaturesCSV(currentVisible),"trondheim-dive-filtered.csv","text/csv;charset=utf-8");
   });
   elements.geojson?.addEventListener("click",()=>{
-    const filters={query:state.query,level:state.level,kind:state.kind,quality:state.quality,maxDepth:state.maxDepth,sort:state.sort};
+    const filters={query:state.query,level:state.level,kind:state.kind,quality:state.quality,maxDepth:state.maxDepth,sort:state.sort,wildlife:state.wildlife,excludeWildlife:state.excludeWildlife};
     downloadDiveText(
       diveFeaturesGeoJSON(currentVisible,{source:data.metadata?.source||null,sourceDate:data.metadata?.created||null,filters}),
       "trondheim-dive-filtered.geojson","application/geo+json"
@@ -162,7 +181,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
 
   try{
     ensureLeafletCSS();
-    const module=await import("https://esm.sh/leaflet@1.9.4?bundle");
+    const module=leaflet||await import("https://esm.sh/leaflet@1.9.4?bundle");
     if(disposed)return ()=>{};
     window.L=module.default||module;
     map=window.L.map(elements.map,{zoomControl:true,preferCanvas:true});
