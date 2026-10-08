@@ -1,10 +1,11 @@
 import {extension} from "./utils.js";
 const adapterLoaders={
-  pdf:()=>import("./adapters/pdf.js"),docx:()=>import("./adapters/office.js"),xlsx:()=>import("./adapters/office.js"),pptx:()=>import("./adapters/office.js"),csv:()=>import("./adapters/csv.js"),
+  pdf:()=>import("./adapters/pdf.js"),docx:()=>import("./adapters/office.js"),xlsx:()=>import("./adapters/office.js"),pptx:()=>import("./adapters/office.js"),csv:()=>import("./adapters/csv.js"),tsv:()=>import("./adapters/csv.js"),psv:()=>import("./adapters/csv.js"),
   html:()=>import("./adapters/html.js"),htm:()=>import("./adapters/html.js"),
   ipynb:()=>import("./adapters/notebook.js"),tex:()=>import("./adapters/latex.js"),
   mp4:()=>import("./adapters/video.js"),webm:()=>import("./adapters/video.js"),mkv:()=>import("./adapters/video.js"),
   stl:()=>import("./adapters/stl.js"),"3mf":()=>import("./adapters/three-mf.js"),
+  f3z:()=>import("./adapters/fusion.js"),f3d:()=>import("./adapters/fusion.js"),
   md:()=>import("./adapters/text.js"),txt:()=>import("./adapters/text.js"),py:()=>import("./adapters/python.js"),
   js:()=>import("./adapters/text.js"),mjs:()=>import("./adapters/text.js"),ts:()=>import("./adapters/text.js"),
   tsx:()=>import("./adapters/text.js"),jsx:()=>import("./adapters/text.js"),json:()=>import("./adapters/text.js"),
