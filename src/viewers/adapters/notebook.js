@@ -42,6 +42,9 @@ export async function render(container,resource,{sessionFactory=createPythonSess
         <button type="button" data-nb-reset>Reset Python</button>
       </div>
     </div>
+    <label class="python-stdin-label">Input lines for Python input() (one response per line)
+      <textarea data-nb-stdin spellcheck="false" rows="2" placeholder="Optional stdin for the next code cell"></textarea>
+    </label>
     <div class="notebook-cells"></div>
     <p class="python-runtime-notice">Execution uses Pyodide in a disposable Web Worker and only starts when requested. Run trusted code only.</p>
   </section>`;
@@ -56,7 +59,10 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     if(disposed||stopped)return;
     entry.cell.setStatus("Executing…");
     try{
-      const result=await session.run(entry.cell.getSource(),{status:s=>entry.cell.setStatus(s)});
+      const result=await session.run(entry.cell.getSource(),{
+        status:s=>entry.cell.setStatus(s),
+        stdin:container.querySelector("[data-nb-stdin]")?.value||""
+      });
       if(!disposed&&!stopped)entry.cell.showOutput(result);
     }catch(error){
       if(!stopped&&!disposed)entry.cell.showOutput({error:String(error?.message||error),
