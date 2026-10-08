@@ -24,6 +24,8 @@ test("Dive map is native, Njord points into Engineering and LeseRavnen remains p
   assert.equal(diverseModule("brewing").sync,"site-google-session");
   assert.equal(diverseModule("diving").sync,"site-google-session");
   assert.equal(diverseModule("medisin").route,"/diverse/medisin");
+  assert.equal(diverseModule("medisin").storage,"local+google-drive");
+  assert.equal(diverseModule("medisin").sync,"site-google-session");
   assert.equal(diverseModule("laos").route,"/diverse/laos");
   assert.equal(diverseModule("andrekok").route,"/diverse/andrekok");
 });
