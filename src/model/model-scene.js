@@ -1,4 +1,6 @@
 import {getThreeRuntime} from "./three-runtime.js";
+import {modelWaterlineContours} from "./waterline-preview.js";
+import {normaliseWaveCase,waveElevation} from "./wave-core.js";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;
@@ -211,17 +213,126 @@ export async function mountModelScene(container,documentModel,options={}){
     const span=Math.max(currentBounds.size.x,currentBounds.size.y,currentBounds.radius*2,1)*1.35;
     waterlineMesh.scale.set(span,span,1);
   }
-  function setWaterline({visible=true,z=0}={}){
-    updateWaterlineSize();
-    waterlineMesh.visible=Boolean(visible);
-    waterlineMesh.position.set(0,0,Number(z)||0);
+  // The contour is the actual triangle/plane intersection, using Hydro's
+  // shared clipping + stitching algorithms, not a 2D line over the screenshot.
+  const contourGroup=new THREE.Group();
+  scene.add(contourGroup);
+  const contourMaterial=new THREE.LineBasicMaterial({
+    color:0x09d9ec,transparent:true,opacity:.95,depthTest:false,depthWrite:false
+  });
+  let waterlineState={visible:false,z:0};
+  let waterlineInfo={status:"hidden",loops:[],segments:0,triangles:0};
+  function clearContours(){
+    while(contourGroup.children.length){
+      const child=contourGroup.children[0];contourGroup.remove(child);
+      child.geometry.dispose();
+    }
+  }
+  function transformedContourMeshes(){
+    alignmentGroup.updateMatrixWorld(true);
+    const hullMeshes=meshes.filter(mesh=>mesh.userData.component?.metadata?.hydro===true);
+    const targets=hullMeshes.length?hullMeshes:meshes;
+    return targets.map(mesh=>{
+      const position=mesh.geometry.getAttribute("position");
+      const indices=mesh.geometry.index;
+      const points=new Float64Array(position.count*3);
+      const vector=new THREE.Vector3();
+      for(let i=0;i<position.count;i++){
+        vector.fromBufferAttribute(position,i).applyMatrix4(mesh.matrixWorld);
+        points[3*i]=vector.x;points[3*i+1]=vector.y;points[3*i+2]=vector.z;
+      }
+      return {positions:points,indices:indices?indices.array:null};
+    });
+  }
+  function refreshWaterlineContours(){
+    clearContours();
+    if(!waterlineState.visible){
+      waterlineInfo={status:"hidden",loops:[],segments:0,triangles:0};
+      return waterlineInfo;
+    }
+    const target=meshes.filter(m=>m.userData.component?.metadata?.hydro===true);
+    const drawMeshes=target.length?target:meshes;
+    const count=drawMeshes.reduce((n,m)=>n+
+      Math.floor((m.geometry.index?.count||m.geometry.getAttribute("position").count)/3),0);
+    if(count>350000){
+      waterlineInfo={status:"too-large",loops:[],segments:0,triangles:count,
+        reason:"Mesh too large for interactive contour overlay; use Hydro Worker for calculations"};
+      return waterlineInfo;
+    }
+    try{
+      waterlineInfo=modelWaterlineContours(transformedContourMeshes(),waterlineState.z);
+      for(const loop of waterlineInfo.loops){
+        const geometry=new THREE.BufferGeometry().setFromPoints(
+          loop.map(p=>new THREE.Vector3(p[0],p[1],waterlineState.z+0.002)));
+        const curve=new THREE.LineLoop(geometry,contourMaterial);
+        curve.renderOrder=6;contourGroup.add(curve);
+      }
+    }catch(error){
+      waterlineInfo={status:"invalid",loops:[],segments:0,triangles:count,
+        reason:String(error?.message||error)};
+    }
+    return waterlineInfo;
+  }
+
+  const waveGeometry=new THREE.PlaneGeometry(1,1,55,55);
+  const waveMaterial=new THREE.MeshPhongMaterial({
+    color:0x147cab,side:THREE.DoubleSide,transparent:true,opacity:.46,
+    shininess:80,depthWrite:false
+  });
+  const waveMesh=new THREE.Mesh(waveGeometry,waveMaterial);
+  waveMesh.visible=false;waveMesh.renderOrder=3;scene.add(waveMesh);
+  let wave=null,waveAnimated=false,waveFrame=null,waveClock=0;
+  const waveBaseXY=Float32Array.from(waveGeometry.getAttribute("position").array);
+  function drawWave(timeS=0){
+    if(!wave||!waveMesh.visible)return;
+    const attribute=waveGeometry.getAttribute("position");
+    const span=waveMesh.scale.x;
+    for(let i=0;i<attribute.count;i++){
+      const x=waveBaseXY[i*3]*span,y=waveBaseXY[i*3+1]*span;
+      attribute.setZ(i,waveElevation(wave,x,y,timeS));
+    }
+    attribute.needsUpdate=true;waveGeometry.computeVertexNormals();
     draw();
+  }
+  function animateWave(ms){
+    if(!waveAnimated||!waveMesh.visible)return;
+    drawWave((ms-waveClock)/1000);
+    waveFrame=requestAnimationFrame(animateWave);
+  }
+  function setWave({enabled=false,heightM=1,periodS=6,headingDeg=0,
+    waterDepthM=Infinity,phaseDeg=0,animate=true,timeS=0}={}){
+    if(waveFrame!==null){cancelAnimationFrame(waveFrame);waveFrame=null}
+    waveAnimated=false;
+    if(!enabled){wave=null;waveMesh.visible=false;waterlineMesh.visible=waterlineState.visible;draw();return null}
+    wave=normaliseWaveCase({heightM,periodS,headingDeg,waterDepthM,phaseDeg});
+    updateWaterlineSize();
+    const span=Math.max(currentBounds.size.x,currentBounds.size.y,currentBounds.radius*2,1)*1.35;
+    waveMesh.scale.set(span,span,1);waveMesh.position.set(0,0,waterlineState.z);
+    waveMesh.visible=true;
+    waterlineMesh.visible=false; // No coincident transparent planes.
+    drawWave(timeS);
+    waveAnimated=Boolean(animate);
+    waveClock=performance.now()-Number(timeS)*1000;
+    if(waveAnimated)waveFrame=requestAnimationFrame(animateWave);
+    return wave;
+  }
+  function setWaterline({visible=true,z=0}={}){
+    if(!Number.isFinite(Number(z)))throw new Error("Waterline elevation must be finite");
+    waterlineState={visible:Boolean(visible),z:Number(z)};
+    updateWaterlineSize();
+    waterlineMesh.visible=waterlineState.visible&&!waveMesh.visible;
+    waterlineMesh.position.set(0,0,waterlineState.z);
+    waveMesh.position.z=waterlineState.z;
+    const info=refreshWaterlineContours();
+    draw();
+    return info;
   }
 
   function resetAlignment(){
     alignmentGroup.rotation.set(0,0,0);
     alignmentGroup.quaternion.identity();
     alignmentGroup.updateMatrixWorld(true);
+    refreshWaterlineContours();
     fitView();
   }
 
@@ -230,6 +341,7 @@ export async function mountModelScene(container,documentModel,options={}){
     const q=new THREE.Quaternion().setFromEuler(euler);
     alignmentGroup.quaternion.premultiply(q);
     alignmentGroup.updateMatrixWorld(true);
+    refreshWaterlineContours();
     fitView();
   }
 
@@ -264,6 +376,7 @@ export async function mountModelScene(container,documentModel,options={}){
     attitudeGroup.quaternion.copy(savedAttitude);
     alignmentGroup.updateMatrixWorld(true);
     if(!Number.isFinite(best.score))alignmentGroup.quaternion.copy(savedAlign);
+    refreshWaterlineContours();
     fitView();
     return best.score;
   }
@@ -271,6 +384,7 @@ export async function mountModelScene(container,documentModel,options={}){
   function setRotation({x=0,y=0,z=0}={}){
     attitudeGroup.rotation.set(THREE.MathUtils.degToRad(Number(x)||0),THREE.MathUtils.degToRad(Number(y)||0),THREE.MathUtils.degToRad(Number(z)||0));
     attitudeGroup.updateMatrixWorld(true);
+    refreshWaterlineContours();
     fitView();
   }
 
@@ -278,6 +392,7 @@ export async function mountModelScene(container,documentModel,options={}){
     attitudeGroup.rotation.set(0,0,0);
     attitudeGroup.quaternion.identity();
     attitudeGroup.updateMatrixWorld(true);
+    refreshWaterlineContours();
     fitView();
   }
 
@@ -419,6 +534,9 @@ export async function mountModelScene(container,documentModel,options={}){
     controls.dispose();
     canvas.removeEventListener("pointerdown",onPointerDown);
     clearMeasurements();
+    if(waveFrame!==null)cancelAnimationFrame(waveFrame);
+    clearContours();scene.remove(contourGroup);contourMaterial.dispose();
+    scene.remove(waveMesh);waveGeometry.dispose();waveMaterial.dispose();
     waterlineGeometry.dispose();
     waterlineMaterial.dispose();
     for(const mesh of meshes){mesh.geometry.dispose();mesh.material.dispose()}
@@ -452,6 +570,8 @@ export async function mountModelScene(container,documentModel,options={}){
       clearMeasurements,
       undoMeasurement,
       setWaterline,
+      getWaterlineInfo:()=>waterlineInfo,
+      setWave,
       screenshot,
       getBounds(){
         const value=bounds();
