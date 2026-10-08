@@ -93,7 +93,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
 
   const markers=new Map();
   const selectFeature=(feature,{zoom=true}={})=>{
-    state.selected=feature?.properties?.ID||null;
+    state.selected=feature?.properties?.ID==null?null:String(feature.properties.ID);
     elements.inspector.innerHTML=featureDetail(feature,{origin:state.origin});
     root.querySelectorAll("[data-dive-id]").forEach(node=>node.classList.toggle("selected",node.dataset.diveId===state.selected));
     const marker=markers.get(state.selected);
@@ -104,6 +104,10 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
   const render=()=>{
     const visible=sortDiveFeatures(filterDiveFeatures(features,state),state.sort,{origin:state.origin});
     currentVisible=visible;
+    if(state.selected&&!visible.some(feature=>String(feature.properties?.ID)===state.selected)){
+      state.selected=null;
+      elements.inspector.innerHTML='<div class="dive-empty"><strong>Select a site</strong><span>Choose a visible map marker or listed dive site.</span></div>';
+    }
     const stats=diveStats(visible);
     elements.stats.innerHTML=`<strong>${stats.total}</strong> shown · ${stats.nature} nature/area · ${stats.wrecks} wreck · ${stats.withCoordinates} mapped · ${stats.withDepth} with documented max depth · ${stats.withWildlife} with wildlife${state.origin?" · distance enabled":""}`;
     elements.list.innerHTML=visible.map(feature=>{
@@ -124,7 +128,6 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
     if(layer&&map){
       layer.clearLayers();markers.clear();
       const bounds=[];
-      const accent=getComputedStyle(document.documentElement).getPropertyValue("--accent").trim()||"#b3157a";
       visible.forEach(feature=>{
         const [lon,lat]=feature.geometry?.coordinates||[];
         if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
@@ -138,8 +141,13 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
         marker.bindTooltip(esc(feature.properties?.Navn||""),{direction:"top"});
         marker.bindPopup(featureDetail(feature,{origin:state.origin}),{maxWidth:340});
         marker.on("click",()=>selectFeature(feature,{zoom:false}));
-        markers.set(feature.properties?.ID,marker);bounds.push([lat,lon]);
+        markers.set(String(feature.properties?.ID),marker);bounds.push([lat,lon]);
       });
+      if(state.selected){
+        elements.map.querySelectorAll(".dive-map-pin").forEach(el=>
+          el.classList.toggle("is-selected",
+            el.closest(".leaflet-marker-icon")?.getAttribute("data-site-id")===state.selected));
+      }
       if(bounds.length>1)map.fitBounds(bounds,{padding:[24,24],maxZoom:11});
       else if(bounds.length===1)map.setView(bounds[0],11);
     }
