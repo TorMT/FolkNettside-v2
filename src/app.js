@@ -89,6 +89,7 @@ let hydroGzRequested=false;
 let hydroAttitudeAction="";
 let hydroCurveCache={model:null,data:null};
 let structureLoadKn=-20;
+let structureLoadPosition=3;
 let resistanceSpeedKn=10;
 let propulsionThrustKn=20;
 let propulsionInflow=3;
@@ -952,7 +953,7 @@ async function engineeringPage(){
 
       const fixture=await loadStructureFixture();
       if(renderId!==engineeringRenderId)return;
-      const structure=structurePanelHTML(fixture,{loadFy:structureLoadKn*1000});
+      const structure=structurePanelHTML(fixture,{loadFy:structureLoadKn*1000,loadPosition:structureLoadPosition});
       const caseModel=structure.model;
       app.innerHTML=top("engineering")+`<main class="workspace">
         <div class="workspace-bar"><strong>${caseModel.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
@@ -978,15 +979,19 @@ async function engineeringPage(){
         mode:"Structure",
         capability,
         method:{name:"2D Euler-Bernoulli frame FEM",caseModel:caseModel.name,scope:"linear static"},
-        inputs:{loadFy:structureLoadKn*1000,nodes:caseModel.nodes,elements:caseModel.elements,supports:caseModel.supports},
+        inputs:{loadFy:structureLoadKn*1000,pointLoadPosition:structureLoadPosition,
+          pointLoads:caseModel.pointLoads,nodes:caseModel.nodes,elements:caseModel.elements,supports:caseModel.supports},
         results:structure.result,
         assumptions:["2D frame idealisation","linear elastic response","small displacements"]
       }));
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
-      app.querySelector("#structure-load")?.addEventListener("change",event=>{
-        structureLoadKn=Number(event.target.value)||0;
-        engineeringPage();
-      });
+      for(const id of ["#structure-load","#structure-load-position"]){
+        app.querySelector(id)?.addEventListener("change",()=>{
+          structureLoadKn=Number(app.querySelector("#structure-load")?.value)||0;
+          structureLoadPosition=Number(app.querySelector("#structure-load-position")?.value);
+          engineeringPage();
+        });
+      }
     }catch(error){
       if(renderId!==engineeringRenderId)return;
       app.innerHTML=top("engineering")+`<main class="study"><section class="study-main"><div class="course-header"><h1>Structure error</h1><p>${String(error?.message||error)}</p></div></section></main>`;
