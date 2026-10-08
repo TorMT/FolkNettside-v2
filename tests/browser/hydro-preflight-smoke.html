@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Hydro preflight browser smoke</title></head>
+<body data-status="running"><pre id="result">Running</pre>
+<script type="module">
+import {boxMesh,reverseWinding} from "../../src/hydro/fixtures.js";
+import {validateHydroAsync,analyzeHydroAsync,disposeHydroWorker,gzCurveAsync} from "../../src/hydro/hydro-client.js";
+import {hydroPreflightHTML} from "../../src/engineering/hydro-panel.js";
+const assert=(condition,msg)=>{if(!condition)throw new Error(msg)};
+const model=(geometry,id)=>({unitScaleToMeters:1,components:[{id,name:"Hull",geometry,metadata:{hydro:true}}]});
+try{
+ const good=model(boxMesh({L:10,B:3,H:2}),"good");
+ const accepted=await validateHydroAsync(good);
+ assert(accepted.passed,"Fixture hull should pass topology preflight");
+ assert(accepted.requiresIndependentReview,"Pass must not certify vessel source");
+ assert(hydroPreflightHTML(accepted).includes("not validation of real hull"),"Preflight caution missing");
+ const result=await analyzeHydroAsync(good,1);
+ assert(Math.abs(result.volume-30)<1e-8,"Worker displacement is incorrect");
+ const invalid=model(reverseWinding(boxMesh({L:10,B:3,H:2})),"bad");
+ const rejected=await validateHydroAsync(invalid);
+ assert(!rejected.passed,"Inverted hull incorrectly passed");
+ assert(hydroPreflightHTML(rejected).includes("Hydro blocked"),"UI block diagnostics missing");
+ let blocked=false;
+ try{await analyzeHydroAsync(invalid,1)}catch(error){blocked=/Hydro preflight blocked/.test(String(error))}
+ assert(blocked,"Hydro worker did not block inverted hull analysis");
+ blocked=false;
+ try{await gzCurveAsync(invalid,{targetVolume:30,kg:.5,density:1025,minHeel:-5,maxHeel:5})}
+ catch(error){blocked=/Hydro preflight blocked/.test(String(error))}
+ assert(blocked,"Hydro worker did not block invalid GZ");
+ disposeHydroWorker();
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent="Hydro worker hull preflight: PASS";
+}catch(error){
+ disposeHydroWorker();
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>
