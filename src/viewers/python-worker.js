@@ -79,7 +79,11 @@ async function run(code){
     throw {message:String(error?.message||error),stdout,stderr};
   }
   const figures=[];
-  if(py.loadedPackages?.matplotlib){
+  // Matplotlib is a Python module, not a property on Pyodide's JS
+  // loadedPackages object. Inspect sys.modules to detect user figures.
+  const matplotlibLoaded=Boolean(py.runPython(
+    'import sys; "matplotlib.pyplot" in sys.modules'));
+  if(matplotlibLoaded){
     try{
       const plots=py.runPython(`import io,base64
 from matplotlib import pyplot as plt
