@@ -31,5 +31,7 @@
       "source": "https://tormt.folk.ntnu.no/diverse/LAOS/filer/Refleksjon%20%C3%98ving%20Del.pdf",
       "sha256": "3254ec70611bb61e53ab955d5d4d8646941e3ac27c1531ada5e5ed3fcc6a9268"
     }
-  ]
+  ],
+  "welcomeImage": "./data/diverse/laos-files/Laos-meme.jpg",
+  "welcomeSha256": "95d24b56c168a4cdd189d797be11d3fce303cd09e89b3eb4628d03bd19c6622e"
 }
