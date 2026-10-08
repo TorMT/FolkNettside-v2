@@ -49,9 +49,15 @@ try{
  const sample=new File(["time_s,eta_m\n0,0.1\n1,0.2\n2,-0.1\n"],"probe.csv",{type:"text/csv"});
  const data=new DataTransfer();data.items.add(sample);input.files=data.files;
  input.dispatchEvent(new Event("change",{bubbles:true}));
- await new Promise(resolve=>setTimeout(resolve,150));
- const collection=readWaveCollection();
- assert(collection.length===2,"Imported wave samples did not persist");
+ let collection=[];
+ for(let check=0;check<70;check++){
+   collection=readWaveCollection();
+   if(collection.length===2)break;
+   await new Promise(resolve=>setTimeout(resolve,100));
+ }
+ assert(collection.length===2,"Imported wave samples did not persist: "+
+   details.querySelector(".model-wave-status")?.textContent+
+   " · stored "+collection.length+" series");
  assert(collection.some(x=>x.source==="imported"&&x.wave===null),"CSV provenance was lost");
  assert(details.querySelectorAll(".model-wave-entry").length===2,"Wave library viewer not updated");
  details.querySelector("[data-wave-show]").click();
