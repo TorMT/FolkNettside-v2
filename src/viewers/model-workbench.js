@@ -1,5 +1,5 @@
-import {mountModelScene} from "../model/model-scene.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
-import {mountWaveControls} from "../model/model-wave-controls.js?v=b44fe4f85103fe31004a52a48bc4ae526f9d67be";
+import {mountModelScene} from "../model/model-scene.js?v=976e1def684b1093ba92f25ca9b33df7a0242fbd";
+import {mountWaveControls} from "../model/model-wave-controls.js?v=976e1def684b1093ba92f25ca9b33df7a0242fbd";
 
 export async function renderModelWorkbench(container,model,{showSidebar=false}={}){
   container.innerHTML=`<div class="model-viewer-workbench">
