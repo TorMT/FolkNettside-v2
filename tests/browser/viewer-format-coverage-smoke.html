@@ -10,6 +10,7 @@ import * as conversionViewer from "../../src/viewers/adapters/conversion.js";
 import * as unsupportedViewer from "../../src/viewers/adapters/unsupported.js";
 import * as archiveViewer from "../../src/viewers/adapters/archive.js";
 import * as objViewer from "../../src/viewers/adapters/obj.js";
+import * as gltfViewer from "../../src/viewers/adapters/gltf.js";
 const host=document.querySelector("#host"),result=document.querySelector("#result");
 const assert=(ok,why)=>{if(!ok)throw new Error(why)};
 const tick=()=>new Promise(resolve=>setTimeout(resolve,60));
@@ -47,13 +48,29 @@ try{
  const obj=await objViewer.render(host,{path:objUrl,name:"triangle.obj"});
  assert(host.querySelector(".model-viewer-workbench"),"OBJ model workbench absent");
  assert(host.querySelector(".three-canvas"),"OBJ not shown as real 3D preview");
+ const objPicker=host.querySelector("[data-obj-unit]");
+ assert(objPicker,"OBJ source units selector is missing");
+ objPicker.value="millimeter";
+ objPicker.dispatchEvent(new Event("change",{bubbles:true}));
+ await tick();await tick();
+ assert(host.querySelector("[data-obj-scene] .three-canvas"),
+   "OBJ units re-render removed 3D model");
  obj.cleanup?.();
+ const gltf=await gltfViewer.render(host,{
+   path:"../../examples/models/triangle.gltf",name:"triangle.gltf"
+ });
+ assert(host.querySelector(".model-viewer-workbench"),"glTF workbench absent");
+ assert(host.querySelector(".three-canvas"),"Embedded glTF model was not rendered");
+ const bounds=gltf.actions.getBounds?.();
+ assert(bounds&&Math.abs(bounds.size[0]-1)<1e-6&&Math.abs(bounds.size[1]-1)<1e-6,
+   "glTF triangle geometry incorrect");
+ gltf.cleanup?.();
  const all=await Promise.all(["glb","gltf","obj","png","zip","wav","step","7z"].map(async ext=>
    (await loadAdapter({kind:"FILE",path:"test."+ext})).kind));
  assert(all.join(",")==="gltf,gltf,obj,image,archive,audio,conversion,unsupported",
    "Unexpected file adapter dispatch: "+all);
  document.body.dataset.status="pass";
- result.textContent="PASS: PNG image/zoom, WAV playback controls, STEP conversion, unknown fallback, searchable ZIP, 3D OBJ viewer and extension routing";
+ result.textContent="PASS: PNG image/zoom, WAV playback controls, STEP conversion, unknown fallback, searchable ZIP, 3D OBJ with units, glTF geometry and extension routing";
 }catch(error){
  document.body.dataset.status="fail";
  result.textContent=String(error.stack||error);
