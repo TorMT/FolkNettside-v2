@@ -4,6 +4,25 @@ import {gzMetrics} from "../hydro/gz.js";
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
 }
+
+export function hydroPreflightHTML(validation){
+  if(!validation)return "";
+  const heading=validation.passed?"Mesh preflight passed":"Hydro blocked: hull mesh failed validation";
+  const entries=(validation.components||[]).map(item=>{
+    const m=item.metrics;
+    const counts=m?`<span>${m.triangleCount} triangles · ${m.boundaryEdges} open edges · ${m.nonManifoldEdges} non-manifold · ${m.windingConflicts} winding conflicts</span>`:"";
+    return `<li><strong>${esc(item.name||item.componentId)}</strong>
+      ${counts}
+      ${item.errors.length?`<ul>${item.errors.map(error=>`<li>${esc(error)}</li>`).join("")}</ul>`:""}</li>`;
+  }).join("");
+  return `<section class="hydro-preflight ${validation.passed?"hydro-preflight-pass":"hydro-preflight-fail"}" aria-label="Hull geometry preflight">
+    <strong>${heading}</strong>
+    <p>${validation.passed?"Selected triangles satisfy basic closure and orientation checks. This is not validation of real hull provenance, datum, intersections or loading condition.":"No hydrostatic displacement, GM, GZ or trim/heel results are calculated until the selected hull geometry is repaired."}</p>
+    ${entries?`<details ${validation.passed?"":"open"}><summary>Geometry diagnostics (${validation.components.length} component(s))</summary><ul>${entries}</ul></details>`:""}
+    ${validation.errors.length&&!entries?`<ul>${validation.errors.map(error=>`<li>${esc(error)}</li>`).join("")}</ul>`:""}
+  </section>`;
+}
+
 function clamp(value,min,max){return Math.max(min,Math.min(max,Number(value)||0))}
 function fmt(value,digits=3){
   const n=Number(value);
@@ -104,6 +123,7 @@ export function hydroPanelHTML({
   attitudeError=null,
   attitudeAction="",
   geometryWarnings=[],
+  hydroValidation=null,
   config={}
 }){
   const density=Number(config.density)||1025;
@@ -121,6 +141,7 @@ export function hydroPanelHTML({
   return {
     inspector:`
       <h3>Hydro case</h3>
+      ${hydroPreflightHTML(hydroValidation)}
       <label class="field"><span>Draft / waterline</span><div><input id="hydro-draft" type="number" min="${minDraft}" max="${maxDraft}" step="0.05" value="${clamped.toFixed(2)}"><span> m</span></div></label>
       <div class="readout"><span>Water density</span><strong>${density} kg/m³</strong></div>
       <div class="readout"><span>Source</span><strong>${esc(modelDocument.name)}</strong></div>
