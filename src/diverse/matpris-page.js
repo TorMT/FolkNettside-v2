@@ -1,4 +1,4 @@
-import {compareMatprisEan,groupProductsByEan,searchMatpris} from "./matpris-api.js?v=661c6ec2d37789ce0c91dcd7f45c6cf80188944a";
+import {compareMatprisEan,groupProductsByEan,searchMatpris} from "./matpris-api.js?v=8b9f276e6ed155a802cb58fa1098559ad66b2b02";
 
 const money=value=>Number.isFinite(Number(value))
   ?new Intl.NumberFormat("nb-NO",{style:"currency",currency:"NOK"}).format(Number(value))
