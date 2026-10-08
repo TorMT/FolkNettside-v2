@@ -37,7 +37,7 @@ export function createPythonSession({workerFactory=()=>new Worker(
     });
   };
   return {
-    run(code,{status}={}){return request("run",{code},status)},
+    run(code,{status,stdin=""}={}){return request("run",{code,stdin},status)},
     mount(files,{status}={}){return request("mount",{files},status)},
     stop(){reset()},
     dispose(){disposed=true;reset(new Error("Python viewer closed"))},
