@@ -42,6 +42,7 @@ import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsio
 import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js";
 import {renderTopShell,bindShellNavigation} from "./shell/navigation.js";
 import {portfolioInfoPageHTML} from "./portfolio/profile-pages.js";
+import {analyticsConsent,setAnalyticsConsent} from "./platform/analytics.js";
 import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js";
 import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js";
 import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js";
@@ -925,6 +926,12 @@ function settingsPage(){
     settingsPage();
   });
 
+  const analyticsToggle=app.querySelector("#settings-analytics-toggle");
+  if(analyticsToggle){
+    const label=()=>{analyticsToggle.textContent=analyticsConsent()?"Disable analytics":"Enable analytics";};
+    label();
+    analyticsToggle.addEventListener("click",()=>{setAnalyticsConsent(!analyticsConsent());label();});
+  }
   app.querySelector("#settings-clear-study-progress")?.addEventListener("click",event=>{
     const removed=clearLocalStudyProgress();
     const feedback=app.querySelector("#settings-feedback");
