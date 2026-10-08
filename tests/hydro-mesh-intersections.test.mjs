@@ -76,3 +76,29 @@ test("bounded intersection comparison budget fails closed",()=>{
   assert.equal(result.exhaustive,false);
   assert.equal(result.candidatePairs,1);
 });
+
+test("closed nested shells in one component are blocked even without triangle collisions",()=>{
+  const mesh=combined(
+    boxMesh({L:10,B:6,H:4}),
+    boxMesh({L:1,B:1,H:1,origin:[0,0,2]})
+  );
+  const gate=validateHydroGeometry(mesh);
+  assert.equal(gate.metrics.boundaryEdges,0);
+  assert.equal(gate.metrics.windingConflicts,0);
+  assert.equal(gate.metrics.selfIntersections,0);
+  assert.equal(gate.metrics.edgeConnectedShells,2);
+  assert.equal(gate.metrics.ambiguousShellPairs,1);
+  assert.equal(gate.passed,false);
+  assert.match(gate.errors.join(" "),/nested disconnected shell/);
+  assert.throws(()=>executeHydroRequest(doc(mesh),"analyze",{waterline:2}),/preflight blocked/);
+});
+test("disjoint shells inside a single component remain valid",()=>{
+  const mesh=combined(
+    boxMesh({L:4,B:2,H:2,origin:[-8,0,0]}),
+    boxMesh({L:4,B:2,H:2,origin:[8,0,0]})
+  );
+  const gate=validateHydroGeometry(mesh);
+  assert.equal(gate.passed,true,JSON.stringify(gate.errors));
+  assert.equal(gate.metrics.edgeConnectedShells,2);
+  assert.equal(gate.metrics.ambiguousShellPairs,0);
+});
