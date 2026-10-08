@@ -138,3 +138,33 @@ jobs:
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4196/tests/browser/diverse-dive-smoke.html
+
+      - name: Engineering scroll and resize browser regression
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4198 --bind 127.0.0.1 >/tmp/engineering-scroll-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/engineering-scroll-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4198/tests/browser/engineering-layout-smoke.html
+
+      - name: Python and notebook editable viewer browser regression
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4199 --bind 127.0.0.1 >/tmp/python-viewers-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/python-viewers-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4199/tests/browser/python-viewers-smoke.html
+
+      - name: Real Python/Pyodide Worker execution browser regression
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4200 --bind 127.0.0.1 >/tmp/python-live-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/python-live-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4200/tests/browser/python-live-runtime-smoke.html 120
