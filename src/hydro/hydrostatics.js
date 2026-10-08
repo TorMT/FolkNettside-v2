@@ -1,4 +1,4 @@
-import {integrateWaterplaneContours} from "./waterplane-contours.js?v=8b9f276e6ed155a802cb58fa1098559ad66b2b02";
+import {integrateWaterplaneContours} from "./waterplane-contours.js?v=6c4cc3557b13b5654450274a995d12c977c89852";
 
 const EPS=1e-10;
 
@@ -29,7 +29,7 @@ function clipTriangleBelowPlane(vertices,waterline){
   return output;
 }
 
-function trianglePlaneSegment(vertices,waterline){
+export function trianglePlaneSegment(vertices,waterline){
   const distances=vertices.map(v=>v[2]-waterline);
   const on=distances.map((d,i)=>Math.abs(d)<=EPS?i:-1).filter(i=>i>=0);
   // Half-open convention for a face exactly tangent at an edge:

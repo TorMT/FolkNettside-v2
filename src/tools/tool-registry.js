@@ -1,5 +1,17 @@
 export const TOOL_REGISTRY=[
   {
+    id:"python-workbench",
+    title:"Python workbench",
+    short:"PY",
+    route:"/tools/python",
+    status:"prototype",
+    parity:"partial",
+    legacyUrl:"https://tormt.folk.ntnu.no/includes/kodeLesere/pyview.html",
+    category:"Developer",
+    summary:"Edit and run Python in an isolated Worker, with printed output, plots, Stop, Reset and script export.",
+    keywords:["python","pyodide","notebook","code","run","editor","plot"]
+  },
+  {
     id:"fluid",
     title:"Fluid properties",
     short:"FL",

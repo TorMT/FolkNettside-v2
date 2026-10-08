@@ -1,7 +1,8 @@
-import {mountModelScene} from "../model/model-scene.js?v=8b9f276e6ed155a802cb58fa1098559ad66b2b02";
-import {validateHydroModel} from "../model/hull-surface-validator.js?v=8b9f276e6ed155a802cb58fa1098559ad66b2b02";
-import {hydroPreflightHTML} from "../engineering/hydro-panel.js?v=8b9f276e6ed155a802cb58fa1098559ad66b2b02";
-import {modelHydroSummaryAtAttitude,parseModelBuffer} from "./model-inspector-core.js?v=8b9f276e6ed155a802cb58fa1098559ad66b2b02";
+import {mountModelScene} from "../model/model-scene.js?v=6c4cc3557b13b5654450274a995d12c977c89852";
+import {mountWaveControls} from "../model/model-wave-controls.js?v=6c4cc3557b13b5654450274a995d12c977c89852";
+import {validateHydroModel} from "../model/hull-surface-validator.js?v=6c4cc3557b13b5654450274a995d12c977c89852";
+import {hydroPreflightHTML} from "../engineering/hydro-panel.js?v=6c4cc3557b13b5654450274a995d12c977c89852";
+import {modelHydroSummaryAtAttitude,parseModelBuffer} from "./model-inspector-core.js?v=6c4cc3557b13b5654450274a995d12c977c89852";
 
 function fmt(value,digits=4){
   const n=Number(value);
@@ -27,6 +28,7 @@ export function modelInspectorHTML(){
         '<div class="crystal-subpanel"><strong>Measure</strong><div class="crystal-toggle-grid"><button class="btn" id="model-measure">Measure</button><button class="btn" id="model-measure-undo">Undo</button><button class="btn" id="model-measure-clear">Clear</button></div><label class="field"><span>Snap</span><select id="model-snap-mode"><option value="none">None</option><option value="vertex">Vertex</option><option value="edge">Edge</option><option value="both">Vertex + edge</option></select></label><label class="field"><span>Snap tolerance (m)</span><input id="model-snap-tolerance" type="number" min="0" step="0.001" value="0.01"></label><div id="model-measure-list" class="muted">No measurements.</div></div>'+
         '<div class="crystal-subpanel"><strong>Clipping</strong><label class="field"><span><input id="model-clip-enabled" type="checkbox"> Enable clip</span></label><label class="field"><span>Axis</span><select id="model-clip-axis"><option value="x">X</option><option value="y">Y</option><option value="z">Z</option></select></label><label class="field"><span>Offset (m)</span><input id="model-clip-offset" type="number" step="0.05" value="0"></label><label class="field"><span><input id="model-clip-invert" type="checkbox"> Invert</span></label></div>'+
         '<div class="crystal-subpanel"><strong>Hydro / waterline</strong><label class="field"><span>Waterline Z (m)</span><input id="model-waterline" type="number" step="0.05" value="0"></label><label class="field"><span><input id="model-waterline-visible" type="checkbox" checked> Show waterline</span></label><button class="btn primary" id="model-hydro-run">Validate hull + calculate</button></div>'+
+        '<div id="model-inspector-wave-host"></div>'+
         '<div class="crystal-toggle-grid"><button class="btn" id="model-png">Save PNG</button><button class="btn" id="model-help">Help</button></div>'+
       '</aside>'+
       '<section class="model-inspector-main"><div id="model-inspector-stage" class="model-inspector-stage"></div><div id="model-inspector-results" class="model-inspector-results"></div></section>'+
@@ -43,6 +45,7 @@ export async function bindModelInspector(root){
   const measureList=root.querySelector("#model-measure-list");
   let documentModel=null;
   let sceneHandle=null;
+  let waveControls=null;
   let measureEnabled=false;
   let disposed=false;
 
@@ -95,6 +98,7 @@ export async function bindModelInspector(root){
   }
 
   async function mount(model){
+    waveControls?.dispose?.();waveControls=null;
     sceneHandle?.cleanup?.();
     sceneHandle=null;
     documentModel=model;
@@ -104,6 +108,7 @@ export async function bindModelInspector(root){
     const wl=root.querySelector("#model-waterline");
     if(wl)wl.value=String(bounds.min[2]+bounds.size[2]*.5);
     sceneHandle.actions.setWaterline({visible:true,z:Number(wl?.value)||0});
+    waveControls=mountWaveControls(root.querySelector("#model-inspector-wave-host"),sceneHandle);
     renderHydro();
   }
 
@@ -187,5 +192,5 @@ export async function bindModelInspector(root){
 
   loadExample().catch(error=>setStatus(String(error?.message||error)));
 
-  return {cleanup(){disposed=true;sceneHandle?.cleanup?.();sceneHandle=null}};
+  return {cleanup(){disposed=true;waveControls?.dispose?.();sceneHandle?.cleanup?.();sceneHandle=null}};
 }
