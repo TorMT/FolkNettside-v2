@@ -1,5 +1,5 @@
 import {parseFusionArchive,FusionConversionRequiredError} from "../../model/parsers/fusion-archive.js";
-import {mountModelScene} from "../../model/model-scene.js";
+import {renderModelWorkbench} from "../model-workbench.js";
 import {extension} from "../utils.js";
 
 function conversionNotice(container,resource,reason){
@@ -25,7 +25,7 @@ export async function render(container,resource){
   if(!response.ok)throw new Error("CAD HTTP "+response.status);
   try{
     const model=await parseFusionArchive(await response.arrayBuffer(),resource.label||resource.name);
-    const rendered=await mountModelScene(container,model);
+    const rendered=await renderModelWorkbench(container,model);
     return {...rendered,info:"F3Z · embedded "+model.source.embeddedFormat+" geometry · "+
       (rendered?.info||"interactive ModelDocument")};
   }catch(error){
