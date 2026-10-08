@@ -29,7 +29,7 @@ function clipTriangleBelowPlane(vertices,waterline){
   return output;
 }
 
-function trianglePlaneSegment(vertices,waterline){
+export function trianglePlaneSegment(vertices,waterline){
   const distances=vertices.map(v=>v[2]-waterline);
   const on=distances.map((d,i)=>Math.abs(d)<=EPS?i:-1).filter(i=>i>=0);
   // Half-open convention for a face exactly tangent at an edge:
