@@ -1,3 +1,5 @@
+import {integrateWaterplaneContours} from "./waterplane-contours.js";
+
 const EPS=1e-10;
 
 function sub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]]}
@@ -64,73 +66,7 @@ function triangleSurfaceIntegrals(a,b,c,waterline){
   };
 }
 
-function key2(p,tol=1e-7){return `${Math.round(p[0]/tol)},${Math.round(p[1]/tol)}`}
-
-function stitchLoops(segments){
-  const remaining=segments.map(([a,b])=>[a,b]);
-  const loops=[];
-  while(remaining.length){
-    const [a,b]=remaining.pop();
-    const loop=[a,b];
-    let current=b;
-    while(true){
-      const targetKey=key2(current);
-      const index=remaining.findIndex(([p,q])=>key2(p)===targetKey||key2(q)===targetKey);
-      if(index<0)break;
-      const [p,q]=remaining.splice(index,1)[0];
-      current=key2(p)===targetKey?q:p;
-      if(key2(current)===key2(loop[0]))break;
-      loop.push(current);
-      if(loop.length>100000)throw new Error("Waterplane loop stitching exceeded safety limit");
-    }
-    if(loop.length>=3&&key2(current)===key2(loop[0]))loops.push(loop);
-  }
-  return loops;
-}
-
-function polygonProps(points){
-  let twiceArea=0,cx6=0,cy6=0,ix12=0,iy12=0,ixy24=0;
-  for(let i=0;i<points.length;i++){
-    const [x0,y0]=points[i],[x1,y1]=points[(i+1)%points.length];
-    const cr=x0*y1-x1*y0;
-    twiceArea+=cr;
-    cx6+=(x0+x1)*cr;
-    cy6+=(y0+y1)*cr;
-    ix12+=(y0*y0+y0*y1+y1*y1)*cr;
-    iy12+=(x0*x0+x0*x1+x1*x1)*cr;
-    ixy24+=(2*x0*y0+x0*y1+x1*y0+2*x1*y1)*cr;
-  }
-  const signedArea=twiceArea/2;
-  if(Math.abs(signedArea)<EPS)return null;
-  const sign=Math.sign(signedArea);
-  const area=Math.abs(signedArea);
-  const cx=cx6/(6*signedArea),cy=cy6/(6*signedArea);
-  return {
-    area,cx,cy,
-    ixOrigin:sign*ix12/12,
-    iyOrigin:sign*iy12/12,
-    ixyOrigin:sign*ixy24/24
-  };
-}
-
-function waterplaneProperties(segments){
-  const loops=stitchLoops(segments);
-  const props=loops.map(polygonProps).filter(Boolean);
-  const area=props.reduce((s,p)=>s+p.area,0);
-  if(area<EPS)return {area:0,centroid:[0,0],ixx:0,iyy:0,ixy:0,loops:[]};
-  const cx=props.reduce((s,p)=>s+p.area*p.cx,0)/area;
-  const cy=props.reduce((s,p)=>s+p.area*p.cy,0)/area;
-  const ixOrigin=props.reduce((s,p)=>s+p.ixOrigin,0);
-  const iyOrigin=props.reduce((s,p)=>s+p.iyOrigin,0);
-  const ixyOrigin=props.reduce((s,p)=>s+p.ixyOrigin,0);
-  return {
-    area,centroid:[cx,cy],
-    ixx:ixOrigin-area*cy*cy,
-    iyy:iyOrigin-area*cx*cx,
-    ixy:ixyOrigin-area*cx*cy,
-    loops
-  };
-}
+function waterplaneProperties(segments){return integrateWaterplaneContours(segments);}
 
 export function triangleZBounds({positions,indices}){
   if(!positions?.length)return [];
