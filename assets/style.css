@@ -960,3 +960,13 @@
 .csv-source-raw{margin:0;padding:15px;white-space:pre;overflow:auto;color:var(--ink);font:12px/1.5 ui-monospace,Consolas,monospace}
 .csv-no-results{padding:22px;text-align:center;color:var(--ink-2)}
 @media(max-width:760px){.csv-workbench-toolbar{gap:7px;padding:9px}.csv-workbench-toolbar label{width:100%;margin:0}.csv-workbench-toolbar input{flex:1;max-width:none}}
+
+/* Shared code viewer parity with legacy CodeView */
+.code-view-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.code-view-actions button{border:1px solid #385364;background:#17313f;color:#dce9ef;padding:5px 9px;border-radius:6px;cursor:pointer}
+.code-view-actions button[aria-pressed="true"]{background:#344a60;border-color:#7b9cab}
+.code-view.is-wrapped .code-line-text{white-space:pre-wrap;overflow-wrap:anywhere}
+.code-view.is-wrapped code{min-width:0}
+.code-view.no-line-numbers .code-line{grid-template-columns:minmax(0,1fr)}
+.code-view.no-line-numbers .code-line-number{display:none}
+@media(max-width:760px){.code-meta{flex-wrap:wrap;gap:8px}.code-view-actions{width:100%}}
