@@ -1087,3 +1087,17 @@
 .viewer-conversion-required p{line-height:1.55;margin:0;color:var(--ink-2)}
 .viewer-conversion-required .btn{justify-self:start}
 @media(max-width:760px){.media-viewer,.archive-viewer{padding:9px}.viewer-conversion-required{padding:14px}}
+
+/* Unitless OBJ imports must show an explicit conversion selector. */
+.obj-viewer{display:grid;grid-template-rows:auto minmax(0,1fr);
+  min-width:0;min-height:100%;background:var(--surface);gap:8px}
+.obj-viewer-units{display:flex;flex-wrap:wrap;align-items:center;
+  gap:10px;padding:10px 13px;font-size:11px;border-bottom:1px solid var(--line)}
+.obj-viewer-units>strong{color:var(--ink)}
+.obj-viewer-units>span{color:var(--ink-2)}
+.obj-viewer-units label{display:flex;align-items:center;gap:7px}
+.obj-viewer-units select{min-height:34px;min-width:0;max-width:100%;
+  padding:6px;border:1px solid var(--line);border-radius:6px;
+  background:var(--surface-sunk);color:var(--ink)}
+.obj-viewer-scene{min-height:400px;min-width:0;overflow:hidden}
+@media(max-width:760px){.obj-viewer-scene{min-height:330px}}
