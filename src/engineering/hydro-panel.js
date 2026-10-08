@@ -142,7 +142,8 @@ export function hydroPanelHTML({
   const sameUprightVolume=Array.isArray(gz)&&gz.length&&
     Math.abs(Number(gz[0].volume)-Number(result.volume))<=
       Math.max(1e-6,Number(result.volume)*1e-6);
-  const canCompareGm=hasKg&&Math.abs(Number(tcg)||0)<1e-9&&sameUprightVolume;
+  const canCompareGm=hasKg&&Math.abs(Number(tcg)||0)<1e-9&&
+    Math.abs(Number(lcg)||0)<1e-9&&sameUprightVolume;
   const gmCrossCheck=canCompareGm?
     auditSmallAngleGz(gz,particulars.gmTransverse):null;
   const numericalSummary=`<section class="hydro-numerical-audit ${qualityAudit.status==="pass"?"":"needs-review"}" aria-label="Hydro numerical qualification">
