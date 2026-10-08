@@ -1,10 +1,4 @@
 export const LEGACY_DIVERSE_BRIDGES={
-  medisin:{
-    title:"MedisinTimer",
-    kicker:"Diverse / Utility",
-    description:"The existing timer, history, level curves, sync and calculation tools remain available inside the v2 shell while storage and UI are migrated.",
-    legacyUrl:"https://tormt.folk.ntnu.no/diverse/MedisinTimer/"
-  },
   laos:{
     title:"LAOS",
     kicker:"Diverse / Archive",

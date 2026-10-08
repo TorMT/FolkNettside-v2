@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="no"><head><meta charset="utf-8"><title>MedisinTimer v2 smoke</title></head>
+<body data-status="running"><div id="mount"></div><pre id="result">Running</pre>
+<script type="module">
+import {medisinPageHTML,mountMedisin} from "../../src/diverse/medisin-page.js";
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+try{
+  localStorage.removeItem("folk-medisin-v2:guest");
+  const root=document.getElementById("mount");
+  root.innerHTML=medisinPageHTML();
+  const mounted=mountMedisin(root);
+  const form=root.querySelector("#medisin-add-form");
+  form.elements.name.value="Browser smoke";
+  form.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
+  assert(root.querySelectorAll("[data-medisin-timer]").length===1,"Timer not rendered");
+  const dose=root.querySelector("[data-medisin-dose]");
+  assert(dose,"Dose button missing");
+  dose.click();
+  assert(root.querySelector("summary")?.textContent.includes("(1)"),"Dose history missing");
+  assert(localStorage.getItem("folk-medisin-v2:guest")?.includes("Browser smoke"),"Local backup missing");
+  mounted.cleanup();
+  localStorage.removeItem("folk-medisin-v2:guest");
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent="MedisinTimer native create/dose/local persistence: PASS";
+}catch(error){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>

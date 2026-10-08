@@ -85,10 +85,10 @@ export const DIVERSE_MODULES=[
     status:"migration",
     access:"optional",
     category:"Utility",
-    summary:"Timer- og historikkfunksjoner migreres til felles v2-komponenter og sentral lagring/session-grense.",
+    summary:"Native v2-timere, dosehistorikk og nivåkurver med lokal + Google Drive-synk. Legacy kalkulatorer og delingskoder er bevart separat til paritet er bekreftet.",
     legacyUrl:"https://tormt.folk.ntnu.no/diverse/MedisinTimer/",
-    storage:"local",
-    sync:"optional-account"
+    storage:"local+google-drive",
+    sync:"site-google-session"
   },
   {
     id:"laos",
