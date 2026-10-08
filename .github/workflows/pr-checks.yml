@@ -67,23 +67,10 @@ jobs:
 
       - name: Hydro worker geometry gate browser smoke
         run: |
-          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
-          test -n "$browser"
+          command -v chromedriver
           python3 -m http.server 4192 --bind 127.0.0.1 >/tmp/hydro-validation-browser.log 2>&1 &
-          pid=$!
-          trap 'kill "$pid" 2>/dev/null || true' EXIT
-          python3 - <<'PY'
-          import urllib.request,time
-          for _ in range(60):
-              try:
-                  urllib.request.urlopen('http://127.0.0.1:4192/tests/browser/hydro-preflight-smoke.html',timeout=1)
-                  break
-              except Exception:time.sleep(.1)
-          else:raise SystemExit('Hydro test server failed')
-          PY
-          "$browser" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=30000 \
-            --dump-dom http://127.0.0.1:4192/tests/browser/hydro-preflight-smoke.html > /tmp/hydro-preflight-dom.html
-          grep -q 'data-status="pass"' /tmp/hydro-preflight-dom.html || {
-            cat /tmp/hydro-preflight-dom.html
-            exit 1
-          }
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/hydro-chromedriver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4192/tests/browser/hydro-preflight-smoke.html
