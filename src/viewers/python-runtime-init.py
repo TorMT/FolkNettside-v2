@@ -71,7 +71,7 @@ def _viewer_capture(fig):
 def _viewer_patch_pyplot():
     global _viewer_patching
     pyplot = _sys.modules.get("matplotlib.pyplot")
-    if pyplot is None or getattr(pyplot, "_folk_viewer_patched", False) or _viewer_patching:
+    if pyplot is None or _viewer_patching or getattr(pyplot.show, "_folk_viewer_show", False):
         return
     _viewer_patching = True
     try:
@@ -86,6 +86,7 @@ def _viewer_patch_pyplot():
             _viewer_capture(self)
             pyplot.close(self)
 
+        inline_show._folk_viewer_show = True
         pyplot.show = inline_show
         Figure.show = inline_figure_show
         pyplot._folk_viewer_patched = True
