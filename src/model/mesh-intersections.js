@@ -139,3 +139,55 @@ export function inspectMeshIntersections(vertices,indices,weldedIds,{
   return {hits,candidatePairs,exhaustive:exhaustive&&todo.length===0||exhaustive&&hits.length>=maxHits,
     triangleCount:n,hitLimitReached:hits.length>=maxHits};
 }
+
+
+// Classify edge-connected shells even when a 3MF component contains multiple
+// individually watertight bodies. Nested shells have no intersecting triangles,
+// yet summing both displacement volumes is physically wrong. AABB overlap
+// therefore remains a conservative block until the actual external hull is
+// extracted and selected explicitly.
+export function inspectDisconnectedMeshShells(vertices,indices,weldedIds,{
+  tolerance=1e-7,maxCandidatePairs=1000000,maxReportedPairs=5
+}={}){
+  const n=indices.length/3,parents=Array.from({length:n},(_,i)=>i);
+  const find=t=>{while(parents[t]!==t){parents[t]=parents[parents[t]];t=parents[t]}return t};
+  const union=(a,b)=>{a=find(a);b=find(b);if(a!==b)parents[b]=a};
+  const owner=new Map();
+  for(let t=0;t<n;t++)for(let k=0;k<3;k++){
+    const a=weldedIds[indices[t*3+k]],b=weldedIds[indices[t*3+(k+1)%3]];
+    const edge=a<b?a+"|"+b:b+"|"+a;
+    if(owner.has(edge))union(t,owner.get(edge));else owner.set(edge,t);
+  }
+  const shells=new Map();
+  for(let t=0;t<n;t++){
+    const root=find(t);
+    if(!shells.has(root))shells.set(root,{
+      id:root,min:[Infinity,Infinity,Infinity],max:[-Infinity,-Infinity,-Infinity],
+      triangles:0
+    });
+    const shell=shells.get(root);shell.triangles++;
+    for(let i=0;i<3;i++){
+      const p=vertices[indices[t*3+i]];
+      for(let axis=0;axis<3;axis++){
+        shell.min[axis]=Math.min(shell.min[axis],p[axis]);
+        shell.max[axis]=Math.max(shell.max[axis],p[axis]);
+      }
+    }
+  }
+  const ordered=[...shells.values()].sort((a,b)=>a.min[0]-b.min[0]);
+  const active=[],overlapPairs=[];
+  let comparisons=0,exhaustive=true;
+  for(const shell of ordered){
+    for(let i=active.length-1;i>=0;i--)
+      if(active[i].max[0]<shell.min[0]-tolerance)active.splice(i,1);
+    for(const old of active){
+      if(old.max[1]<shell.min[1]+tolerance||shell.max[1]<old.min[1]+tolerance||
+         old.max[2]<shell.min[2]+tolerance||shell.max[2]<old.min[2]+tolerance)continue;
+      if(++comparisons>maxCandidatePairs){exhaustive=false;break}
+      if(overlapPairs.length<maxReportedPairs)overlapPairs.push([old.id,shell.id]);
+    }
+    if(!exhaustive)break;
+    active.push(shell);
+  }
+  return {shellCount:shells.size,overlapPairs,candidatePairs:comparisons,exhaustive};
+}
