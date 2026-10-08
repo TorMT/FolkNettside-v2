@@ -64,11 +64,11 @@ function renderCards(entries,{kind,onNavigate}){
     const href=external?safeCatalogUrl(item.url):"";
     if(external&&!href)return "";
     const metadata=kind==="kok"?[item.study,item.specialization,item.cohort?("Klasse "+item.cohort):"",
-      item.rating===null?"":("Rating "+item.rating+"/5")]:[item.courseCode,item.semester?("Semester "+item.semester):"",item.category];
+      item.rating===null?"":("Rating "+item.rating+"/"+(item.ratingScale||5))]:[item.courseCode,item.semester?("Semester "+item.semester):"",item.category];
     const link=external?`<a class="btn" href="${esc(href)}" target="_blank" rel="noopener noreferrer">Åpne side ↗</a>`:
       (onNavigate&&item.route?`<button type="button" class="btn" data-catalog-route="${esc(item.route)}">Åpne i Viewer</button>`:"");
     return `<article class="study-catalog-card"><div class="study-catalog-card-main">
-      <h3>${esc(item.name)}</h3><div class="study-catalog-chips">${metadata.filter(Boolean).map(value=>`<span>${esc(value)}</span>`).join("")}</div>
+      <h3>${esc(item.name)}</h3>${item.description?`<p class="study-catalog-description">${esc(item.description)}</p>`:""}<div class="study-catalog-chips">${metadata.filter(Boolean).map(value=>`<span>${esc(value)}</span>`).join("")}</div>
       ${item.source?`<small>Kilde: ${esc(item.source)}</small>`:""}</div>
       <div class="study-catalog-card-actions">${link}</div></article>`;
   }).join("");
