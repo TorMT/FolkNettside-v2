@@ -5,14 +5,18 @@
 import {boxMesh,reverseWinding} from "../../src/hydro/fixtures.js";
 import {validateHydroAsync,analyzeHydroAsync,disposeHydroWorker,gzCurveAsync} from "../../src/hydro/hydro-client.js";
 import {hydroPreflightHTML} from "../../src/engineering/hydro-panel.js";
+document.body.dataset.phase="imports-ready";
 const assert=(condition,msg)=>{if(!condition)throw new Error(msg)};
 const model=(geometry,id)=>({unitScaleToMeters:1,components:[{id,name:"Hull",geometry,metadata:{hydro:true}}]});
 try{
  const good=model(boxMesh({L:10,B:3,H:2}),"good");
+ document.body.dataset.phase="waiting-for-worker-validation";
  const accepted=await validateHydroAsync(good);
+ document.body.dataset.phase="worker-validated";
  assert(accepted.passed,"Fixture hull should pass topology preflight");
  assert(accepted.requiresIndependentReview,"Pass must not certify vessel source");
  assert(hydroPreflightHTML(accepted).includes("not validation of real hull"),"Preflight caution missing");
+ document.body.dataset.phase="worker-validated-good";
  const result=await analyzeHydroAsync(good,1);
  assert(Math.abs(result.volume-30)<1e-8,"Worker displacement is incorrect");
  const invalid=model(reverseWinding(boxMesh({L:10,B:3,H:2})),"bad");
