@@ -8,7 +8,56 @@ const PYODIDE_BASE="https://cdn.jsdelivr.net/pyodide/v"+PYODIDE_VERSION+"/full/"
 let runtime=null,bootstrap=null;
 const WORKSPACE="/home/pyodide/workspace";
 const uploadedFiles=new Set();
+const fetchedFiles=new Set();
+const missingFiles=new Set();
+let sourceBase=null, fetchAttempts=0, activeRunId=null;
 const send=(message)=>self.postMessage(message);
+
+// Browser-native synchronous file resolution is permitted in dedicated Workers.
+// Never resolve outside the original script's own folder or across origins.
+// A failed lookup is cached, limiting the overhead of absent modules.
+function setSourceBase(url){
+  if(!url){sourceBase=null;return}
+  try{
+    const target=new URL(url,self.location.href);
+    if(target.origin!==self.location.origin||
+       !["https:","http:"].includes(target.protocol))throw new Error("cross-origin");
+    sourceBase=new URL(".",target);
+  }catch{sourceBase=null}
+}
+function loadSiblingFile(relative){
+  if(!sourceBase||fetchAttempts>=100)return false;
+  if(typeof relative!=="string"||relative.length>300)return false;
+  const path=relative.replace(/\\/g,"/");
+  const parts=path.split("/");
+  if(!parts.length||parts.some(part=>!part||part==="."||part===".."||part.startsWith(".")))return false;
+  if(!/^[a-zA-Z0-9_() +.\-]+$/.test(parts.join("")))return false;
+  if(missingFiles.has(path))return false;
+  if(uploadedFiles.has(path)||fetchedFiles.has(path))return true;
+  try{
+    const url=new URL(parts.map(encodeURIComponent).join("/"),sourceBase);
+    if(url.origin!==sourceBase.origin||!url.pathname.startsWith(sourceBase.pathname))
+      return false;
+    fetchAttempts++;
+    const xhr=new XMLHttpRequest();
+    xhr.open("GET",url.href,false);
+    xhr.responseType="arraybuffer";
+    xhr.send();
+    if(xhr.status!==200||!xhr.response||xhr.response.byteLength>8_000_000)
+      throw new Error("not found or over 8 MB");
+    if(xhr.response.byteLength===0)throw new Error("empty file");
+    const py=runtime;
+    const destination=WORKSPACE+"/"+path;
+    if(parts.length>1)py.FS.mkdirTree(WORKSPACE+"/"+parts.slice(0,-1).join("/"));
+    py.FS.writeFile(destination,new Uint8Array(xhr.response));
+    fetchedFiles.add(path);
+    return true;
+  }catch{missingFiles.add(path);return false}
+}
+self._viewerFetchSibling=loadSiblingFile;
+self._viewerEmitImage=src=>{
+  if(activeRunId!==null)send({id:activeRunId,phase:"output",output:{type:"image",src}});
+};
 async function ensurePython(){
   if(runtime)return runtime;
   if(!bootstrap)bootstrap=(async()=>{
@@ -16,6 +65,14 @@ async function ensurePython(){
     const loaded=await self.loadPyodide({indexURL:PYODIDE_BASE});
     loaded.FS.mkdirTree(WORKSPACE);
     loaded.runPython('import os; os.chdir("/home/pyodide/workspace")');
+    // Runtime helper installs local import/pathlib shims and an inline
+    // matplotlib renderer. It is local static code, not an external library.
+    const response=await fetch(new URL("./python-runtime-init.py",self.location.href));
+    if(!response.ok)throw new Error("Python viewer initialization HTTP "+response.status);
+    loaded.globals.set("_viewer_fetch_file",path=>loadSiblingFile(String(path)));
+    loaded.globals.set("_viewer_emit_image",src=>self._viewerEmitImage(String(src)));
+    runtime=loaded;
+    loaded.runPython(await response.text());
     return loaded;
   })();
   try{runtime=await bootstrap;return runtime}
@@ -57,10 +114,13 @@ function generatedFiles(py){
   }
   return outputs;
 }
-async function run(code,stdin=""){
+async function run(code,stdin="",sourceURL=""){
   const py=await ensurePython();
   if(typeof code!=="string"||code.length>500000)
     throw new Error("Python source must be text under 500 KB");
+  setSourceBase(sourceURL);
+  fetchAttempts=0;missingFiles.clear();
+  py.runPython("_viewer_images.clear()");
   let stdout="",stderr="";
   const limit=200000;
   const append=(target,msg)=>String(target+msg+"\n").slice(-limit);
@@ -94,27 +154,14 @@ builtins.input = _viewer_input
     stderr=append(stderr,String(error?.message||error));
     throw {message:String(error?.message||error),stdout,stderr};
   }
-  const figures=[];
-  // Matplotlib is a Python module, not a property on Pyodide's JS
-  // loadedPackages object. Inspect sys.modules to detect user figures.
-  const matplotlibLoaded=Boolean(py.runPython(
-    'import sys; "matplotlib.pyplot" in sys.modules'));
-  if(matplotlibLoaded){
-    try{
-      const plots=py.runPython(`import io,base64
-from matplotlib import pyplot as plt
-_result_images=[]
-for _figure_id in list(plt.get_fignums())[:10]:
-    _figure=plt.figure(_figure_id)
-    _buf=io.BytesIO()
-    _figure.savefig(_buf,format='png',dpi=110,bbox_inches='tight')
-    _result_images.append('data:image/png;base64,'+base64.b64encode(_buf.getvalue()).decode())
-    plt.close(_figure)
-_result_images`);
-      figures.push(...plots.toJs());
-      plots.destroy?.();
-    }catch(error){stderr=append(stderr,"Plot preview: "+String(error))}
-  }
+  // Every plt.show()/Figure.show() already emitted a figure into the UI feed.
+  // Capture still-open figures only, so scripts without show() retain previews.
+  let figures=[];
+  try{
+    const proxy=py.runPython("_viewer_complete_figures()");
+    figures=proxy.toJs();
+    proxy.destroy?.();
+  }catch(error){stderr=append(stderr,"Figure preview: "+String(error))}
   return {stdout,stderr,result,figures,files:generatedFiles(py)};
 }
 self.onmessage=async({data})=>{
@@ -122,8 +169,11 @@ self.onmessage=async({data})=>{
   try{
     if(command==="run"){
       send({id,phase:"loading"});
-      const result=await run(data.code,data.stdin||"");
-      send({id,phase:"done",ok:true,...result});
+      activeRunId=id;
+      try{
+        const result=await run(data.code,data.stdin||"",data.sourceURL||"");
+        send({id,phase:"done",ok:true,...result});
+      }finally{activeRunId=null}
     }else if(command==="mount"){
       send({id,phase:"loading"});
       const result=await mountFiles(data.files);
