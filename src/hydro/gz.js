@@ -45,7 +45,10 @@ export function gzAtHeel(modelDocument,{
   const centerOfGravity=transformPoint(rotation,[0,0,kgValue]);
   const centerOfBuoyancy=solved.result.centerOfBuoyancy;
   const signedLever=centerOfBuoyancy[1]-centerOfGravity[1];
-  const gz=heel===0?0:-Math.sign(heel)*signedLever;
+  // Signed righting arm in the vessel's roll convention:
+  // GZ is odd in heel for a laterally symmetric hull, whereas the
+  // stabilizing magnitude is |GZ| on either side.
+  const gz=heel===0?0:-signedLever;
   const displacementMass=volume*Number(density||1025);
 
   return {
