@@ -18,7 +18,7 @@ The calculation engine is **already implemented**, including clipped-triangle hy
 - Add optional repair **preview** for vertex welding, consistent winding and outward normal correction, with before/after differences and confirmation. Never silently change imported geometry.
 - Verify source geometry unit, handedness, vessel baseline, x-forward/y-port/z-up convention, and alignment with draft datum.
 - Validate principal dimensions against separately sourced LOA, beam and relevant moulded dimensions; keep ship data provenance in the case file.
-- Verify model intersections with the design waterline and topology of each waterplane contour; support nested contours and moonpools without double counting area/moments.
+- **Implemented:** explicit closed-loop waterplane graph, nested hole/moonpool subtraction and geometric waterline crossing checks, with analytical tests and Web Worker browser regression. Coplanar/tangential degeneracies remain fail-closed; reference-vessel qualification still pending.
 
 ## Phase 3 — Hydrostatic numerical qualification
 
