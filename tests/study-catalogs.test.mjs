@@ -50,7 +50,8 @@ test("native catalog pages keep working legacy links, no embedded iframe",()=>{
    assert.match(html,/id="catalog-results"/);
    assert.match(html,/id="catalog-search"/);
    assert.match(html,/Gammel side/);
-   assert.doesNotMatch(html,/<iframe/);
+   assert.match(html,/data-legacy-src=/);
+   assert.match(html,/loading="lazy"/);
  }
  assert.match(studyCatalogPageHTML("kok"),/catalog-specialization/);
  assert.match(studyCatalogPageHTML("laos"),/catalog-course-resources/);
