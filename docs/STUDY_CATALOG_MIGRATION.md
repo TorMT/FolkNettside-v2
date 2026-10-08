@@ -1,74 +1,36 @@
-# LAOS, AndreKokSider and LeseRavnen migration
+# Study catalogs – completed source-backed v2 migration
 
-## Verified sources and limits
+## LAOS
 
-- The live legacy LAOS landing page advertises an automatically populated archive of obligatory assignment files, but the fetched markup only showed the loading state. The file list was **not** obtained; no old exercises have been claimed as migrated.
-- The live legacy AndreKokSider page has alphabetical/cohort/rating sorting and study, specialization and cohort filters, but the dynamic records/URLs were not recoverable from the available inspection. No student sites have been fabricated.
-- The LeseRavnen public demo URL is verified at `https://tormt.github.io/LeseRavnen/`. It is linked directly from Diverse and is **not** embedded or copied into v2. Its result collection, storage and deployment remain independently operated.
+Source of truth: `https://tormt.folk.ntnu.no/diverse/LAOS/filer/index.json`.
 
-## Native v2 architecture
+The public index lists three unprotected PDFs and one welcome image, all mirrored into `data/diverse/laos-files/` and referenced by the native v2 LAOS page:
 
-- `src/diverse/study-catalog-pages.js`: themed, responsive standalone native LAOS and AndreKokSider pages with filtering, search and fallbacks.
-- `src/diverse/study-catalog-core.js`: HTML-independent catalog validation, URL sanitisation, filtering and extraction of exercise-like resources from the **already published v2 Courses manifest**.
-- `data/diverse/laos-assignments.json` and `data/diverse/kok-sites.json`: schema-versioned source manifests, currently **explicitly empty and unverified**. Empty is not evidence that the legacy source has no records.
-- LAOS separately presents exercise-like resources already indexed by v2 Courses; it does **not** mislabel those as records copied from legacy LAOS.
-- The original pages remain accessible via direct links and a lazy, opt-in embedded source panel until their full listings have been exported and parity reviewed.
+- `Gruppemodul_MTKJ.pdf` (140,126 bytes)
+- `Refleksjon Lab Del.pdf` (37,252 bytes)
+- `Refleksjon Øving Del.pdf` (26,906 bytes)
+- `Laos-meme.jpg` (welcome image)
 
-## Data import contract
+`data/diverse/laos-assignments.json` records the authoritative source URLs and per-file SHA-256 digests. `tests/laos-source-data.test.mjs` compares the committed bytes to the pinned digests, verifies PDF headers and checks the welcome image. Native LAOS also links to existing exercise-like resources indexed independently in Courses; these are clearly separated from the copied LAOS archive.
 
-`schemaVersion` must be `1`, `items` an array and URLs real HTTP(S) URLs from verified source records. Source, attribution and provenance should be preserved rather than invented. To permanently publish contents, commit verified records to the corresponding `data/diverse/` manifest in the v2 repository.
+The original source index and page remain available via a plain reference link, not an embedded legacy iframe. Do not pull non-public/password-protected resources into the public build.
 
-AndreKokSider example **schema only — not real entries**:
+## AndreKokSider
 
-```json
-{
-  "schemaVersion": 1,
-  "source": "Original directory export + extraction date",
-  "sourceUrl": "https://tormt.folk.ntnu.no/diverse/AndreKokSider/",
-  "verified": true,
-  "items": [
-    {
-      "name": "Real verified student site name",
-      "url": "https://example.org/replace-with-verified-url",
-      "study": "verified study",
-      "specialization": "verified specialization",
-      "cohort": "24",
-      "rating": null,
-      "source": "URL or citation to the specific row"
-    }
-  ]
-}
-```
+Source of truth: the `const pages = [...]` array embedded in
+`https://tormt.folk.ntnu.no/diverse/AndreKokSider/`.
 
-LAOS example **schema only — not real entries**:
+The original directory has **29 distinct records**, including exact title, site ID, study, specialization, cohort, password-protection boolean and 0–10 rating. All 29 are in `data/diverse/kok-sites.json`. The source page constructs destination links as `https://folk.ntnu.no/${page.title.toLowerCase()}/`; the v2 URLs use the same rule. This is source-derived URL construction rather than proof each destination is currently online.
 
-```json
-{
-  "schemaVersion": 1,
-  "source": "Original LAOS file export + extraction date",
-  "sourceUrl": "https://tormt.folk.ntnu.no/diverse/LAOS/",
-  "verified": true,
-  "items": [
-    {
-      "title": "Verified obligatory exercise filename",
-      "url": "https://example.org/replace-with-verified-file-url.pdf",
-      "courseCode": "verified course code",
-      "semester": "3",
-      "category": "obligatory assignment",
-      "source": "Verified original file path"
-    }
-  ]
-}
-```
+**26 descriptions** are supplemented from `https://perrur.folk.ntnu.no/script.js` where the titles match. These have `descriptionSource` pointing to the secondary origin and **never override original ratings, study, cohorts or site membership**. Perrur's list is different; the original TorMT directory determines membership.
 
-Users can import a local JSON file for temporary preview in the native pages, but this stays in that browser session and does not update the deployed catalog or establish source verification.
+The v2 directory offers search, study/specialization/cohort filtering and alphabetical, cohort and rating sorts, all against the local versioned catalog.
 
-## Parity gate
+## Safety and regression
 
-Before marking these modules `native` (fully migrated) in the inventory:
-
-1. Obtain file-level LAOS listings and the entire AndreKokSider directory from the original site or its deployed source/data files.
-2. Validate each URL, its associated metadata and provenance. Archive/copy LAOS files only if redistribution permissions allow; otherwise retain references to source files.
-3. Populate the v2 manifests and compare the record counts, identities, links, filters and sort ordering side by side against legacy.
-4. Run unit and browser regression tests, then validate on mobile and desktop.
-5. Only after parity is confirmed, remove obsolete iframe bridge code. Do not change the original site merely to produce the v2 snapshot.
+- Native v2 routes replace the previous embedded legacy views; the old NTNU site itself was not changed.
+- Explicit source links remain for traceability.
+- Catalog links are URL-validated and text is HTML-escaped in cards.
+- Regression fixtures check original record count/IDs, metadata, sorting/filtering, the copied local PDFs/JPEG, and the absence of legacy iframes. Browser smoke tests exercise both native catalogs and Viewer integration.
+- `LeseRavnen` remains a direct independent link to `https://tormt.github.io/LeseRavnen/`; no demo code or test-data collection was touched.
+- Temporary GitHub Actions source-inspection and migration workflows were deleted after the one-time import. Content changes must go through a normal reviewed repository update.
