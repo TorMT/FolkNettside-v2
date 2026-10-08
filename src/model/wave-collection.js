@@ -68,3 +68,19 @@ export function writeWaveCollection(records,storage=globalThis.localStorage){
   storage.setItem(KEY,value);
   return items.length;
 }
+
+
+export function importWaveCollectionJSON(text){
+  let parsed;
+  try{parsed=JSON.parse(text)}catch{throw new Error("Invalid wave collection JSON")}
+  if(parsed?.schemaVersion!==1||parsed.kind!=="wave-collection"||
+     !Array.isArray(parsed.records)||parsed.records.length>MAX_WAVE_CASES)
+    throw new Error("Unsupported wave collection schema or too many records");
+  return parsed.records.map(record=>makeWaveRecord({
+    ...record,points:record.points,
+    wave:record.wave?{
+      ...record.wave,waterDepthM:record.wave.waterDepthM==null?
+        Infinity:record.wave.waterDepthM
+    }:null
+  }));
+}
