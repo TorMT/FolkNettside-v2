@@ -29,6 +29,12 @@ try{
  });
  assert(draftSolutionResidual(solved,21,1e-8).passed,
    "Worker declared a non-converged draft");
+ let failedConvergence=false;
+ try{
+   await solveHydroDraftAsync(good,21,{minWaterline:0,maxWaterline:2,
+     tolerance:1e-15,maxIterations:1});
+ }catch(error){failedConvergence=/did not converge/.test(String(error))}
+ assert(failedConvergence,"Worker returned an unconverged draft as success");
  const screen=hydroPanelHTML({
    modelDocument:{...good,name:"Reference barge"},result,curve,
    solved,draft:1,kg:.5,hydroValidation:accepted,
