@@ -80,7 +80,7 @@ export async function mountStudyCatalog(root,{kind,semesters=[],onBack=()=>{},on
   const status=root.querySelector("#catalog-status"),fileInput=root.querySelector("#catalog-import-file");
   const courseList=root.querySelector("#catalog-course-resources");
   const ac=new AbortController();
-  let current={items:[],verified:false,source:"",sourceUrl:""},published=null,disposed=false;
+  let current={items:[],verified:false,source:"",sourceUrl:""},published=null,disposed=false,localPreview=false;
   const values=()=>({
     query:input.value.trim(),
     study:root.querySelector("#catalog-study")?.value??"all",
@@ -96,7 +96,7 @@ export async function mountStudyCatalog(root,{kind,semesters=[],onBack=()=>{},on
     count.textContent=items.length+" av "+current.items.length+" katalogoppføringer";
     provenance.textContent=!current.items.length?
       "Den originale listen er ennå ikke hentet inn i v2. Ingen oppføringer er diktet opp. Bruk gammel side til datagrunnlaget er overført.":
-      current.verified?"Katalog fra verifisert kilde: "+(current.source||"publisert uttrekk"):
+      current.verified&&!localPreview?"Katalog fra verifisert kilde: "+(current.source||"publisert uttrekk"):
         "Dette er et ikke-verifisert lokalt eller foreløpig uttrekk. Kontroller lenkene før du bruker dem.";
     list.innerHTML=items.length?renderCards(items,{kind,onNavigate}):`<div class="study-catalog-empty"><strong>${current.items.length?"Ingen treff.":"Katalogen er ikke importert ennå."}</strong>
       <p>${current.items.length?"Endre søk eller filtre.":"Kildedata mangler. Den gamle siden er fortsatt tilgjengelig over."}</p></div>`;
@@ -126,7 +126,7 @@ export async function mountStudyCatalog(root,{kind,semesters=[],onBack=()=>{},on
   root.querySelector("[data-study-catalog-back]")?.addEventListener("click",onBack,{signal:ac.signal});
   root.querySelector("[data-catalog-upload]")?.addEventListener("click",()=>fileInput.click(),{signal:ac.signal});
   root.querySelector("[data-catalog-reset]")?.addEventListener("click",()=>{
-    if(published){current=published;status.textContent="Publisert katalog gjenopprettet.";refresh();}
+    if(published){current=published;localPreview=false;status.textContent="Publisert katalog gjenopprettet.";refresh();}
   },{signal:ac.signal});
   root.addEventListener("click",event=>{
     const button=event.target.closest("[data-catalog-route]");
@@ -137,6 +137,7 @@ export async function mountStudyCatalog(root,{kind,semesters=[],onBack=()=>{},on
     try{
       if(file.size>1024*1024)throw new Error("Maks 1 MB per katalog.");
       current=validateDiverseCatalog(JSON.parse(await file.text()),kind);
+      localPreview=true;
       status.textContent="Lokalt importert "+current.items.length+" oppføringer, ingen endringer er publisert.";
       refresh();
     }catch(error){status.textContent="Importfeil: "+String(error?.message||error);}
@@ -150,7 +151,7 @@ export async function mountStudyCatalog(root,{kind,semesters=[],onBack=()=>{},on
     const response=await fetch(URLS[kind].data,{cache:"no-store",signal:ac.signal});
     if(!response.ok)throw new Error("HTTP "+response.status);
     published=validateDiverseCatalog(await response.json(),kind);
-    if(!disposed){current=published;status.textContent="V2-katalogen er lest.";refresh();}
+    if(!disposed){current=published;localPreview=false;status.textContent="V2-katalogen er lest.";refresh();}
   }catch(error){
     if(!disposed){status.textContent="Kunne ikke lese katalogfilen: "+String(error.message||error);refresh();}
   }
