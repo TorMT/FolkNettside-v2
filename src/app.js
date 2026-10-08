@@ -968,9 +968,13 @@ async function engineeringPage(){
         hullMassTonnes:hullMassText||girderForm.hullMassTonnes,
         pointText:hydroPointWeightsText||girderForm.pointText,
         areaText:hullAreaLoadsText||girderForm.areaText,
-        cg:hydroKg!==""?[
-          Number(hydroLcg)||0,Number(hydroTcg)||0,Number(hydroKg)
-        ]:girderForm.cg
+        // Structural mass bookkeeping needs the UNLOADED hull CG.
+        // Reusing the already combined CG would count deck/point loads twice.
+        cg:hydroPointBaseline?.cg||(
+          hydroKg!==""?[
+            Number(hydroLcg)||0,Number(hydroTcg)||0,Number(hydroKg)
+          ]:girderForm.cg
+        )
       };
       let girder=null;
       if(girderRunRequested){
