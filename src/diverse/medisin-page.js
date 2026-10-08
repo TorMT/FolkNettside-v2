@@ -1,5 +1,6 @@
 import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js";
 import {mergeMedisinBackups,newMedisinBackup,readMedisinDriveBackup,writeMedisinDriveBackup,validateMedisinBackup} from "../platform/medisin-drive.js";
+import {CONCENTRATION_UNITS,medisinConcentrations,medisinSolutionVolume} from "./medisin-concentration.js";
 import {medisinStorageKey,medisinTimers,medisinDoses,medisinNextAt,medisinRemainingLevel,medisinChart,medisinApply,medisinCreateTimer,medisinCreateDose,medisinDelete} from "./medisin-model.js";
 
 const LEGACY_URL="https://tormt.folk.ntnu.no/diverse/MedisinTimer/";
@@ -42,13 +43,30 @@ export function medisinPageHTML(){
         </form>
         <p class="medisin-disclaimer">Tider, mengder og halveringstid legges inn av deg. Nivåkurver er kun en forenklet eksponentialmodell, ikke grunnlag for medisinske beslutninger. Ingen varsler sendes når siden er lukket.</p>
         <h3>Funksjoner under overføring</h3>
-        <p class="muted">Peptide reconstitution, konsentrasjonskalkulatorer, FARE-galleri og gammel delingskode er foreløpig tilgjengelig i <a href="${LEGACY_URL}" target="_blank" rel="noopener">den bevarte appen</a>. Gammel historikk importeres ikke automatisk.</p>
+        <p class="muted">Den eldre komplette peptide-kalkulatoren, FARE-galleriet og gammel delingskode er foreløpig tilgjengelig i <a href="${LEGACY_URL}" target="_blank" rel="noopener">den bevarte appen</a>. Gammel historikk importeres ikke automatisk.</p>
       </section>
       <section class="medisin-panel">
         <div class="medisin-section-top"><h2>Mine timere</h2><span id="medisin-count"></span></div>
         <div id="medisin-timers" class="medisin-timers"><p class="muted">Ingen timere ennå.</p></div>
       </section>
-    </div><p class="medisin-feedback" id="medisin-feedback" role="status"></p>
+    </div>
+    <section class="medisin-panel medisin-calculator">
+      <h2>Konsentrasjon og enhetsomregning</h2>
+      <p class="muted">Ren masse-/mol-/volumregning, ikke veiledning om preparering eller dosering.</p>
+      <form id="medisin-calc-form" class="medisin-form">
+        <div class="medisin-form-grid">
+          <label>Stoffmengde<input name="amount" type="number" step="any" min="0.0000001" value="10" required></label>
+          <label>Mengdeenhet<select name="amountUnit"><option value="mg">mg</option><option value="mcg">mcg</option><option value="g">g</option><option value="nmol">nmol</option><option value="umol">µmol</option><option value="mmol">mmol</option><option value="mol">mol</option></select></label>
+          <label>Sluttvolum<input name="volume" type="number" step="any" min="0.0000001" value="1" required></label>
+          <label>Volumenhet<select name="volumeUnit"><option value="mL">mL</option><option value="uL">µL</option><option value="L">L</option></select></label>
+          <label>Molekylvekt (g/mol), valgfritt<input name="molecularWeight" type="number" min="0.0000001" step="any" placeholder="Kun ved masse ↔ mol"></label>
+          <label>Valgfri mål-mengde<input name="targetAmount" type="number" min="0.0000001" step="any" placeholder="For volumberegning"></label>
+          <label>Enhet for mål-mengde<select name="targetUnit"><option value="mg">mg</option><option value="mcg">mcg</option><option value="g">g</option><option value="nmol">nmol</option><option value="umol">µmol</option><option value="mmol">mmol</option><option value="mol">mol</option></select></label>
+        </div><button class="btn primary" type="submit">Regn om</button>
+      </form>
+      <div id="medisin-calc-result" class="medisin-calc-result" aria-live="polite"></div>
+    </section>
+    <p class="medisin-feedback" id="medisin-feedback" role="status"></p>
   </main>`;
 }
 function curveSVG(points,unit){
@@ -167,6 +185,26 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
       try{saveLocal(medisinDelete(backup,del.dataset.medisinDelete));message("Slettet lokalt.");scheduleSync();}
       catch(error){message(error.message);}
     }
+  });
+  root.querySelector("#medisin-calc-form")?.addEventListener("submit",event=>{
+    event.preventDefault();
+    const data=new FormData(event.currentTarget);
+    const input=Object.fromEntries(data.entries());
+    const output=root.querySelector("#medisin-calc-result");
+    try{
+      const result=medisinConcentrations(input);
+      const rows=CONCENTRATION_UNITS.filter(unit=>result.concentrations[unit]!==null).map(unit=>
+        `<div><span>${esc(unit)}</span><strong>${esc(num(result.concentrations[unit]))}</strong></div>`).join("");
+      let detail="";
+      if(input.targetAmount){
+        const target=medisinSolutionVolume({totalAmount:input.amount,totalUnit:input.amountUnit,
+          diluentVolume:input.volume,diluentUnit:input.volumeUnit,
+          targetAmount:input.targetAmount,targetUnit:input.targetUnit,molecularWeight:input.molecularWeight});
+        detail=`<p>Teoretisk volum for valgt mengde: <strong>${esc(num(target.volumeML))} mL (${esc(num(target.volumeUL))} µL)</strong>.
+          ${target.withinMix?"":"Valgt mengde overstiger total mengde i løsningen."}</p>`;
+      }
+      output.innerHTML=`<div class="medisin-calc-grid">${rows}</div>${detail}`;
+    }catch(error){output.textContent="Kan ikke beregne: "+String(error.message||error);}
   });
   root.querySelector("#medisin-sync")?.addEventListener("click",()=>syncCloud());
   root.querySelector("#medisin-export")?.addEventListener("click",()=>{
