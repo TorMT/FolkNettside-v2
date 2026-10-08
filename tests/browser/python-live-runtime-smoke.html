@@ -8,6 +8,9 @@ try{
  const value=await session.run("import math\nprint(2 + 3)\nprint(math.sqrt(9))",
   {status:message=>{document.body.dataset.phase=message}});
  if(!value.stdout.includes("5")||!value.stdout.includes("3.0"))throw new Error("Bad live Python output: "+value.stdout);
+ const interactive=await session.run("name=input('Name? ');print('Hello '+name)",{stdin:"Ada"});
+ if(!interactive.stdout.includes("Hello Ada"))
+   throw new Error("Legacy input() script did not receive supplied stdin");
  const again=await session.run("print(math.factorial(5))");
  if(!again.stdout.includes("120"))throw new Error("Python state did not persist across cells");
  const encoder=new TextEncoder();
