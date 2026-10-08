@@ -1,6 +1,7 @@
 import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js";
 import {createHydroInclude} from "./hydro-selection.js";
 import {validateHydroModel} from "../model/hull-surface-validator.js";
+import {auditHydroCurve} from "./numerical-audit.js";
 import {gzCurve} from "./gz.js";
 import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js";
 
@@ -18,12 +19,17 @@ export function executeHydroRequest(modelDocument,type,payload={}){
     return analyzeModelDocument(modelDocument,payload.waterline,{include});
   }
   if(type==="curve"){
-    return hydroCurve(modelDocument,{
+    const curve=hydroCurve(modelDocument,{
       minWaterline:payload.minWaterline,
       maxWaterline:payload.maxWaterline,
       samples:payload.samples,
       include
     });
+    const audit=auditHydroCurve(curve);
+    if(!audit.passed)
+      throw new Error("Hydro numerical consistency blocked: "+
+        audit.errors.slice(0,3).join("; "));
+    return curve;
   }
   if(type==="solve"){
     return solveWaterlineForVolume(modelDocument,payload.targetVolume,{
