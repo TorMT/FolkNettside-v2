@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {makeWaveRecord,sampleWaveRecord,importWaveCSV,appendWaveRecord,
- readWaveCollection,writeWaveCollection,MAX_WAVE_CASES} from "../src/model/wave-collection.js";
+ readWaveCollection,writeWaveCollection,importWaveCollectionJSON,MAX_WAVE_CASES} from "../src/model/wave-collection.js";
 import {normaliseWaveCase} from "../src/model/wave-core.js";
 
 test("synthetic wave samples have explicit provenance and numeric probe history",()=>{
@@ -35,4 +35,18 @@ test("wave library bounds and invalid source labels are enforced",()=>{
  assert.equal(records[0].id,"case-8");
  assert.throws(()=>makeWaveRecord({source:"imported",wave:{heightM:1,periodS:5},
    points:[{timeS:0,elevationM:0}]}),/cannot be marked/);
+});
+
+test("wave JSON export/import keeps synthetic and measured provenance and physical parameters",()=>{
+ const a=sampleWaveRecord({heightM:1.1,periodS:5,headingDeg:20});
+ const b=importWaveCSV("time_s,eta_m\n0,.1\n1,-.1\n",{filename:"observed.csv"});
+ const json=JSON.stringify({schemaVersion:1,kind:"wave-collection",records:[a,b]});
+ const imported=importWaveCollectionJSON(json);
+ assert.equal(imported.length,2);
+ assert.equal(imported[0].wave.heightM,1.1);
+ assert.equal(imported[0].wave.waterDepthM,null);
+ assert.equal(imported[1].source,"imported");
+ assert.equal(imported[1].wave,null);
+ assert.throws(()=>importWaveCollectionJSON('{"records":[]}'),/Unsupported wave/);
+ assert.throws(()=>importWaveCollectionJSON("not json"),/Invalid wave/);
 });
