@@ -51,7 +51,7 @@ if H0 < T < H1:
 
 The test suite compares Hydro results to these **independently evaluated formulas** at several waterlines, including an exact wedge chine waterline.
 
-When a defined upright KG and matching displacement are available, the UI also checks a positive small-angle sample from the GZ curve against `GMt = KB + Ixx/V - KG`. It does **not** extrapolate an initial GM from angles greater than 5° or compare a constant-volume GZ curve against a different upright displacement. Nonzero TCG also disables this comparison to avoid presenting a misleading upright cross-check. This is a consistency check, not a formal stability criterion.
+When a defined upright KG and matching displacement are available, the UI also checks a positive small-angle sample from the GZ curve against `GMt = KB + Ixx/V - KG`. It does **not** extrapolate an initial GM from angles greater than 5° or compare a constant-volume GZ curve against a different upright displacement. Nonzero TCG or LCG also disables this simplified centered-CG comparison to avoid presenting a misleading upright cross-check. This is a consistency check, not a formal stability criterion.
 
 ## Scope still incomplete
 
