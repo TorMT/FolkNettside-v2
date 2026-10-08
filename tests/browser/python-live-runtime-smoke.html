@@ -64,7 +64,7 @@ try{
    "plt.figure()",
    "plt.plot([1,2],[9,7])",
    "plt.show()"
- ].join("\\n"),{onOutput:event=>stream.push(event)});
+ ].join("\n"),{onOutput:event=>stream.push(event)});
  if(stream.length!==2||
     !stream.every(entry=>entry.type==="image"&&entry.src.startsWith("data:image/png;base64,")))
    throw new Error("plt.show() did not stream both figures inline: "+stream.length);
