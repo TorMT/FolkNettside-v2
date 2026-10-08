@@ -138,7 +138,7 @@ function transformGeometryToWorld(geometry,transform,scale=1){
 
 function combineWaterplanes(items){
   const area=items.reduce((sum,item)=>sum+item.area,0);
-  if(area<EPS)return {area:0,centroid:[0,0],ixx:0,iyy:0,ixy:0,loops:[]};
+  if(area<EPS)return {area:0,centroid:[0,0],ixx:0,iyy:0,ixy:0,loops:[],outerContours:0,holeContours:0};
   const cx=items.reduce((sum,item)=>sum+item.area*item.centroid[0],0)/area;
   const cy=items.reduce((sum,item)=>sum+item.area*item.centroid[1],0)/area;
   let ixOrigin=0,iyOrigin=0,ixyOrigin=0;
@@ -153,7 +153,9 @@ function combineWaterplanes(items){
     ixx:ixOrigin-area*cy*cy,
     iyy:iyOrigin-area*cx*cx,
     ixy:ixyOrigin-area*cx*cy,
-    loops:items.flatMap(item=>item.loops||[])
+    loops:items.flatMap(item=>item.loops||[]),
+    outerContours:items.reduce((sum,item)=>sum+(item.outerContours||0),0),
+    holeContours:items.reduce((sum,item)=>sum+(item.holeContours||0),0)
   };
 }
 
