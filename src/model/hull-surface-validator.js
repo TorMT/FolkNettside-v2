@@ -1,5 +1,5 @@
 import {createHydroInclude} from "../hydro/hydro-selection.js";
-import {inspectMeshIntersections} from "./mesh-intersections.js";
+import {inspectMeshIntersections,inspectDisconnectedMeshShells} from "./mesh-intersections.js";
 
 const IDENTITY=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
 const finite=n=>typeof n==="number"&&Number.isFinite(n);
@@ -88,6 +88,14 @@ export function validateHydroGeometry(geometry,{transform=null,scale=1,tolerance
       surfaceIntersectionScan.hits[0].join(" / ")+")");
   if(surfaceIntersectionScan&&!surfaceIntersectionScan.exhaustive)
     errors.push("Self-intersection scan exceeded safe comparison limit");
+  const disconnectedShellScan=errors.length?null:
+    inspectDisconnectedMeshShells(vertices,idx,ids,{tolerance});
+  if(disconnectedShellScan?.overlapPairs.length)
+    errors.push(disconnectedShellScan.overlapPairs.length+
+      " overlapping or nested disconnected shell pairs inside one component; "+
+      "select only the external displacement surface");
+  if(disconnectedShellScan&&!disconnectedShellScan.exhaustive)
+    errors.push("Disconnected-shell overlap scan exceeded safe comparison limit");
   // Triangle pairs sharing welded vertices are intentionally skipped:
   // distinguish true penetrating contacts at shared vertices independently.
   // Topological closure alone does not prove the source is the external hull.
@@ -98,7 +106,9 @@ export function validateHydroGeometry(geometry,{transform=null,scale=1,tolerance
       signedVolume,bounds:{min,max,size},tolerance,
       selfIntersections:surfaceIntersectionScan?.hits.length??null,
       intersectionCandidatePairs:surfaceIntersectionScan?.candidatePairs??null,
-      intersectionScanExhaustive:surfaceIntersectionScan?.exhaustive??false}};
+      intersectionScanExhaustive:surfaceIntersectionScan?.exhaustive??false,
+      edgeConnectedShells:disconnectedShellScan?.shellCount??null,
+      ambiguousShellPairs:disconnectedShellScan?.overlapPairs.length??null}};
 }
 
 export function validateHydroModel(modelDocument,{include=createHydroInclude(modelDocument),tolerance=1e-7}={}){
