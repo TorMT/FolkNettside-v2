@@ -6,6 +6,8 @@ import {loadContent} from "./content.js";
 import {renderResourceTree} from "./components/resource-tree.js";
 import {karakterwebUrl} from "./courses/external-links.js";
 import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js";
+import {hydrostaticParticulars} from "./hydro/stability.js";
+import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js";
 import {renderProjectCard,renderProjectDetail} from "./components/project-card.js";
 import {buildSearchIndex} from "./search/search-index.js";
 import {createSearchController} from "./components/search-dialog.js";
@@ -77,12 +79,17 @@ let hydroTargetTonnes="";
 let hydroKg="";
 let hydroLcg="";
 let hydroTcg="";
+let hydroPointWeightsText="";
+let hydroPointWeightSummary=null;
+let hydroPointBaseline=null;
+let hydroPointError=null;
 let hydroHeel=0;
 let hydroTrim=0;
 let hydroGzRequested=false;
 let hydroAttitudeAction="";
 let hydroCurveCache={model:null,data:null};
 let structureLoadKn=-20;
+let structureLoadPosition=3;
 let resistanceSpeedKn=10;
 let propulsionThrustKn=20;
 let propulsionInflow=3;
@@ -166,6 +173,10 @@ function selectEngineeringModel(id){
   hydroKg="";
   hydroLcg="";
   hydroTcg="";
+  hydroPointWeightsText="";
+  hydroPointWeightSummary=null;
+  hydroPointBaseline=null;
+  hydroPointError=null;
   hydroHeel=0;
   hydroTrim=0;
   hydroGzRequested=false;
@@ -942,7 +953,7 @@ async function engineeringPage(){
 
       const fixture=await loadStructureFixture();
       if(renderId!==engineeringRenderId)return;
-      const structure=structurePanelHTML(fixture,{loadFy:structureLoadKn*1000});
+      const structure=structurePanelHTML(fixture,{loadFy:structureLoadKn*1000,loadPosition:structureLoadPosition});
       const caseModel=structure.model;
       app.innerHTML=top("engineering")+`<main class="workspace">
         <div class="workspace-bar"><strong>${caseModel.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
@@ -968,15 +979,19 @@ async function engineeringPage(){
         mode:"Structure",
         capability,
         method:{name:"2D Euler-Bernoulli frame FEM",caseModel:caseModel.name,scope:"linear static"},
-        inputs:{loadFy:structureLoadKn*1000,nodes:caseModel.nodes,elements:caseModel.elements,supports:caseModel.supports},
+        inputs:{loadFy:structureLoadKn*1000,pointLoadPosition:structureLoadPosition,
+          pointLoads:caseModel.pointLoads,nodes:caseModel.nodes,elements:caseModel.elements,supports:caseModel.supports},
         results:structure.result,
         assumptions:["2D frame idealisation","linear elastic response","small displacements"]
       }));
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
-      app.querySelector("#structure-load")?.addEventListener("change",event=>{
-        structureLoadKn=Number(event.target.value)||0;
-        engineeringPage();
-      });
+      for(const id of ["#structure-load","#structure-load-position"]){
+        app.querySelector(id)?.addEventListener("change",()=>{
+          structureLoadKn=Number(app.querySelector("#structure-load")?.value)||0;
+          structureLoadPosition=Number(app.querySelector("#structure-load-position")?.value);
+          engineeringPage();
+        });
+      }
     }catch(error){
       if(renderId!==engineeringRenderId)return;
       app.innerHTML=top("engineering")+`<main class="study"><section class="study-main"><div class="course-header"><h1>Structure error</h1><p>${String(error?.message||error)}</p></div></section></main>`;
@@ -1402,6 +1417,19 @@ async function engineeringPage(){
         analysisPromise,curvePromise,solvePromise,gzPromise,attitudePromise
       ]);
       if(renderId!==engineeringRenderId)return;
+      let loadedGM=null;
+      if(hydroPointWeightSummary&&solvedState?.value&&hasKg){
+        try{
+          const solvedDraft=solvedState.value.waterline;
+          const loadedHydro=await analyzeHydroAsync(documentModel,solvedDraft);
+          if(renderId!==engineeringRenderId)return;
+          const p=hydrostaticParticulars(loadedHydro,{density,kg:Number(hydroKg)});
+          loadedGM={draft:solvedDraft,gmTransverse:p.gmTransverse,
+            gmLongitudinal:p.gmLongitudinal,displacementTonnes:p.displacementTonnes};
+        }catch(error){
+          hydroPointError="Loaded GM evaluation failed: "+String(error?.message||error);
+        }
+      }
       hydroCurveCache={model:documentModel,data:curve};
       const includedIds=new Set(result.components.map(item=>item.componentId));
       const geometryWarnings=diagnostics.components.filter(item=>includedIds.has(item.componentId)&&!item.watertight);
@@ -1411,6 +1439,10 @@ async function engineeringPage(){
         solveError:solvedState?.error||null,
         draft:hydroDraft,
         targetDisplacementTonnes:hydroTargetTonnes,
+        pointWeightsText:hydroPointWeightsText,
+        pointWeightSummary:hydroPointWeightSummary,
+        pointWeightError:hydroPointError,
+        loadedGM,
         kg:hydroKg,
         lcg:hydroLcg,
         tcg:hydroTcg,
@@ -1439,12 +1471,17 @@ async function engineeringPage(){
           targetDisplacementTonnes:hydroTargetTonnes===""?null:Number(hydroTargetTonnes),
           density,
           centerOfGravity:hasKg?centerOfGravity:null,
+          pointWeights:hydroPointWeightSummary?.pointWeights||[],
+          pointWeightBaseline:hydroPointBaseline,
           heelDeg:Number(hydroHeel)||0,
           trimDeg:Number(hydroTrim)||0
         },
         results:{
           hydro:result,
           particulars:hydro.particulars||null,
+          loadedPointWeightCase:hydroPointWeightSummary?{
+            ...hydroPointWeightSummary,loadedGM
+          }:null,
           hydrostaticCurve:hydro.curveRows||[],
           numericalQualification:hydro.qualityAudit||null,
           smallAngleGmCrossCheck:hydro.gmCrossCheck||null,
@@ -1667,14 +1704,55 @@ async function engineeringPage(){
     hydroTrim=Number(app.querySelector("#hydro-trim")?.value??hydroTrim)||0;
   };
 
+  const pointInput=app.querySelector("#hydro-point-weights");
+  pointInput?.addEventListener("input",()=>{hydroPointWeightsText=pointInput.value});
+  app.querySelector("#hydro-point-apply")?.addEventListener("click",()=>{
+    readHydroCaseInputs();
+    hydroPointWeightsText=pointInput?.value||"";
+    try{
+      const weights=pointWeightsFromLines(hydroPointWeightsText);
+      if(!weights.length)throw new Error("Enter at least one point weight");
+      if(!hydroPointBaseline){
+        if(!hydro?.particulars?.displacementTonnes)
+          throw new Error("Baseline displacement has not been calculated");
+        if(hydroKg===""||!Number.isFinite(Number(hydroKg)))
+          throw new Error("Enter baseline KG before applying point weights");
+        hydroPointBaseline={
+          massTonnes:hydro.particulars.displacementTonnes,
+          cg:[Number(hydroLcg)||0,Number(hydroTcg)||0,Number(hydroKg)]
+        };
+      }
+      const summary=combinePointWeights({
+        baselineMassTonnes:hydroPointBaseline.massTonnes,
+        baselineCG:hydroPointBaseline.cg,
+        pointWeights:weights
+      });
+      hydroPointWeightSummary=summary;
+      hydroPointError=null;
+      hydroTargetTonnes=String(summary.totalMassTonnes);
+      [hydroLcg,hydroTcg,hydroKg]=summary.centerOfGravity.map(value=>String(value));
+      hydroGzRequested=false;hydroAttitudeAction="";
+    }catch(error){
+      hydroPointError=String(error?.message||error);
+      hydroPointWeightSummary=null;
+    }
+    engineeringPage();
+  });
+  app.querySelector("#hydro-target")?.addEventListener("change",()=>{
+    hydroPointWeightSummary=null;hydroPointBaseline=null;
+  });
   app.querySelector("#hydro-draft")?.addEventListener("change",event=>{
     hydroDraft=Number(event.target.value)||0;
+    hydroPointWeightSummary=null;hydroPointBaseline=null;
     hydroAttitudeAction="";
     engineeringPage();
   });
   for(const selector of ["#hydro-kg","#hydro-lcg","#hydro-tcg","#hydro-heel","#hydro-trim"]){
     app.querySelector(selector)?.addEventListener("change",()=>{
       readHydroCaseInputs();
+      if(["#hydro-kg","#hydro-lcg","#hydro-tcg"].includes(selector)){
+        hydroPointWeightSummary=null;hydroPointBaseline=null;
+      }
       hydroGzRequested=false;
       hydroAttitudeAction="";
       engineeringPage();

@@ -92,7 +92,15 @@ def main(url):
              "Trim equilibrium button updates Hydro inspector",seconds=60)
         assert_exports=js(sid,"return !!document.querySelector('#hydro-export-table')&&!document.querySelector('#hydro-export-table').disabled")
         if not assert_exports:raise RuntimeError("Hydrostatic CSV export is disabled")
-        print("GENERIC HYDRO BROWSER PASS: 2 STL shells, unit/axis gate, selection, volume, KG, GZ, draft solve, attitude, heel/trim equilibrium and export controls")
+        # Actual point-weight UI integration: mass added at (x=1, y=.5, z=2)
+        # must increase displacement and produce BOTH updated GM directions.
+        js(sid,"const w=document.querySelector('#hydro-point-weights');w.value='1,1,0.5,2';w.dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('#hydro-point-apply').click();return true")
+        wait(sid,"return !!document.querySelector('.hydro-point-summary')&&document.querySelector('.hydro-point-summary').innerText.includes('GM transverse')&&document.querySelector('.hydro-point-summary').innerText.includes('GM longitudinal')",
+            "Point weight recalculates loaded displacement and both initial GM axes",seconds=60)
+        loaded=js(sid,"return document.querySelector('.hydro-point-summary')?.innerText||''")
+        if "31.750" not in loaded:raise RuntimeError("Point-weight mass balance failed: "+repr(loaded))
+        if "Loaded GM unavailable" in loaded:raise RuntimeError("Point-weight draft/GM solver did not converge")
+        print("GENERIC HYDRO BROWSER PASS: 2 STL shells, unit/axis gate, selection, volume, KG, GZ, draft solve, attitude, heel/trim equilibrium point weights, loaded GM in both axes and export controls")
     finally:
         if sid:
             try:call("DELETE",f"/session/{sid}")

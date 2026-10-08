@@ -60,3 +60,34 @@ The status bar remains visible.
 **Status:** This phase is significant migration progress, but FULL legacy parity
 is not complete while the gaps above remain open. Do not remove old viewer
 fallbacks for those formats.
+
+## Additional viewer and engineering coverage (October 2026)
+
+The registry now explicitly routes images, audio, video, common documents,
+source files, archives (ZIP/CBZ/JAR), STL/3MF/F3Z, GLB/glTF/OBJ and
+additional delimited data formats. Unrecognized binary files **never** fall
+through to a text decoder; they open a clear original-download fallback.
+
+Native CAD/B-rep files such as F3D, STEP/IGES, SolidWorks and Inventor
+still require tessellation via an appropriate CAD tool or an approved APS
+backend. Browser preview cannot substitute for genuine CAD geometry.
+Unknown units in OBJ and mesh source files must never imply verified ship
+dimensions or hydrostatic capability.
+
+Hydro includes separate static point **weights** in tonnes with x/y/z
+coordinates, which change displacement and combined CG. The new loaded
+draft is solved, and GM transverse/longitudinal are recomputed at that draft.
+Structure includes arbitrary-element point **forces** in newtons, mapped with
+consistent Euler–Bernoulli nodal loads. Both use independent analytical
+reference tests, not identical algorithms or units.
+
+CoolProp shows fluid-specific A-series tables where mapped, with native
+phase/property tables for additional fluids. Reference calibration checkpoints
+and H/U/S deviations are inspectable in the Tables tab. Air and Ammonia
+have independently specified reference checkpoints; Water, R134a and
+other fluids remain explicitly **native/unverified** for textbook
+zero-level alignment until calibrated data is independently provided.
+
+Regression tests cover adapter routing, real browser previews, formula
+verification in both GM directions, beam point forces, static point weights,
+and CoolProp native-WASM table generation.

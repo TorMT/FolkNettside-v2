@@ -17,6 +17,11 @@ jobs:
         run: find src tests -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
       - name: Run regression tests
         run: npm test
+      - name: Verify all CoolProp native/reference tables with real WASM
+        run: |
+          python3 scripts/fetch_coolprop_wasm.py
+          node scripts/verify_coolprop_reference.mjs
+
       - name: MedisinTimer browser smoke
         run: |
           browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
@@ -188,3 +193,13 @@ jobs:
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4202/tests/browser/viewer-matrix-smoke.html 90 1400,900
+
+      - name: Browser test image audio ZIP CAD and OBJ viewers
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4204 --bind 127.0.0.1 >/tmp/viewer-coverage-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/viewer-coverage-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4204/tests/browser/viewer-format-coverage-smoke.html 90 1400,900

@@ -116,3 +116,14 @@
 }
 .engineering-waterline-controls>span{overflow-wrap:anywhere;line-height:1.45}
 .engineering-waterline-controls>small{line-height:1.45;color:var(--ink-3)}
+
+/* Hydro point weights: static loading-case controls and balanced-condition GM. */
+.hydro-point-weights{display:grid;gap:8px;padding:12px 0;border-block:1px solid var(--line)}
+.hydro-point-weights textarea{box-sizing:border-box;width:100%;max-width:100%;min-height:82px;
+  padding:9px 10px;border:1px solid var(--line);border-radius:7px;
+  background:var(--surface-sunk);color:var(--ink);
+  font:11px/1.5 ui-monospace,Consolas,monospace;resize:vertical}
+.hydro-point-weights .field{display:grid;gap:6px}
+.hydro-point-summary{display:grid;gap:5px;padding:10px;border:1px solid var(--line);border-radius:8px;
+  background:var(--surface-sunk);color:var(--ink-2);font-size:11px;overflow-wrap:anywhere}
+.hydro-point-summary strong{color:var(--ink);font-size:12px}

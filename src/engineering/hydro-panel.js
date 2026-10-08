@@ -113,6 +113,10 @@ export function hydroPanelHTML({
   solveError=null,
   draft,
   targetDisplacementTonnes="",
+  pointWeightsText="",
+  pointWeightSummary=null,
+  pointWeightError=null,
+  loadedGM=null,
   kg="",
   lcg="",
   tcg="",
@@ -183,6 +187,23 @@ export function hydroPanelHTML({
           <label><span>KG · z</span><input id="hydro-kg" type="number" step="0.01" value="${esc(kg)}" placeholder="required"></label>
         </div>
 
+        <section class="hydro-point-weights" aria-label="Hydro discrete point weights">
+          <div class="hydro-section-label">Discrete point weights · static mass</div>
+          <label class="field"><span>Mass (tonnes), X, Y, Z (m) · one point per line</span>
+            <textarea id="hydro-point-weights" rows="3" placeholder="1, 2, 1, 2" spellcheck="false">${esc(pointWeightsText)}</textarea>
+          </label>
+          <button type="button" class="btn" id="hydro-point-apply" ${kg===""?"disabled":""}>Apply point weights and recalculate</button>
+          ${pointWeightError?`<p class="hydro-solve-error">${esc(pointWeightError)}</p>`:""}
+          ${pointWeightSummary?`<div class="hydro-point-summary">
+            <strong>Loaded condition · added ${fmt(pointWeightSummary.addedMassTonnes,3)} t</strong>
+            <span>New displacement ${fmt(pointWeightSummary.totalMassTonnes,3)} t</span>
+            <span>CG: (${pointWeightSummary.centerOfGravity.map(x=>fmt(x,3)).join(", ")}) m</span>
+            ${loadedGM?`<span>New draft ${fmt(loadedGM.draft,4)} m</span>
+              <span>GM transverse ${fmt(loadedGM.gmTransverse,4)} m · GM longitudinal ${fmt(loadedGM.gmLongitudinal,4)} m</span>`:
+              `<span>Loaded GM unavailable until the target draft solver converges.</span>`}
+          </div>`:""}
+          <p class="muted hydro-note">The initial draft and CG define a baseline without these weights. Positive mass adds weight; negative mass removes it. This is not a point force on a structural frame.</p>
+        </section>
         <div class="hydro-section-label">Attitude</div>
         <div class="hydro-attitude-grid">
           <label><span>Heel</span><div><input id="hydro-heel" type="number" step="0.5" value="${esc(heel)}"><span>°</span></div></label>
