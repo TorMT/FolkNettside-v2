@@ -101,3 +101,15 @@ test("GM inferred from small-angle GZ converges to independently calculated GM f
  const noAngle=auditSmallAngleGz(gzCurve(ship,{targetVolume:hydro.volume,kg,minHeel:10,maxHeel:30,step:10}),gm);
  assert.equal(noAngle.status,"unavailable");
 });
+
+test("sloped wedge matches independent closed-form V(T) and A(T), including exact chine draft",()=>{
+ const L=8,B=2,H0=.5,H1=2,dh=H1-H0;
+ const ship=model(wedgePrismMesh({L,B,H0,H1}));
+ for(const T of [.25,.5,.7,1,1.5,1.9]){
+   const row=executeHydroRequest(ship,"analyze",{waterline:T});
+   const expectedVolume=B*L*(T<=H0?T:T-(T-H0)**2/(2*dh));
+   const expectedArea=B*L*(T<=H0?1:1-(T-H0)/dh);
+   near(row.volume,expectedVolume,1e-7);
+   near(row.waterplane.area,expectedArea,1e-7);
+ }
+});
