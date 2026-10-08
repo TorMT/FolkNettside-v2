@@ -22,7 +22,7 @@ export function studyCatalogPageHTML(kind){
       <div><span class="project-kicker">Diverse / Study</span><h1>${title}</h1><p>${subtitle}</p></div>
       <div class="legacy-diverse-actions">
         ${btn("Til Diverse",'data-study-catalog-back')}
-        <a class="btn" href="${URLS[kind].legacy}" target="_blank" rel="noopener noreferrer">Gammel side ↗</a>
+        <a class="btn" href="${URLS[kind].legacy}" target="_blank" rel="noopener noreferrer">Opprinnelig kilde ↗</a>
       </div>
     </header>
     <section class="study-catalog-shell">
@@ -31,20 +31,15 @@ export function studyCatalogPageHTML(kind){
         <label class="catalog-search">Søk<input id="catalog-search" type="search" placeholder="${kok?"Søk etter side eller studie …":"Søk etter øving eller emne …"}" autocomplete="off"></label>
         ${filterFields}
       </div>
+      <details class="study-catalog-import-tools"><summary>Katalogverktøy (JSON)</summary>
       <div class="study-catalog-toolbar study-catalog-import">
-        <div><strong>Kildebasert migrasjon</strong><small>Du kan vise et verifisert JSON-uttrekk lokalt mens katalogen overføres. Importen påvirker ikke nettsiden for andre brukere.</small></div>
+        <div><strong>Importer lokalt utdrag</strong><small>Vis en alternativ JSON-katalog i denne nettleseren. Dette endrer ikke den publiserte listen.</small></div>
         ${btn("Åpne JSON-uttrekk",'data-catalog-upload')}
         ${btn("Gjenopprett publisert katalog",'data-catalog-reset')}
         <input id="catalog-import-file" type="file" accept=".json,application/json" hidden>
-      </div>
+      </div></details>
       <div class="study-catalog-result-head"><strong id="catalog-count">—</strong><span id="catalog-status"></span></div>
       <div class="study-catalog-results" id="catalog-results" aria-live="polite"></div>
-      <details class="study-catalog-source-fallback">
-        <summary>Vis eksisterende ${title}-innhold i gammel visning</summary>
-        <p>Dette er midlertidig kildevisning for oppføringer som ennå ikke er migrert. Innholdet kommer fra den gamle nettsiden og følger ikke v2-filtrene.</p>
-        <iframe loading="lazy" title="${title} original visning" data-legacy-src="${URLS[kind].legacy}" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
-        <p>Hvis innbygging blokkeres: <a href="${URLS[kind].legacy}" target="_blank" rel="noopener noreferrer">åpne originalen direkte</a>.</p>
-      </details>
       ${!kok?`<section class="study-catalog-course-section"><h2>Øvingsfiler i Courses</h2>
        <p class="muted">Viser øvings- og obligatoriske ressurser som allerede finnes i v2-manifestet. Dette er ikke nødvendigvis den gamle LAOS-samlingen.</p>
        <div id="catalog-course-resources" class="study-catalog-results"></div></section>`:""}
@@ -95,11 +90,11 @@ export async function mountStudyCatalog(root,{kind,semesters=[],onBack=()=>{},on
     const items=kok?filterKokSites(current.items,filters):filterLAOSAssignments(current.items,filters);
     count.textContent=items.length+" av "+current.items.length+" katalogoppføringer";
     provenance.textContent=!current.items.length?
-      "Den originale listen er ennå ikke hentet inn i v2. Ingen oppføringer er diktet opp. Bruk gammel side til datagrunnlaget er overført.":
+      "Ingen katalogoppføringer tilgjengelig. Sjekk kildefilen og prøv på nytt.":
       current.verified&&!localPreview?"Katalog fra verifisert kilde: "+(current.source||"publisert uttrekk"):
         "Dette er et ikke-verifisert lokalt eller foreløpig uttrekk. Kontroller lenkene før du bruker dem.";
-    list.innerHTML=items.length?renderCards(items,{kind,onNavigate}):`<div class="study-catalog-empty"><strong>${current.items.length?"Ingen treff.":"Katalogen er ikke importert ennå."}</strong>
-      <p>${current.items.length?"Endre søk eller filtre.":"Kildedata mangler. Den gamle siden er fortsatt tilgjengelig over."}</p></div>`;
+    list.innerHTML=items.length?renderCards(items,{kind,onNavigate}):`<div class="study-catalog-empty"><strong>${current.items.length?"Ingen treff.":"Katalogen er tom eller ikke tilgjengelig."}</strong>
+      <p>${current.items.length?"Endre søk eller filtre.":"Sjekk datakilden eller prøv igjen senere."}</p></div>`;
     if(kok){
       options(root.querySelector("#catalog-study"),distinctValues(current.items,"study"),"Alle studier");
       options(root.querySelector("#catalog-specialization"),distinctValues(current.items.filter(item=>filters.study==="all"||item.study===filters.study),"specialization"),"Alle spesialiseringer");
@@ -117,12 +112,6 @@ export async function mountStudyCatalog(root,{kind,semesters=[],onBack=()=>{},on
       '<div class="study-catalog-empty"><strong>Ingen tilsvarende ressurser funnet i Courses.</strong><p>Det betyr ikke at det gamle LAOS-arkivet er tomt.</p></div>';
   }
   function refresh(){render();renderExercises();}
-  root.querySelector(".study-catalog-source-fallback")?.addEventListener("toggle",event=>{
-    if(event.currentTarget.open){
-      const frame=event.currentTarget.querySelector("iframe[data-legacy-src]");
-      if(frame&&!frame.src)frame.src=frame.dataset.legacySrc;
-    }
-  },{signal:ac.signal});
   root.querySelector("[data-study-catalog-back]")?.addEventListener("click",onBack,{signal:ac.signal});
   root.querySelector("[data-catalog-upload]")?.addEventListener("click",()=>fileInput.click(),{signal:ac.signal});
   root.querySelector("[data-catalog-reset]")?.addEventListener("click",()=>{
