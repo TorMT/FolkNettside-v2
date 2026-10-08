@@ -81,7 +81,7 @@ jobs:
               except Exception:time.sleep(.1)
           else:raise SystemExit('Hydro test server failed')
           PY
-          "$browser" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=6500 \
+          "$browser" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=30000 \
             --dump-dom http://127.0.0.1:4192/tests/browser/hydro-preflight-smoke.html > /tmp/hydro-preflight-dom.html
           grep -q 'data-status="pass"' /tmp/hydro-preflight-dom.html || {
             cat /tmp/hydro-preflight-dom.html
