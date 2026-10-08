@@ -1,4 +1,6 @@
 import {analyzeModelDocument} from "../hydro/hydrostatics.js";
+import {createHydroInclude} from "../hydro/hydro-selection.js";
+import {validateHydroModel} from "../model/hull-surface-validator.js";
 import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js";
 import {parseSTL} from "../model/parsers/stl.js";
 import {parse3MF} from "../model/parsers/three-mf.js";
@@ -18,10 +20,16 @@ export async function parseModelBuffer(buffer,name="model.stl"){
 
 export function modelHydroSummary(modelDocument,waterline=0,density=1025){
   const diagnostics=analyzeModelDiagnostics(modelDocument);
-  const hydro=analyzeModelDocument(modelDocument,Number(waterline)||0);
+  const include=createHydroInclude(modelDocument);
+  const geometryValidation=validateHydroModel(modelDocument,{include});
+  if(!geometryValidation.passed){
+    throw new Error("Hull preflight blocked: "+geometryValidation.errors.slice(0,5).join("; "));
+  }
+  const hydro=analyzeModelDocument(modelDocument,Number(waterline)||0,{include});
   const fullWaterline=diagnostics.bounds.max[2]+Math.max(1e-6,diagnostics.bounds.size[2]*.02);
-  const full=analyzeModelDocument(modelDocument,fullWaterline);
+  const full=analyzeModelDocument(modelDocument,fullWaterline,{include});
   return {
+    geometryValidation,
     diagnostics,
     waterline:Number(waterline)||0,
     volume:hydro.volume,
