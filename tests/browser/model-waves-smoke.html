@@ -60,6 +60,27 @@ try{
    " · stored "+collection.length+" series");
  assert(collection.some(x=>x.source==="imported"&&x.wave===null),"CSV provenance was lost");
  assert(details.querySelectorAll(".model-wave-entry").length===2,"Wave library viewer not updated");
+ const replay=[...details.querySelectorAll(".model-wave-entry button")].find(btn=>
+   btn.textContent.includes("Show this wave in 3D"));
+ assert(replay,"Synthetic wave cannot be replayed in the 3D scene");
+ replay.click();
+ assert(details.querySelector("[data-wave-show]").textContent==="Hide waves",
+   "Saved wave did not load into the 3D scene");
+ const waveJSON=JSON.stringify({schemaVersion:1,kind:"wave-collection",records:collection});
+ for(let i=0;i<2;i++){
+   const remove=[...details.querySelectorAll(".model-wave-entry button")].find(btn=>
+     btn.textContent==="Remove");
+   remove.click();
+ }
+ assert(readWaveCollection().length===0,"Wave library removal did not persist");
+ const library=details.querySelector("[data-wave-json]");
+ const archive=new File([waveJSON],"archive.json",{type:"application/json"});
+ const libTransfer=new DataTransfer();libTransfer.items.add(archive);library.files=libTransfer.files;
+ library.dispatchEvent(new Event("change",{bubbles:true}));
+ for(let i=0;i<70&&readWaveCollection().length!==2;i++)
+   await new Promise(resolve=>setTimeout(resolve,100));
+ assert(readWaveCollection().length===2,"Wave JSON restoration failed: "+
+   details.querySelector(".model-wave-status")?.textContent);
  details.querySelector("[data-wave-show]").click();
  assert(details.querySelector("[data-wave-show]").textContent==="Hide waves","3D wave toggle not connected");
  details.querySelector("[data-wave-show]").click();
