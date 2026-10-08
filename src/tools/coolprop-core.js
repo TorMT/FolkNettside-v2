@@ -180,6 +180,16 @@ export function courseTableConfig(fluid){
   // from the fluid EOS, not independently calibrated textbook tables.
   const phaseChange=["Propane","CO2","Methane","Oxygen","Nitrogen"].includes(fluid);
   const lowT=["CO2","Oxygen","Nitrogen","Methane"].includes(fluid);
+  // Saturation presets must lie strictly between each fluid's triple and
+  // critical temperatures. In particular CO2 has no liquid-vapour saturation
+  // below ~5.18 bar (the triple-point pressure).
+  const saturationTemperatures={
+    CO2:"-50\\n-30\\n-10\\n10",
+    Oxygen:"-200\\n-190\\n-170\\n-140",
+    Nitrogen:"-205\\n-190\\n-170\\n-150",
+    Methane:"-175\\n-150\\n-125\\n-100",
+    Propane:"-40\\n-20\\n0\\n20"
+  };
   return {
     label:`${fluid} · native CoolProp basis`,
     native:true,
@@ -193,9 +203,9 @@ export function courseTableConfig(fluid){
       },
       ...(phaseChange?[
         {id:"Native-sat-T",label:"Saturation · temperature",
-          mode:"sat-T",defaultRows:lowT?"-100\n-75\n-50":"-40\n-20\n0\n20"},
+          mode:"sat-T",defaultRows:saturationTemperatures[fluid]},
         {id:"Native-sat-P",label:"Saturation · pressure",
-          mode:"sat-P",defaultRows:"1\n2\n5\n10"},
+          mode:"sat-P",defaultRows:fluid==="CO2"?"6\n10\n20\n40":"1\n2\n5\n10"},
         {id:"Native-vapour",label:"Vapour · T/P property table",
           mode:"superheated",defaultRows:lowT?"-50,1\n0,3\n50,5":"25,1\n60,2\n100,5"}
       ]:[])
