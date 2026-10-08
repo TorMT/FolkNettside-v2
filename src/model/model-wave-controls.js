@@ -1,7 +1,7 @@
 import {normaliseWaveCase,waveObservationsCSV} from "./wave-core.js";
 import {legacyAddedWaveResistance,legacyMorisonWaveForce} from "./wave-concept-estimates.js";
 import {appendWaveRecord,importWaveCSV,readWaveCollection,
-  sampleWaveRecord,writeWaveCollection} from "./wave-collection.js";
+  sampleWaveRecord,writeWaveCollection,importWaveCollectionJSON} from "./wave-collection.js";
 
 export function waveTraceSVG(points){
   if(!Array.isArray(points)||!points.length)return "<span>No observations</span>";
@@ -46,6 +46,7 @@ export function mountWaveControls(host,scene,{open=false}={}){
     <div class="model-wave-library">
       <div class="model-wave-library-head"><strong>Wave collection</strong>
         <label class="model-wave-import">Import CSV<input data-wave-import type="file" accept=".csv,.tsv,.txt" hidden></label>
+        <label class="model-wave-import">Import library JSON<input data-wave-json type="file" accept=".json" hidden></label>
         <button type="button" data-wave-export>Export JSON</button>
       </div>
       <div class="model-wave-entries"></div>
@@ -93,6 +94,27 @@ export function mountWaveControls(host,scene,{open=false}={}){
         entry.id+".csv","text/csv;charset=utf-8"));
       const remove=document.createElement("button");remove.type="button";remove.textContent="Remove";
       remove.addEventListener("click",()=>{records=records.filter(x=>x.id!==entry.id);persist();renderRecords()});
+      if(entry.source==="synthetic"&&entry.wave){
+        const show=document.createElement("button");show.type="button";
+        show.textContent="Show this wave in 3D";
+        show.addEventListener("click",()=>{
+          try{
+            const wave=normaliseWaveCase({
+              ...entry.wave,
+              waterDepthM:entry.wave.waterDepthM==null?Infinity:entry.wave.waterDepthM
+            });
+            active=true;
+            $("[data-wave-height]").value=String(wave.heightM);
+            $("[data-wave-period]").value=String(wave.periodS);
+            $("[data-wave-heading]").value=String(wave.headingDeg);
+            $("[data-wave-depth]").value=Number.isFinite(wave.waterDepthM)?
+              String(wave.waterDepthM):"";
+            $("[data-wave-show]").textContent="Hide waves";
+            updateWave();
+          }catch(error){status.textContent=String(error?.message||error)}
+        });
+        actions.prepend(show);
+      }
       actions.append(csv,remove);article.append(actions);listing.append(article);
     }
   }
@@ -145,6 +167,18 @@ export function mountWaveControls(host,scene,{open=false}={}){
         " N\nMorison force peak (concept): "+morison.forcePeakN.toFixed(1)+
         " N\nNot verified wave loads. No ship motions/RAOs or diffraction.";
     }catch(error){output.textContent="No result: "+String(error?.message||error)}
+  });
+  $("[data-wave-json]").addEventListener("change",async event=>{
+    const file=event.target.files?.[0];if(!file)return;
+    try{
+      if(file.size>2500000)throw new Error("Wave library JSON exceeds 2.5 MB");
+      const incoming=importWaveCollectionJSON(await file.text());
+      if(disposed)return;
+      for(const entry of incoming)records=appendWaveRecord(records,entry);
+      persist();renderRecords();
+      status.textContent="Restored "+incoming.length+" wave case(s) with provenance";
+    }catch(error){status.textContent=String(error?.message||error)}
+    event.target.value="";
   });
   $("[data-wave-export]").addEventListener("click",()=>downloadText(
     JSON.stringify({schemaVersion:1,kind:"wave-collection",records},null,2),
