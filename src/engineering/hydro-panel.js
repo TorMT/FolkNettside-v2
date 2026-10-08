@@ -1,5 +1,6 @@
 import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js";
 import {gzMetrics} from "../hydro/gz.js";
+import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -132,11 +133,33 @@ export function hydroPanelHTML({
   const clamped=clamp(draft,minDraft,maxDraft);
   const cb=result.centerOfBuoyancy;
   const span=Math.max(maxDraft-minDraft,1e-9);
-  const solvedText=solved?`${solved.waterline.toFixed(4)} m (${solved.iterations} iterations)`:null;
+  const solvedText=solved?`${solved.waterline.toFixed(4)} m (${solved.iterations} iterations; volume residual ${Number(solved.volumeResidual||0).toExponential(2)} m³)`:null;
   const hasKg=kg!==""&&Number.isFinite(Number(kg));
   const particulars=hydrostaticParticulars(result,{density,kg:hasKg?Number(kg):null});
   const curveRows=hydrostaticCurveRows(curve,{density,kg:hasKg?Number(kg):null});
   const gzSummary=gzMetrics(gz);
+  const qualityAudit=auditHydroCurve(curve);
+  const sameUprightVolume=Array.isArray(gz)&&gz.length&&
+    Math.abs(Number(gz[0].volume)-Number(result.volume))<=
+      Math.max(1e-6,Number(result.volume)*1e-6);
+  const canCompareGm=hasKg&&Math.abs(Number(tcg)||0)<1e-9&&
+    Math.abs(Number(lcg)||0)<1e-9&&sameUprightVolume;
+  const gmCrossCheck=canCompareGm?
+    auditSmallAngleGz(gz,particulars.gmTransverse):null;
+  const numericalSummary=`<section class="hydro-numerical-audit ${qualityAudit.status==="pass"?"":"needs-review"}" aria-label="Hydro numerical qualification">
+    <strong>Numerical consistency · ${esc(qualityAudit.status)}</strong>
+    <span>V(T) monotonicity: ${qualityAudit.passed?"passed":"FAILED"} ·
+      dV/dT vs A<sub>wp</sub>: ${qualityAudit.warnings.length?
+        qualityAudit.warnings.length+" interval(s) need review":"within sampled tolerance"}
+    </span>
+    ${qualityAudit.errors.length?`<p>${esc(qualityAudit.errors[0])}</p>`:""}
+    ${qualityAudit.warnings.length?`<p>${esc(qualityAudit.warnings[0])}</p>`:""}
+    ${gmCrossCheck?`<span>Small-angle GZ/GM: ${esc(gmCrossCheck.status)}
+      ${gmCrossCheck.angleDeg!==undefined?
+        `at ${fmt(gmCrossCheck.angleDeg,2)}° · sampled GM ${fmt(gmCrossCheck.estimatedGm,3)} m`:""}
+    </span>`:""}
+    <small>Numerical self-check only. Not independent ship data or a stability certificate.</small>
+  </section>`;
 
   return {
     inspector:`
@@ -193,6 +216,7 @@ export function hydroPanelHTML({
     `,
     results:`
       <div class="hydro-results-wrap">
+        ${numericalSummary}
         <div class="hydro-grid hydro-particular-grid">
           <div><span class="muted">CB / LCB · TCB · KB</span><strong>(${cb.map(v=>v.toFixed(3)).join(", ")}) m</strong></div>
           <div><span class="muted">Waterplane area</span><strong>${particulars.waterplaneArea.toFixed(3)} m²</strong></div>
@@ -235,6 +259,8 @@ export function hydroPanelHTML({
     particulars,
     curveRows,
     gzSummary,
+    qualityAudit,
+    gmCrossCheck,
     draft:clamped,
     density,
     waterlinePercent:((clamped-minDraft)/span)*100

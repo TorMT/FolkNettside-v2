@@ -1420,13 +1420,20 @@ async function engineeringPage(){
           hydro:result,
           particulars:hydro.particulars||null,
           hydrostaticCurve:hydro.curveRows||[],
+          numericalQualification:hydro.qualityAudit||null,
+          smallAngleGmCrossCheck:hydro.gmCrossCheck||null,
           solvedDraft:solvedState?.value||null,
           gz:gzState?.value||null,
           gzMetrics:hydro.gzSummary||null,
           attitude:attitudeState?.value||null
         },
         assumptions:["rigid body","constant water density","hydro geometry selected by semantic metadata"],
-        warnings:geometryWarnings.map(item=>`${item.name||item.componentId}: geometry is not watertight`)
+        warnings:[
+          ...geometryWarnings.map(item=>`${item.name||item.componentId}: geometry is not watertight`),
+          ...(hydro.qualityAudit?.errors||[]),
+          ...(hydro.qualityAudit?.warnings||[]),
+          ...(hydro.gmCrossCheck?.status==="review"?[hydro.gmCrossCheck.reason]:[])
+        ]
       });
     }catch(error){
       if(renderId!==engineeringRenderId)return;
