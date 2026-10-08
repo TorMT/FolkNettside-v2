@@ -42,3 +42,48 @@ The calculation engine is **already implemented**, including clipped-triangle hy
 **Hydro validated** = all geometry preflight checks + independently documented hull provenance, source/datum, underwater volume/waterplane comparisons, loading condition, calculation reference tolerances, and model-specific review complete.
 
 No old FolkNettside files are modified for this work; the LeseRavnen demo stays independent.
+
+## Rectangular reference block and control verification (October 2026)
+
+Continuous CI runs `tests/hydro-block-comprehensive.test.mjs` and the real Chrome Worker
+fixture `tests/browser/hydro-block-complete-smoke.html`. The browser
+import smoke additionally clicks the live Engineering controls after importing an
+STL with two separate bodies and selecting only the external hull.
+
+For a **10 × 4 × 3 m closed box at T=1 m**, seawater density 1025 kg/m³
+and KG=0.5 m, the independent analytical expected values are:
+
+| Quantity | Reference | Units |
+| --- | ---: | --- |
+| Displaced volume | 40 | m³ |
+| Displacement mass | 41 | tonnes |
+| Centre of buoyancy | (0, 0, 0.5) | m |
+| Waterplane area | 40 | m² |
+| LCF / TCF | 0 / 0 | m |
+| Ixx | 53.333333 | m⁴ |
+| Iyy | 333.333333 | m⁴ |
+| Ixy | 0 | m⁴ |
+| TPC | 0.410 | tonnes/cm |
+| BM transverse | 1.333333 | m |
+| BM longitudinal | 8.333333 | m |
+| KM transverse | 1.833333 | m |
+| GM transverse | 1.333333 | m |
+| GM longitudinal | 8.333333 | m |
+| Inverse draft at 52 m³ | 1.3 | m |
+
+Signed GZ is now **antisymmetric** under equal positive/negative heel for the
+symmetric reference block. At small angles, it is checked against the
+independent wall-sided formula
+`GZ = sin(phi) [GMt + (BMt/2) tan²(phi)]`. Roll/trim attitude, sampled curves,
+heel/trim equilibrium, Worker request dispatch, blocked mesh analysis, and all
+Hydro inspector and CSV export control IDs are also covered.
+
+The equilibrium solver no longer returns a plausible angle solely because
+the angular bracket narrowed or an iteration budget was exhausted: only
+`|roll/pitch lever| <= leverTolerance` indicates convergence.
+Both GZ and attitude curve generators reject zero/invalid steps and prohibit
+more than 361 requested samples.
+
+These checks establish consistency on an analytical model, **not real-vessel
+validation**. Ship hull isolation, datum, loading condition, downflooding,
+free-surface corrections and external stability criteria remain open.
