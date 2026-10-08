@@ -10,10 +10,27 @@ try{
  if(!value.stdout.includes("5")||!value.stdout.includes("3.0"))throw new Error("Bad live Python output: "+value.stdout);
  const again=await session.run("print(math.factorial(5))");
  if(!again.stdout.includes("120"))throw new Error("Python state did not persist across cells");
+ const encoder=new TextEncoder();
+ const mounted=await session.mount([
+   {name:"helper.py",data:encoder.encode("def product(a,b):\n    return a*b\n")},
+   {name:"observations.txt",data:encoder.encode("2,3,5")}
+ ]);
+ if(mounted.mounted!==2)throw new Error("Failed to mount sibling Python and input text files");
+ const workspace=await session.run(
+   "from helper import product\\nfrom pathlib import Path\\n"+
+   "print('helper='+str(product(6,7)))\\n"+
+   "print('data='+Path('observations.txt').read_text())\\n"+
+   "Path('calculation.csv').write_text('name,value\\\\narea,40')"
+ );
+ if(!workspace.stdout.includes("helper=42")||!workspace.stdout.includes("data=2,3,5"))
+   throw new Error("Python workspace module/data import failed: "+workspace.stdout);
+ const csv=workspace.files?.find(file=>file.name==="calculation.csv");
+ if(!csv||!new TextDecoder().decode(csv.bytes).includes("area,40"))
+   throw new Error("Generated CSV was not returned to viewer for download");
  session.stop();
  const fresh=await session.run("print(6*7)");
  if(!fresh.stdout.includes("42"))throw new Error("Fresh worker run after Stop failed");
- document.body.dataset.status="pass";result.textContent="Real Pyodide executes Python, reuses interpreter and restarts after Stop";
+ document.body.dataset.status="pass";result.textContent="Real Pyodide executes Python, imports local .py/data, exports CSV and restarts after Stop";
 }catch(error){document.body.dataset.status="fail";result.textContent=String(error.stack||error)}
 finally{session.dispose()}
 </script></body></html>
