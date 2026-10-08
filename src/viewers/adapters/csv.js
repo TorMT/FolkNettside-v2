@@ -8,8 +8,9 @@ export async function render(container,resource){
   const rows=parseDelimitedText(source,delimiter);
   const headers=rows[0]||[];
   const count=Math.max(0,rows.length-1);
-  const maxColumns=Math.max(headers.length,...rows.map(row=>row.length),0);
+  const maxColumns=rows.reduce((largest,row)=>Math.max(largest,row.length),headers.length);
   const header=Array.from({length:maxColumns},(_,i)=>headers[i]||"Column "+(i+1));
+  const rowNumbers=new Map(rows.map((row,index)=>[row,index]));
   container.innerHTML=`<div class="csv-workbench">
     <div class="csv-workbench-toolbar">
       <strong>Delimited data</strong>
@@ -36,7 +37,7 @@ export async function render(container,resource){
     const match=filterDelimitedRows(rows,input.value).slice(1);
     // Bound DOM work; search always covers the full source and shows count.
     tbody.innerHTML=match.slice(0,1500).map((row,i)=>{
-      const number=rows.indexOf(row);
+      const number=rowNumbers.get(row);
       return `<tr><td>${number}</td>${header.map((_,j)=>`<td>${escapeHTML(row[j]??"")}</td>`).join("")}</tr>`;
     }).join("");
     empty.hidden=match.length!==0;
