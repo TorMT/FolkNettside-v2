@@ -1,7 +1,7 @@
-import {escapeHTML,fetchJSON} from "../utils.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {escapeHTML,fetchJSON} from "../utils.js?v=aedd12f368fbce9ad01a49fc207bb630d5959847";
 import {
   answerQuestion,createQuizAttempt,normalizeQuiz,quizScore,quizStorageKey,sanitizeQuizAttempt
-} from "../quiz-core.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+} from "../quiz-core.js?v=aedd12f368fbce9ad01a49fc207bb630d5959847";
 
 function loadAttempt(key,quiz){
   try{

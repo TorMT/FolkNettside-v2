@@ -1,4 +1,4 @@
-import {createHydroInclude} from "../hydro/hydro-selection.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {createHydroInclude} from "../hydro/hydro-selection.js?v=aedd12f368fbce9ad01a49fc207bb630d5959847";
 
 const IDENTITY=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
 const finite=n=>typeof n==="number"&&Number.isFinite(n);
@@ -95,6 +95,20 @@ export function validateHydroModel(modelDocument,{include=createHydroInclude(mod
     for(const item of result.errors)errors.push((component.name||component.id)+": "+item);
   }
   if(!components.length)errors.push("No hydrostatic geometry selected. Select an external hull before analysis.");
+  if(modelDocument?.sourceType==="local-import"&&components.length>1){
+    for(let i=0;i<components.length;i++)for(let j=i+1;j<components.length;j++){
+      const a=components[i],b=components[j];
+      if(!a.metrics||!b.metrics)continue;
+      const aBounds=a.metrics.bounds,bBounds=b.metrics.bounds;
+      const overlap=[0,1,2].map(axis=>Math.min(aBounds.max[axis],bBounds.max[axis])-
+        Math.max(aBounds.min[axis],bBounds.min[axis]));
+      if(overlap.every(extent=>extent>tolerance)){
+        errors.push((a.name||a.componentId)+" / "+(b.name||b.componentId)+
+          ": selected hull surfaces have overlapping bounding volumes. "+
+          "Possible intersecting or nested shells; isolate the external surface before hydro.");
+      }
+    }
+  }
   warnings.push("Geometry preflight is not vessel certification or permission to enable an unvalidated source model.");
   const output={passed:errors.length===0,components,errors,warnings,requiresIndependentReview:true};
   return output;

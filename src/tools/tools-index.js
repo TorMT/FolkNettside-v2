@@ -1,4 +1,4 @@
-import {visibleTools} from "./tool-registry.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {visibleTools} from "./tool-registry.js?v=aedd12f368fbce9ad01a49fc207bb630d5959847";
 
 function parityLabel(tool){
   if(tool.parity==="full")return "Parity: full";
