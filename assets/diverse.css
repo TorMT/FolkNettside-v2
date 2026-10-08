@@ -95,3 +95,7 @@
 .medisin-feedback{padding:0 max(20px,calc((100vw - 1320px)/2)) 24px;color:var(--ink-2);font-size:12px}
 @media(max-width:900px){.medisin-layout{grid-template-columns:1fr}.medisin-sync-panel{flex-direction:column;align-items:stretch}}
 @media(max-width:600px){.medisin-sync-panel{margin:12px 12px 0;padding:13px}.medisin-layout{padding:12px;gap:12px}.medisin-panel{padding:14px}.medisin-form-grid{grid-template-columns:1fr 1fr}.medisin-metrics{grid-template-columns:1fr 1fr}.medisin-buttons .btn{flex:1 1 auto}.medisin-timer-head{gap:7px}.medisin-curve{max-height:120px}}
+
+.medisin-calculator{margin:0 max(20px,calc((100vw - 1320px)/2)) 24px}.medisin-calculator .medisin-form-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.medisin-calc-result{margin-top:14px}.medisin-calc-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.medisin-calc-grid>div{padding:11px;background:var(--surface-sunk);border-radius:8px;display:grid;gap:4px;min-width:0}.medisin-calc-grid span{font-size:10px;color:var(--ink-3)}.medisin-calc-grid strong{font-size:14px;overflow-wrap:anywhere}.medisin-calc-result p{font-size:12px;line-height:1.5}
+@media(max-width:900px){.medisin-calculator .medisin-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.medisin-calc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.medisin-calculator{margin:0 12px 18px}.medisin-calc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
