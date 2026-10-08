@@ -94,7 +94,7 @@ export function inspectMeshIntersections(vertices,indices,weldedIds,{
   const todo=[{a:root,b:root,same:true}],hits=[];
   let candidatePairs=0,exhaustive=true;
   function test(a,b){
-    if(a===b)return;
+    if(!exhaustive||hits.length>=maxHits||a===b)return;
     for(let k=0;k<3;k++){
       const va=weldedIds[indices[a*3+k]];
       for(let j=0;j<3;j++)if(va===weldedIds[indices[b*3+j]])return;
