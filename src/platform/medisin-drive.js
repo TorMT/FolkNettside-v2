@@ -1,6 +1,6 @@
 // Private, explicit Google Drive backups for the native MedisinTimer migration.
 // The legacy cross-origin iframe is deliberately NOT read or modified here.
-import {getGoogleAccessToken,getGoogleSessionSnapshot} from "./google-session.js?v=8265cf341efb16c34da7e86656d3fa7e1f89be8d";
+import {getGoogleAccessToken,getGoogleSessionSnapshot} from "./google-session.js?v=661c6ec2d37789ce0c91dcd7f45c6cf80188944a";
 const FILE="folk-medisin-v2.json";
 const API="https://www.googleapis.com/drive/v3/files";
 const UPLOAD="https://www.googleapis.com/upload/drive/v3/files";
