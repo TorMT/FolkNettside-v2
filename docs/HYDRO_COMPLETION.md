@@ -14,7 +14,7 @@ The calculation engine is **already implemented**, including clipped-triangle hy
 
 ## Phase 2 — Independent mesh/hull eligibility (next)
 
-- Detect self-intersections and overlapping or nested closed shells that a simple manifold test cannot identify; distinguish external hull, interior equipment and intentionally disjoint displacement bodies.
+- **Screening implemented:** world-space BVH triangle self-intersection check, conservative nested/overlapping shell AABB refusal within a component, and bounded fail-closed comparisons. Full proof, touching-at-shared-vertex cases and selection of true external hull still require independent verification.
 - Add optional repair **preview** for vertex welding, consistent winding and outward normal correction, with before/after differences and confirmation. Never silently change imported geometry.
 - Verify source geometry unit, handedness, vessel baseline, x-forward/y-port/z-up convention, and alignment with draft datum.
 - Validate principal dimensions against separately sourced LOA, beam and relevant moulded dimensions; keep ship data provenance in the case file.
