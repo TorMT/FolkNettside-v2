@@ -147,7 +147,7 @@ jobs:
           chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/engineering-scroll-driver.log 2>&1 &
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
-          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4198/tests/browser/engineering-layout-smoke.html
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4198/tests/browser/engineering-layout-smoke.html 30 1440,900
 
       - name: Python and notebook editable viewer browser regression
         run: |
