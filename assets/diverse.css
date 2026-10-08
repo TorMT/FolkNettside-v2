@@ -127,3 +127,5 @@
 .study-catalog-source-fallback a{color:var(--accent)}
 .study-catalog-source-fallback iframe{display:block;width:100%;height:min(70vh,780px);min-height:520px;border:0;background:#fff}
 @media(max-width:600px){.study-catalog-page .legacy-diverse-actions{justify-content:flex-start}.study-catalog-source-fallback iframe{height:65dvh;min-height:430px}}
+
+.study-catalog-description{font-size:12px;line-height:1.5;color:var(--ink-2);margin:0;overflow-wrap:anywhere;white-space:normal}
