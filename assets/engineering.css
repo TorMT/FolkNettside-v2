@@ -30,3 +30,11 @@
 .hydro-import-controls .btn{min-height:38px}
 @media(max-width:1150px){.engineering-model-control{flex-wrap:wrap;justify-content:flex-end;gap:5px}.engineering-model-control .engineering-model-select select{max-width:170px}}
 @media(max-width:650px){.engineering-model-control{justify-content:flex-start}.engineering-model-control #engineering-import-hull{font-size:10px}.hydro-import-surfaces{max-height:210px}}
+
+/* Hydro finite-difference/solver self-check; not real-vessel certification */
+.hydro-numerical-audit{display:grid;gap:6px;padding:12px 14px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:9px;background:var(--surface);font-size:11px;color:var(--ink-2)}
+.hydro-numerical-audit strong{font-size:12px;color:var(--ink)}
+.hydro-numerical-audit span{line-height:1.5}
+.hydro-numerical-audit p{margin:0;color:var(--ink-2);line-height:1.5}
+.hydro-numerical-audit small{font-size:10px;color:var(--ink-3);line-height:1.4}
+@media(max-width:600px){.hydro-numerical-audit{padding:10px 11px}}
