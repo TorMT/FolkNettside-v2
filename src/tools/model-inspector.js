@@ -1,7 +1,7 @@
-import {mountModelScene} from "../model/model-scene.js?v=aedd12f368fbce9ad01a49fc207bb630d5959847";
-import {validateHydroModel} from "../model/hull-surface-validator.js?v=aedd12f368fbce9ad01a49fc207bb630d5959847";
-import {hydroPreflightHTML} from "../engineering/hydro-panel.js?v=aedd12f368fbce9ad01a49fc207bb630d5959847";
-import {modelHydroSummaryAtAttitude,parseModelBuffer} from "./model-inspector-core.js?v=aedd12f368fbce9ad01a49fc207bb630d5959847";
+import {mountModelScene} from "../model/model-scene.js?v=9ba544c6579d47d9412094088927a3839d39f7a0";
+import {validateHydroModel} from "../model/hull-surface-validator.js?v=9ba544c6579d47d9412094088927a3839d39f7a0";
+import {hydroPreflightHTML} from "../engineering/hydro-panel.js?v=9ba544c6579d47d9412094088927a3839d39f7a0";
+import {modelHydroSummaryAtAttitude,parseModelBuffer} from "./model-inspector-core.js?v=9ba544c6579d47d9412094088927a3839d39f7a0";
 
 function fmt(value,digits=4){
   const n=Number(value);
