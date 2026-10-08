@@ -1719,6 +1719,7 @@ async function engineeringPage(){
           throw new Error("Enter baseline KG before applying point weights");
         hydroPointBaseline={
           massTonnes:hydro.particulars.displacementTonnes,
+          draft:hydroDraft,
           cg:[Number(hydroLcg)||0,Number(hydroTcg)||0,Number(hydroKg)]
         };
       }
@@ -1736,6 +1737,17 @@ async function engineeringPage(){
       hydroPointError=String(error?.message||error);
       hydroPointWeightSummary=null;
     }
+    engineeringPage();
+  });
+  app.querySelector("#hydro-point-reset")?.addEventListener("click",()=>{
+    if(!hydroPointBaseline)return;
+    const baseline=hydroPointBaseline;
+    hydroKg=String(baseline.cg[2]);hydroLcg=String(baseline.cg[0]);
+    hydroTcg=String(baseline.cg[1]);hydroDraft=baseline.draft;
+    hydroTargetTonnes="";
+    hydroPointWeightSummary=null;hydroPointBaseline=null;
+    hydroPointWeightsText="";hydroPointError=null;
+    hydroGzRequested=false;hydroAttitudeAction="";
     engineeringPage();
   });
   app.querySelector("#hydro-target")?.addEventListener("change",()=>{
