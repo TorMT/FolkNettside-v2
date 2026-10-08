@@ -25,6 +25,7 @@ export function mountPythonCodeCell(container,{
       <div class="python-output-label">Output</div>
       <pre class="python-output-text"></pre>
       <div class="python-output-figures"></div>
+      <div class="python-output-files" aria-label="Generated Python files"></div>
     </section>
   </div>`;
   const $=query=>container.querySelector(query);
@@ -60,6 +61,20 @@ export function mountPythonCodeCell(container,{
     $(".python-output-text").textContent=raw||"No text output";
     $(".python-output-text").classList.toggle("has-error",Boolean(stderr||result.error));
     $(".python-output-figures").replaceChildren();
+    const fileHost=$(".python-output-files");
+    for(const url of fileHost.querySelectorAll("a[data-python-download]")){
+      if(url.dataset.blobUrl)URL.revokeObjectURL(url.dataset.blobUrl);
+    }
+    fileHost.replaceChildren();
+    for(const file of result.files||[]){
+      if(!file?.name||!file?.bytes)continue;
+      const blob=new Blob([file.bytes]),url=URL.createObjectURL(blob);
+      const link=document.createElement("a");
+      link.href=url;link.download=String(file.name);
+      link.dataset.pythonDownload="true";link.dataset.blobUrl=url;
+      link.textContent="Download "+String(file.name);
+      fileHost.append(link);
+    }
     for(const src of result.figures||[]){
       if(typeof src!=="string"||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(src))continue;
       const img=document.createElement("img");img.src=src;img.alt="Python chart output";
@@ -90,7 +105,9 @@ export function mountPythonCodeCell(container,{
     catch{event.currentTarget.textContent="Unavailable"}
   });
   const api={getSource:()=>editor.value,setRunning,showOutput,setStatus:s=>status.textContent=String(s),
-    dispose:()=>{disposed=true}};
+    dispose:()=>{disposed=true;
+      $(".python-output-files").querySelectorAll("a[data-blob-url]").forEach(a=>URL.revokeObjectURL(a.dataset.blobUrl));
+    }};
   if(output)showOutput({stdout:String(output)});
   refresh();
   return api;
