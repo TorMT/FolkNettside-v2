@@ -64,7 +64,7 @@ function frameSVG(model,result,width=760,height=340){
     const direction=fy<0?-1:1;
     return `<g class="structure-point-load-marker" role="img" aria-label="Point force at ${load.position} metres">
       <line x1="${p[0]}" y1="${from}" x2="${p[0]}" y2="${to}" stroke="var(--danger)" stroke-width="3"/>
-      <path d="M${p[0]-6} ${to-direction*6} L${p[0]} ${to} L${p[0]+6} ${to-direction*6}"
+      <path d="M${p[0]-6} ${to+direction*6} L${p[0]} ${to} L${p[0]+6} ${to+direction*6}"
         fill="none" stroke="var(--danger)" stroke-width="2.5"/>
       <circle cx="${p[0]}" cy="${p[1]}" r="5" fill="var(--danger)"/>
       <text x="${p[0]+9}" y="${from}" fill="var(--danger)" font-size="11">${(fy/1000).toFixed(1)} kN</text>
