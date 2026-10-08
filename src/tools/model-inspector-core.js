@@ -1,8 +1,10 @@
-import {analyzeModelDocument} from "../hydro/hydrostatics.js?v=69cdc183b20d0bc1e2cda04d0640789c553b993f";
-import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js?v=69cdc183b20d0bc1e2cda04d0640789c553b993f";
-import {parseSTL} from "../model/parsers/stl.js?v=69cdc183b20d0bc1e2cda04d0640789c553b993f";
-import {parse3MF} from "../model/parsers/three-mf.js?v=69cdc183b20d0bc1e2cda04d0640789c553b993f";
-import {attitudeMatrix,transformedModelDocument} from "../model/transforms.js?v=69cdc183b20d0bc1e2cda04d0640789c553b993f";
+import {analyzeModelDocument} from "../hydro/hydrostatics.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {createHydroInclude} from "../hydro/hydro-selection.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {validateHydroModel} from "../model/hull-surface-validator.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {parseSTL} from "../model/parsers/stl.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {parse3MF} from "../model/parsers/three-mf.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {attitudeMatrix,transformedModelDocument} from "../model/transforms.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
 
 export function modelFileKind(name){
   const ext=String(name||"").split(".").pop()?.toLowerCase();
@@ -18,10 +20,16 @@ export async function parseModelBuffer(buffer,name="model.stl"){
 
 export function modelHydroSummary(modelDocument,waterline=0,density=1025){
   const diagnostics=analyzeModelDiagnostics(modelDocument);
-  const hydro=analyzeModelDocument(modelDocument,Number(waterline)||0);
+  const include=createHydroInclude(modelDocument);
+  const geometryValidation=validateHydroModel(modelDocument,{include});
+  if(!geometryValidation.passed){
+    throw new Error("Hull preflight blocked: "+geometryValidation.errors.slice(0,5).join("; "));
+  }
+  const hydro=analyzeModelDocument(modelDocument,Number(waterline)||0,{include});
   const fullWaterline=diagnostics.bounds.max[2]+Math.max(1e-6,diagnostics.bounds.size[2]*.02);
-  const full=analyzeModelDocument(modelDocument,fullWaterline);
+  const full=analyzeModelDocument(modelDocument,fullWaterline,{include});
   return {
+    geometryValidation,
     diagnostics,
     waterline:Number(waterline)||0,
     volume:hydro.volume,

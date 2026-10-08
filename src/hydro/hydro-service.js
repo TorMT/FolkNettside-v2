@@ -1,11 +1,18 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=69cdc183b20d0bc1e2cda04d0640789c553b993f";
-import {createHydroInclude} from "./hydro-selection.js?v=69cdc183b20d0bc1e2cda04d0640789c553b993f";
-import {gzCurve} from "./gz.js?v=69cdc183b20d0bc1e2cda04d0640789c553b993f";
-import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js?v=69cdc183b20d0bc1e2cda04d0640789c553b993f";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {createHydroInclude} from "./hydro-selection.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {validateHydroModel} from "../model/hull-surface-validator.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {gzCurve} from "./gz.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
+import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js?v=a435f153ef7e9408be42556149dd61c3928ec506";
 
 export function executeHydroRequest(modelDocument,type,payload={}){
   if(!modelDocument)throw new Error("Hydro service has no model loaded");
   const include=createHydroInclude(modelDocument);
+  const validation=validateHydroModel(modelDocument,{include});
+  if(type==="validate")return validation;
+  if(!validation.passed){
+    throw new Error("Hydro preflight blocked: "+validation.errors.slice(0,6).join("; ")+
+      (validation.errors.length>6?" (+"+(validation.errors.length-6)+" more)":""));
+  }
 
   if(type==="analyze"){
     return analyzeModelDocument(modelDocument,payload.waterline,{include});
