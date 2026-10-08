@@ -188,16 +188,16 @@ export function courseTableConfig(fluid){
         id:"Native-TP",
         label:"Native T-P property table",
         mode:"native-tp",
-        defaultRows:lowT?"-100,1\\n-50,5\\n0,10":"0,1\\n25,1\\n100,5\\n200,10",
+        defaultRows:lowT?"-100,1\n-50,5\n0,10":"0,1\n25,1\n100,5\n200,10",
         inputHint:"Temperature, pressure per line"
       },
       ...(phaseChange?[
         {id:"Native-sat-T",label:"Saturation · temperature",
-          mode:"sat-T",defaultRows:lowT?"-100\\n-75\\n-50":"-40\\n-20\\n0\\n20"},
+          mode:"sat-T",defaultRows:lowT?"-100\n-75\n-50":"-40\n-20\n0\n20"},
         {id:"Native-sat-P",label:"Saturation · pressure",
-          mode:"sat-P",defaultRows:"1\\n2\\n5\\n10"},
+          mode:"sat-P",defaultRows:"1\n2\n5\n10"},
         {id:"Native-vapour",label:"Vapour · T/P property table",
-          mode:"superheated",defaultRows:lowT?"-50,1\\n0,3\\n50,5":"25,1\\n60,2\\n100,5"}
+          mode:"superheated",defaultRows:lowT?"-50,1\n0,3\n50,5":"25,1\n60,2\n100,5"}
       ]:[])
     ]
   };
