@@ -17,3 +17,16 @@
 .hydro-preflight li span{font-size:10px;color:var(--ink-3);display:block;margin-top:3px;font-variant-numeric:tabular-nums}
 .hydro-preflight li ul{margin:7px 0 5px;padding-left:18px;list-style:disc}
 @media(max-width:600px){.hydro-preflight{padding:11px 12px;margin-bottom:10px}}
+
+/* Arbitrary STL/3MF source import – labels and selection remain explicit. */
+.engineering-model-control #engineering-import-hull{font-size:11px;padding:7px 9px;white-space:nowrap;background:#133b4b;border:1px solid #567889;color:#edf5fa}
+.hydro-import-controls{display:grid;gap:10px;padding:10px 0 17px;margin-bottom:14px;border-bottom:1px solid var(--line);min-width:0}
+.hydro-import-controls h3{margin:0;font-size:15px}.hydro-import-controls .muted{font-size:11px;line-height:1.5;margin:0}
+.hydro-import-surfaces{display:grid;gap:6px;max-height:255px;overflow:auto}
+.hydro-import-surfaces label{display:flex;align-items:center;gap:10px;padding:7px 9px;border:1px solid var(--line);background:var(--surface-sunk);border-radius:7px;font-size:11px;min-width:0}
+.hydro-import-surfaces label span{overflow-wrap:anywhere;min-width:0}
+.hydro-import-surfaces input{flex:0 0 auto;accent-color:var(--accent)}
+.hydro-import-controls>small{font-size:10px;color:var(--ink-3);line-height:1.5}
+.hydro-import-controls .btn{min-height:38px}
+@media(max-width:1150px){.engineering-model-control{flex-wrap:wrap;justify-content:flex-end;gap:5px}.engineering-model-control .engineering-model-select select{max-width:170px}}
+@media(max-width:650px){.engineering-model-control{justify-content:flex-start}.engineering-model-control #engineering-import-hull{font-size:10px}.hydro-import-surfaces{max-height:210px}}
