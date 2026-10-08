@@ -54,6 +54,17 @@ export function mountPythonCodeCell(container,{
     stopButton.disabled=false; // Stop also resets an idle Python interpreter.
     status.textContent=running?"Running…":"Ready";
   }
+  function pushOutput(output){
+    if(disposed||output?.type!=="image")return;
+    const src=output.src;
+    if(typeof src!=="string"||
+       !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(src))return;
+    const img=document.createElement("img");
+    img.src=src;
+    img.alt="Python plot from show()";
+    $(".python-output-figures").append(img);
+    $(".python-output-text").textContent="Figure displayed below";
+  }
   function showOutput(result={}){
     const stdout=String(result.stdout||""),stderr=String(result.stderr||"");
     const tail=result.result==null?"":String(result.result);
@@ -104,7 +115,8 @@ export function mountPythonCodeCell(container,{
     try{await navigator.clipboard.writeText(editor.value);event.currentTarget.textContent="Copied"}
     catch{event.currentTarget.textContent="Unavailable"}
   });
-  const api={getSource:()=>editor.value,setRunning,showOutput,setStatus:s=>status.textContent=String(s),
+  const api={getSource:()=>editor.value,setRunning,showOutput,pushOutput,
+    setStatus:s=>status.textContent=String(s),
     dispose:()=>{disposed=true;
       $(".python-output-files").querySelectorAll("a[data-blob-url]").forEach(a=>URL.revokeObjectURL(a.dataset.blobUrl));
     }};

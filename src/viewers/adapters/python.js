@@ -8,7 +8,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
   const session=sessionFactory();
   container.innerHTML=`<section class="python-workbench">
     <div class="python-workbench-head"><div><strong>Python workbench</strong>
-      <p>Pyodide in a dedicated Worker · runs only when you select Run · output stays in this tab</p></div>
+      <p>Python Worker · imports nearby .py files automatically · plt.show() displays inline · Run/Stop</p></div>
       <div class="python-workbench-actions">
         <button type="button" id="python-open-vscode">VS Code</button>
         <button type="button" id="python-download">Save .py</button>
@@ -20,7 +20,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     <label class="python-stdin-label">Input lines for Python input() (one response per line)
       <textarea id="python-stdin" spellcheck="false" rows="2" placeholder="Optional stdin lines"></textarea>
     </label>
-    <p class="python-runtime-notice">Use only code you trust. A Web Worker keeps the page responsive but is not a security sandbox. Packages need an internet connection on first use.</p>
+    <p class="python-runtime-notice">Use only code you trust. Sibling Python modules and data are loaded automatically from this file’s own folder when available on the same site. Other files can be added manually. A Worker is not a security sandbox. Pyodide packages may need internet access.</p>
   </section>`;
   const host=container.querySelector("#python-script-cell");
   const cell=mountPythonCodeCell(host,{
@@ -29,7 +29,11 @@ export async function render(container,resource,{sessionFactory=createPythonSess
       api.setRunning(true);
       try{
         const value=await session.run(api.getSource(),{
-          status:message=>api.setStatus(message),stdin:container.querySelector("#python-stdin").value
+          status:message=>api.setStatus(message),
+          stdin:container.querySelector("#python-stdin").value,
+          sourceURL:resource.sourceText===undefined&&resource.path?
+            new URL(resource.path,document.baseURI).href:"",
+          onOutput:output=>api.pushOutput(output)
         });
         api.showOutput(value);
       }catch(error){api.showOutput({error:String(error?.message||error),
