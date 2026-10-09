@@ -70,7 +70,7 @@ export async function mountKisssoft3D(target,model){
    const pitchR=m*z/(2*Math.cos(beta*Math.PI/180)),base=Math.max(1,pitchR-.95*m),count=Math.round(z);
    const hub=add(new THREE.CylinderGeometry(base,base,width,Math.max(48,Math.min(180,count*2))),mat,0,0,width/2,0,part,gearRoot);
    hub.rotation.x=Math.PI/2;
-   const radial=m*1.8,tangential=Math.max(.4,2*Math.PI*pitch/count*.47);
+   const radial=m*1.8,tangential=Math.max(.4,2*Math.PI*pitchR/count*.47);
    const geo=conceptualHelicalToothGeometry(THREE,{
      pitchRadius:base+radial*.29,radialSize:radial,
      tangentialSize:tangential,width,helixAngleDeg:hand
