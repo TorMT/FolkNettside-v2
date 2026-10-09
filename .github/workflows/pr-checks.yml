@@ -64,6 +64,21 @@ jobs:
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4214/tests/browser/static-vault-smoke.html 50 1280,900
 
+      - name: Real STEP / OpenCascade WASM and browser 3D test
+        run: |
+          command -v chromedriver
+          mkdir -p tests/browser/fixtures
+          curl --fail --silent --show-error --location --max-time 35 \
+            'https://raw.githubusercontent.com/kovacsv/occt-import-js/main/test/testfiles/simple-basic-cube/cube.stp' \
+            -o tests/browser/fixtures/occt-cube.stp
+          grep -q '^ISO-10303-21' tests/browser/fixtures/occt-cube.stp
+          python3 -m http.server 4216 --bind 127.0.0.1 >/tmp/cad-step-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/cad-step-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4216/tests/browser/cad-step-smoke.html 160 1280,900
+
       - name: Structure FEM interactive 3D beam orbit and pan browser smoke
         run: |
           command -v chromedriver
