@@ -59,8 +59,14 @@ def main():
     path=ROOT/"data"/"content-manifest.json"
     manifest=json.loads(path.read_text(encoding="utf-8"))
     sources=[ROOT/"examples"/"semesters"]
-    candidate=ROOT/"site-content"
-    if candidate.exists():sources.append(candidate)
+    declared=Path(str(manifest.get("source") or "examples/semesters"))
+    candidate=(ROOT/declared).resolve()
+    if not candidate.is_relative_to(ROOT.resolve()):
+        print("Unsafe public-manifest source outside repository root",file=sys.stderr)
+        return 1
+    if candidate.exists() and candidate not in sources:sources.append(candidate)
+    extra=ROOT/"site-content"
+    if extra.exists() and extra not in sources:sources.append(extra)
     issues=validate_manifest(manifest)+validate_sources(sources)
     if issues:
         for name,issue in sorted(set(issues)):
