@@ -21,7 +21,7 @@ export function splitHighlightedLines(html){
        }
        // HTML received from highlighter contains only escaped text & spans.
        // Raw non-span markup is escaped, avoiding accidental DOM injection.
-       append(segment.replace(/<(?!\/?span\b)/g,"&lt;"));
+       append(segment.replace(/</g,"&lt;"));
      });
    }
  }
