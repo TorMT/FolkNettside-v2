@@ -48,5 +48,26 @@ class PagesBuildTests(unittest.TestCase):
             self.assertEqual((ROOT / "src" / "app.js").read_bytes(), source_app)
 
 
+
+    def test_build_refuses_unmarked_existing_output_without_deleting_it(self):
+        with tempfile.TemporaryDirectory() as directory:
+            destination=Path(directory)/"valuable"
+            destination.mkdir()
+            sentinel=destination/"do-not-delete.txt"
+            sentinel.write_text("keep",encoding="utf-8")
+            with self.assertRaisesRegex(ValueError,"unmarked"):
+                preview.build("test-sha",destination)
+            self.assertEqual(sentinel.read_text(encoding="utf-8"),"keep")
+
+    def test_build_rejects_source_and_repo_output_paths(self):
+        for destination in (ROOT, ROOT/"src", ROOT/"src"/"temp-deploy"):
+            with self.assertRaisesRegex(ValueError,"Unsafe|Cannot build"):
+                preview.build("test-sha",destination)
+
+    def test_build_rejects_control_characters_in_version(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(ValueError,"single-line"):
+                preview.build("sha\\nspoofed",Path(directory)/"preview")
+
 if __name__ == "__main__":
     unittest.main()
