@@ -23,9 +23,10 @@ test("signed-in Brewing exposes Drive sync but still has no second login button"
   assert.doesNotMatch(html,/connectGoogleDriveBtn/);
 });
 
-test("raw-material view is explicit fallback instead of invented data",()=>{
+test("raw-material view exposes native local inventory without pretending to restore legacy server data",()=>{
   const html=brewingPageHTML();
   assert.match(html,/data-view="raw-materials"/);
-  assert.match(html,/data\/logic is not present/);
-  assert.match(html,/Legacy fallback retained/);
+  assert.match(html,/id="brew-local-inventory"/);
+  assert.doesNotMatch(html,/Legacy fallback retained/);
+  assert.ok(html.includes(LEGACY_BREWING_URL));
 });
