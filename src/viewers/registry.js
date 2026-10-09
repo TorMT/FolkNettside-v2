@@ -30,7 +30,7 @@ const adapters={
   log:"text",dat:"text",bib:"text",sty:"text",cls:"text",ipynb_checkpoints:"text",
   srt:"text",vtt:"text",ass:"text",drawio:"text",mmd:"text",mermaid:"text",
   rst:"text",adoc:"text",env:"text",gitignore:"text",
-  step:"conversion",stp:"conversion",iges:"conversion",igs:"conversion",
+  step:"cad",stp:"cad",iges:"cad",igs:"cad",brep:"cad",
   dwg:"conversion",dxf:"conversion",sat:"conversion",x_t:"conversion",
   x_b:"conversion",sldprt:"conversion",sldasm:"conversion",ipt:"conversion",
   iam:"conversion",catpart:"conversion",catproduct:"conversion",
