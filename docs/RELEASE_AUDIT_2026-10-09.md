@@ -32,12 +32,38 @@ test never proves feature parity against a live proprietary provider.
   Hydro. It is gated by the same hull mesh preflight, has triangle/station
   limits, and is numerically tested against an analytical barge.
 
+## Static-only remediation completed after the initial audit
+
+- Introduced **Tools / Encrypted resources** to produce an AES-GCM encrypted
+  `.vault.json` archive entirely in the browser without uploading the source
+  or passphrase. Courses now detects encrypted files and decrypts only in the
+  visitor's browser; PBKDF2 work factor and authenticated envelope checks have
+  Node and Chrome roundtrip/wrong-password tests. This is *offline passphrase
+  encryption*, not individual account access control. See
+  `docs/STATIC_DEPLOYMENT_GUIDE.md`.
+- The old browser-readable password-hash scheme is **not reused**. Original
+  unencrypted private files remain excluded by the Pages publication guard.
+  The old site stays untouched. Server-enforced login and access revocation
+  cannot be supplied by plain GitHub Pages.
+- V2 Google session now looks for optional `data/google-auth.json` containing
+  a **public OAuth browser client ID**, rather than requiring PHP on GitHub
+  Pages. A template is in `data/google-auth.example.json`; real cloud origin
+  authorization and cross-device consent testing remain open.
+- LaTeX viewer now recognizes display, inline, equation/align/gather and
+  provides a limited native rendered math fallback when KaTeX CDN is blocked,
+  plus a source toggle. Native `<script>` or TeX HTML is never evaluated.
+- The 2D FEM structure reference has an optional WebGL **3D conceptual beam**
+  with mouse/touch orbit, right-drag pan, wheel/pinch zoom, reset and an
+  explicit 2D diagram switch. FEM remains a 2D beam calculation.
+- Both LaTeX and interactive beam controls have dedicated unit/browser tests.
+  Mobile layout CSS and visible labels have been updated.
+
 ## Release blockers (must be resolved or deliberately deferred with V1 link)
 
 | Priority | Area | What remains / acceptance gate |
 |---|---|---|
 | P0 | **Old Engineering Portfolio URL** | Freeze and test exact live URL before/after all eventual migration steps; no redirect or cutover now |
-| P0 | **Private/protected course folders** | Legacy JavaScript stores a password SHA-256 verifier and uses sessionStorage; this is NOT real data authorization. Keep actual private resources **outside** public GitHub Pages. Deploy an authenticated server/edge gate with server-side password verifier (Argon2id or approved OIDC), secure HttpOnly cookies, rate limits, expiring sessions and per-file authorization. Verify direct-file GET is denied to signed-out browsers. Old legacy system remains untouched until separately approved |
+| P0 | **Private/protected course folders** | Original plaintext private resources must stay **outside** Pages. Static client-side encryption is available for deliberately shareable archives, but does not enforce per-user rights. For genuine revocable private access use an external authenticated service; otherwise defer that feature and retain V1 without making a false parity claim |
 | P0 | **Full course content migration** | SiteUpdater still indexes example fixtures by default, not all genuine legacy course resources. Snapshot original tree, classify public/private, import safe public files, preserve exact paths and provenance, check nested folders, no accidental publication of protected content |
 | P0 | **Brewing API and data** | Raw-material V2 inventory is local, not migrated live warehouse stock. Legacy recipe, hydrometer, RAPT and server-side PHP endpoints need authorized backend, secrets in server environment, authenticated multi-device test and parity comparison |
 | P0 | **Google sign-in and Drive data** | Test from deployed GitHub Pages origins, multiple devices and distinct accounts; resolve OAuth client/origin configuration, permissions, refresh/logout, MedisinTimer sensitive-data storage/security and conflict handling |
