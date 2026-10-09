@@ -22,7 +22,7 @@ export function intakeFlowDescriptor({id,position,thrustAxis,diameter,source="ma
    intakeSide:axis,flowDirection:axis.map(value=>-value),
    diameterM,source,kind:"illustrative-intake"};
 }
-function bboxCenter(geometry){
+export function bboxCenter(geometry){
  const p=geometry?.positions;
  if(!p||p.length<3)return [0,0,0];
  const lo=[Infinity,Infinity,Infinity],hi=[-Infinity,-Infinity,-Infinity];
@@ -57,4 +57,19 @@ export function modelThrusterCandidates(documentModel){
  return (documentModel?.components||[]).filter(component=>component.geometry&&
    (componentSemantic(component).role==="thruster"||
     /thruster|propeller|azimuth|rim.?drive|propuls/i.test(component.name||"")));
+}
+
+/** User-labeled visual inlet on a selected component; axis is explicit and
+ * expressed in the model's X/Y/Z reference system, not inferred from name.
+ */
+export function manualThrusterAtComponent(model,componentId,{thrustAxis,diameter}){
+ const component=model.components.find(c=>c.id===componentId);
+ if(!component?.geometry)throw Error("Select a CAD component with geometry");
+ const scale=model.unitScaleToMeters??1;
+ return intakeFlowDescriptor({
+   id:component.id,
+   position:transformPoint(component.transform,bboxCenter(component.geometry),scale),
+   thrustAxis:normalized(thrustAxis),
+   diameter,source:"manual-direction-only"
+ });
 }
