@@ -1,5 +1,7 @@
-import {mountModelScene} from "../model/model-scene.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
-import {mountWaveControls} from "../model/model-wave-controls.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {mountModelScene} from "../model/model-scene.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {mountWaveControls} from "../model/model-wave-controls.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {mountAssemblyInspector} from "./assembly-inspector.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {connectSpaceMouse} from "../model/spacemouse-webhid.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
 
 export async function renderModelWorkbench(container,model,{showSidebar=false}={}){
   container.innerHTML=`<div class="model-viewer-workbench">
@@ -7,6 +9,13 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
     <aside class="model-viewer-inspector">
       <div class="model-viewer-section">
         <strong>3D model</strong>
+        <p class="model-cad-shortcuts">Mouse: left drag orbit, middle drag pan, Shift + middle drag orbit, wheel zoom.
+          Focus 3D canvas: F fit · I iso · T top · 1–5 standard views · arrows pan · Shift+arrows orbit · +/- zoom · X explode · Esc reset.</p>
+        <div class="model-viewer-actions">
+          <button type="button" data-model-spacemouse>Connect 3D mouse</button>
+          <button type="button" data-model-spacemouse-stop disabled>Disconnect</button>
+        </div>
+        <p class="muted" data-model-spacemouse-status role="status">SpaceMouse: optional WebHID in desktop Chrome/Edge over HTTPS. Permission required.</p>
         <div class="model-viewer-actions">
           <button type="button" data-model-fit>Fit</button>
           <button type="button" data-model-iso>Iso</button>
@@ -82,6 +91,7 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
         </label>
         <div class="model-viewer-measurements" aria-live="polite">Click two points on the 3D surface to measure.</div>
       </div>
+      <div data-model-assembly></div>
       <div data-model-waves></div>
     </aside>
   </div>`;
@@ -173,7 +183,49 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
     event.currentTarget.textContent=measureEnabled?"Measure: On":"Measure: Off";
   });
   updateWaterline();
+  const assembly=mountAssemblyInspector($("[data-model-assembly]"),model,scene,{updateWaterline});
+  const connectButton=$("[data-model-spacemouse]");
+  const disconnectButton=$("[data-model-spacemouse-stop]");
+  const connectionStatus=$("[data-model-spacemouse-status]");
+  let session=null,connecting=false,disposed=false;
+  if(!globalThis.navigator?.hid){
+    connectButton.disabled=true;
+    connectionStatus.textContent="WebHID unavailable. Use desktop Chrome or Edge over HTTPS; ordinary mouse/touch controls remain supported.";
+  }
+  const setConnectionStatus=message=>{if(!disposed)connectionStatus.textContent=message};
+  const disconnect=async()=>{
+    if(session){const existing=session;session=null;await existing.disconnect()}
+    disconnectButton.disabled=true;connectButton.disabled=!globalThis.navigator?.hid;
+  };
+  connectButton.addEventListener("click",async()=>{
+    if(session||connecting)return;
+    connecting=true;connectButton.disabled=true;
+    try{
+      // requestDevice is invoked by the button gesture. No prompting on load.
+      const selected=await connectSpaceMouse({
+        isActive:()=>{
+          const active=document.activeElement;
+          return !disposed&&document.hasFocus()&&container.contains(active)&&
+            !["INPUT","TEXTAREA","SELECT"].includes(active?.tagName);
+        },
+        onStatus:setConnectionStatus,
+        onVector:({kind,values})=>{
+          if(kind==="translate")
+            scene.actions.navigate3D({pan:[values[0]*.014,-values[1]*.014,-values[2]*.014]});
+          else
+            scene.actions.navigate3D({orbit:[-values[0]*.025,values[1]*.025,values[2]*.025]});
+        }
+      });
+      if(disposed){await selected.disconnect();return}
+      session=selected;disconnectButton.disabled=false;
+    }catch(error){setConnectionStatus(String(error?.message||error))}
+    finally{connecting=false;if(!disposed&&!session)connectButton.disabled=!globalThis.navigator?.hid}
+  });
+  disconnectButton.addEventListener("click",()=>disconnect());
   const waveControls=mountWaveControls($("[data-model-waves]"),scene);
   return {...scene,info:scene.info+" · interactive 3D, hydro-waterline and wave collection",
-    cleanup(){waveControls.dispose();scene.cleanup()}};
+    cleanup(){
+      disposed=true;assembly.dispose();waveControls.dispose();
+      void disconnect();scene.cleanup();
+    }};
 }

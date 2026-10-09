@@ -1,5 +1,5 @@
-import {solveFrame2D} from "./frame2d.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
-import {combineHullLoading} from "../hydro/hull-loading.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {solveFrame2D} from "./frame2d.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {combineHullLoading} from "../hydro/hull-loading.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
 
 const G=9.80665;
 const number=(value,name)=>{

@@ -1,7 +1,7 @@
-import {normaliseWaveCase,waveObservationsCSV} from "./wave-core.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
-import {legacyAddedWaveResistance,legacyMorisonWaveForce} from "./wave-concept-estimates.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {normaliseWaveCase,waveObservationsCSV} from "./wave-core.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {legacyAddedWaveResistance,legacyMorisonWaveForce} from "./wave-concept-estimates.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
 import {appendWaveRecord,importWaveCSV,readWaveCollection,
-  sampleWaveRecord,writeWaveCollection,importWaveCollectionJSON} from "./wave-collection.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+  sampleWaveRecord,writeWaveCollection,importWaveCollectionJSON} from "./wave-collection.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
 
 export function waveTraceSVG(points){
   if(!Array.isArray(points)||!points.length)return "<span>No observations</span>";
@@ -40,6 +40,12 @@ export function mountWaveControls(host,scene,{open=false}={}){
     <div class="model-wave-actions">
       <button type="button" data-wave-show>Show waves in 3D</button>
       <button type="button" data-wave-play>Pause</button>
+      <label class="wave-motion-select">Model movement
+        <select data-wave-motion aria-label="Wave model movement">
+          <option value="anchored" selected>Anchored — model stays still</option>
+          <option value="follow">Follow waves — illustrative heave</option>
+        </select>
+      </label>
       <button type="button" data-wave-capture>Collect probe series</button>
     </div>
     <p class="model-wave-status" role="status">Linear regular-wave preview. Hydro remains a still-water calculation.</p>
@@ -63,6 +69,7 @@ export function mountWaveControls(host,scene,{open=false}={}){
       <button type="button" data-wave-estimate>Calculate concept estimates</button>
       <pre data-wave-estimate-output role="status">No wave loads calculated.</pre>
     </details>
+    <p class="model-wave-note">In Follow mode only vertical elevation at the model origin is matched to the regular wave. Real heave, roll, pitch, mooring and RAO dynamics are not predicted. Hydro remains still-water.</p>
     <p class="model-wave-note">Synthetic series are explicitly labeled. CSV columns: time_s,eta_m. Imported measurements do not automatically become spatial waves or validated wave loads. Records stay in this browser until exported or cleared.</p>`;
   host.append(root);
   const $=query=>root.querySelector(query);
@@ -121,14 +128,16 @@ export function mountWaveControls(host,scene,{open=false}={}){
   function updateWave(){
     try{
       const wave=options();
-      scene.actions.setWave({enabled:active,...wave,animate});
-      status.textContent=active?`Linear wave: λ=${wave.wavelengthM.toFixed(2)} m, c=${wave.phaseSpeedMs.toFixed(2)} m/s · not a motion or load prediction`:
+      const motionMode=$("[data-wave-motion]").value;
+      scene.actions.setWave({enabled:active,...wave,animate,motionMode});
+      status.textContent=active?`Linear wave: λ=${wave.wavelengthM.toFixed(2)} m, c=${wave.phaseSpeedMs.toFixed(2)} m/s · ${motionMode==="anchored"?"anchored model":"illustrative heave-following model (not actual vessel response)"}`:
         "Wave surface hidden; still-water hydro and contour are unchanged.";
     }catch(error){active=false;scene.actions.setWave({enabled:false});status.textContent=String(error?.message||error)}
   }
   $("[data-wave-show]").addEventListener("click",event=>{
     active=!active;event.currentTarget.textContent=active?"Hide waves":"Show waves in 3D";updateWave();
   });
+  $("[data-wave-motion]").addEventListener("change",()=>{if(active)updateWave()});
   $("[data-wave-play]").addEventListener("click",event=>{
     animate=!animate;event.currentTarget.textContent=animate?"Pause":"Play";updateWave();
   });

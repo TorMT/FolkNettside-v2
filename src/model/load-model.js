@@ -1,8 +1,9 @@
-import {extension} from "../viewers/utils.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
-import {parse3MF} from "./parsers/three-mf.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
-import {parseSTL} from "./parsers/stl.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
-import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
-import {parseGLB} from "./parsers/gltf.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {extension} from "../viewers/utils.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {parseCADBuffer} from "./parsers/cad-runtime.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {parse3MF} from "./parsers/three-mf.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {parseSTL} from "./parsers/stl.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {parseGLB} from "./parsers/gltf.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
 
 export function applyModelRules(documentModel,rules=[]){
   for(const component of documentModel.components){
@@ -36,7 +37,8 @@ export async function loadModelDocument(config){
     if(!Array.isArray(partMetadata))throw new Error("partMetadataPath must resolve to an array");
   }
   let documentModel;
-  if(ext==="3mf")documentModel=await parse3MF(buffer,config.name);
+  if(["step","stp","iges","igs","brep"].includes(ext))documentModel=await parseCADBuffer(buffer,config.name||"CAD model",{format:ext});
+  else if(ext==="3mf")documentModel=await parse3MF(buffer,config.name);
   else if(ext==="stl")documentModel=parseSTL(buffer,config.name);
   else if(ext==="f3z")documentModel=await parseFusionArchive(buffer,config.name);
   else if(ext==="f3d")documentModel=nativeFusionPlaceholder({name:config.name,format:"F3D"});

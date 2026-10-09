@@ -1,6 +1,7 @@
-import {escapeHTML,extension} from "../utils.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
-import {getJSZip} from "../../vendor/jszip.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
-import {createDomFinder} from "../dom-search.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {escapeHTML,extension} from "../utils.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {getJSZip} from "../../vendor/jszip.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {spreadsheetCellHTML} from "../xlsx-formulas.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {createDomFinder} from "../dom-search.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
 
 function parseXML(text){
   const doc=new DOMParser().parseFromString(text,"application/xml");
@@ -62,6 +63,15 @@ function cellValue(cell,strings){
   return value;
 }
 
+function sheetCell(cell,strings){
+  const formula=cell.getElementsByTagNameNS("*","f")[0];
+  return {
+    value:cellValue(cell,strings),
+    hasFormula:Boolean(formula),
+    formula:formula?.textContent||null
+  };
+}
+
 async function renderXlsx(container,zip){
   const strings=await sharedStrings(zip);
   const worksheetPaths=Object.keys(zip.files)
@@ -70,12 +80,15 @@ async function renderXlsx(container,zip){
   if(!worksheetPaths.length)throw new Error("XLSX contains no worksheets");
 
   const sheets=[];
+  let formulaCount=0;
   for(const path of worksheetPaths){
     const doc=parseXML(await zip.file(path).async("text"));
     const rows=[...doc.getElementsByTagNameNS("*","row")].map(row=>{
       const values=[];
       for(const cell of row.getElementsByTagNameNS("*","c")){
-        values[colIndex(cell.getAttribute("r")||"A1")]=cellValue(cell,strings);
+        const entry=sheetCell(cell,strings);
+        if(entry.hasFormula)formulaCount++;
+        values[colIndex(cell.getAttribute("r")||"A1")]=entry;
       }
       return values;
     });
@@ -83,14 +96,29 @@ async function renderXlsx(container,zip){
   }
 
   container.innerHTML=`<div class="office-workbook">
+    <div class="office-workbook-toolbar"><strong>Excel workbook</strong><span>${sheets.length} sheet(s)</span>
+      ${formulaCount?`<button type="button" class="btn office-formula-toggle" aria-pressed="false">Show formulas (${formulaCount})</button>`
+        :'<span class="muted">No formulas found</span>'}
+    </div>
     ${sheets.map((sheet,index)=>{
       const width=Math.max(0,...sheet.rows.map(r=>r.length));
       return `<section class="office-sheet"><h2>Sheet ${index+1}</h2><div class="table-wrap"><table class="data-table"><tbody>
-        ${sheet.rows.map((row,rowIndex)=>`<tr>${Array.from({length:width},(_,i)=>rowIndex===0?`<th>${escapeHTML(row[i]??"")}</th>`:`<td>${escapeHTML(row[i]??"")}</td>`).join("")}</tr>`).join("")}
+        ${sheet.rows.map((row,rowIndex)=>`<tr>${Array.from({length:width},(_,i)=>rowIndex===0?`<th>${spreadsheetCellHTML(row[i])}</th>`:`<td>${spreadsheetCellHTML(row[i])}</td>`).join("")}</tr>`).join("")}
       </tbody></table></div></section>`;
     }).join("")}
   </div>`;
-  return {info:`XLSX · ${sheets.length} sheet(s)`};
+  const toggle=container.querySelector(".office-formula-toggle");
+  toggle?.addEventListener("click",()=>{
+    const show=toggle.getAttribute("aria-pressed")!=="true";
+    toggle.setAttribute("aria-pressed",String(show));
+    toggle.textContent=show?"Show values":"Show formulas ("+formulaCount+")";
+    for(const span of container.querySelectorAll(".office-cell-value")){
+      const hasFormula=span.nextElementSibling?.classList.contains("office-cell-formula");
+      span.hidden=show&&hasFormula;
+    }
+    for(const span of container.querySelectorAll(".office-cell-formula"))span.hidden=!show;
+  });
+  return {info:`XLSX · ${sheets.length} sheet(s) · ${formulaCount} formula cells (not recalculated)`};
 }
 
 async function renderPptx(container,zip){

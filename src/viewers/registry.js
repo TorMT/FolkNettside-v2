@@ -1,4 +1,4 @@
-import {extension} from "./utils.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {extension} from "./utils.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
 
 /**
  * Single dispatch table for every file in the Courses library. Unknown
@@ -7,6 +7,7 @@ import {extension} from "./utils.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
  */
 const adapters={
   pdf:"pdf",
+  z12:"kisssoft",z14:"kisssoft",w10:"kisssoft",ksys:"kisssoft",
   docx:"office",xlsx:"office",pptx:"office",
   csv:"csv",tsv:"csv",psv:"csv",
   html:"html",htm:"html",ipynb:"notebook",tex:"latex",
@@ -29,7 +30,7 @@ const adapters={
   log:"text",dat:"text",bib:"text",sty:"text",cls:"text",ipynb_checkpoints:"text",
   srt:"text",vtt:"text",ass:"text",drawio:"text",mmd:"text",mermaid:"text",
   rst:"text",adoc:"text",env:"text",gitignore:"text",
-  step:"conversion",stp:"conversion",iges:"conversion",igs:"conversion",
+  step:"cad",stp:"cad",iges:"cad",igs:"cad",brep:"cad",
   dwg:"conversion",dxf:"conversion",sat:"conversion",x_t:"conversion",
   x_b:"conversion",sldprt:"conversion",sldasm:"conversion",ipt:"conversion",
   iam:"conversion",catpart:"conversion",catproduct:"conversion",
@@ -46,6 +47,7 @@ export function viewerKind(resource={}){
   const kind=String(resource.kind||"").toUpperCase();
   if(kind==="YOUTUBE")return "youtube";
   if(kind==="QUIZ")return "quiz";
+  if(kind==="VAULT"||String(resource.path||resource.url||resource.name||"").split(/[?#]/,1)[0].toLowerCase().endsWith(".vault.json"))return "vault";
   const ext=extension(resource.path||resource.url||resource.name||"");
   return adapters[ext] || "unsupported";
 }

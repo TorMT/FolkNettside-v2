@@ -1,7 +1,7 @@
-import {escapeHTML,fetchJSON} from "../utils.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {escapeHTML,fetchJSON} from "../utils.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
 import {
-  answerQuestion,createQuizAttempt,normalizeQuiz,quizScore,quizStorageKey,sanitizeQuizAttempt
-} from "../quiz-core.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+  answerQuestion,createQuizAttempt,normalizeQuiz,quizScore,quizChapterView,quizChapterStorageKey,sanitizeQuizAttempt
+} from "../quiz-core.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
 
 function loadAttempt(key,quiz){
   try{
@@ -16,13 +16,39 @@ function saveAttempt(key,attempt){
 }
 
 export async function render(container,resource){
-  const quiz=normalizeQuiz(await fetchJSON(resource.path));
-  const storageKey=quizStorageKey(resource);
+  const wholeQuiz=normalizeQuiz(await fetchJSON(resource.path));
+  let selectedChapter="all";
+  let quiz=wholeQuiz;
+  let storageKey=quizChapterStorageKey(resource);
   let attempt=loadAttempt(storageKey,quiz);
   let review=false;
 
   const persist=()=>saveAttempt(storageKey,attempt);
   const score=()=>quizScore(quiz,attempt);
+
+  function chaptersHTML(){
+    if(!wholeQuiz.chapters?.length)return "";
+    return `<div class="quiz-chapter-picker">
+      <label for="quiz-chapter-select">Chapter</label>
+      <select id="quiz-chapter-select" aria-label="Select quiz chapter">
+        <option value="all" ${selectedChapter==="all"?"selected":""}>All chapters (${wholeQuiz.questions.length})</option>
+        ${wholeQuiz.chapters.map(chapter=>`<option value="${escapeHTML(chapter.id)}" ${selectedChapter===chapter.id?"selected":""}>${escapeHTML(chapter.label)} (${chapter.count})</option>`).join("")}
+      </select>
+    </div>`;
+  }
+  function bindChapters(){
+    container.querySelector("#quiz-chapter-select")?.addEventListener("change",event=>{
+      const chapter=event.target.value;
+      if(chapter===selectedChapter)return;
+      persist();
+      selectedChapter=chapter;
+      quiz=quizChapterView(wholeQuiz,chapter);
+      storageKey=quizChapterStorageKey(resource,chapter);
+      attempt=loadAttempt(storageKey,quiz);
+      review=false;
+      draw();
+    });
+  }
 
   function progressHTML(){
     const s=score();
@@ -36,6 +62,7 @@ export async function render(container,resource){
     const s=score();
     return `<div class="quiz-view">
       <div class="quiz-topline"><div><span class="project-kicker">Quiz complete</span><h2>${escapeHTML(quiz.title)}</h2></div><span class="quiz-score-pill">${s.correct}/${s.total}</span></div>
+      ${chaptersHTML()}
       ${progressHTML()}
       <div class="quiz-result"><strong>${s.percent}%</strong><span>${s.correct} correct of ${s.total}</span></div>
       <div class="quiz-result-actions">
@@ -56,6 +83,7 @@ export async function render(container,resource){
         <div><span class="project-kicker">${review?"Review":"Course quiz"}</span><h2>${escapeHTML(quiz.title)}</h2></div>
         <span class="quiz-question-counter">${index+1}/${quiz.questions.length}</span>
       </div>
+      ${chaptersHTML()}
       ${progressHTML()}
       <div class="quiz-question-nav" aria-label="Quiz questions">
         ${quiz.questions.map((_,i)=>{
@@ -89,8 +117,10 @@ export async function render(container,resource){
 
   function draw(){
     const s=score();
+    container.dispatchEvent(new CustomEvent("viewer-info-update",{detail:`${s.total} questions · ${s.answered} answered · ${s.correct} correct`}));
     if(attempt.completed&&!review){
-      container.innerHTML=resultHTML();
+     container.innerHTML=resultHTML();
+      bindChapters();
       container.querySelector("#quiz-review")?.addEventListener("click",()=>{
         review=true;
         attempt.current=0;
@@ -106,6 +136,7 @@ export async function render(container,resource){
     }
 
     container.innerHTML=questionHTML();
+    bindChapters();
     const index=attempt.current;
     const answered=attempt.answers[index]!==null;
 
