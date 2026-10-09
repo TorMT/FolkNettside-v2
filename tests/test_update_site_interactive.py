@@ -56,5 +56,47 @@ class InteractiveUpdaterTests(unittest.TestCase):
         self.assertEqual([s["id"] for s in updated["semesters"]], [5,9])
         self.assertEqual({c["code"] for c in updated["semesters"][0]["courses"]},{"OTHER","TMR4182"})
 
+    def invoke(self, *arguments):
+        output=Path(self.tmp.name)/"manifest.json"
+        argv=["update_site.py","--source",str(self.source),"--output",str(output),*arguments]
+        with patch("sys.argv",argv),redirect_stdout(io.StringIO()):
+            result=site.main()
+        return result,output
+
+    def test_dry_run_has_no_manifest_side_effects(self):
+        result,output=self.invoke("--dry-run","--semester","5","--course","TMR4182")
+        self.assertEqual(result,0)
+        self.assertFalse(output.exists())
+        result,output=self.invoke("--semester","5","--course","TMR4182")
+        self.assertEqual(result,0)
+        before=output.read_bytes()
+        result,_=self.invoke("--dry-run","--semester","5","--course","TMR4182")
+        self.assertEqual(result,0)
+        self.assertEqual(output.read_bytes(),before)
+
+    def test_protected_resource_rejected_before_manifest_write(self):
+        result,output=self.invoke("--semester","5")
+        self.assertEqual(result,0)
+        previous=output.read_bytes()
+        secret=self.source/"5"/"TMR4182"/"Beskyttet"
+        secret.mkdir()
+        (secret/"facit.pdf").write_bytes(b"private")
+        with patch("sys.stderr",new=io.StringIO()):
+            result,_=self.invoke("--semester","5")
+        self.assertEqual(result,2)
+        self.assertEqual(output.read_bytes(),previous)
+
+    def test_atomic_manifest_preserves_unrelated_semester(self):
+        result,output=self.invoke()
+        self.assertEqual(result,0)
+        data=site.load_json(output)
+        self.assertEqual([item["id"] for item in data["semesters"]],[5,6])
+        result,_=self.invoke("--semester","5","--course","TMR4182")
+        self.assertEqual(result,0)
+        data=site.load_json(output)
+        self.assertEqual([item["id"] for item in data["semesters"]],[5,6])
+        self.assertFalse(list(output.parent.glob(".*.tmp")))
+
+
 if __name__ == "__main__":
     unittest.main()
