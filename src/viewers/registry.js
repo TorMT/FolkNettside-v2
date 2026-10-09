@@ -49,7 +49,9 @@ export function viewerKind(resource={}){
   if(kind==="YOUTUBE")return "youtube";
   if(kind==="QUIZ")return "quiz";
   if(kind==="VAULT"||String(resource.path||resource.url||resource.name||"").split(/[?#]/,1)[0].toLowerCase().endsWith(".vault.json"))return "vault";
-  const ext=extension(resource.path||resource.url||resource.name||"");
+  const input=String(resource.path||resource.url||resource.name||"");
+  const cleaned=input.replace(/\\(\\d+\\)(?=[?#]|$)/,"");
+  const ext=extension(cleaned);
   return adapters[ext] || "unsupported";
 }
 export function viewerFormatCoverage(){
