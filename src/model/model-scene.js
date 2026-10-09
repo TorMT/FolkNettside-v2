@@ -704,6 +704,7 @@ export async function mountModelScene(container,documentModel,options={}){
       setHullGirderContour,
       getWaterlineInfo:()=>waterlineInfo,
       setWave,
+      getWaveMotionOffset:()=>waveMotionGroup.position.z,
       screenshot,
       getBounds(){
         const value=bounds();
