@@ -26,13 +26,26 @@ jobs:
 
       - name: Courses sidebar scroll and highlight browser regression
         run: |
-          command -v chromedriver
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
           python3 -m http.server 4209 --bind 127.0.0.1 >/tmp/course-nav-http.log 2>&1 &
           server_pid=$!
-          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/course-nav-driver.log 2>&1 &
-          driver_pid=$!
-          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
-          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4209/tests/browser/course-scrollspy-smoke.html 45 1280,800
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python3 - <<'PY'
+          import time,urllib.request
+          for _ in range(60):
+              try:
+                  urllib.request.urlopen('http://127.0.0.1:4209/tests/browser/course-scrollspy-smoke.html',timeout=1)
+                  break
+              except Exception:time.sleep(.1)
+          else: raise SystemExit('Course test server did not start')
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --window-size=1280,800 --virtual-time-budget=7500 \
+            --dump-dom http://127.0.0.1:4209/tests/browser/course-scrollspy-smoke.html >/tmp/course-nav-dom.html
+          grep -q 'data-status="pass"' /tmp/course-nav-dom.html || {
+            grep -E 'data-status=|<pre class="test-result"' /tmp/course-nav-dom.html || true
+            exit 1
+          }
 
       - name: KISSsoft upload and visualization browser smoke
         run: |
