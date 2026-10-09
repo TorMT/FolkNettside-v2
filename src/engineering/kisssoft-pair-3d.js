@@ -14,7 +14,7 @@ export async function mountKisssoftPair3D(target,model){
  panel.className="kisssoft-assembly-controls";
  panel.innerHTML='<button type="button" class="btn" data-gear-play>Pause motion</button>'+
    '<label>Speed <input data-gear-speed type="range" min=".25" max="2" step=".25" value=".75"></label>'+
-   '<span>External pair · Driver +1× · Driven '+pair.velocityRatio.toFixed(3)+'×</span>';
+   '<span>'+(pair.internal?'Internal ring/pinion':'External pair')+' · Driver +1× · Driven '+pair.velocityRatio.toFixed(3)+'× · schematic teeth</span>';
  target.replaceChildren(canvas,panel);
  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
@@ -49,8 +49,41 @@ export async function mountKisssoftPair3D(target,model){
      group.add(mesh);
    }
  }
- makeGear(pair.a,pair.shaft1Width,-pair.b.pitchRadius,0x65d0c1,pair.a.helixAngleDeg);
- makeGear(pair.b,pair.shaft2Width,pair.a.pitchRadius,0xdfb66a,-pair.b.helixAngleDeg);
+ function makeInternalRing(){
+   const rp=pair.b.pitchRadius,m=pair.b.normalModule;
+   const group=new THREE.Group();
+   scene.add(group);gears.push(group);
+   const material=new THREE.MeshStandardMaterial({color:0x96a9c8,metalness:.46,roughness:.52,side:THREE.DoubleSide});
+   materials.push(material);
+   const outer=rp+4*m,inner=rp+.45*m;
+   const shape=new THREE.Shape();
+   shape.absarc(0,0,outer,0,Math.PI*2,false);
+   const hole=new THREE.Path();
+   hole.absarc(0,0,inner,0,Math.PI*2,true);
+   shape.holes.push(hole);
+   const rim=new THREE.ExtrudeGeometry(shape,{depth:pair.shaft2Width,bevelEnabled:false,curveSegments:128});
+   geometries.push(rim);group.add(new THREE.Mesh(rim,material));
+   const tooth=conceptualHelicalToothGeometry(THREE,{
+     pitchRadius:rp,radialSize:m*1.8,
+     tangentialSize:Math.PI*pair.b.transverseModule*.43,
+     width:pair.shaft2Width,
+     helixAngleDeg:pair.a.helixAngleDeg // internal mesh: same helix hand
+   });
+   geometries.push(tooth);
+   for(let i=0;i<pair.b.teeth;i++){
+     const mesh=new THREE.Mesh(tooth,material);
+     mesh.position.z=pair.shaft2Width/2;
+     mesh.rotation.z=i*2*Math.PI/pair.b.teeth;
+     group.add(mesh);
+   }
+ }
+ if(pair.internal){
+   makeGear(pair.a,pair.shaft1Width,pair.centerDistance,0x65d0c1,pair.a.helixAngleDeg);
+   makeInternalRing();
+ }else{
+   makeGear(pair.a,pair.shaft1Width,-pair.b.pitchRadius,0x65d0c1,pair.a.helixAngleDeg);
+   makeGear(pair.b,pair.shaft2Width,pair.a.pitchRadius,0xdfb66a,-pair.b.helixAngleDeg);
+ }
  let viewportWidth=0,disposed=false,frame=0,phase=0,previous=null;
  const play=panel.querySelector("[data-gear-play]"),speed=panel.querySelector("[data-gear-speed]");
  let playing=!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
