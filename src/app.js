@@ -6,6 +6,7 @@ import {loadContent} from "./content.js";
 import {kisssoftPageHTML,mountKisssoft} from "./engineering/kisssoft-tool.js";
 import {renderResourceTree} from "./components/resource-tree.js";
 import {karakterwebUrl} from "./courses/external-links.js";
+import {bindCourseNavigation} from "./courses/course-navigation.js";
 import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js";
 import {hydrostaticParticulars} from "./hydro/stability.js";
 import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js";
@@ -594,30 +595,16 @@ function coursePage(semesterId,code){
     window.open(karakterwebHref,"_blank","noopener");
   });
 
-  const navButtons=[...app.querySelectorAll("[data-course-nav]")];
-  const activate=id=>navButtons.forEach(button=>button.classList.toggle("active",button.dataset.courseNav===id));
-  const scrollToTarget=id=>{
-    const target=id==="overview"
-      ?app.querySelector("#course-overview")
-      :app.querySelector(id==="karakterweb"?"#course-karakterweb":"#course-"+id);
-    target?.scrollIntoView({behavior:"smooth",block:"start"});
-    activate(id);
-  };
-  navButtons.forEach(button=>button.addEventListener("click",()=>scrollToTarget(button.dataset.courseNav)));
-
   const observed=[
     {element:app.querySelector("#course-overview"),id:"overview"},
     ...sections.map(section=>({element:app.querySelector("#course-section-"+section.index),id:"section-"+section.index})),
     {element:app.querySelector("#course-karakterweb"),id:"karakterweb"}
   ].filter(item=>item.element);
-  const observer=new IntersectionObserver(entries=>{
-    const visible=entries.filter(entry=>entry.isIntersecting)
-      .sort((a,b)=>Math.abs(a.boundingClientRect.top)-Math.abs(b.boundingClientRect.top))[0];
-    const match=visible&&observed.find(item=>item.element===visible.target);
-    if(match)activate(match.id);
-  },{rootMargin:"-15% 0px -70% 0px",threshold:[0,0.05]});
-  observed.forEach(item=>observer.observe(item.element));
-  app.__courseObserver=observer;
+  app.__courseObserver=bindCourseNavigation({
+    sections:observed,
+    buttons:app.querySelectorAll("[data-course-nav]"),
+    topbar:app.querySelector(".topbar")
+  });
 }
 function toolsPage(){
   document.documentElement.dataset.lens="study";
