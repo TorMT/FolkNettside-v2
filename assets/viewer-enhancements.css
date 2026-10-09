@@ -54,3 +54,29 @@
 .vault-preview pre{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
 .vault-preview .btn{display:inline-flex;margin-top:12px}
 @media(max-width:600px){.vault-tool-page .panel-card{padding:14px}}
+
+/* Nested CAD parts/groups + Fusion-like keyboard and SpaceMouse controls. */
+.model-cad-shortcuts{font-size:12px;line-height:1.5;margin:8px 0;opacity:.85}
+.three-canvas:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.assembly-inspector{min-width:0;padding:12px 0;border-top:1px solid var(--line)}
+.assembly-inspector h3{margin:0 0 8px;font-size:15px}
+.assembly-inspector .muted{font-size:12px;line-height:1.55}
+.cad-group-tree{display:grid;gap:2px;max-height:36vh;overflow:auto;overscroll-behavior:contain;border:1px solid var(--line);border-radius:8px;padding:5px}
+.cad-group-tree .cad-group-node{min-width:0}
+.cad-group-tree .cad-group-header{cursor:pointer;list-style:none;position:relative;padding:0 0 0 16px}
+.cad-group-tree .cad-group-header::before{content:"›";position:absolute;left:3px;top:6px;transition:transform .1s}
+.cad-group-tree details[open]>.cad-group-header::before{transform:rotate(90deg)}
+.cad-group-tree .cad-group-header::-webkit-details-marker{display:none}
+.cad-group-tree .cad-group-children{display:grid;gap:2px;margin-left:13px;padding-left:5px;border-left:1px solid var(--line)}
+.cad-group-tree .cad-group-select,.cad-group-tree .cad-component-leaf{width:100%;box-sizing:border-box;min-height:34px;padding:7px 8px;border:0;border-radius:6px;text-align:left;display:block;background:transparent;color:var(--ink);cursor:pointer;font-size:12px}
+.cad-group-tree .cad-component-leaf{font-weight:400}
+.cad-group-tree .cad-group-select{font-weight:650}
+.cad-group-tree button:hover,.cad-group-tree button:focus-visible{background:var(--accent-soft)}
+.cad-group-tree button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent-ink);outline:1px solid var(--accent)}
+.assembly-inspector input,.assembly-inspector select{max-width:100%;box-sizing:border-box}
+.assembly-inspector input[type="text"],.assembly-inspector input[type="number"],.assembly-inspector select{width:100%;padding:8px;background:var(--surface);border:1px solid var(--line-strong);color:var(--ink);border-radius:7px}
+.assembly-inspector input[type="range"]{width:100%}
+.cad-group-actions{margin:8px 0;gap:6px}
+.model-viewer-stage .three-canvas{touch-action:none;cursor:grab}
+.model-viewer-stage .three-canvas:active{cursor:grabbing}
+@media(max-width:760px){.cad-group-tree{max-height:31vh}.assembly-inspector{padding:10px 0}.cad-group-tree button{min-height:40px}}
