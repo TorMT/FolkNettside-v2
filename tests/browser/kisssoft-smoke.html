@@ -43,14 +43,8 @@ try{
 
  const boundaryOnLoad=document.querySelector("[data-gear-boundary]");
  if(boundaryOnLoad?.value!=="carrier-fixed")throw Error("Carrier fixed / sun drives is not default");
- const betaControl=document.querySelector("[data-gear-beta]");
- if(!betaControl)throw Error("Planetary helix β control missing");
- betaControl.value="25";betaControl.dispatchEvent(new Event("input",{bubbles:true}));
- if(canvas.dataset.helixBeta!=="25")throw Error("Planetary β preview did not update");
- betaControl.value="-25";betaControl.dispatchEvent(new Event("input",{bubbles:true}));
- if(canvas.dataset.helixBeta!=="-25")throw Error("Planetary negative helix hand not supported");
- document.querySelector("[data-gear-beta-reset]").click();
- if(canvas.dataset.helixBeta!=="0")throw Error("KISSsoft source β not restored");
+ if(document.querySelector("[data-gear-beta]"))throw Error("β must be read from source file, not adjustable");
+ if(canvas.dataset.helixBeta!=="0")throw Error("Spur gear preview must use file β=0");
  // Existing speed-ratio checks below exercise the original ring-fixed mode.
  boundaryOnLoad.value="ring-fixed";
  boundaryOnLoad.dispatchEvent(new Event("change",{bubbles:true}));
@@ -112,12 +106,9 @@ try{
  if(!pairHost.querySelector("[data-gear-spacemouse]"))throw Error("External KISSsoft missing SpaceMouse control");
  const pairExplode=pairHost.querySelector("[data-pair-explode]");
  if(!pairExplode)throw Error("External gear-pair explode control missing");
- const pairBeta=pairHost.querySelector("[data-gear-beta]");
- pairBeta.value="35";pairBeta.dispatchEvent(new Event("input",{bubbles:true}));
- if(pairCanvas.dataset.helixBeta!=="35")throw Error("Pair β preview did not update");
- pairHost.querySelector("[data-gear-beta-reset]").click();
- if(Math.abs(Number(pairCanvas.dataset.helixBeta)-20)>1)
-   throw Error("Pair β reset ignored file angle");
+ if(pairHost.querySelector("[data-gear-beta]"))throw Error("External pair β must not be editable");
+ if(Math.abs(Number(pairCanvas.dataset.helixBeta)-20)>1e-8)
+   throw Error("Imported helical pair did not use β=20° from KISSsoft");
  pairCanvas.focus();
  pairCanvas.dispatchEvent(new KeyboardEvent("keydown",{key:"x",bubbles:true,cancelable:true}));
  if(Number(pairExplode.value)<=0)throw Error("External gear exploded shortcut failed");
@@ -142,6 +133,8 @@ try{
  const stopInternal=await mountKisssoftVisual(internalHost,internal);
  const internalCanvas=internalHost.querySelector("[data-kisssoft-3d] canvas");
  if(!internalCanvas)throw Error("Internal ring/pinion 3D concept failed to mount");
+ if(Math.abs(Number(internalCanvas.dataset.helixBeta)-15)>1e-8)
+   throw Error("Internal ring uses file β=15°");
  const internalPlay=internalHost.querySelector("[data-gear-play]");
  if(internalPlay.textContent.includes("Play"))internalPlay.click();
  await new Promise(resolve=>setTimeout(resolve,570));
