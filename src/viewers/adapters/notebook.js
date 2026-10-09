@@ -2,6 +2,7 @@ import {escapeHTML,fetchJSON} from "../utils.js";
 import {createDomFinder} from "../dom-search.js";
 import {mountPythonCodeCell} from "../python-code-cell.js";
 import {createPythonSession} from "../python-session.js";
+import {notebookMarkdownHTML} from "../notebook-markdown.js";
 
 export const cellText=value=>Array.isArray(value)?value.join(""):String(value||"");
 export function renderNotebookOutput(output={}){
@@ -18,15 +19,7 @@ export function renderNotebookOutput(output={}){
   return html;
 }
 export function renderMarkdownCell(source){
-  // Strict text rendering. Notebook HTML and markdown are never inserted as
-  // executable code. Images from arbitrary remote HTML are not trusted.
-  const parts=cellText(source).split(/\r?\n/);
-  return parts.map(line=>{
-    const match=/^(#{1,4})\s+(.+)$/.exec(line);
-    if(match)return `<h${match[1].length}>${escapeHTML(match[2])}</h${match[1].length}>`;
-    if(!line.trim())return "";
-    return `<p>${escapeHTML(line)}</p>`;
-  }).join("");
+  return notebookMarkdownHTML(cellText(source));
 }
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
   const notebook=await fetchJSON(resource.path||resource.url);
@@ -40,6 +33,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
         <button type="button" data-nb-run-all>Run all</button>
         <button type="button" data-nb-stop>Stop</button>
         <button type="button" data-nb-reset>Reset Python</button>
+        <button type="button" data-nb-collapse aria-expanded="true">Collapse code</button>
       </div>
     </div>
     <label class="python-stdin-label">Input lines for Python input() (one response per line)
@@ -51,6 +45,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
   const wrap=container.querySelector(".notebook-cells");
   const runAll=container.querySelector("[data-nb-run-all]");
   const stop=container.querySelector("[data-nb-stop]");
+  const collapse=container.querySelector("[data-nb-collapse]");
   function toggle(running){
     busy=running;runAll.disabled=running;
     for(const {cell} of editable)cell.setRunning(running);
@@ -82,7 +77,9 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     section.append(body);wrap.append(section);
     if(data.cell_type==="code"){
       const cell=mountPythonCodeCell(body,{
-        source:cellText(data.source),title:"In ["+(i+1)+"]",
+        source:cellText(data.source),
+        title:"In ["+(Number.isInteger(data.execution_count)?data.execution_count:i+1)+"]",
+        maxEditorHeight:360,
         onRun:async self=>{
           if(busy)return;stopped=false;toggle(true);
           try{await execute({cell:self})}
@@ -105,6 +102,12 @@ export async function render(container,resource,{sessionFactory=createPythonSess
       const pre=document.createElement("pre");pre.textContent=cellText(data.source);body.append(pre);
     }
   }
+  collapse?.addEventListener("click",()=>{
+    const collapsed=collapse.getAttribute("aria-expanded")==="true";
+    collapse.setAttribute("aria-expanded",String(!collapsed));
+    collapse.textContent=collapsed?"Expand code":"Collapse code";
+    wrap.classList.toggle("notebook-code-collapsed",collapsed);
+  });
   runAll.addEventListener("click",async()=>{
     if(busy)return;stopped=false;toggle(true);
     try{

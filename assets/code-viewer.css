@@ -1,0 +1,91 @@
+/* V2 source-code surfaces: VS Code-inspired dark semantic token palette.
+   Both previews and editable overlays use the SAME parser and font metrics. */
+.vscode-python-cell{--code-ground:#1e1e1e;--code-gutter:#181818;--code-foreground:#d4d4d4;--code-muted:#858585;--code-caret:#e5e5e5;font-family:Inter,system-ui,sans-serif}
+.vscode-python-cell .python-cell-body{background:var(--code-ground);min-width:0}
+.vscode-python-cell .python-code-stats{display:flex;justify-content:flex-end;padding:4px 12px;background:#252526;color:#aab8c2;border-bottom:1px solid #37373d;font:11px/1.4 ui-monospace,Consolas,monospace}
+.vscode-python-cell .python-code-preview{margin:0;padding:10px 0;max-width:100%;max-height:66vh;overflow:auto;background:var(--code-ground);color:var(--code-foreground);font:13px/1.6 "Cascadia Code",Consolas,"SFMono-Regular",monospace;tab-size:4}
+.vscode-python-cell .python-code-preview code{display:block;min-width:max-content}
+.vscode-python-cell .python-code-preview.soft-wrap code{min-width:0}
+.vscode-python-cell .python-code-line{display:grid;grid-template-columns:52px minmax(0,1fr);min-height:1.6em}
+.vscode-python-cell .python-code-number{background:var(--code-gutter);border-right:1px solid #333;color:var(--code-muted);text-align:right;padding-right:13px;font-variant-numeric:tabular-nums;user-select:none}
+.vscode-python-cell .python-code-content{padding:0 16px;white-space:pre;min-width:0}
+.vscode-python-cell .python-code-preview.soft-wrap .python-code-content{white-space:pre-wrap;overflow-wrap:anywhere}
+.vscode-python-cell .python-code-preview.no-lines .python-code-line{grid-template-columns:1fr}
+.vscode-python-cell .python-code-preview.no-lines .python-code-number{display:none}
+.vscode-python-cell .python-code-preview.no-lines .python-code-content{padding-left:18px}
+.vscode-python-cell .python-code-preview.python-large-source code{min-width:0;padding:0 18px;white-space:pre}
+.vscode-python-cell .python-editor-stage{display:grid;grid-template-columns:52px minmax(0,1fr);height:280px;max-height:66vh;background:var(--code-ground);min-width:0}
+.vscode-python-cell .python-editor-stage[hidden]{display:none!important}
+.vscode-python-cell .python-editor-stage.no-lines{grid-template-columns:0 minmax(0,1fr)}
+.vscode-python-cell .python-edit-gutter{overflow:hidden;background:var(--code-gutter);border-right:1px solid #333;padding:12px 10px 12px 0;text-align:right;font:13px/1.6 "Cascadia Code",Consolas,monospace;color:var(--code-muted);user-select:none}
+.vscode-python-cell .python-edit-gutter span{display:block;min-height:1.6em;font-variant-numeric:tabular-nums}
+.vscode-python-cell .python-editor-stage.no-lines .python-edit-gutter{visibility:hidden;padding:0;border:0}
+.vscode-python-cell .python-editor-surface{position:relative;overflow:hidden;min-width:0;min-height:0}
+.vscode-python-cell .python-code-edit-highlight,.vscode-python-cell .python-code-edit{
+ position:absolute;inset:0;display:block;box-sizing:border-box;margin:0;padding:12px 16px;
+ width:100%;height:100%;min-width:0;min-height:0;max-height:none;
+ border:0;border-radius:0;outline:0;
+ font:13px/1.6 "Cascadia Code",Consolas,"SFMono-Regular",monospace;
+ letter-spacing:normal;tab-size:4;white-space:pre;text-align:left;
+}
+.vscode-python-cell .python-code-edit-highlight{background:transparent;color:var(--code-foreground);pointer-events:none;overflow:hidden;z-index:1}
+.vscode-python-cell .python-code-edit-highlight code{display:block;min-width:max-content;font:inherit}
+.vscode-python-cell .python-code-edit{z-index:2;background:transparent!important;color:transparent!important;-webkit-text-fill-color:transparent;caret-color:var(--code-caret);overflow:auto;resize:none}
+.vscode-python-cell .python-code-edit::selection{background:rgba(65,145,240,.38);-webkit-text-fill-color:transparent}
+.vscode-python-cell .python-editor-stage.soft-wrap .python-code-edit,.vscode-python-cell .python-editor-stage.soft-wrap .python-code-edit-highlight{white-space:pre-wrap;overflow-wrap:anywhere}
+.vscode-python-cell .python-editor-stage.soft-wrap .python-code-edit-highlight code{min-width:0}
+.vscode-python-cell .python-code-edit:focus-visible{outline:2px solid #007acc;outline-offset:-2px}
+.vscode-python-cell .hljs-keyword,.vscode-python-cell .hljs-literal{color:#569cd6}
+.vscode-python-cell .hljs-title{color:#dcdcaa}
+.vscode-python-cell .hljs-built_in{color:#4ec9b0}
+.vscode-python-cell .hljs-variable{color:#9cdcfe}
+.vscode-python-cell .hljs-string{color:#ce9178}
+.vscode-python-cell .hljs-comment{color:#6a9955}
+.vscode-python-cell .hljs-number{color:#b5cea8}
+.vscode-python-cell .hljs-meta{color:#c586c0}
+.vscode-python-cell .hljs-operator{color:#d4d4d4}
+.vscode-python-cell .python-code-preview:focus-visible{outline:2px solid #007acc;outline-offset:-2px}
+.notebook-workbench .notebook-entry-body{padding:10px;min-width:0}
+.notebook-workbench .notebook-entry-body .python-cell{max-width:100%}
+.notebook-workbench .notebook-markdown{overflow-wrap:anywhere}
+.notebook-workbench .notebook-markdown pre{padding:12px 15px;overflow:auto;border-radius:7px;background:#1e1e1e;color:#d4d4d4;font:12px/1.6 ui-monospace,Consolas,monospace}
+.notebook-workbench .notebook-markdown code{font-family:ui-monospace,Consolas,monospace}
+.notebook-workbench .notebook-markdown :not(pre)>code{padding:2px 4px;background:var(--surface-sunk);border-radius:3px}
+.notebook-workbench .notebook-markdown blockquote{padding:4px 14px;border-left:3px solid var(--accent);margin:10px 0;color:var(--ink-2)}
+.notebook-workbench .notebook-markdown ul,.notebook-workbench .notebook-markdown ol{padding-left:1.6rem;margin:9px 0}
+@media(max-width:760px){
+ .vscode-python-cell .python-code-preview,.vscode-python-cell .python-code-edit,.vscode-python-cell .python-code-edit-highlight,.vscode-python-cell .python-edit-gutter{font-size:12px}
+ .vscode-python-cell .python-code-line,.vscode-python-cell .python-editor-stage{grid-template-columns:36px minmax(0,1fr)}
+ .vscode-python-cell .python-code-content{padding:0 10px}
+ .vscode-python-cell .python-code-number{padding-right:6px}
+ .vscode-python-cell .python-code-edit,.vscode-python-cell .python-code-edit-highlight{padding:12px 10px}
+ .vscode-python-cell .python-editor-stage.no-lines{grid-template-columns:0 minmax(0,1fr)}
+}
+
+/* Shared code viewer inherits the editor token family, including on other languages. */
+.code-shell{background:#1e1e1e;color:#d4d4d4;min-width:0}
+.code-shell .code-meta{background:#252526;color:#c8d5de;border-bottom:1px solid #37373d}
+.code-shell .code-view{background:#1e1e1e;color:#d4d4d4;font:13px/1.6 "Cascadia Code",Consolas,monospace;overflow:auto;max-width:100%;tab-size:4}
+.code-shell .code-view code{display:block;min-width:max-content}
+.code-shell .code-line{grid-template-columns:52px minmax(0,1fr)}
+.code-shell .code-line-number{color:#858585;background:#181818;border-color:#333;font-variant-numeric:tabular-nums}
+.code-shell .code-line-text{padding:0 16px;color:#d4d4d4}
+.code-shell .hljs-keyword,.code-shell .hljs-literal{color:#569cd6}
+.code-shell .hljs-string,.code-shell .hljs-attr{color:#ce9178}
+.code-shell .hljs-number{color:#b5cea8}
+.code-shell .hljs-comment{color:#6a9955}
+.code-shell .hljs-title,.code-shell .hljs-function{color:#dcdcaa}
+.code-shell .hljs-built_in,.code-shell .hljs-type{color:#4ec9b0}
+.code-shell .hljs-variable{color:#9cdcfe}
+.code-shell .hljs-meta{color:#c586c0}
+.code-shell .code-view.is-wrapped code{min-width:0}
+.code-shell .code-view.is-wrapped .code-line-text{white-space:pre-wrap;overflow-wrap:anywhere}
+.code-shell .code-view.no-line-numbers .code-line{grid-template-columns:1fr}
+.code-shell .code-view.no-line-numbers .code-line-number{display:none}
+.notebook-workbench .notebook-code-collapsed .python-cell-body{display:none}
+.notebook-workbench .notebook-code-collapsed .python-code-stats{display:none}
+@media(max-width:760px){
+ .code-shell .code-view{font-size:12px}
+ .code-shell .code-line{grid-template-columns:36px minmax(0,1fr)}
+ .code-shell .code-line-text{padding:0 9px}
+}

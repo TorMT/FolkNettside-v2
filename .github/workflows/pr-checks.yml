@@ -27,6 +27,17 @@ jobs:
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4210/tests/browser/mobile-cv-nav-smoke.html 40 1280,900
 
+      - name: VS Code style Python and Jupyter viewer on desktop and mobile
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4217 --bind 127.0.0.1 >/tmp/python-vscode-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/python-vscode-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4217/tests/browser/vscode-code-viewer-smoke.html 50 1280,900
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4217/tests/browser/vscode-code-viewer-smoke.html 50 390,844
+
       - name: Verify all CoolProp native/reference tables with real WASM
         run: |
           python3 scripts/fetch_coolprop_wasm.py

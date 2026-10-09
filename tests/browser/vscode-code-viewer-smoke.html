@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/code-viewer.css">
+<title>Python and Jupyter VS Code-like viewer browser regression</title>
+</head><body data-status="running">
+<div id="host" style="max-width:900px;margin:0 auto"></div><pre id="result">running</pre>
+<script type="module">
+import {render as renderPython} from "../../src/viewers/adapters/python.js";
+import {render as renderNotebook} from "../../src/viewers/adapters/notebook.js";
+import {render as renderText} from "../../src/viewers/adapters/text.js";
+const host=document.querySelector("#host"),report=document.querySelector("#result");
+const check=(ok,message)=>{if(!ok)throw Error(message)};
+const fixture={path:"../../examples/semesters/5/TMR4182/Kok/hydro-demo.py",
+  name:"hydro-demo.py",label:"Hydro Python"};
+let lastRun="",stopped=0;
+const fakeSession=()=>({
+ async run(source){lastRun=source;return {stdout:"TEST OUTPUT",stderr:"",files:[]}},
+ stop(){stopped++},dispose(){},async mount(){return {mounted:0}}
+});
+let cleanup=[];
+try{
+ const sourceViewer=await renderPython(host,fixture,{sessionFactory:fakeSession});
+ cleanup.push(sourceViewer.cleanup);
+ const preview=host.querySelector(".python-code-preview");
+ check(preview&&preview.querySelector(".hljs-string")&&preview.querySelector(".hljs-number")&&preview.querySelector(".hljs-built_in"),"Python docstring, numbers and builtins not colored offline");
+ check(preview.querySelectorAll(".python-code-line").length>5,"Python line numbers missing");
+ check(getComputedStyle(preview).backgroundColor==="rgb(30, 30, 30)","VS Code dark preview CSS missing");
+ const edit=host.querySelector("[data-py-edit]");
+ edit.click();
+ const editor=host.querySelector(".python-code-edit");
+ check(!host.querySelector(".python-editor-stage").hidden,"Editor not visible");
+ check(host.querySelector(".python-code-edit-highlight .hljs-string")&&host.querySelector(".python-code-edit-highlight .hljs-number"),"Editor does not color strings and numeric literals");
+ editor.value="if True:";
+ editor.setSelectionRange(editor.value.length,editor.value.length);
+ editor.dispatchEvent(new Event("input",{bubbles:true}));
+ editor.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true,cancelable:true}));
+ check(editor.value==="if True:\n    ","Colon Enter should insert four spaces");
+ editor.dispatchEvent(new KeyboardEvent("keydown",{key:"Tab",bubbles:true,cancelable:true}));
+ check(editor.value==="if True:\n        ","Tab should add four more spaces");
+ const wrap=host.querySelector("[data-py-wrap]");
+ wrap.click();
+ check(host.querySelector(".python-editor-stage").classList.contains("soft-wrap"),"Wrap not mirrored in editable highlight");
+ const lines=host.querySelector("[data-py-lines]");
+ lines.click();
+ check(host.querySelector(".python-editor-stage").classList.contains("no-lines"),"Editor line number toggle missing");
+ edit.click();
+ check(!preview.hidden&&preview.textContent.includes("if True:"),"Preview has stale edited Python");
+ host.querySelector("[data-py-run]").click();
+ for(let i=0;i<40&&!host.querySelector(".python-output-text").textContent.includes("TEST OUTPUT");i++)
+   await new Promise(ok=>setTimeout(ok,20));
+ check(lastRun==="if True:\n        ","Python Run did not receive edited code");
+ check(host.querySelector(".python-output-text").textContent.includes("TEST OUTPUT"),"Python Run output broken");
+ sourceViewer.cleanup();cleanup=[];
+ host.replaceChildren();
+ const notebook=await renderNotebook(host,{
+   path:"../../examples/semesters/5/TMR4182/Kok/hydro-demo.ipynb",
+   name:"hydro-demo.ipynb",label:"Hydro notebook"
+ },{sessionFactory:fakeSession});
+ cleanup.push(notebook.cleanup);
+ check(host.querySelectorAll(".notebook-entry").length>=2,"Notebook entries missing");
+ check(host.querySelector(".notebook-markdown h1,.notebook-markdown h2,.notebook-markdown p"),"Notebook markdown missing");
+ check(host.querySelector(".notebook-entry .python-code-preview .python-code-line"),"Notebook code lines missing");
+ check(host.querySelector(".notebook-entry .hljs-keyword,.notebook-entry .hljs-built_in"),
+   "Notebook code cell not syntax highlighted");
+ const fold=host.querySelector("[data-nb-collapse]");
+ fold.click();
+ check(host.querySelector(".notebook-cells").classList.contains("notebook-code-collapsed"),"Notebook source collapse missing");
+ fold.click();
+ check(!host.querySelector(".notebook-cells").classList.contains("notebook-code-collapsed"),"Notebook source did not expand");
+ notebook.cleanup();cleanup=[];
+ host.replaceChildren();
+ const text=await renderText(host,{
+   path:"../../examples/semesters/5/TMR4182/Kok/kok-example.md",name:"kok-example.md"
+ });
+ check(host.querySelector(".code-shell .code-line"),"Generic code viewer lost syntax layout");
+ cleanup.push(text.cleanup);
+ document.body.dataset.status="pass";
+ report.textContent="VS Code-like Python, notebook markdown, edit/indent, line numbers, wrap, Run/Stop and text view PASS";
+}catch(error){
+ document.body.dataset.status="fail";
+ report.textContent=String(error?.stack||error);
+}finally{for(const dispose of cleanup)dispose?.()}
+</script></body></html>
