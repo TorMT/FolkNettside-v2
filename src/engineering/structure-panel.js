@@ -97,7 +97,16 @@ export function structurePanelHTML(baseCase,{loadFy,loadPosition}={}){
       <div class="readout"><span>Root Fy</span><strong>${(root.ry/1000).toFixed(3)} kN</strong></div>
       <div class="readout"><span>Root Mz</span><strong>${(root.rm/1000).toFixed(3)} kNm</strong></div>
     `,
-    viewport:`<div class="structure-stage">${frameSVG(model,result,760,420)}</div>`,
+    viewport:`<div class="structure-stage">
+      <div class="structure-view-actions" role="group" aria-label="Beam model view">
+        <button type="button" class="btn" id="structure-show-3d" aria-pressed="true">3D model</button>
+        <button type="button" class="btn" id="structure-show-2d" aria-pressed="false">2D diagram</button>
+        <button type="button" class="btn" id="structure-view-reset">Reset view</button>
+      </div>
+      <div id="structure-3d-stage" class="structure-3d-stage" aria-label="Interactive beam model: drag to orbit, right-drag to move and wheel to zoom">Loading interactive frame…</div>
+      <div id="structure-2d-stage" class="structure-2d-stage" hidden>${frameSVG(model,result,760,420)}</div>
+      <p class="muted structure-view-hint">Left drag: orbit · Right drag or two fingers: pan · Wheel or pinch: zoom. 3D beam thickness and deformation scaling are illustrative; FEM remains 2D.</p>
+    </div>`,
     results:`<div class="structure-results"><div class="structure-diagram">${frameSVG(model,result,620,220)}</div>
       <div class="resource-list">
         <div class="resource-row"><span class="file-icon">N</span><div><strong>End axial force</strong><div class="muted">local node 1</div></div><span>${(er.localEndForces[0]/1000).toFixed(3)} kN</span></div>
