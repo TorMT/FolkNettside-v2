@@ -10,7 +10,7 @@ try{
  const model=parseKisssoftBuffer(bytes.buffer,"Stage3PlanetaryGear.Z14");
  if(model.centerDistance!==60||model.consistent!==true)throw Error("Geometry calculation mismatch");
  for(const ext of ["Z12","Z14","W10","KSYS"])if(viewerKind({path:"test."+ext})!=="kisssoft")throw Error("Adapter missing "+ext);
- document.body.innerHTML=kisssoftPageHTML();
+ document.body.innerHTML=kisssoftPageHTML()+'<pre id="result">running</pre>';
  const cleanupEngineering=mountKisssoft(document.body);
  const input=document.querySelector("#kisssoft-file");
  const file=new File([bytes],"Stage3PlanetaryGear.Z14",{type:"application/octet-stream"});
