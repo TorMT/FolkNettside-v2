@@ -2,6 +2,7 @@ import {getThreeRuntime} from "../model/three-runtime.js";
 import {mountStandaloneCADNavigation} from "../model/standalone-cad-navigation.js";
 import {externalGearPair} from "./gear-pitch-checks.js";
 import {conceptualHelicalToothGeometry} from "./gear-visual-shape.js";
+import {gearPairFraming} from "./gear-pair-camera.js";
 
 /** Visual approximation for a non-planetary external pair; not KISSsoft CAD. */
 export async function mountKisssoftPair3D(target,model){
@@ -25,12 +26,19 @@ export async function mountKisssoftPair3D(target,model){
  scene.add(new THREE.HemisphereLight(0xd8ecf7,0x243e52,2.1));
  const sunLight=new THREE.DirectionalLight(0xffffff,2.5);
  sunLight.position.set(100,130,240);scene.add(sunLight);
- const camera=new THREE.PerspectiveCamera(40,1,.1,10000);
+ const framing=gearPairFraming(pair,{aspect:Math.max(.4,target.clientWidth||600)/400});
+ const camera=new THREE.PerspectiveCamera(40,1,framing.near,framing.far);
  camera.up.set(0,0,1);
- const extent=Math.max(pair.centerDistance+pair.b.pitchRadius,90);
- camera.position.set(extent*1.5,-extent*2,extent*1.5);
+ camera.position.set(
+   framing.center[0]+framing.direction[0]*framing.distance/Math.hypot(...framing.direction),
+   framing.center[1]+framing.direction[1]*framing.distance/Math.hypot(...framing.direction),
+   framing.center[2]+framing.direction[2]*framing.distance/Math.hypot(...framing.direction)
+ );
  const orbit=new OrbitControls(camera,canvas);
- orbit.target.set(0,0,10);orbit.update();
+ orbit.target.set(...framing.center);orbit.update();
+ canvas.dataset.cameraFar=String(camera.far);
+ canvas.dataset.cameraDistance=String(camera.position.distanceTo(orbit.target));
+ canvas.dataset.meshKind=pair.internal?"internal":"external";
  const gears=[],materials=[],geometries=[];
  function makeGear(geometry,faceWidth,centerX,color,angle){
    const group=new THREE.Group();group.position.x=centerX;scene.add(group);gears.push(group);
@@ -94,7 +102,23 @@ export async function mountKisssoftPair3D(target,model){
  const draw=()=>{
    if(disposed)return;
    const width=Math.max(280,target.clientWidth);
-   if(width!==viewportWidth){viewportWidth=width;renderer.setSize(width,400,false);camera.aspect=width/400;camera.updateProjectionMatrix()}
+   if(width!==viewportWidth){
+     viewportWidth=width;renderer.setSize(width,400,false);camera.aspect=width/400;
+     const next=gearPairFraming(pair,{aspect:camera.aspect});
+     const direction=camera.position.clone().sub(orbit.target).normalize();
+     const distance=camera.position.distanceTo(orbit.target);
+     // Keep the user's zoom after the first fit; only re-fit when the canvas changes size.
+     if(!canvas.dataset.firstFit){
+       camera.position.copy(orbit.target).addScaledVector(direction,next.distance);
+       canvas.dataset.firstFit="true";
+     }else if(distance>next.far*.7){
+       camera.position.copy(orbit.target).addScaledVector(direction,next.distance);
+     }
+     camera.far=next.far;camera.near=next.near;
+     canvas.dataset.cameraDistance=String(camera.position.distanceTo(orbit.target));
+     canvas.dataset.cameraFar=String(camera.far);
+     camera.updateProjectionMatrix();
+   }
    renderer.render(scene,camera);
  };
  const explodePair=()=>{
