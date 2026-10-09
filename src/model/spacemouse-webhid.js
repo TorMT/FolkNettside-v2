@@ -23,7 +23,7 @@ export async function connectSpaceMouse({hid=globalThis.navigator?.hid,
  if(openedByUs)await device.open();
  let disposed=false;
  const onReport=event=>{
-   if(disposed||!isActive()||document.visibilityState==="hidden")return;
+   if(disposed||!isActive()||(typeof document!=="undefined"&&document.visibilityState==="hidden"))return;
    const value=decodeSpaceMouseReport(event.reportId,event.data);
    if(value&&value.values.some(Math.abs))onVector(value);
  };
