@@ -1,0 +1,5 @@
+{
+  "googleDriveAuth": {
+    "clientId": "YOUR_PUBLIC_BROWSER_CLIENT_ID.apps.googleusercontent.com"
+  }
+}
