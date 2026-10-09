@@ -7,3 +7,11 @@
 .kisssoft-summary svg{max-width:100%}
 .kisssoft-page input[type=file]{display:block;margin:12px 0}
 @media(max-width:830px){.kisssoft-layout{grid-template-columns:minmax(0,1fr)}}
+
+/* Concept-only assembly controls; all parts other than imported tooth counts
+   are illustrative rather than reconstructed KISSsoft components. */
+.kisssoft-assembly-controls{display:flex;flex-wrap:wrap;gap:9px 18px;align-items:center;justify-content:center;padding:10px 12px;border:1px solid var(--line);border-radius:0 0 12px 12px;background:var(--surface)}
+.kisssoft-assembly-controls label{display:flex;gap:8px;align-items:center;font-size:12px;cursor:pointer}
+.kisssoft-assembly-controls input[type="range"]{width:110px;accent-color:var(--accent)}
+.kisssoft-assembly-controls input[type="checkbox"]{accent-color:var(--accent)}
+.kisssoft-3d-slot canvas{border-radius:12px 12px 0 0!important}
