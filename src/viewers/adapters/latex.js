@@ -1,29 +1,59 @@
-import {escapeHTML,fetchText} from "../utils.js";import {getKaTeX} from "../../vendor/katex.js";
+import {escapeHTML,fetchText} from "../utils.js";
+import {getKaTeX} from "../../vendor/katex.js";
 import {createDomFinder} from "../dom-search.js";
-function documentBody(source){const match=source.match(/\\begin\{document\}([\s\S]*?)\\end\{document\}/);return match?match[1]:source}
+import {latexBlocks,latexSectionTitle} from "../latex-core.js";
+
+function textNodes(input){
+ return input.split(/\n/).map(line=>{
+   const section=latexSectionTitle(line);
+   if(section)return "<h"+section.level+">"+escapeHTML(section.title)+"</h"+section.level+">";
+   const trimmed=line.trim();
+   if(!trimmed)return "";
+   return "<p>"+escapeHTML(trimmed)+"</p>";
+ }).join("");
+}
+export function latexPreviewHTML(source,katex=null){
+ const nodes=[];
+ for(const block of latexBlocks(source)){
+   if(block.kind==="text"){nodes.push(textNodes(block.source));continue}
+   if(katex){
+     try{
+       nodes.push('<span class="latex-math '+(block.display?"latex-math-display":"latex-math-inline")+
+         '">'+katex.renderToString(block.source,{
+           displayMode:block.display,throwOnError:true,
+           trust:false,maxExpand:1000,strict:"ignore"
+         })+"</span>");
+       continue;
+     }catch(error){
+       nodes.push('<p class="muted">Equation could not be rendered. Original LaTeX:</p>');
+     }
+   }
+   // Readable, safe fallback if a CDN is blocked/offline or TeX uses an
+   // unsupported package. Never show an empty preview.
+   nodes.push('<pre class="latex-math-fallback">'+escapeHTML(block.source)+"</pre>");
+ }
+ return nodes.join("")||'<p>No LaTeX document content found.</p>';
+}
 export async function render(container,resource){
-  const source=await fetchText(resource.path),katex=await getKaTeX(),body=documentBody(source),blocks=[];let last=0,match;
-  const pattern=/\\\[([\s\S]*?)\\\]|\$\$([\s\S]*?)\$\$/g;
-  while((match=pattern.exec(body))){
-    const before=body.slice(last,match.index).trim();if(before)blocks.push(`<p>${escapeHTML(before)}</p>`);
-    const expression=(match[1]??match[2]??"").trim();
-    try{blocks.push(`<div class="latex-equation">${katex.renderToString(expression,{displayMode:true,throwOnError:false})}</div>`)}
-    catch{blocks.push(`<pre>${escapeHTML(expression)}</pre>`)}
-    last=pattern.lastIndex;
-  }
-  const rest=body.slice(last).trim();if(rest)blocks.push(`<p>${escapeHTML(rest)}</p>`);
-  container.innerHTML=`<article class="latex-view">
-    <div class="latex-viewer-toolbar"><button class="btn latex-formula-toggle" type="button" aria-pressed="false">Show LaTeX source</button></div>
-    <div class="latex-rendered" data-latex-preview><h2>${escapeHTML(resource.label)}</h2>${blocks.join("")}</div>
-    <pre data-latex-source hidden>${escapeHTML(source)}</pre>
-  </article>`;
-  const toggle=container.querySelector(".latex-formula-toggle");
-  toggle.addEventListener("click",()=>{
-    const show=toggle.getAttribute("aria-pressed")!=="true";
-    toggle.setAttribute("aria-pressed",String(show));
-    toggle.textContent=show?"Show rendered equations":"Show LaTeX source";
-    container.querySelector("[data-latex-preview]").hidden=show;
-    container.querySelector("[data-latex-source]").hidden=!show;
-  });
-  return {info:"KaTeX preview · source fallback included",actions:{find:createDomFinder(container)}};
+ const source=await fetchText(resource.path||resource.url);
+ let renderer=null,warning="";
+ try{renderer=await getKaTeX()}catch{
+   warning="Math renderer unavailable (offline or CDN blocked). Original equations are shown as LaTeX source; use Show LaTeX source for the complete document.";
+ }
+ container.innerHTML='<article class="latex-view">'+
+   '<div class="latex-viewer-toolbar"><button class="btn latex-formula-toggle" type="button" aria-pressed="false">Show LaTeX source</button></div>'+
+   (warning?'<p class="muted latex-preview-warning" role="status">'+escapeHTML(warning)+'</p>':"")+
+   '<div class="latex-rendered" data-latex-preview><h2>'+escapeHTML(resource.label||resource.name||"LaTeX document")+
+     '</h2>'+latexPreviewHTML(source,renderer)+'</div>'+
+   '<pre data-latex-source hidden>'+escapeHTML(source)+'</pre></article>';
+ const toggle=container.querySelector(".latex-formula-toggle");
+ toggle.addEventListener("click",()=>{
+   const show=toggle.getAttribute("aria-pressed")!=="true";
+   toggle.setAttribute("aria-pressed",String(show));
+   toggle.textContent=show?"Show rendered equations":"Show LaTeX source";
+   container.querySelector("[data-latex-preview]").hidden=show;
+   container.querySelector("[data-latex-source]").hidden=!show;
+ });
+ return {info:renderer?"LaTeX math preview · source switch":"LaTeX source preview · math CDN unavailable",
+   actions:{find:createDomFinder(container)}};
 }
