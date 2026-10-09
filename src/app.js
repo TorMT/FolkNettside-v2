@@ -9,6 +9,10 @@ import {karakterwebUrl} from "./courses/external-links.js";
 import {bindCourseNavigation} from "./courses/course-navigation.js";
 import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js";
 import {hydrostaticParticulars} from "./hydro/stability.js";
+import {createHydroInclude} from "./hydro/hydro-selection.js";
+import {prepareHydroModel} from "./hydro/hydrostatics.js";
+import {sectionalAreaCurve,sacCSV} from "./hydro/sac-curve.js";
+import {sacCurvePanelHTML} from "./engineering/sac-panel.js";
 import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js";
 import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js";
 import {renderProjectCard,renderProjectDetail} from "./components/project-card.js";
@@ -1737,7 +1741,13 @@ async function engineeringPage(){
     <button type="button" class="btn" id="engineering-confirm-import" ${model.analysisCapabilities.hydro.enabled?"disabled":""}>${model.analysisCapabilities.hydro.enabled?"Axes + units acknowledged":"Confirm units and up-axis"}</button>
     <small>Exploratory geometry only. Mesh closure does not prove external-hull isolation, self-intersection freedom, true datum or certified stability.</small>
   </section>`:"";
-  const inspector=importedControls+(hydro?hydro.inspector:`
+  const inspector=importedControls+(hydro?hydro.inspector+`
+    <section class="hydro-sac-tools">
+      <h3>Sectional Area Curve (SAC)</h3>
+      <p class="muted">Generate area A(x) below the selected waterline from validated hull slices (exploratory, not class-approved).</p>
+      <button type="button" class="btn" id="engineering-sac-run">Generate SAC</button>
+      <div id="engineering-sac-result" role="status" aria-live="polite"></div>
+    </section>`:`
     <h3>Properties</h3>
     <div class="readout"><span>Component</span><strong id="prop-component">${selected?.name||"—"}</strong></div>
     <div class="readout"><span>Semantic role</span><strong id="prop-role">${selectedSemantic?.subtype||selectedSemantic?.role||selected?.type||"—"}</strong></div>
@@ -1794,6 +1804,28 @@ async function engineeringPage(){
   mountWorkspaceResultsResize(app.querySelector(".workspace"));
   bindEngineeringModelSelector();
   bindEngineeringCaseExport(engineeringReport);
+  app.querySelector("#engineering-sac-run")?.addEventListener("click",async event=>{
+    const button=event.currentTarget;
+    const result=app.querySelector("#engineering-sac-result");
+    if(!result)return;
+    button.disabled=true;result.textContent="Computing underwater sectional areas…";
+    try{
+      const documentModel=await getEngineeringDocument();
+      if(!button.isConnected)return;
+      const include=createHydroInclude(documentModel);
+      const validation=validateHydroModel(documentModel,{include});
+      if(!validation.passed)throw new Error("Hull mesh preflight required before calculating SAC");
+      const prepared=prepareHydroModel(documentModel,{include});
+      const sac=sectionalAreaCurve(prepared,{draft:Number(hydroDraft),stations:31});
+      result.innerHTML=sacCurvePanelHTML(sac);
+      result.querySelector("#engineering-sac-export")?.addEventListener("click",()=>{
+        downloadTextFile(sacCSV(sac),"sectional-area-curve.csv");
+      });
+    }catch(error){
+      if(result.isConnected)result.textContent="SAC unavailable: "+String(error?.message||error);
+    }finally{if(button.isConnected)button.disabled=false}
+  });
+
   app.querySelectorAll("[data-hydro-import-part]").forEach(input=>input.addEventListener("change",()=>{
     if(!importedHydroDocument||model.id!==LOCAL_HYDRO_MODEL_ID)return;
     const selected=[...app.querySelectorAll("[data-hydro-import-part]:checked")].map(node=>node.dataset.hydroImportPart);
