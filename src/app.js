@@ -159,7 +159,7 @@ function engineeringModelSelectHTML(){
   const uploaded=model?.id===LOCAL_HYDRO_MODEL_ID;
   return `<div class="engineering-model-control">
     <label class="engineering-model-select"><span>Model</span><select id="engineering-model-select">${engineeringModels.map(item=>`<option value="${item.id}" ${item.id===engineeringModelId?"selected":""}>${item.label||item.name} · ${engineeringModelReadinessLabel(item)}</option>`).join("")}</select></label>
-    <button type="button" class="btn" id="engineering-import-hull">Import STL/3MF</button>
+    <button type="button" class="btn" id="engineering-import-hull">Import STL/3MF</button><button type="button" class="btn" data-go="/engineering/kisssoft">KISSsoft</button>
     <input type="file" id="engineering-hull-file" accept=".stl,.3mf" hidden>
     ${uploaded&&importedHydroOriginal?.format==="STL"
       ?`<label class="engineering-model-select"><span>STL source units</span><select id="engineering-hull-unit">${Object.keys(UNIT_SCALE_TO_METERS).map(unit=>`<option value="${unit}" ${unit===importedHydroUnit?"selected":""}>${unit}</option>`).join("")}</select></label>`:""}
