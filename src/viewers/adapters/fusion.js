@@ -1,35 +1,15 @@
-import {parseFusionArchive,FusionConversionRequiredError} from "../../model/parsers/fusion-archive.js";
-import {renderModelWorkbench} from "../model-workbench.js";
+import {renderFusionPackage} from "../fusion-package-view.js";
 import {extension} from "../utils.js";
 
-function conversionNotice(container,resource,reason){
-  const shell=document.createElement("section");shell.className="viewer-conversion-required";
-  const headline=document.createElement("h2");
-  headline.textContent="CAD conversion required";
-  const description=document.createElement("p");
-  description.textContent=String(reason||"The original Fusion geometry needs APS conversion. This viewer will not invent geometry.");
-  const detail=document.createElement("p");detail.textContent="Native F3D is not triangulated model data. F3Z is previewable when its archive contains embedded 3MF, STL, STEP, IGES or BREP. Otherwise export a neutral format from Fusion to enable local viewing.";
-  const link=document.createElement("a");link.className="btn";
-  link.textContent="Open original CAD file";link.href=resource.url||resource.path;
-  link.target="_blank";link.rel="noopener noreferrer";
-  shell.append(headline,description,detail,link);container.replaceChildren(shell);
-  return {info:"CAD source · APS conversion required"};
-}
 export async function render(container,resource){
-  const format=extension(resource.path||resource.url);
-  if(format!=="f3z"&&format!=="f3d")
-    return conversionNotice(container,resource,"This CAD format needs a supported neutral mesh export.");
-  if(format==="f3d")
-    return conversionNotice(container,resource,"Native F3D cannot be parsed directly in the browser.");
-  const response=await fetch(resource.path||resource.url);
-  if(!response.ok)throw new Error("CAD HTTP "+response.status);
-  try{
-    const model=await parseFusionArchive(await response.arrayBuffer(),resource.label||resource.name);
-    const rendered=await renderModelWorkbench(container,model);
-    return {...rendered,info:"F3Z · embedded "+model.source.embeddedFormat+" geometry · "+
-      (rendered?.info||"interactive ModelDocument")};
-  }catch(error){
-    if(error?.code!=="APS_REQUIRED")throw error;
-    return conversionNotice(container,resource,error.message);
-  }
+ const source=resource.url||resource.path;
+ const kind=extension(source||resource.name);
+ if(kind!=="f3d"&&kind!=="f3z")throw Error("Not a Fusion archive");
+ container.textContent="Reading Fusion archive locally…";
+ const response=await fetch(source);
+ if(!response.ok)throw Error("Fusion archive HTTP "+response.status);
+ const reported=Number(response.headers.get("content-length"));
+ if(reported>55*1024*1024)throw Error("Fusion archive exceeds 55 MiB safe preview limit");
+ const buffer=await response.arrayBuffer();
+ return renderFusionPackage(container,buffer,resource.label||resource.name||"model."+kind);
 }
