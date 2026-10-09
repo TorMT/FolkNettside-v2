@@ -2,6 +2,7 @@ import {mountModelScene} from "../model/model-scene.js";
 import {mountWaveControls} from "../model/model-wave-controls.js";
 import {mountAssemblyInspector} from "./assembly-inspector.js";
 import {connectSpaceMouse} from "../model/spacemouse-webhid.js";
+import {spaceMouseMovement} from "../model/spacemouse-motion.js";
 
 export async function renderModelWorkbench(container,model,{showSidebar=false}={}){
   container.innerHTML=`<div class="model-viewer-workbench">
@@ -16,6 +17,7 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
           <button type="button" data-model-spacemouse-stop disabled>Disconnect</button>
         </div>
         <p class="muted" data-model-spacemouse-status role="status">SpaceMouse: optional WebHID in desktop Chrome/Edge over HTTPS. Permission required.</p>
+        <div class="model-spacemouse-settings"><label>Sensitivity <input type="range" data-model-spacemouse-gain min=".2" max="2" step=".1" value=".6"></label><output data-model-spacemouse-gain-value>0.6×</output><label><input type="checkbox" data-model-spacemouse-invert> Invert zoom</label></div>
         <div class="model-viewer-actions">
           <button type="button" data-model-fit>Fit</button>
           <button type="button" data-model-iso>Iso</button>
@@ -188,6 +190,9 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
   const disconnectButton=$("[data-model-spacemouse-stop]");
   const connectionStatus=$("[data-model-spacemouse-status]");
   let session=null,connecting=false,disposed=false;
+  const gain=$("[data-model-spacemouse-gain]");
+  const inverted=$("[data-model-spacemouse-invert]");
+  gain.addEventListener("input",()=>$("[data-model-spacemouse-gain-value]").textContent=gain.value+"×");
   if(!globalThis.navigator?.hid){
     connectButton.disabled=true;
     connectionStatus.textContent="WebHID unavailable. Use desktop Chrome or Edge over HTTPS; ordinary mouse/touch controls remain supported.";
@@ -209,15 +214,16 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
             !["INPUT","TEXTAREA","SELECT"].includes(active?.tagName);
         },
         onStatus:setConnectionStatus,
-        onVector:({kind,values})=>{
-          if(kind==="translate")
-            scene.actions.navigate3D({pan:[values[0]*.014,-values[1]*.014,-values[2]*.014]});
-          else
-            scene.actions.navigate3D({orbit:[-values[0]*.025,values[1]*.025,values[2]*.025]});
+        onVector:sample=>{
+          const motion=spaceMouseMovement(sample,{
+            sensitivity:Number(gain.value),invertZoom:inverted.checked
+          });
+          if(motion)scene.actions.navigate3D(motion);
         }
       });
       if(disposed){await selected.disconnect();return}
       session=selected;disconnectButton.disabled=false;
+      stage.querySelector("canvas")?.focus({preventScroll:true});
     }catch(error){setConnectionStatus(String(error?.message||error))}
     finally{connecting=false;if(!disposed&&!session)connectButton.disabled=!globalThis.navigator?.hid}
   });
