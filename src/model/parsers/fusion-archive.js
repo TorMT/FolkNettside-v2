@@ -21,7 +21,7 @@ export function selectFusionArchiveCandidate(paths=[]){
     const lower=path.toLowerCase();
     if(lower.endsWith(".3mf"))return 0;
     if(lower.endsWith(".stl"))return 1;
-    if(/\\.(step|stp|iges|igs|brep)$/.test(lower))return 2;
+    if(/\.(step|stp|iges|igs|brep)$/.test(lower))return 2;
     return 99;
   };
 
@@ -55,7 +55,7 @@ export function fusionArchiveInventory(paths=[]){
     entries:list.length,
     threeMF:list.filter(path=>path.toLowerCase().endsWith(".3mf")).length,
     stl:list.filter(path=>path.toLowerCase().endsWith(".stl")).length,
-    cad:list.filter(path=>/\\.(step|stp|iges|igs|brep)$/i.test(path)).length,
+    cad:list.filter(path=>/\.(step|stp|iges|igs|brep)$/i.test(path)).length,
     nativeFusion:list.filter(path=>/\.(f3d|f3z)$/i.test(path)).length,
     candidate:selectFusionArchiveCandidate(list),
     semanticManifest:selectSemanticManifestCandidate(list)
