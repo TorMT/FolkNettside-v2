@@ -1,11 +1,11 @@
-import {getThreeRuntime} from "./three-runtime.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
-import {modelWaterlineContours} from "./waterline-preview.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
-import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
-import {waveModelHeave} from "./wave-model-motion.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
-import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
-import {createThrusterFlowRings} from "./thruster-flow-rings.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
-import {explodeOffsets} from "./explode-layout.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
-import {connectCADKeyboard} from "./cad-navigation.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
+import {getThreeRuntime} from "./three-runtime.js?v=5e763f2ce07324d38c9a287cf3b76d2bb7447b30";
+import {modelWaterlineContours} from "./waterline-preview.js?v=5e763f2ce07324d38c9a287cf3b76d2bb7447b30";
+import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=5e763f2ce07324d38c9a287cf3b76d2bb7447b30";
+import {waveModelHeave} from "./wave-model-motion.js?v=5e763f2ce07324d38c9a287cf3b76d2bb7447b30";
+import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=5e763f2ce07324d38c9a287cf3b76d2bb7447b30";
+import {createThrusterFlowRings} from "./thruster-flow-rings.js?v=5e763f2ce07324d38c9a287cf3b76d2bb7447b30";
+import {explodeOffsets} from "./explode-layout.js?v=5e763f2ce07324d38c9a287cf3b76d2bb7447b30";
+import {connectCADKeyboard} from "./cad-navigation.js?v=5e763f2ce07324d38c9a287cf3b76d2bb7447b30";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;
