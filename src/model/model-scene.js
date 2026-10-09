@@ -5,6 +5,7 @@ import {waveModelHeave} from "./wave-model-motion.js";
 import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js";
 import {createThrusterFlowRings} from "./thruster-flow-rings.js";
 import {explodeOffsets} from "./explode-layout.js";
+import {connectCADKeyboard} from "./cad-navigation.js";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;
@@ -237,6 +238,38 @@ export async function mountModelScene(container,documentModel,options={}){
     camera.position.copy(currentBounds.center).add(direction.multiplyScalar(distance));
     controls.update();
     draw();
+  }
+
+  function navigate3D({pan=[0,0,0],orbit=[0,0,0],zoom:zoomFactor=1}={}){
+    if(![...pan,...orbit,zoomFactor].every(Number.isFinite))
+      throw Error("CAD camera values must be finite");
+    // Camera-relative translation and rotation, not physical model transforms.
+    camera.updateMatrixWorld(true);
+    const distance=Math.max(camera.position.distanceTo(controls.target),.05);
+    const right=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0).normalize();
+    const up=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1).normalize();
+    const forward=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,2).negate().normalize();
+    const shift=right.clone().multiplyScalar(pan[0]*distance)
+      .addScaledVector(up,pan[1]*distance)
+      .addScaledVector(forward,pan[2]*distance);
+    camera.position.add(shift);controls.target.add(shift);
+    const offset=camera.position.clone().sub(controls.target);
+    if(orbit[1])offset.applyAxisAngle(camera.up.clone().normalize(),orbit[1]);
+    if(orbit[0])offset.applyAxisAngle(right,orbit[0]);
+    if(orbit[2]){
+      // SpaceMouse sixth axis: roll around optical axis changes camera up.
+      camera.up.applyAxisAngle(forward,orbit[2]).normalize();
+    }
+    if(!(zoomFactor>0))throw Error("CAD zoom must be positive");
+    offset.multiplyScalar(Math.max(.08,Math.min(12,zoomFactor)));
+    const min=Math.max(currentBounds.radius*.01,.005);
+    if(offset.length()<min)offset.setLength(min);
+    camera.position.copy(controls.target).add(offset);
+    controls.update();draw();
+    return {position:camera.position.toArray(),target:controls.target.toArray(),up:camera.up.toArray()};
+  }
+  function cameraState(){
+    return {position:camera.position.toArray(),target:controls.target.toArray(),up:camera.up.toArray()};
   }
 
   function zoom(factor){
@@ -689,6 +722,8 @@ export async function mountModelScene(container,documentModel,options={}){
     return best&&bestDistance<=measureSnapTolerance?best.clone():hit.point.clone();
   }
   function onPointerDown(event){
+    canvas.focus({preventScroll:true});
+    if(event.button!==0)return;
     const hit=pointerHit(event);
     if(measureEnabled){
       if(!hit)return;
@@ -700,6 +735,23 @@ export async function mountModelScene(container,documentModel,options={}){
     }
     select(hit?.object||null);
   }
+  // Capture phase runs before OrbitControls' pointerdown listener. Keep the
+  // familiar middle-drag pan, but hold Shift + middle to orbit.
+  const middleDown=event=>{
+    if(event.button===1)controls.mouseButtons.MIDDLE=
+      event.shiftKey?THREE.MOUSE.ROTATE:THREE.MOUSE.PAN;
+  };
+  const middleUp=()=>{controls.mouseButtons.MIDDLE=THREE.MOUSE.PAN};
+  canvas.addEventListener("pointerdown",middleDown,true);
+  canvas.addEventListener("pointerup",middleUp);
+  canvas.addEventListener("pointercancel",middleUp);
+  const offKeys=connectCADKeyboard(canvas,{
+    fit:fitView,resetZoom:resetView,setView,
+    navigate3D,setIsolation,setScopedExplode
+  },{onExplode:restore=>{
+    const next=restore?0:explodedFactor>0?0:1;
+    setExplode(next);
+  }});
   canvas.addEventListener("pointerdown",onPointerDown);
 
   function resize(){
@@ -724,6 +776,10 @@ export async function mountModelScene(container,documentModel,options={}){
     observer.disconnect();
     controls.dispose();
     canvas.removeEventListener("pointerdown",onPointerDown);
+    canvas.removeEventListener("pointerdown",middleDown,true);
+    canvas.removeEventListener("pointerup",middleUp);
+    canvas.removeEventListener("pointercancel",middleUp);
+    offKeys();
     clearMeasurements();
     for(const line of edgeLines){line.parent?.remove(line);line.geometry.dispose();line.material.dispose()}
     scene.remove(axesHelper);axesHelper.geometry.dispose();axesHelper.material.dispose();
@@ -763,6 +819,8 @@ export async function mountModelScene(container,documentModel,options={}){
       setScopedExplode,
       setIsolation,
       focusComponents,
+      navigate3D,
+      cameraState,
       setThrusterFlows:descriptors=>{thrusterFlows.update(descriptors);return thrusterFlows.count},
       playThrusterFlows:enabled=>thrusterFlows.setPlaying(enabled),
       getThrusterFlowCount:()=>thrusterFlows.count,
