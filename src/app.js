@@ -39,6 +39,7 @@ import {componentSemantic,semanticComponents,semanticSummary} from "./model/sema
 import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js";
 import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js";
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
+import {mountFrame3D} from "./engineering/frame-3d.js";
 import {solveHullGirder} from "./structure/hull-girder.js";
 import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js";
 import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js";
@@ -1149,6 +1150,32 @@ async function engineeringPage(){
       </main><div class="preview-badge">Structure · tested frame FEM</div>`;
       bindNav();
       bindEngineeringModelSelector();
+      const frameStage=app.querySelector("#structure-3d-stage");
+      let frameView=null;
+      if(frameStage){
+        const to2d=app.querySelector("#structure-show-2d");
+        const to3d=app.querySelector("#structure-show-3d");
+        const onView=show3d=>{
+          const modelCanvas=app.querySelector("#structure-3d-stage");
+          const diagram=app.querySelector("#structure-2d-stage");
+          if(modelCanvas)modelCanvas.hidden=!show3d;
+          if(diagram)diagram.hidden=show3d;
+          to3d?.setAttribute("aria-pressed",String(show3d));
+          to2d?.setAttribute("aria-pressed",String(!show3d));
+        };
+        to2d?.addEventListener("click",()=>onView(false));
+        to3d?.addEventListener("click",()=>onView(true));
+        app.querySelector("#structure-view-reset")?.addEventListener("click",()=>frameView?.reset());
+        try{
+          frameView=await mountFrame3D(frameStage,caseModel,structure.result);
+          if(renderId!==engineeringRenderId){frameView?.cleanup?.();return}
+          engineeringCleanup=()=>frameView?.cleanup?.();
+        }catch(error){
+          if(renderId!==engineeringRenderId)return;
+          frameStage.textContent="3D beam unavailable: "+String(error.message||error)+". Use the 2D diagram.";
+          onView(false);
+        }
+      }
       bindEngineeringCaseExport(engineeringCaseReport({
         modelConfig:model,
         mode:"Structure",
