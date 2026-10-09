@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../../assets/style.css"><link rel="stylesheet" href="../../assets/engineering.css">
+<title>Structure beam orbit pan zoom smoke</title></head>
+<body data-status="running">
+<section class="viewport" style="height:560px;max-width:950px"><div id="scene" class="structure-3d-stage" style="width:100%;height:470px"></div></section>
+<pre id="result">running</pre>
+<script type="module">
+import {evaluateStructureCase} from "../../src/engineering/structure-panel.js";
+import {mountFrame3D} from "../../src/engineering/frame-3d.js";
+const assert=(v,m)=>{if(!v)throw Error(m)};
+let view=null;
+try{
+ const response=await fetch("../../examples/engineering/cantilever-frame.json");
+ assert(response.ok,"Reference FEM frame missing");
+ const frame=await response.json();
+ const {model,result}=evaluateStructureCase(frame,{loadFy:-20000,loadPosition:2.5});
+ const stage=document.querySelector("#scene");
+ view=await mountFrame3D(stage,model,result);
+ const canvas=stage.querySelector("canvas");
+ assert(canvas,"3D frame canvas absent");
+ const before=view.getView();
+ const move=(button,from,to)=>{
+   canvas.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,pointerId:1,pointerType:"mouse",
+     button,buttons:button===2?2:1,clientX:from[0],clientY:from[1]}));
+   canvas.dispatchEvent(new PointerEvent("pointermove",{bubbles:true,pointerId:1,pointerType:"mouse",
+     button:-1,buttons:button===2?2:1,clientX:to[0],clientY:to[1]}));
+   canvas.dispatchEvent(new PointerEvent("pointerup",{bubbles:true,pointerId:1,pointerType:"mouse",
+     button,buttons:0,clientX:to[0],clientY:to[1]}));
+ };
+ move(0,[320,210],[540,280]);
+ const rotated=view.getView();
+ assert(JSON.stringify(before.position)!==JSON.stringify(rotated.position),"Pointer drag did not orbit beam");
+ move(2,[320,210],[470,260]);
+ const panned=view.getView();
+ assert(JSON.stringify(rotated.target)!==JSON.stringify(panned.target),"Right-drag did not pan beam");
+ const wheel=new WheelEvent("wheel",{bubbles:true,cancelable:true,deltaY:130,clientX:450,clientY:300});
+ canvas.dispatchEvent(wheel);
+ const zoomed=view.getView();
+ assert(JSON.stringify(panned.position)!==JSON.stringify(zoomed.position),"Wheel did not zoom beam");
+ view.reset();
+ const reset=view.getView();
+ assert(JSON.stringify(reset.position)===JSON.stringify(before.position),"Reset did not restore camera");
+ assert(JSON.stringify(reset.target)===JSON.stringify(before.target),"Reset did not restore pan target");
+ document.body.dataset.status="pass";document.querySelector("#result").textContent="Beam drag/orbit, right-drag/pan, zoom and reset passed";
+}catch(error){
+ document.body.dataset.status="fail";document.querySelector("#result").textContent=String(error.stack||error);
+}finally{view?.cleanup?.()}
+</script></body></html>
