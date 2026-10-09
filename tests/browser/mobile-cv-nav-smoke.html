@@ -1,0 +1,50 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<title>V2 mobile CV and navigation smoke</title>
+<body data-status="running"><pre id="result">running</pre>
+<iframe id="site" style="width:390px;height:790px;border:0;display:block" src="../../index.html#/portfolio"></iframe>
+<script type="module">
+const frame=document.querySelector("#site"),result=document.querySelector("#result");
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const check=(condition,label)=>{if(!condition)throw Error(label)};
+const wait=async predicate=>{
+ for(let i=0;i<120;i++){if(predicate())return;await sleep(100)}
+ throw Error("Timeout waiting for mobile route "+frame.contentWindow.location.hash);
+};
+const dom=()=>frame.contentDocument;
+const btn=sel=>dom().querySelector(sel);
+const overflow=()=>{
+ const d=dom();
+ const contentWidth=Math.max(d.documentElement.scrollWidth,d.body.scrollWidth);
+ const width=d.documentElement.clientWidth;
+ if(contentWidth>width+6)throw Error("Horizontal overflow at "+frame.contentWindow.location.hash+": "+contentWidth+"/"+width);
+};
+try{
+ await wait(()=>btn(".mobile-nav [data-mobile-more-toggle]"));
+ check(dom().querySelectorAll(".mobile-nav button").length===6,"Mobile navigation count not six");
+ const more=()=>btn(".mobile-nav [data-mobile-more-toggle]");
+ more().click();
+ check(btn("#mobile-more-menu")&&!btn("#mobile-more-menu").hidden,"Mobile More menu did not open");
+ const menu=btn("#mobile-more-menu");
+ for(const route of ["/about","/cv","/contact","/settings"]){
+   check(menu.querySelector('[data-go="'+route+'"]'),"Missing mobile menu route "+route);
+ }
+ btn('#mobile-more-menu [data-go="/cv"]').click();
+ await wait(()=>btn("main.cv-page"));
+ check(btn(".cv-main")&&btn(".cv-side"),"CV main/side content missing");
+ check(btn("main.cv-page a[href^='mailto:']"),"CV email action missing");
+ check(btn("main.cv-page a[href*='linkedin.com']"),"CV LinkedIn link missing");
+ overflow();
+ more().click();btn('#mobile-more-menu [data-go="/about"]').click();
+ await wait(()=>btn("main .project-kicker")?.textContent==="About");
+ overflow();
+ more().click();btn('#mobile-more-menu [data-go="/contact"]').click();
+ await wait(()=>btn("main .project-kicker")?.textContent==="Contact");
+ check(btn("main a[href^='mailto:']"),"Contact mail link missing");overflow();
+ const mobileNav=btn(".mobile-nav");
+ for(const route of ["/portfolio","/courses","/engineering","/diverse"]){
+   check(mobileNav.querySelector('[data-go="'+route+'"]'),"Mobile nav route missing "+route);
+ }
+ result.textContent="Mobile CV, About, Contact and navigation verified";
+ document.body.dataset.status="pass";
+}catch(e){result.textContent=String(e?.stack||e);document.body.dataset.status="fail"}
+</script></body></html>
