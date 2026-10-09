@@ -89,6 +89,10 @@ export function kisssoftSummary(model,rotation=0){
   <div><h3>Imported parameters</h3><p>Normal module: ${mm(model.module)} · Helix β: ${Number.isFinite(model.beta)?model.beta.toFixed(3)+"°":"unknown"} ${Number.isFinite(model.betaRad)?`(file ${model.betaRad.toFixed(6)} rad)`:""}</p>
   ${Number.isFinite(model.pressureAngleNormalDeg)?`<p>Normal pressure angle αₙ: ${model.pressureAngleNormalDeg.toFixed(3)}°</p>`:""}
   <p>Nominal center distance: ${mm(check?.sunPlanetCenterDistance??pair?.centerDistance??model.centerDistance)}</p>
+  ${Number.isFinite(model.sourceCenterDistance)?`<p>KISSsoft reported center distance (ZP[0].a): ${mm(model.sourceCenterDistance)}
+    ${Number.isFinite(check?.sunPlanetCenterDistance??pair?.centerDistance??model.centerDistance)?
+    ` · Nominal minus reported: ${mm((check?.sunPlanetCenterDistance??pair?.centerDistance??model.centerDistance)-model.sourceCenterDistance)}`:""}
+    <small class="muted">(profile shifts and working center distance may explain differences)</small></p>`:""}
   ${check?`<p>Planetary pitch closure: ${Math.abs(check.residual)<1e-7?"consistent":mm(check.residual)+" mismatch"}</p>`:""}
   ${pair?`<p>Mesh: ${pair.internal?"internal":"external"} · Nominal speed ratio ω₂/ω₁: ${pair.velocityRatio.toFixed(4)} · Pitch tangency residual: ${pair.tangencyResidual.toExponential(1)} mm</p>`:""}
   <table><thead><tr><th>Gear</th><th>Teeth</th><th>Face width</th><th>Material</th></tr></thead><tbody>${gearRows}</tbody></table>
