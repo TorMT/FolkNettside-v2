@@ -38,10 +38,25 @@ export function kisssoftSummary(model,rotation=0){
  const status=model.planetary?(model.consistent?"Tooth-count geometry consistent":"Tooth-count mismatch; verify source values"):"No validated planetary layout";
  return `<section class="kisssoft-summary"><h2>${esc(model.name)}</h2>
   <p><strong>${esc(model.moduleCode)}</strong> · KISSsoft ${esc(model.version)} · ${esc(status)}</p>
-  <div class="kisssoft-layout"><div>${kisssoftDiagram(model,{rotation})}<p class="muted">Concept sketch using pitch proportions and schematic teeth; not a manufacturable tooth profile or validated CAD model. Three planets are shown illustratively: planet count is not inferred from this file.</p></div>
+  <div class="kisssoft-layout"><div><div class="kisssoft-3d-slot" data-kisssoft-3d aria-label="Interactive concept model"></div>${kisssoftDiagram(model,{rotation})}<p class="muted">Concept sketch using pitch proportions and schematic teeth; not a manufacturable tooth profile or validated CAD model. Three planets are shown illustratively: planet count is not inferred from this file.</p></div>
   <div><h3>Imported parameters</h3><p>Normal module: ${mm(model.module)} · Helix angle: ${esc(model.beta)}°</p><p>Nominal sun–planet center distance: ${mm(model.centerDistance)}</p>
   <table><thead><tr><th>Gear</th><th>Teeth</th><th>Face width</th><th>Material</th></tr></thead><tbody>${gearRows}</tbody></table>
   <details><summary>All recognized parameter records (${Object.keys(model.fields).length})</summary><div style="max-height:250px;overflow:auto"><table>${Object.entries(model.fields).slice(0,3000).map(([key,value])=>`<tr><td>${esc(key)}</td><td>${esc(value)}</td></tr>`).join("")}</table></div></details></div></div></section>`;
+}
+export async function mountKisssoftVisual(target,model){
+ if(!model.planetary||!model.consistent)return ()=>{};
+ const stage=target.querySelector("[data-kisssoft-3d]");
+ if(!stage)return ()=>{};
+ stage.textContent="Loading interactive 3D concept…";
+ try{
+  const {mountKisssoft3D}=await import("./kisssoft-3d.js");
+  if(!stage.isConnected)return ()=>{};
+  const cleanup=await mountKisssoft3D(stage,model);
+  return cleanup;
+ }catch(error){
+  if(stage.isConnected)stage.textContent="3D rendering unavailable. The 2D gear diagram remains available.";
+  return ()=>{};
+ }
 }
 export function kisssoftPageHTML(){
  return `<main class="section kisssoft-page"><p class="crumbs">Engineering / KISSsoft</p><h1>KISSsoft gear inspector</h1>
@@ -51,8 +66,12 @@ export function kisssoftPageHTML(){
 }
 export function mountKisssoft(root){
  const input=root.querySelector("#kisssoft-file"),output=root.querySelector("#kisssoft-output");
- if(!input||!output)return;
+ if(!input||!output)return ()=>{};
+ let dispose3D=()=>{};
+ let generation=0;
  input.addEventListener("change",async()=>{
+   const current=++generation;
+   dispose3D();dispose3D=()=>{};
    const file=input.files?.[0];if(!file)return;
    output.textContent="Reading KISSsoft parameters…";
    try{
@@ -64,6 +83,10 @@ export function mountKisssoft(root){
        output.querySelector("#kisssoft-rotation").oninput=e=>{rotation=Number(e.target.value)*Math.PI/180;const visual=output.querySelector("svg");if(visual)visual.outerHTML=kisssoftDiagram(model,{rotation});};
      };
      show();
+     const dispose=await mountKisssoftVisual(output,model);
+     if(current!==generation){dispose();return}
+     dispose3D=dispose;
    }catch(error){output.textContent="Unable to import file: "+String(error.message||error)}
  });
+ return ()=>{generation++;dispose3D();};
 }
