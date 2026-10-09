@@ -30,7 +30,11 @@ export function parseKisssoft(text,name="model.z14"){
    shift:number(`ZR[${i}].x`)
  }));
  const module=number("ZS.Geo.mn");
- const beta=number("ZS.Geo.beta");
+ // KISSsoft stores angles in radians internally. UI and pitch helpers use degrees.
+ const betaRad=number("ZS.Geo.beta");
+ const beta=betaRad===null?null:betaRad*180/Math.PI;
+ const pressureAngleNormalRad=number("ZS.Geo.alfn");
+ const pressureAngleNormalDeg=pressureAngleNormalRad===null?null:pressureAngleNormalRad*180/Math.PI;
  const planetary=fields.MODULE==="Z014"&&gears[0].teeth>0&&gears[1].teeth>0&&gears[2].teeth<0&&module>0;
  const sun=gears[0].teeth,planet=gears[1].teeth,ring=Math.abs(gears[2].teeth||0);
  const consistent=planetary&&sun+2*planet===ring;
@@ -38,7 +42,7 @@ export function parseKisssoft(text,name="model.z14"){
    name:String(name).split(/[\\/]/).pop(),
    format:ext.toUpperCase(),moduleCode:fields.MODULE||"unknown",
    version:fields.KSOFTVERSION||fields.VERSION||"unknown",
-   module,beta,gears,planetary,consistent,
+   module,beta,betaRad,pressureAngleNormalRad,pressureAngleNormalDeg,gears,planetary,consistent,
    centerDistance:planetary?module*(sun+planet)/(2*Math.cos((beta||0)*Math.PI/180)):null,
    fields
  };
