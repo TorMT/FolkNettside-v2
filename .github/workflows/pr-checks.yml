@@ -44,6 +44,16 @@ jobs:
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4211/tests/browser/mobile-engineering-tools-smoke.html 90 1280,900
 
+      - name: Structure FEM interactive 3D beam orbit and pan browser smoke
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4213 --bind 127.0.0.1 >/tmp/frame-orbit-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/frame-orbit-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4213/tests/browser/structure-beam-orbit-smoke.html 40 1280,900
+
       - name: Sectional Area Curve numerical and browser rendering check
         run: |
           command -v chromedriver
