@@ -47,7 +47,7 @@ export function viewerKind(resource={}){
   const kind=String(resource.kind||"").toUpperCase();
   if(kind==="YOUTUBE")return "youtube";
   if(kind==="QUIZ")return "quiz";
-  if(kind==="VAULT"||/\\.vault\\.json(?:$|[?#])/i.test(String(resource.path||resource.url||resource.name||"")))return "vault";
+  if(kind==="VAULT"||String(resource.path||resource.url||resource.name||"").split(/[?#]/,1)[0].toLowerCase().endsWith(".vault.json"))return "vault";
   const ext=extension(resource.path||resource.url||resource.name||"");
   return adapters[ext] || "unsupported";
 }
