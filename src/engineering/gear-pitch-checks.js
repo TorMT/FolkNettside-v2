@@ -27,23 +27,30 @@ export function gearPitchGeometry({module,normalModule,beta=0,teeth,normalPressu
  */
 export function externalGearPair(model){
  const z1=model?.gears?.[0]?.teeth,z2=model?.gears?.[1]?.teeth;
- if(!Number.isInteger(z1)||!Number.isInteger(z2)||z1<=2||Math.abs(z2)<=2||
-    model?.planetary||String(model?.moduleCode||"").toUpperCase()==="Z014")return null;
- const internal=z2<0;
- if(internal&&Math.abs(z2)<=z1) return null;
+ if(!Number.isInteger(z1)||!Number.isInteger(z2)||Math.abs(z1)<=2||Math.abs(z2)<=2||
+    model?.planetary||/^Z0?14(?:RS)?$/i.test(String(model?.moduleCode||"")))return null;
+ const internal=(z1<0)!==(z2<0);
+ if(!internal&&(z1<0||z2<0))return null;
+ // Normalize the internal pair for geometry: a is always the external pinion
+ // and b is the internal ring, regardless of source gear order.
+ const pinionIndex=internal?(z1>0?0:1):0;
+ const ringIndex=internal?1-pinionIndex:1;
+ const za=Math.abs(model.gears[pinionIndex].teeth);
+ const zb=Math.abs(model.gears[ringIndex].teeth);
+ if(internal&&zb<=za)return null;
  let a,b;
  try{
-   a=gearPitchGeometry({module:model.module,beta:model.beta??0,teeth:z1,normalPressureAngleDeg:model.pressureAngleNormalDeg});
-   b=gearPitchGeometry({module:model.module,beta:model.beta??0,teeth:Math.abs(z2),normalPressureAngleDeg:model.pressureAngleNormalDeg});
+   a=gearPitchGeometry({module:model.module,beta:model.beta??0,teeth:za,normalPressureAngleDeg:model.pressureAngleNormalDeg});
+   b=gearPitchGeometry({module:model.module,beta:model.beta??0,teeth:zb,normalPressureAngleDeg:model.pressureAngleNormalDeg});
  }catch{return null}
  const centerDistance=internal?b.pitchRadius-a.pitchRadius:a.pitchRadius+b.pitchRadius;
- const velocityRatio=internal?z1/Math.abs(z2):-z1/z2;
+ const velocityRatio=internal?za/zb:-za/zb;
  const tangencyResidual=internal?a.pitchRadius-velocityRatio*b.pitchRadius:
    a.pitchRadius+velocityRatio*b.pitchRadius;
  return {kind:internal?"internal-pair":"external-pair",internal,a,b,
-   centerDistance,velocityRatio,tangencyResidual,
-   shaft1Width:Number(model.gears[0].width)>0?Number(model.gears[0].width):20,
-   shaft2Width:Number(model.gears[1].width)>0?Number(model.gears[1].width):20};
+   pinionIndex,ringIndex,centerDistance,velocityRatio,tangencyResidual,
+   shaft1Width:Number(model.gears[pinionIndex].width)>0?Number(model.gears[pinionIndex].width):20,
+   shaft2Width:Number(model.gears[ringIndex].width)>0?Number(model.gears[ringIndex].width):20};
 }
 export function checkPlanetaryPitch(model){
  if(!model?.planetary)return null;
