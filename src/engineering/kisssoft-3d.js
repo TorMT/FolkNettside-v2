@@ -1,4 +1,5 @@
 import {getThreeRuntime} from "../model/three-runtime.js";
+import {mountStandaloneCADNavigation} from "../model/standalone-cad-navigation.js";
 import {conceptualHelicalToothGeometry} from "./gear-visual-shape.js";
 import {checkPlanetaryPitch} from "./gear-pitch-checks.js";
 import {planetaryRates} from "./kisssoft-motion.js";
@@ -167,6 +168,13 @@ export async function mountKisssoft3D(target,model){
    }
    renderer.render(scene,camera);
  };
+ const cameraNav=mountStandaloneCADNavigation({
+   THREE,camera,controls,canvas,toolbar:controlsUI,draw,
+   onExplode:restore=>{
+     explode.value=restore?"0":Number(explode.value)>0?"0":"55";
+     updateAssembly();
+   }
+ });
  // A purely illustrative constant-speed animation. The tooth-count ratios
  // are physically consistent for a fixed ring, but RPM is normalized and
  // neither loads nor measured KISSsoft speeds are implied.
@@ -233,6 +241,7 @@ export async function mountKisssoft3D(target,model){
    stopLoop();
    document.removeEventListener("visibilitychange",visibility);
    observer?.disconnect();
+   cameraNav.dispose();
    controls.removeEventListener("change",draw);
    controls.dispose();
    for(const item of solids)item.parent?.remove(item);
