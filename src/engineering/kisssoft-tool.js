@@ -32,6 +32,25 @@ export function kisssoftDiagram(model,{rotation=0}={}){
  <circle cx="210" cy="210" r="8" fill="#173448" stroke="#fff" stroke-width="2"/>
  </svg>`;
 }
+export function filterKisssoftFields(fields,query="",limit=150){
+ const q=String(query).trim().toLowerCase();
+ const matches=Object.entries(fields).filter(([key,value])=>!q||key.toLowerCase().includes(q)||String(value).toLowerCase().includes(q));
+ return {total:matches.length,shown:matches.slice(0,limit)};
+}
+function parameterRows(filtered){
+ return filtered.shown.map(([key,value])=>`<tr><td>${esc(key)}</td><td>${esc(value)}</td></tr>`).join("");
+}
+export function bindKisssoftParameterSearch(container,model){
+ const input=container.querySelector("[data-kisssoft-filter]");
+ const count=container.querySelector("[data-kisssoft-count]");
+ const body=container.querySelector("[data-kisssoft-records]");
+ if(!input||!count||!body)return;
+ input.addEventListener("input",()=>{
+   const filtered=filterKisssoftFields(model.fields,input.value);
+   body.innerHTML=parameterRows(filtered);
+   count.textContent=`Showing ${filtered.shown.length} of ${filtered.total} matching records`;
+ });
+}
 export function kisssoftSummary(model,rotation=0){
  const gearNames=["Sun","Planet","Internal ring"];
  const gearRows=model.gears.map((g,i)=>`<tr><td>${gearNames[i]}</td><td>${esc(g.teeth)}</td><td>${mm(g.width)}</td><td>${esc(g.material)}</td></tr>`).join("");
@@ -41,7 +60,7 @@ export function kisssoftSummary(model,rotation=0){
   <div class="kisssoft-layout"><div><div class="kisssoft-3d-slot" data-kisssoft-3d aria-label="Interactive concept model"></div>${kisssoftDiagram(model,{rotation})}<p class="muted">Concept sketch using pitch proportions and schematic teeth; not a manufacturable tooth profile or validated CAD model. Three planets are shown illustratively: planet count is not inferred from this file.</p></div>
   <div><h3>Imported parameters</h3><p>Normal module: ${mm(model.module)} · Helix angle: ${esc(model.beta)}°</p><p>Nominal sun–planet center distance: ${mm(model.centerDistance)}</p>
   <table><thead><tr><th>Gear</th><th>Teeth</th><th>Face width</th><th>Material</th></tr></thead><tbody>${gearRows}</tbody></table>
-  <details><summary>All recognized parameter records (${Object.keys(model.fields).length})</summary><div style="max-height:250px;overflow:auto"><table>${Object.entries(model.fields).slice(0,3000).map(([key,value])=>`<tr><td>${esc(key)}</td><td>${esc(value)}</td></tr>`).join("")}</table></div></details></div></div></section>`;
+  <details><summary>Search recognized parameters (${Object.keys(model.fields).length})</summary><input type="search" data-kisssoft-filter placeholder="Search by parameter name or value" aria-label="Search KISSsoft parameters"><p data-kisssoft-count>Showing up to 150 records</p><div style="max-height:280px;overflow:auto"><table><tbody data-kisssoft-records>${parameterRows(filterKisssoftFields(model.fields))}</tbody></table></div></details></div></div></section>`;
 }
 export async function mountKisssoftVisual(target,model){
  if(!model.planetary||!model.consistent)return ()=>{};
@@ -83,6 +102,7 @@ export function mountKisssoft(root){
        output.querySelector("#kisssoft-rotation").oninput=e=>{rotation=Number(e.target.value)*Math.PI/180;const visual=output.querySelector("svg");if(visual)visual.outerHTML=kisssoftDiagram(model,{rotation});};
      };
      show();
+     bindKisssoftParameterSearch(output,model);
      const dispose=await mountKisssoftVisual(output,model);
      if(current!==generation){dispose();return}
      dispose3D=dispose;
