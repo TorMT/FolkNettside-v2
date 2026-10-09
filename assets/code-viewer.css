@@ -61,3 +61,31 @@
  .vscode-python-cell .python-code-edit,.vscode-python-cell .python-code-edit-highlight{padding:12px 10px}
  .vscode-python-cell .python-editor-stage.no-lines{grid-template-columns:0 minmax(0,1fr)}
 }
+
+/* Shared code viewer inherits the editor token family, including on other languages. */
+.code-shell{background:#1e1e1e;color:#d4d4d4;min-width:0}
+.code-shell .code-meta{background:#252526;color:#c8d5de;border-bottom:1px solid #37373d}
+.code-shell .code-view{background:#1e1e1e;color:#d4d4d4;font:13px/1.6 "Cascadia Code",Consolas,monospace;overflow:auto;max-width:100%;tab-size:4}
+.code-shell .code-view code{display:block;min-width:max-content}
+.code-shell .code-line{grid-template-columns:52px minmax(0,1fr)}
+.code-shell .code-line-number{color:#858585;background:#181818;border-color:#333;font-variant-numeric:tabular-nums}
+.code-shell .code-line-text{padding:0 16px;color:#d4d4d4}
+.code-shell .hljs-keyword,.code-shell .hljs-literal{color:#569cd6}
+.code-shell .hljs-string,.code-shell .hljs-attr{color:#ce9178}
+.code-shell .hljs-number{color:#b5cea8}
+.code-shell .hljs-comment{color:#6a9955}
+.code-shell .hljs-title,.code-shell .hljs-function{color:#dcdcaa}
+.code-shell .hljs-built_in,.code-shell .hljs-type{color:#4ec9b0}
+.code-shell .hljs-variable{color:#9cdcfe}
+.code-shell .hljs-meta{color:#c586c0}
+.code-shell .code-view.is-wrapped code{min-width:0}
+.code-shell .code-view.is-wrapped .code-line-text{white-space:pre-wrap;overflow-wrap:anywhere}
+.code-shell .code-view.no-line-numbers .code-line{grid-template-columns:1fr}
+.code-shell .code-view.no-line-numbers .code-line-number{display:none}
+.notebook-workbench .notebook-code-collapsed .python-cell-body{display:none}
+.notebook-workbench .notebook-code-collapsed .python-code-stats{display:none}
+@media(max-width:760px){
+ .code-shell .code-view{font-size:12px}
+ .code-shell .code-line{grid-template-columns:36px minmax(0,1fr)}
+ .code-shell .code-line-text{padding:0 9px}
+}
