@@ -164,3 +164,14 @@
   .hull-fem-3d-legend{left:8px;bottom:8px;padding:9px;max-width:66%}
   .hull-fem-results{padding:8px}
 }
+
+/* Geometry-derived Sectional Area Curve */
+.hydro-sac-tools{margin:14px 0;padding:13px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.hydro-sac-tools h3{margin:0 0 8px}
+.hydro-sac-tools .muted{line-height:1.5}
+.sac-results{min-width:0;display:grid;gap:12px;margin-top:12px}
+.sac-results svg{display:block;width:100%;height:auto;max-height:280px;border:1px solid var(--line);border-radius:8px;background:var(--surface-sunk)}
+.sac-stats{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;font-size:12px}
+.sac-stats strong{font-size:14px}
+.sac-results .btn{justify-self:start}
+@media(max-width:760px){.hydro-sac-tools{padding:11px}.sac-stats{display:grid;gap:5px}}
