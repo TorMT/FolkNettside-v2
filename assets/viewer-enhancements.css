@@ -26,3 +26,7 @@
  .viewer--quiz .quiz-view{padding:18px 13px}
  .quiz-chapter-picker select{flex:1;min-width:150px}
 }
+
+.latex-viewer-toolbar{display:flex;justify-content:flex-end;margin-bottom:18px}
+.latex-view [data-latex-source]{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+.latex-view [data-latex-source][hidden],.latex-view [data-latex-preview][hidden]{display:none!important}
