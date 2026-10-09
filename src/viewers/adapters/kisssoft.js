@@ -1,5 +1,5 @@
 import {parseKisssoftBuffer} from "../../engineering/kisssoft-core.js";
-import {kisssoftSummary,mountKisssoftVisual} from "../../engineering/kisssoft-tool.js";
+import {kisssoftSummary,mountKisssoftVisual,bindKisssoftParameterSearch} from "../../engineering/kisssoft-tool.js";
 export async function render(container,resource){
  const path=resource.url||resource.path;
  const response=await fetch(path);
@@ -9,6 +9,7 @@ export async function render(container,resource){
  const data=await response.arrayBuffer();
  const model=parseKisssoftBuffer(data,resource.name||path);
  container.innerHTML=kisssoftSummary(model);
+ bindKisssoftParameterSearch(container,model);
  const cleanup=await mountKisssoftVisual(container,model);
  return {info:model.format+" · "+model.moduleCode+" · imported parameter preview",cleanup};
 }
