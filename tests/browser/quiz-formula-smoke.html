@@ -24,6 +24,15 @@ try{
  assert(chooser&&chooser.options.length===3,"Fixture missing chapter selection");
  chooser.value="hydrostatics";chooser.dispatchEvent(new Event("change",{bubbles:true}));
  assert(root.querySelector(".quiz-question-counter")?.textContent.trim()==="1/1","Chapter selection did not filter quiz");
+ root.querySelector('[data-choice="2"]')?.click();
+ assert(root.querySelector("#viewer-info")?.textContent.includes("1 answered"),"Quiz status bar not updated");
+ const nextChapter=root.querySelector("#quiz-chapter-select");
+ nextChapter.value="section-properties";nextChapter.dispatchEvent(new Event("change",{bubbles:true}));
+ assert(root.querySelector(".quiz-question-counter")?.textContent.trim()==="1/1","Second chapter did not load");
+ assert(!root.querySelector(".quiz-option[data-correct]"),"Separate chapter inherited the first chapter's answer");
+ const originalChapter=root.querySelector("#quiz-chapter-select");
+ originalChapter.value="hydrostatics";originalChapter.dispatchEvent(new Event("change",{bubbles:true}));
+ assert(root.querySelector('.quiz-option[data-correct="true"]'),"First chapter progress was not restored");
  const info=root.querySelector("#viewer-quiz-info");
  assert(info,"Quiz file information toggle missing");
  info.click();
