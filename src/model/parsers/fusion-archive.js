@@ -1,6 +1,7 @@
 import {getJSZip} from "../../vendor/jszip.js";
 import {parse3MF} from "./three-mf.js";
 import {parseSTL} from "./stl.js";
+import {parseCADBuffer} from "./cad-runtime.js";
 
 export class FusionConversionRequiredError extends Error{
   constructor(message="Native Fusion geometry requires Autodesk APS conversion"){
@@ -20,6 +21,7 @@ export function selectFusionArchiveCandidate(paths=[]){
     const lower=path.toLowerCase();
     if(lower.endsWith(".3mf"))return 0;
     if(lower.endsWith(".stl"))return 1;
+    if(/\\.(step|stp|iges|igs|brep)$/.test(lower))return 2;
     return 99;
   };
 
@@ -53,6 +55,7 @@ export function fusionArchiveInventory(paths=[]){
     entries:list.length,
     threeMF:list.filter(path=>path.toLowerCase().endsWith(".3mf")).length,
     stl:list.filter(path=>path.toLowerCase().endsWith(".stl")).length,
+    cad:list.filter(path=>/\\.(step|stp|iges|igs|brep)$/i.test(path)).length,
     nativeFusion:list.filter(path=>/\.(f3d|f3z)$/i.test(path)).length,
     candidate:selectFusionArchiveCandidate(list),
     semanticManifest:selectSemanticManifestCandidate(list)
@@ -110,7 +113,7 @@ export async function parseFusionArchive(buffer,name="Fusion archive"){
   const candidate=inventory.candidate;
   if(!candidate){
     const error=new FusionConversionRequiredError(
-      "F3Z contains no embedded 3MF/STL fallback geometry. Autodesk APS conversion is required."
+      "F3Z contains no embedded 3MF/STL/STEP/IGES/BREP fallback geometry. Autodesk APS conversion is required."
     );
     error.inventory=inventory;
     throw error;
@@ -118,13 +121,19 @@ export async function parseFusionArchive(buffer,name="Fusion archive"){
 
   const entry=zip.file(candidate);
   if(!entry)throw new Error(`Fusion archive entry not found: ${candidate}`);
+  const declared=Number(entry?._data?.uncompressedSize||0);
+  if(declared>25*1024*1024)throw new Error("Embedded CAD file exceeds 25 MB safe browser import limit");
   const embedded=await entry.async("arraybuffer");
+  if(embedded.byteLength>25*1024*1024)throw new Error("Embedded CAD file exceeds 25 MB safe browser import limit");
 
   let model;
   if(candidate.toLowerCase().endsWith(".3mf")){
     model=await parse3MF(embedded,name);
-  }else{
+  }else if(candidate.toLowerCase().endsWith(".stl")){
     model=parseSTL(embedded,name);
+  }else{
+    const format=candidate.split(".").pop().toLowerCase();
+    model=await parseCADBuffer(embedded,name,{format});
   }
 
   model.format="F3Z";
