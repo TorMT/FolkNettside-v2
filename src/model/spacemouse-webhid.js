@@ -17,7 +17,8 @@ export async function connectSpaceMouse({hid=globalThis.navigator?.hid,
  onVector=()=>{},onStatus=()=>{},isActive=()=>true}={}){
  if(!hid?.requestDevice)throw Error("WebHID is unavailable. Use desktop Chrome/Edge over HTTPS.");
  const devices=await hid.requestDevice({filters:SPACE_MOUSE_FILTERS});
- const device=devices.find(item=>SPACE_MOUSE_VENDORS.includes(item.vendorId));
+ const device=devices.find(item=>SPACE_MOUSE_VENDORS.includes(item.vendorId)&&
+   (item.vendorId===0x256f||/3dconnexion|spacemouse|spacenavigator|spacepilot|spaceball|spaceexplorer/i.test(item.productName||"")));
  if(!device)throw Error("No supported SpaceMouse selected");
  const openedByUs=!device.opened;
  if(openedByUs)await device.open();
