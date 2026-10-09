@@ -32,7 +32,7 @@ export async function mountKisssoft3D(target,model){
  };
  function external(z,x,y,mat,phase){
    const pitch=m*z/2,base=Math.max(1,pitch-.95*m),count=Math.round(z);
-   add(new THREE.CylinderGeometry(base,base,width,Math.max(48,Math.min(180,count*2))),mat,x,y,width/2);
+   const hub=add(new THREE.CylinderGeometry(base,base,width,Math.max(48,Math.min(180,count*2))),mat,x,y,width/2);hub.rotation.x=Math.PI/2;
    const radial=m*1.8,tangential=Math.max(.4,2*Math.PI*pitch/count*.47);
    const geo=new THREE.BoxGeometry(radial,tangential,width);
    for(let i=0;i<count;i++){
@@ -51,7 +51,7 @@ export async function mountKisssoft3D(target,model){
  const toothGeo=new THREE.BoxGeometry(1.6*m,Math.max(.3,Math.PI*m*.48),width);
  for(let i=0;i<ring;i++){
    const theta=2*Math.PI*i/ring;
-   add(toothGeo,paints[2],inner-.4*m*Math.cos(theta),0,0);
+   add(toothGeo,paints[2],0,0,0);
    const tooth=solids[solids.length-1];
    tooth.position.set((inner-.35*m)*Math.cos(theta),(inner-.35*m)*Math.sin(theta),width/2);
    tooth.rotation.z=theta;
