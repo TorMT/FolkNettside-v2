@@ -3,6 +3,8 @@ import {modelWaterlineContours} from "./waterline-preview.js";
 import {normaliseWaveCase,waveElevation} from "./wave-core.js";
 import {waveModelHeave} from "./wave-model-motion.js";
 import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js";
+import {createThrusterFlowRings} from "./thruster-flow-rings.js";
+import {explodeOffsets} from "./explode-layout.js";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;
@@ -73,6 +75,7 @@ export async function mountModelScene(container,documentModel,options={}){
     meshes.push(mesh);
   }
 
+  const thrusterFlows=createThrusterFlowRings(THREE,root,{draw});
   function bounds(){
     root.updateMatrixWorld(true);
     const box=new THREE.Box3().setFromObject(root);
@@ -114,18 +117,30 @@ export async function mountModelScene(container,documentModel,options={}){
     if(!Number.isFinite(factor)||factor<0||factor>3)
       throw new Error("Explosion amount must be 0–3");
     explodedFactor=factor;
+    for(const mesh of meshes)mesh.position.copy(mesh.userData.restPosition);
+    root.updateMatrixWorld(true);
+    const boxes=meshes.map(mesh=>new THREE.Box3().setFromObject(mesh));
     const baseBox=new THREE.Box3();
-    for(const mesh of meshes){
-      mesh.position.copy(mesh.userData.restPosition);
-      mesh.updateMatrixWorld(true);baseBox.union(new THREE.Box3().setFromObject(mesh));
+    for(const box of boxes)baseBox.union(box);
+    const offsets=explodeOffsets(boxes.map(box=>box.getCenter(new THREE.Vector3()).toArray()),
+      factor,{span:Math.max(baseBox.getSize(new THREE.Vector3()).length(),.1)});
+    meshes.forEach((mesh,i)=>mesh.position.copy(mesh.userData.restPosition)
+      .add(new THREE.Vector3(...offsets[i])));
+    root.updateMatrixWorld(true);updateBoxHelper();
+    if(factor>0){
+      // Geometry has been deliberately moved. Do not present a hydrostatic
+      // intersection of separated parts as a valid displacement section.
+      clearContours();
+      contourGroup.visible=false;waterlineMesh.visible=false;
+      waterlineInfo={status:"exploded",loops:[],segments:0,
+        reason:"Exploded view is visual only. Reset explode to 0 for waterline or Hydro analysis."};
+    }else{
+      contourGroup.visible=true;
+      waterlineMesh.visible=waterlineState.visible&&!waveMesh.visible;
+      refreshWaterlineContours();
     }
-    const center=baseBox.getCenter(new THREE.Vector3());
-    for(const mesh of meshes){
-      const part=new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3());
-      const delta=part.sub(center).multiplyScalar(factor*.5);
-      mesh.position.copy(mesh.userData.restPosition).add(delta);
-    }
-    root.updateMatrixWorld(true);updateBoxHelper();refreshWaterlineContours();draw();
+    draw();
+    return {factor,components:meshes.length};
   }
   const markerGroup=new THREE.Group();scene.add(markerGroup);
   function setMarkers({cg=null,cb=null}={}){
@@ -401,6 +416,12 @@ export async function mountModelScene(container,documentModel,options={}){
     waterlineMesh.visible=waterlineState.visible&&!waveMesh.visible;
     waterlineMesh.position.set(0,0,waterlineState.z);
     waveMesh.position.z=waterlineState.z;
+    if(explodedFactor>0){
+      waterlineMesh.visible=false;contourGroup.visible=false;
+      draw();
+      return {status:"exploded",loops:[],segments:0,
+        reason:"Reset exploded view to 0 before viewing waterline contours."};
+    }
     const info=refreshWaterlineContours();
     draw();
     return info;
@@ -661,6 +682,7 @@ export async function mountModelScene(container,documentModel,options={}){
     scene.remove(markerGroup);
     if(waveFrame!==null)cancelAnimationFrame(waveFrame);
     clearContours();scene.remove(contourGroup);contourMaterial.dispose();
+    thrusterFlows.dispose();
     scene.remove(waveMesh);waveGeometry.dispose();waveMaterial.dispose();
     waterlineGeometry.dispose();
     waterlineMaterial.dispose();
@@ -688,6 +710,9 @@ export async function mountModelScene(container,documentModel,options={}){
       setEdges,
       setShading,
       setExplode,
+      setThrusterFlows:descriptors=>{thrusterFlows.update(descriptors);return thrusterFlows.count},
+      playThrusterFlows:enabled=>thrusterFlows.setPlaying(enabled),
+      getThrusterFlowCount:()=>thrusterFlows.count,
       setMarkers,
       setClipping,
       setMeasurement(enabled){measureEnabled=Boolean(enabled);firstMeasurePoint=null;return measureEnabled},
