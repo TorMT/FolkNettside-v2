@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {fitDistanceForBox} from "../src/model/cad-camera-fit.js";
+import {gearPairFraming} from "../src/engineering/gear-pair-camera.js";
+import {externalGearPair} from "../src/engineering/gear-pitch-checks.js";
 import {spaceMouseMovement} from "../src/model/spacemouse-motion.js";
 import {parseKisssoft} from "../src/engineering/kisssoft-core.js";
 import {boxMesh} from "../src/hydro/fixtures.js";
@@ -46,4 +48,18 @@ test("standalone CAD and gear CSS maintain actual viewport dimensions and equal 
  assert.match(css,/\.cad-geometry-stage\{height:clamp\(/);
  assert.match(css,/\.cad-geometry-stage \.model-viewer-workbench\{/);
  assert.match(engineering,/\.workspace-bar \.engineering-model-control>\.btn\{/);
+});
+
+test("large internal ring/pinion camera does not clip geometry or shrink it offscreen",()=>{
+ const source=readFileSync(new URL("../examples/kisssoft/InternalRingAndPinion.Z12",import.meta.url),"utf8");
+ const model=parseKisssoft(source,"InternalRingAndPinion.Z12");
+ const pair=externalGearPair(model);
+ assert.equal(pair.internal,true);
+ assert.ok(Math.abs(model.beta-15)<1e-9);
+ const view=gearPairFraming(pair,{aspect:1.4});
+ assert.ok(view.far>view.distance*3);
+ assert.ok(view.distance>pair.b.pitchRadius);
+ assert.ok(view.distance<view.far/3);
+ const phone=gearPairFraming(pair,{aspect:.6});
+ assert.ok(phone.distance>view.distance);
 });
