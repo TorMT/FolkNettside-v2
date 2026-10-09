@@ -24,7 +24,7 @@ export function cadShortcut(event){
    const [x,y]=arrows[key];
    return event.shiftKey?
      {action:"orbit",yaw:x*.1,pitch:y*.1}:
-     {action:"pan",x:-x*.065,y:y*.065};
+     {action:"pan",x:x===0?0:-x*.065,y:y===0?0:y*.065};
  }
  return null;
 }
