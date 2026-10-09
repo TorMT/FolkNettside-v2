@@ -1,6 +1,7 @@
 import {getThreeRuntime} from "./three-runtime.js";
 import {modelWaterlineContours} from "./waterline-preview.js";
 import {normaliseWaveCase,waveElevation} from "./wave-core.js";
+import {waveModelHeave} from "./wave-model-motion.js";
 import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js";
 
 export async function mountModelScene(container,documentModel,options={}){
@@ -35,10 +36,12 @@ export async function mountModelScene(container,documentModel,options={}){
   scene.add(key);
 
   const alignmentGroup=new THREE.Group();
+  const waveMotionGroup=new THREE.Group();
   const attitudeGroup=new THREE.Group();
   const root=new THREE.Group();
   scene.add(alignmentGroup);
-  alignmentGroup.add(attitudeGroup);
+  alignmentGroup.add(waveMotionGroup);
+  waveMotionGroup.add(attitudeGroup);
   attitudeGroup.add(root);
   const meshes=[];
   const scale=documentModel.unitScaleToMeters||1;
@@ -345,6 +348,7 @@ export async function mountModelScene(container,documentModel,options={}){
   const waveMesh=new THREE.Mesh(waveGeometry,waveMaterial);
   waveMesh.visible=false;waveMesh.renderOrder=3;scene.add(waveMesh);
   let wave=null,waveAnimated=false,waveFrame=null,waveClock=0;
+  let waveMotionMode="anchored";
   const waveBaseXY=Float32Array.from(waveGeometry.getAttribute("position").array);
   function drawWave(timeS=0){
     if(!wave||!waveMesh.visible)return;
@@ -355,6 +359,9 @@ export async function mountModelScene(container,documentModel,options={}){
       attribute.setZ(i,waveElevation(wave,x,y,timeS));
     }
     attribute.needsUpdate=true;waveGeometry.computeVertexNormals();
+    waveMotionGroup.position.z=waveModelHeave(wave,timeS,waveMotionMode);
+    // Only the display transform moves: still-water hydro/contour data and
+    // vessel attitude inputs are not recomputed as wave-response results.
     draw();
   }
   function animateWave(ms){
@@ -363,10 +370,17 @@ export async function mountModelScene(container,documentModel,options={}){
     waveFrame=requestAnimationFrame(animateWave);
   }
   function setWave({enabled=false,heightM=1,periodS=6,headingDeg=0,
-    waterDepthM=Infinity,phaseDeg=0,animate=true,timeS=0}={}){
+    waterDepthM=Infinity,phaseDeg=0,animate=true,timeS=0,motionMode="anchored"}={}){
     if(waveFrame!==null){cancelAnimationFrame(waveFrame);waveFrame=null}
     waveAnimated=false;
-    if(!enabled){wave=null;waveMesh.visible=false;waterlineMesh.visible=waterlineState.visible;draw();return null}
+    if(!enabled){
+      wave=null;waveMesh.visible=false;
+      waveMotionGroup.position.z=0;
+      waterlineMesh.visible=waterlineState.visible;
+      draw();return null;
+    }
+    if(!["anchored","follow"].includes(motionMode))throw new Error("Invalid wave motion mode");
+    waveMotionMode=motionMode;
     wave=normaliseWaveCase({heightM,periodS,headingDeg,waterDepthM,phaseDeg});
     updateWaterlineSize();
     const span=Math.max(currentBounds.size.x,currentBounds.size.y,currentBounds.radius*2,1)*1.35;
@@ -377,7 +391,8 @@ export async function mountModelScene(container,documentModel,options={}){
     waveAnimated=Boolean(animate);
     waveClock=performance.now()-Number(timeS)*1000;
     if(waveAnimated)waveFrame=requestAnimationFrame(animateWave);
-    return wave;
+    return {...wave,motionMode:waveMotionMode};
+
   }
   function setWaterline({visible=true,z=0}={}){
     if(!Number.isFinite(Number(z)))throw new Error("Waterline elevation must be finite");
