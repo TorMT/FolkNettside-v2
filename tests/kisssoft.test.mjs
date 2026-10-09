@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {parseKisssoft,decodeKisssoft,parseKisssoftBuffer} from "../src/engineering/kisssoft-core.js";
-import {kisssoftDiagram,kisssoftSummary} from "../src/engineering/kisssoft-tool.js";
+import {kisssoftDiagram,kisssoftSummary,filterKisssoftFields} from "../src/engineering/kisssoft-tool.js";
 
 const sample="VERSION=26.0;\nKSOFTVERSION=2026 -SP1¶MODULE=Z014¶ZR[0].z=25¶ZR[1].z=35¶ZR[2].z=-95¶ZR[0].b=35¶ZR[1].b=35¶ZR[2].b=35¶ZS.Geo.mn=2¶ZS.Geo.beta=0¶";
 test("KISSsoft Z014 parses planetary dimensions without hardcoding file name",()=>{
@@ -28,4 +28,17 @@ test("KISSsoft parser does not execute embedded text or render unescaped HTML",(
  assert.doesNotMatch(kisssoftSummary(model),/<script>/);
  assert.throws(()=>parseKisssoft("MODULE=Z014", "file.exe"),/Unsupported/);
  assert.throws(()=>parseKisssoft("arbitrary","test.z14"),/recognized/);
+});
+
+test("large parameter lists render in bounded, searchable batches",()=>{
+ const fields=Object.fromEntries(Array.from({length:6300},(_,i)=>["ZR["+i+"].z",String(i)]));
+ const all=filterKisssoftFields(fields);
+ assert.equal(all.total,6300);
+ assert.equal(all.shown.length,150);
+ const selected=filterKisssoftFields(fields,"ZR[123].z");
+ assert.equal(selected.total,1);
+ assert.equal(selected.shown[0][1],"123");
+ const html=kisssoftSummary({...parseKisssoft(sample,"gear.z14"),fields});
+ assert.match(html,/Search recognized parameters/);
+ assert.ok(html.length<60_000,"do not render all 6300 rows");
 });
