@@ -79,7 +79,7 @@ try{
    host.remove();
  }finally{window.fetch=originalFetch}
 
- const pairText="KSOFTVERSION=2026 -SP1¶MODULE=Z012¶ZR[0].z=18¶ZR[1].z=36¶ZR[0].b=30¶ZR[1].b=30¶ZS.Geo.mn=2¶ZS.Geo.beta=20¶";
+ const pairText="KSOFTVERSION=2026 -SP1¶MODULE=Z012¶ZR[0].z=18¶ZR[1].z=36¶ZR[0].b=30¶ZR[1].b=30¶ZS.Geo.mn=2¶ZS.Geo.beta=0.3490658503988659¶";
  const pairBytes=new Uint8Array([255,254,...Array.from(pairText).flatMap(c=>[c.charCodeAt(0)&255,c.charCodeAt(0)>>8])]);
  const pairModel=parseKisssoftBuffer(pairBytes.buffer,"TwoShaftHelical.Z12");
  const pairHost=document.createElement("div");
@@ -98,7 +98,7 @@ try{
  const ratio=Number(pairCanvas.dataset.drivenAngle||0)/pairEnd;
  if(Math.abs(ratio+.5)>1e-8)throw Error("Wrong two-shaft rotation ratio "+ratio);
  stopPair();pairHost.remove();
- const internalText="KSOFTVERSION=2026¶MODULE=Z012¶ZR[0].z=20¶ZR[1].z=-225¶ZR[0].b=30¶ZR[1].b=40¶ZS.Geo.mn=20¶ZS.Geo.beta=15¶";
+ const internalText="KSOFTVERSION=2026¶MODULE=Z012¶ZR[0].z=20¶ZR[1].z=-225¶ZR[0].b=30¶ZR[1].b=40¶ZS.Geo.mn=20¶ZS.Geo.beta=0.2617993877991494¶";
  const internalBytes=new Uint8Array([255,254,...Array.from(internalText).flatMap(c=>[c.charCodeAt(0)&255,c.charCodeAt(0)>>8])]);
  const internal=parseKisssoftBuffer(internalBytes.buffer,"RingAndPinion.Z12");
  const internalHost=document.createElement("div");
