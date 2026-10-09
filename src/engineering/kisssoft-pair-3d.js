@@ -16,6 +16,8 @@ export async function mountKisssoftPair3D(target,model){
  panel.innerHTML='<button type="button" class="btn" data-gear-play>Pause motion</button>'+
    '<label>Speed <input data-gear-speed type="range" min=".25" max="2" step=".25" value=".75"></label>'+
    '<label>Explode pair <input data-pair-explode type="range" min="0" max="100" value="0"></label>'+
+   '<label>Helix β (visual) <input data-gear-beta type="range" min="-45" max="45" step="1" value="0"></label>'+
+   '<output data-gear-beta-value>0°</output><button class="btn" type="button" data-gear-beta-reset>File β</button>'+
    '<span>'+(pair.internal?'Internal ring/pinion':'External pair')+' · Driver +1× · Driven '+pair.velocityRatio.toFixed(3)+'× · schematic teeth</span>';
  target.replaceChildren(canvas,panel);
  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
@@ -30,8 +32,10 @@ export async function mountKisssoftPair3D(target,model){
  camera.position.set(extent*1.5,-extent*2,extent*1.5);
  const orbit=new OrbitControls(camera,canvas);
  orbit.target.set(0,0,10);orbit.update();
- const gears=[],materials=[],geometries=[];
- function makeGear(geometry,faceWidth,centerX,color,angle){
+ const gears=[],materials=[],geometries=[],toothGroups=[];
+ const fileBeta=Number(model.beta||0);
+ let visualBeta=Math.max(-45,Math.min(45,fileBeta));
+ function makeGear(geometry,faceWidth,centerX,color,hand){
    const group=new THREE.Group();group.position.x=centerX;scene.add(group);gears.push(group);
    const material=new THREE.MeshStandardMaterial({color,metalness:.48,roughness:.42});
    materials.push(material);
@@ -41,15 +45,19 @@ export async function mountKisssoftPair3D(target,model){
    const hub=new THREE.Mesh(hubGeom,material);hub.rotation.x=Math.PI/2;hub.position.z=faceWidth/2;group.add(hub);
    const tooth=conceptualHelicalToothGeometry(THREE,{
      pitchRadius:baseRadius,radialSize:model.module*1.8,
-     tangentialSize:Math.PI*geometry.transverseModule*.43,width:faceWidth,helixAngleDeg:angle
+     tangentialSize:Math.PI*geometry.transverseModule*.43,width:faceWidth,helixAngleDeg:hand*visualBeta
    });
    geometries.push(tooth);
+   const teeth=[];
    for(let i=0;i<geometry.teeth;i++){
      const mesh=new THREE.Mesh(tooth,material);
      mesh.position.z=faceWidth/2;
      mesh.rotation.z=i*2*Math.PI/geometry.teeth;
-     group.add(mesh);
+     group.add(mesh);teeth.push(mesh);
    }
+   toothGroups.push({teeth,geometry:tooth,hand,
+     params:{pitchRadius:baseRadius,radialSize:model.module*1.8,
+       tangentialSize:Math.PI*geometry.transverseModule*.43,width:faceWidth}});
  }
  function makeInternalRing(){
    const rp=pair.b.pitchRadius,m=pair.b.normalModule;
@@ -69,27 +77,54 @@ export async function mountKisssoftPair3D(target,model){
      pitchRadius:rp,radialSize:m*1.8,
      tangentialSize:Math.PI*pair.b.transverseModule*.43,
      width:pair.shaft2Width,
-     helixAngleDeg:pair.a.helixAngleDeg // internal mesh: same helix hand
+     helixAngleDeg:visualBeta // internal mesh: same helix hand
    });
    geometries.push(tooth);
+   const teeth=[];
    for(let i=0;i<pair.b.teeth;i++){
      const mesh=new THREE.Mesh(tooth,material);
      mesh.position.z=pair.shaft2Width/2;
      mesh.rotation.z=i*2*Math.PI/pair.b.teeth;
-     group.add(mesh);
+     group.add(mesh);teeth.push(mesh);
    }
+   toothGroups.push({teeth,geometry:tooth,hand:1,
+     params:{pitchRadius:rp,radialSize:m*1.8,
+       tangentialSize:Math.PI*pair.b.transverseModule*.43,width:pair.shaft2Width}});
  }
  if(pair.internal){
-   makeGear(pair.a,pair.shaft1Width,pair.centerDistance,0x65d0c1,pair.a.helixAngleDeg);
+   makeGear(pair.a,pair.shaft1Width,pair.centerDistance,0x65d0c1,1);
    makeInternalRing();
  }else{
-   makeGear(pair.a,pair.shaft1Width,-pair.b.pitchRadius,0x65d0c1,pair.a.helixAngleDeg);
-   makeGear(pair.b,pair.shaft2Width,pair.a.pitchRadius,0xdfb66a,-pair.b.helixAngleDeg);
+   makeGear(pair.a,pair.shaft1Width,-pair.b.pitchRadius,0x65d0c1,1);
+   makeGear(pair.b,pair.shaft2Width,pair.a.pitchRadius,0xdfb66a,-1);
  }
  let viewportWidth=0,disposed=false,frame=0,phase=0,previous=null;
  const play=panel.querySelector("[data-gear-play]"),speed=panel.querySelector("[data-gear-speed]");
  let playing=!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
  const explode=panel.querySelector("[data-pair-explode]");
+ const betaInput=panel.querySelector("[data-gear-beta]");
+ const betaValue=panel.querySelector("[data-gear-beta-value]");
+ betaInput.value=String(Math.round(visualBeta));
+ const changeBeta=()=>{
+   visualBeta=Number(betaInput.value);
+   toothGroups.forEach(item=>{
+     const next=conceptualHelicalToothGeometry(THREE,{
+       ...item.params,helixAngleDeg:visualBeta*item.hand
+     });
+     item.teeth.forEach(mesh=>mesh.geometry=next);
+     item.geometry.dispose();
+     geometries.splice(geometries.indexOf(item.geometry),1,next);
+     item.geometry=next;
+   });
+   betaValue.textContent=visualBeta.toFixed(0)+"° (file "+fileBeta.toFixed(1)+"°)";
+   draw();
+ };
+ betaInput.addEventListener("input",changeBeta);
+ panel.querySelector("[data-gear-beta-reset]").addEventListener("click",()=>{
+   betaInput.value=String(Math.round(Math.max(-45,Math.min(45,fileBeta))));
+   changeBeta();
+ });
+ betaValue.textContent=visualBeta.toFixed(1)+"° (file "+fileBeta.toFixed(1)+"°)";
  const draw=()=>{
    if(disposed)return;
    const width=Math.max(280,target.clientWidth);
