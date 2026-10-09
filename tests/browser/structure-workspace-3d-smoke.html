@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<title>Structure actual V2 route 3D beam smoke</title>
+<body data-status="running"><iframe id="site" style="height:720px;width:1050px;border:0" src="../../index.html#/engineering/structure"></iframe><pre id="result">running</pre>
+<script type="module">
+const frame=document.getElementById("site"),delay=ms=>new Promise(ok=>setTimeout(ok,ms));
+const find=selector=>frame.contentDocument?.querySelector(selector);
+async function until(fn,what){for(let i=0;i<120;i++){if(fn())return;await delay(100)}throw Error("Missing "+what)}
+const verify=(value,message)=>{if(!value)throw Error(message)};
+try{
+ await until(()=>find("#girder-frame-example"),"legacy frame reference action");
+ find("#girder-frame-example").click();
+ await until(()=>find("#structure-3d-stage canvas"),"3D Structure beam");
+ verify(find(".structure-3d-canvas"),"Frame did not mount 3D WebGL canvas");
+ const model=find("#structure-3d-stage"),diagram=find("#structure-2d-stage");
+ verify(!model.hidden&&diagram.hidden,"3D model should be active on load");
+ find("#structure-show-2d").click();
+ verify(model.hidden&&!diagram.hidden,"2D button failed");
+ verify(diagram.querySelector("svg"),"2D FEM diagram missing");
+ find("#structure-show-3d").click();
+ verify(!model.hidden&&diagram.hidden,"3D switch did not restore beam");
+ verify(find("#structure-view-reset"),"Reset camera button missing");
+ verify(find(".structure-results"),"FEM results lost during 3D display");
+ document.body.dataset.status="pass";document.getElementById("result").textContent="Full V2 route Structure WebGL / 2D switch PASS";
+}catch(error){document.body.dataset.status="fail";document.getElementById("result").textContent=String(error.stack||error)}
+</script></body></html>
