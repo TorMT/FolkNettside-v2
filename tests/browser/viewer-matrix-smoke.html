@@ -110,6 +110,16 @@ try{
       assert(frame.getAttribute("sandbox")==="allow-scripts","HTML preview sandbox changed");
       assert(frame.srcdoc.length>0,"HTML preview srcdoc empty");
     }
+    if(spec.id==="latex"){
+      assert(host.querySelectorAll(".latex-math,.latex-math-fallback").length>=2,
+        "LaTeX equations are not rendered or shown as safe source fallback");
+      const toggle=host.querySelector(".latex-formula-toggle");
+      assert(toggle,"LaTeX source toggle is missing");
+      toggle.click();
+      assert(!host.querySelector("[data-latex-source]").hidden,"LaTeX source toggle did not show file");
+      toggle.click();
+      assert(host.querySelector("[data-latex-source]").hidden,"LaTeX rendered view not restored");
+    }
     if(spec.id==="notebook")assert(host.querySelectorAll(".nb-cell").length>=2,"Notebook cells missing");
     if(spec.id==="xlsx")assert(host.querySelectorAll(".office-sheet").length>=1,"Workbook sheet missing");
     if(spec.id==="pptx")assert(host.querySelectorAll(".office-slide").length>=1,"Slides missing");

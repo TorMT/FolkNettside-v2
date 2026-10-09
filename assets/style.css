@@ -73,6 +73,10 @@
 .resource-folder:last-child{border-bottom:0}.resource-folder>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:center;gap:9px}.resource-folder>summary::-webkit-details-marker{display:none}.resource-folder>summary .muted{margin-left:auto;font-size:12px}
 .folder-icon{display:inline-block;transition:transform .14s ease;color:var(--accent)}.resource-folder[open]>summary .folder-icon{transform:rotate(90deg)}
 .resource-folder-body{margin-left:18px;border-left:2px solid var(--line)}.resource-folder-body>.resource-row{border-bottom:1px solid var(--line)}
+.resource-folder>summary{min-width:0}.resource-folder>summary strong{min-width:0;overflow-wrap:anywhere}.resource-folder-body{min-width:0;margin-left:clamp(8px,1.7vw,18px)}
+.resource-row[role="button"]{cursor:pointer}.resource-row[role="button"]:focus-visible,.resource-folder>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
+.resource-folder-body .resource-folder{border-left:1px solid var(--line);margin-left:2px}
+@media(max-width:600px){.resource-folder>summary{padding:10px 8px;gap:6px}.resource-folder>summary .muted{font-size:11px}.resource-folder-body{margin-left:9px}}
 
 .code-shell{min-height:100%;background:#0d1d28}.code-meta{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:#122633;color:#b9d0dc;border-bottom:1px solid #284151;font-size:12px}.code-copy{border:1px solid #385364;background:#17313f;color:#dce9ef;padding:5px 9px;border-radius:6px;cursor:pointer}
 .code-view{padding:0!important}.code-view code{display:block;padding:16px 0}.code-line{display:grid;grid-template-columns:54px minmax(0,1fr);min-height:1.55em}.code-line-number{user-select:none;text-align:right;padding-right:14px;color:#567384;border-right:1px solid #284151}.code-line-text{padding-left:14px;white-space:pre}
@@ -1102,7 +1106,15 @@
 .obj-viewer-scene{min-height:400px;min-width:0;overflow:hidden}
 @media(max-width:760px){.obj-viewer-scene{min-height:330px}}
 
-/* CV navigation in static V2: keep Projects/Engineering links unchanged. */
+/* Courses: same topbar-relative anchor for click navigation and active section. */
+.layout .course-header,
+.layout .resource-section{scroll-margin-top:82px}
+@media(max-width:600px){
+ .layout .course-header,
+ .layout .resource-section{scroll-margin-top:76px}
+}
+
+/* Mobile navigation audit: five destinations, including an accessible profile menu. */
 .mobile-more-menu{display:none}
 @media(max-width:760px){
  .mobile-nav{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}
@@ -1114,11 +1126,11 @@
    background:var(--surface);box-shadow:var(--shadow);
  }
  .mobile-more-menu button{
-   width:100%;min-height:44px;border:0;border-radius:8px;
-   padding:11px 12px;text-align:left;background:transparent;
-   color:var(--ink);font-weight:650;cursor:pointer;
+   display:block;width:100%;min-height:43px;border:0;border-radius:8px;
+   padding:11px 12px;text-align:left;background:transparent;color:var(--ink);
+   font-weight:650;cursor:pointer
  }
- .mobile-more-menu button:hover,.mobile-more-menu button:focus-visible{
-   color:var(--accent-ink);background:var(--accent-soft);
+ .mobile-more-menu button:focus-visible,.mobile-more-menu button:hover{
+   background:var(--accent-soft);color:var(--accent-ink)
  }
 }

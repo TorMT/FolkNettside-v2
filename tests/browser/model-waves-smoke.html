@@ -40,9 +40,22 @@ try{
    headingDeg:0,animate:false});
  near(wave.amplitudeM,.6);
  near(wave.wavelengthM,9.80665*25/(2*Math.PI));
+ const anchored=workbench.actions.setWave({enabled:true,heightM:1.2,periodS:5,
+   headingDeg:0,animate:false,motionMode:"anchored",timeS:0});
+ near(workbench.actions.getWaveMotionOffset(),0);
+ const followCrest=workbench.actions.setWave({enabled:true,heightM:1.2,periodS:5,
+   headingDeg:0,animate:false,motionMode:"follow",timeS:0});
+ near(workbench.actions.getWaveMotionOffset(),.6);
+ const followTrough=workbench.actions.setWave({enabled:true,heightM:1.2,periodS:5,
+   headingDeg:0,animate:false,motionMode:"follow",timeS:2.5});
+ near(workbench.actions.getWaveMotionOffset(),-.6);
+ workbench.actions.setWave({enabled:false});
+ near(workbench.actions.getWaveMotionOffset(),0);
+
  workbench.actions.setWave({enabled:false});
  const details=root.querySelector(".model-wave-controls");
  assert(details,"Wave interface missing");details.open=true;
+ assert(details.querySelector("[data-wave-motion]"),"Anchored/follow UI selector missing");
  details.querySelector("[data-wave-capture]").click();
  assert(readWaveCollection().length===1,"Synthetic wave collection not persisted");
  const input=details.querySelector("[data-wave-import]");

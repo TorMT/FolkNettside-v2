@@ -1,7 +1,11 @@
 import {getThreeRuntime} from "./three-runtime.js";
 import {modelWaterlineContours} from "./waterline-preview.js";
 import {normaliseWaveCase,waveElevation} from "./wave-core.js";
+import {waveModelHeave} from "./wave-model-motion.js";
 import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js";
+import {createThrusterFlowRings} from "./thruster-flow-rings.js";
+import {explodeOffsets} from "./explode-layout.js";
+import {connectCADKeyboard} from "./cad-navigation.js";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;
@@ -11,6 +15,8 @@ export async function mountModelScene(container,documentModel,options={}){
   stage.className="three-stage"+(showSidebar?"":" three-stage-no-sidebar");
   const canvas=document.createElement("canvas");
   canvas.className="three-canvas";
+  canvas.tabIndex=0;
+  canvas.setAttribute("aria-label","3D CAD viewer. Left drag orbit, middle drag pan, Shift-middle drag orbit; press F to fit and I for isometric view.");
   const sidebar=showSidebar?document.createElement("div"):null;
   if(sidebar)sidebar.className="three-components";
   stage.append(canvas);
@@ -29,16 +35,20 @@ export async function mountModelScene(container,documentModel,options={}){
   const controls=new OrbitControls(camera,canvas);
   controls.enableDamping=false;
   controls.screenSpacePanning=true;
+  // Fusion-style navigation preset: middle mouse pans, Shift + middle orbits.
+  controls.mouseButtons.MIDDLE=THREE.MOUSE.PAN;
   scene.add(new THREE.HemisphereLight(0xd8edf5,0x24313a,2.2));
   const key=new THREE.DirectionalLight(0xffffff,2.4);
   key.position.set(4,6,8);
   scene.add(key);
 
   const alignmentGroup=new THREE.Group();
+  const waveMotionGroup=new THREE.Group();
   const attitudeGroup=new THREE.Group();
   const root=new THREE.Group();
   scene.add(alignmentGroup);
-  alignmentGroup.add(attitudeGroup);
+  alignmentGroup.add(waveMotionGroup);
+  waveMotionGroup.add(attitudeGroup);
   attitudeGroup.add(root);
   const meshes=[];
   const scale=documentModel.unitScaleToMeters||1;
@@ -70,6 +80,7 @@ export async function mountModelScene(container,documentModel,options={}){
     meshes.push(mesh);
   }
 
+  const thrusterFlows=createThrusterFlowRings(THREE,root,{draw});
   function bounds(){
     root.updateMatrixWorld(true);
     const box=new THREE.Box3().setFromObject(root);
@@ -79,7 +90,8 @@ export async function mountModelScene(container,documentModel,options={}){
     return {box,center,size,radius};
   }
 
-  let explodedFactor=0;
+  let explodedFactor=0,scopedExplodeFactor=0,scopedExplodeIds=[];
+  let isolatedIds=null;
   const axesHelper=new THREE.AxesHelper(Math.max(bounds().radius*.55,.5));
   axesHelper.visible=false;scene.add(axesHelper);
   const boxHelper=new THREE.Box3Helper(bounds().box.clone(),0xe3b25f);
@@ -106,23 +118,80 @@ export async function mountModelScene(container,documentModel,options={}){
     for(const mesh of meshes){mesh.material.flatShading=mode==="flat";mesh.material.needsUpdate=true}
     draw();
   }
+  function hydroVisualState(){
+    if(explodedFactor>0||scopedExplodeFactor>0||isolatedIds!==null){
+      clearContours();
+      contourGroup.visible=false;waterlineMesh.visible=false;
+      waterlineInfo={status:"visual-only",loops:[],segments:0,
+        reason:"Exploded/isolated view is visual only. Reset assembly for original-hull Hydro."};
+    }else{
+      contourGroup.visible=true;
+      waterlineMesh.visible=waterlineState.visible&&!waveMesh.visible;
+      refreshWaterlineContours();
+    }
+  }
+  function refreshExplodedMeshes(){
+    // Always start with immutable CAD transforms; the model document and
+    // numerical Hydro/FEM inputs are never modified by this visual control.
+    for(const mesh of meshes)mesh.position.copy(mesh.userData.restPosition);
+    root.updateMatrixWorld(true);
+    const boxes=meshes.map(mesh=>new THREE.Box3().setFromObject(mesh));
+    const box=new THREE.Box3();
+    for(const b of boxes)box.union(b);
+    const span=Math.max(box.getSize(new THREE.Vector3()).length(),.1);
+    const centres=boxes.map(b=>b.getCenter(new THREE.Vector3()).toArray());
+    const global=explodeOffsets(centres,explodedFactor,{span});
+    meshes.forEach((mesh,i)=>mesh.position.add(new THREE.Vector3(...global[i])));
+    const chosen=meshes.map((mesh,i)=>({mesh,i}))
+      .filter(x=>scopedExplodeIds.includes(x.mesh.userData.component.id));
+    if(chosen.length&&scopedExplodeFactor>0){
+      const offsets=explodeOffsets(chosen.map(x=>centres[x.i]),scopedExplodeFactor,{span});
+      chosen.forEach(({mesh},i)=>mesh.position.add(new THREE.Vector3(...offsets[i])));
+    }
+    root.updateMatrixWorld(true);updateBoxHelper();
+    hydroVisualState();draw();
+  }
   function setExplode(value=0){
-    const factor=Number(value);
-    if(!Number.isFinite(factor)||factor<0||factor>3)
-      throw new Error("Explosion amount must be 0–3");
-    explodedFactor=factor;
-    const baseBox=new THREE.Box3();
+    const n=Number(value);
+    if(!Number.isFinite(n)||n<0||n>3)throw Error("Explode factor must be in [0,3]");
+    explodedFactor=n;refreshExplodedMeshes();
+    return {factor:n,components:meshes.length};
+  }
+  function setScopedExplode({ids=[],amount=0}={}){
+    const factor=Number(amount);
+    const valid=new Set(meshes.map(mesh=>mesh.userData.component.id));
+    if(!Number.isFinite(factor)||factor<0||factor>3)throw Error("Scoped explode factor must be in [0,3]");
+    if(!Array.isArray(ids)||ids.some(id=>!valid.has(id)))throw Error("Unknown CAD components for scoped explode");
+    scopedExplodeFactor=factor;scopedExplodeIds=[...new Set(ids)];
+    refreshExplodedMeshes();return {factor,components:scopedExplodeIds.length};
+  }
+  function setIsolation(ids=null){
+    const valid=new Set(meshes.map(mesh=>mesh.userData.component.id));
+    if(ids!==null&&(!Array.isArray(ids)||ids.some(id=>!valid.has(id))))
+      throw Error("Unknown CAD components for isolation");
+    isolatedIds=ids===null?null:new Set(ids);
+    for(const mesh of meshes)mesh.visible=isolatedIds===null||
+      isolatedIds.has(mesh.userData.component.id);
+    hydroVisualState();draw();
+    return {isolated:isolatedIds!==null,visible:meshes.filter(mesh=>mesh.visible).length};
+  }
+  function focusComponents(ids=[]){
+    const selection=new Set(ids);
+    const box=new THREE.Box3();
+    let count=0;
     for(const mesh of meshes){
-      mesh.position.copy(mesh.userData.restPosition);
-      mesh.updateMatrixWorld(true);baseBox.union(new THREE.Box3().setFromObject(mesh));
+      if(!selection.has(mesh.userData.component.id))continue;
+      box.expandByObject(mesh);count++;
     }
-    const center=baseBox.getCenter(new THREE.Vector3());
-    for(const mesh of meshes){
-      const part=new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3());
-      const delta=part.sub(center).multiplyScalar(factor*.5);
-      mesh.position.copy(mesh.userData.restPosition).add(delta);
-    }
-    root.updateMatrixWorld(true);updateBoxHelper();refreshWaterlineContours();draw();
+    if(!count||box.isEmpty())return null;
+    const target=box.getCenter(new THREE.Vector3());
+    const radius=Math.max(box.getSize(new THREE.Vector3()).length()/2,.02);
+    const direction=camera.position.clone().sub(controls.target).normalize();
+    controls.target.copy(target);
+    const distance=Math.max(radius/Math.sin(THREE.MathUtils.degToRad(camera.fov)/2)*1.18,radius*1.6);
+    camera.position.copy(target).addScaledVector(direction,distance);
+    controls.update();draw();
+    return {count,center:target.toArray()};
   }
   const markerGroup=new THREE.Group();scene.add(markerGroup);
   function setMarkers({cg=null,cb=null}={}){
@@ -169,6 +238,38 @@ export async function mountModelScene(container,documentModel,options={}){
     camera.position.copy(currentBounds.center).add(direction.multiplyScalar(distance));
     controls.update();
     draw();
+  }
+
+  function navigate3D({pan=[0,0,0],orbit=[0,0,0],zoom:zoomFactor=1}={}){
+    if(![...pan,...orbit,zoomFactor].every(Number.isFinite))
+      throw Error("CAD camera values must be finite");
+    // Camera-relative translation and rotation, not physical model transforms.
+    camera.updateMatrixWorld(true);
+    const distance=Math.max(camera.position.distanceTo(controls.target),.05);
+    const right=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0).normalize();
+    const up=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,1).normalize();
+    const forward=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,2).negate().normalize();
+    const shift=right.clone().multiplyScalar(pan[0]*distance)
+      .addScaledVector(up,pan[1]*distance)
+      .addScaledVector(forward,pan[2]*distance);
+    camera.position.add(shift);controls.target.add(shift);
+    const offset=camera.position.clone().sub(controls.target);
+    if(orbit[1])offset.applyAxisAngle(camera.up.clone().normalize(),orbit[1]);
+    if(orbit[0])offset.applyAxisAngle(right,orbit[0]);
+    if(orbit[2]){
+      // SpaceMouse sixth axis: roll around optical axis changes camera up.
+      camera.up.applyAxisAngle(forward,orbit[2]).normalize();
+    }
+    if(!(zoomFactor>0))throw Error("CAD zoom must be positive");
+    offset.multiplyScalar(Math.max(.08,Math.min(12,zoomFactor)));
+    const min=Math.max(currentBounds.radius*.01,.005);
+    if(offset.length()<min)offset.setLength(min);
+    camera.position.copy(controls.target).add(offset);
+    controls.update();draw();
+    return {position:camera.position.toArray(),target:controls.target.toArray(),up:camera.up.toArray()};
+  }
+  function cameraState(){
+    return {position:camera.position.toArray(),target:controls.target.toArray(),up:camera.up.toArray()};
   }
 
   function zoom(factor){
@@ -345,6 +446,7 @@ export async function mountModelScene(container,documentModel,options={}){
   const waveMesh=new THREE.Mesh(waveGeometry,waveMaterial);
   waveMesh.visible=false;waveMesh.renderOrder=3;scene.add(waveMesh);
   let wave=null,waveAnimated=false,waveFrame=null,waveClock=0;
+  let waveMotionMode="anchored";
   const waveBaseXY=Float32Array.from(waveGeometry.getAttribute("position").array);
   function drawWave(timeS=0){
     if(!wave||!waveMesh.visible)return;
@@ -355,6 +457,9 @@ export async function mountModelScene(container,documentModel,options={}){
       attribute.setZ(i,waveElevation(wave,x,y,timeS));
     }
     attribute.needsUpdate=true;waveGeometry.computeVertexNormals();
+    waveMotionGroup.position.z=waveModelHeave(wave,timeS,waveMotionMode);
+    // Only the display transform moves: still-water hydro/contour data and
+    // vessel attitude inputs are not recomputed as wave-response results.
     draw();
   }
   function animateWave(ms){
@@ -363,10 +468,17 @@ export async function mountModelScene(container,documentModel,options={}){
     waveFrame=requestAnimationFrame(animateWave);
   }
   function setWave({enabled=false,heightM=1,periodS=6,headingDeg=0,
-    waterDepthM=Infinity,phaseDeg=0,animate=true,timeS=0}={}){
+    waterDepthM=Infinity,phaseDeg=0,animate=true,timeS=0,motionMode="anchored"}={}){
     if(waveFrame!==null){cancelAnimationFrame(waveFrame);waveFrame=null}
     waveAnimated=false;
-    if(!enabled){wave=null;waveMesh.visible=false;waterlineMesh.visible=waterlineState.visible;draw();return null}
+    if(!enabled){
+      wave=null;waveMesh.visible=false;
+      waveMotionGroup.position.z=0;
+      waterlineMesh.visible=waterlineState.visible;
+      draw();return null;
+    }
+    if(!["anchored","follow"].includes(motionMode))throw new Error("Invalid wave motion mode");
+    waveMotionMode=motionMode;
     wave=normaliseWaveCase({heightM,periodS,headingDeg,waterDepthM,phaseDeg});
     updateWaterlineSize();
     const span=Math.max(currentBounds.size.x,currentBounds.size.y,currentBounds.radius*2,1)*1.35;
@@ -377,7 +489,8 @@ export async function mountModelScene(container,documentModel,options={}){
     waveAnimated=Boolean(animate);
     waveClock=performance.now()-Number(timeS)*1000;
     if(waveAnimated)waveFrame=requestAnimationFrame(animateWave);
-    return wave;
+    return {...wave,motionMode:waveMotionMode};
+
   }
   function setWaterline({visible=true,z=0}={}){
     if(!Number.isFinite(Number(z)))throw new Error("Waterline elevation must be finite");
@@ -386,6 +499,12 @@ export async function mountModelScene(container,documentModel,options={}){
     waterlineMesh.visible=waterlineState.visible&&!waveMesh.visible;
     waterlineMesh.position.set(0,0,waterlineState.z);
     waveMesh.position.z=waterlineState.z;
+    if(explodedFactor>0||scopedExplodeFactor>0||isolatedIds!==null){
+      waterlineMesh.visible=false;contourGroup.visible=false;
+      draw();
+      return {status:"exploded",loops:[],segments:0,
+        reason:"Reset assembly explode/isolation before viewing waterline contours."};
+    }
     const info=refreshWaterlineContours();
     draw();
     return info;
@@ -603,6 +722,8 @@ export async function mountModelScene(container,documentModel,options={}){
     return best&&bestDistance<=measureSnapTolerance?best.clone():hit.point.clone();
   }
   function onPointerDown(event){
+    canvas.focus({preventScroll:true});
+    if(event.button!==0)return;
     const hit=pointerHit(event);
     if(measureEnabled){
       if(!hit)return;
@@ -614,6 +735,23 @@ export async function mountModelScene(container,documentModel,options={}){
     }
     select(hit?.object||null);
   }
+  // Capture phase runs before OrbitControls' pointerdown listener. Keep the
+  // familiar middle-drag pan, but hold Shift + middle to orbit.
+  const middleDown=event=>{
+    if(event.button===1)controls.mouseButtons.MIDDLE=
+      event.shiftKey?THREE.MOUSE.ROTATE:THREE.MOUSE.PAN;
+  };
+  const middleUp=()=>{controls.mouseButtons.MIDDLE=THREE.MOUSE.PAN};
+  canvas.addEventListener("pointerdown",middleDown,true);
+  canvas.addEventListener("pointerup",middleUp);
+  canvas.addEventListener("pointercancel",middleUp);
+  const offKeys=connectCADKeyboard(canvas,{
+    fit:fitView,resetZoom:resetView,setView,
+    navigate3D,setIsolation,setScopedExplode
+  },{onExplode:restore=>{
+    const next=restore?0:explodedFactor>0?0:1;
+    setExplode(next);
+  }});
   canvas.addEventListener("pointerdown",onPointerDown);
 
   function resize(){
@@ -638,6 +776,10 @@ export async function mountModelScene(container,documentModel,options={}){
     observer.disconnect();
     controls.dispose();
     canvas.removeEventListener("pointerdown",onPointerDown);
+    canvas.removeEventListener("pointerdown",middleDown,true);
+    canvas.removeEventListener("pointerup",middleUp);
+    canvas.removeEventListener("pointercancel",middleUp);
+    offKeys();
     clearMeasurements();
     for(const line of edgeLines){line.parent?.remove(line);line.geometry.dispose();line.material.dispose()}
     scene.remove(axesHelper);axesHelper.geometry.dispose();axesHelper.material.dispose();
@@ -646,6 +788,7 @@ export async function mountModelScene(container,documentModel,options={}){
     scene.remove(markerGroup);
     if(waveFrame!==null)cancelAnimationFrame(waveFrame);
     clearContours();scene.remove(contourGroup);contourMaterial.dispose();
+    thrusterFlows.dispose();
     scene.remove(waveMesh);waveGeometry.dispose();waveMaterial.dispose();
     waterlineGeometry.dispose();
     waterlineMaterial.dispose();
@@ -673,6 +816,16 @@ export async function mountModelScene(container,documentModel,options={}){
       setEdges,
       setShading,
       setExplode,
+      setScopedExplode,
+      setIsolation,
+      getVisibleComponentIds:()=>meshes.filter(mesh=>mesh.visible).map(mesh=>mesh.userData.component.id),
+      getExplodeState:()=>({assembly:explodedFactor,selected:scopedExplodeFactor,ids:[...scopedExplodeIds]}),
+      focusComponents,
+      navigate3D,
+      cameraState,
+      setThrusterFlows:descriptors=>{thrusterFlows.update(descriptors);return thrusterFlows.count},
+      playThrusterFlows:enabled=>thrusterFlows.setPlaying(enabled),
+      getThrusterFlowCount:()=>thrusterFlows.count,
       setMarkers,
       setClipping,
       setMeasurement(enabled){measureEnabled=Boolean(enabled);firstMeasurePoint=null;return measureEnabled},
@@ -689,6 +842,7 @@ export async function mountModelScene(container,documentModel,options={}){
       setHullGirderContour,
       getWaterlineInfo:()=>waterlineInfo,
       setWave,
+      getWaveMotionOffset:()=>waveMotionGroup.position.z,
       screenshot,
       getBounds(){
         const value=bounds();

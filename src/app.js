@@ -3,16 +3,24 @@ import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page
 import {mountViewer} from "./viewer.js";
 import {render as renderPythonWorkbench} from "./viewers/adapters/python.js";
 import {loadContent} from "./content.js";
+import {kisssoftPageHTML,mountKisssoft} from "./engineering/kisssoft-tool.js";
+import {cadToolHTML,mountCADTool} from "./engineering/cad-tool.js";
 import {renderResourceTree} from "./components/resource-tree.js";
 import {karakterwebUrl} from "./courses/external-links.js";
+import {bindCourseNavigation} from "./courses/course-navigation.js";
 import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js";
 import {hydrostaticParticulars} from "./hydro/stability.js";
+import {createHydroInclude} from "./hydro/hydro-selection.js";
+import {prepareHydroModel} from "./hydro/hydrostatics.js";
+import {sectionalAreaCurve,sacCSV} from "./hydro/sac-curve.js";
+import {sacCurvePanelHTML} from "./engineering/sac-panel.js";
 import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js";
 import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js";
 import {renderProjectCard,renderProjectDetail} from "./components/project-card.js";
 import {buildSearchIndex} from "./search/search-index.js";
 import {createSearchController} from "./components/search-dialog.js";
 import {toolsIndexHTML} from "./tools/tools-index.js";
+import {staticVaultPageHTML,bindStaticVaultPage} from "./tools/static-vault-page.js";
 import {activeTools} from "./tools/tool-registry.js";
 import {fluidCalculatorHTML} from "./tools/fluid-calculator.js";
 import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js";
@@ -33,6 +41,7 @@ import {componentSemantic,semanticComponents,semanticSummary} from "./model/sema
 import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js";
 import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js";
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
+import {mountFrame3D} from "./engineering/frame-3d.js";
 import {solveHullGirder} from "./structure/hull-girder.js";
 import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js";
 import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js";
@@ -42,6 +51,7 @@ import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsio
 import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js";
 import {renderTopShell,bindShellNavigation} from "./shell/navigation.js";
 import {portfolioInfoPageHTML,loadCV} from "./portfolio/profile-pages.js";
+import {analyticsConsent,setAnalyticsConsent} from "./platform/analytics.js";
 import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js";
 import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js";
 import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js";
@@ -119,6 +129,8 @@ let themeStudioState={mode:"manual",name:"custom-theme",colors:{},palette:[],ima
 let settingsSection="appearance";
 let diveMapCleanup=null;
 let diveMapMountId=0;
+let kisssoftCleanup=null;
+let cadToolCleanup=null;
 let brewingCleanup=null;
 let medisinCleanup=null;
 let studyCatalogCleanup=null;
@@ -157,7 +169,7 @@ function engineeringModelSelectHTML(){
   const uploaded=model?.id===LOCAL_HYDRO_MODEL_ID;
   return `<div class="engineering-model-control">
     <label class="engineering-model-select"><span>Model</span><select id="engineering-model-select">${engineeringModels.map(item=>`<option value="${item.id}" ${item.id===engineeringModelId?"selected":""}>${item.label||item.name} · ${engineeringModelReadinessLabel(item)}</option>`).join("")}</select></label>
-    <button type="button" class="btn" id="engineering-import-hull">Import STL/3MF</button>
+    <button type="button" class="btn" id="engineering-import-hull">Import STL/3MF</button><button type="button" class="btn" data-go="/engineering/cad">CAD workbench</button><button type="button" class="btn" data-go="/engineering/kisssoft">KISSsoft</button>
     <input type="file" id="engineering-hull-file" accept=".stl,.3mf" hidden>
     ${uploaded&&importedHydroOriginal?.format==="STL"
       ?`<label class="engineering-model-select"><span>STL source units</span><select id="engineering-hull-unit">${Object.keys(UNIT_SCALE_TO_METERS).map(unit=>`<option value="${unit}" ${unit===importedHydroUnit?"selected":""}>${unit}</option>`).join("")}</select></label>`:""}
@@ -585,35 +597,22 @@ function coursePage(semesterId,code){
   bindNav();
   app.querySelectorAll("[data-resource]").forEach(element=>{
     element.onclick=()=>go(viewerRoute(semesterId,course.code,element.dataset.resource));
+    element.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();element.click();}};
   });
   app.querySelector("#karakterweb")?.addEventListener("click",()=>{
     window.open(karakterwebHref,"_blank","noopener");
   });
-
-  const navButtons=[...app.querySelectorAll("[data-course-nav]")];
-  const activate=id=>navButtons.forEach(button=>button.classList.toggle("active",button.dataset.courseNav===id));
-  const scrollToTarget=id=>{
-    const target=id==="overview"
-      ?app.querySelector("#course-overview")
-      :app.querySelector(id==="karakterweb"?"#course-karakterweb":"#course-"+id);
-    target?.scrollIntoView({behavior:"smooth",block:"start"});
-    activate(id);
-  };
-  navButtons.forEach(button=>button.addEventListener("click",()=>scrollToTarget(button.dataset.courseNav)));
 
   const observed=[
     {element:app.querySelector("#course-overview"),id:"overview"},
     ...sections.map(section=>({element:app.querySelector("#course-section-"+section.index),id:"section-"+section.index})),
     {element:app.querySelector("#course-karakterweb"),id:"karakterweb"}
   ].filter(item=>item.element);
-  const observer=new IntersectionObserver(entries=>{
-    const visible=entries.filter(entry=>entry.isIntersecting)
-      .sort((a,b)=>Math.abs(a.boundingClientRect.top)-Math.abs(b.boundingClientRect.top))[0];
-    const match=visible&&observed.find(item=>item.element===visible.target);
-    if(match)activate(match.id);
-  },{rootMargin:"-15% 0px -70% 0px",threshold:[0,0.05]});
-  observed.forEach(item=>observer.observe(item.element));
-  app.__courseObserver=observer;
+  app.__courseObserver=bindCourseNavigation({
+    sections:observed,
+    buttons:app.querySelectorAll("[data-course-nav]"),
+    topbar:app.querySelector(".topbar")
+  });
 }
 function toolsPage(){
   document.documentElement.dataset.lens="study";
@@ -625,6 +624,14 @@ function toolsPage(){
   });
 }
 
+let vaultToolCleanup=null;
+function vaultToolPage(){
+  document.documentElement.dataset.lens="study";
+  vaultToolCleanup?.();vaultToolCleanup=null;
+  app.innerHTML=top("courses")+staticVaultPageHTML();
+  bindNav();
+  vaultToolCleanup=bindStaticVaultPage(app);
+}
 let pythonToolCleanup=null;
 async function pythonToolPage(){
   document.documentElement.dataset.lens="study";
@@ -924,6 +931,12 @@ function settingsPage(){
     settingsPage();
   });
 
+  const analyticsToggle=app.querySelector("#settings-analytics-toggle");
+  if(analyticsToggle){
+    const label=()=>{analyticsToggle.textContent=analyticsConsent()?"Disable analytics":"Enable analytics";};
+    label();
+    analyticsToggle.addEventListener("click",()=>{setAnalyticsConsent(!analyticsConsent());label();});
+  }
   app.querySelector("#settings-clear-study-progress")?.addEventListener("click",event=>{
     const removed=clearLocalStudyProgress();
     const feedback=app.querySelector("#settings-feedback");
@@ -1148,6 +1161,32 @@ async function engineeringPage(){
       </main><div class="preview-badge">Structure · tested frame FEM</div>`;
       bindNav();
       bindEngineeringModelSelector();
+      const frameStage=app.querySelector("#structure-3d-stage");
+      let frameView=null;
+      if(frameStage){
+        const to2d=app.querySelector("#structure-show-2d");
+        const to3d=app.querySelector("#structure-show-3d");
+        const onView=show3d=>{
+          const modelCanvas=app.querySelector("#structure-3d-stage");
+          const diagram=app.querySelector("#structure-2d-stage");
+          if(modelCanvas)modelCanvas.hidden=!show3d;
+          if(diagram)diagram.hidden=show3d;
+          to3d?.setAttribute("aria-pressed",String(show3d));
+          to2d?.setAttribute("aria-pressed",String(!show3d));
+        };
+        to2d?.addEventListener("click",()=>onView(false));
+        to3d?.addEventListener("click",()=>onView(true));
+        app.querySelector("#structure-view-reset")?.addEventListener("click",()=>frameView?.reset());
+        try{
+          frameView=await mountFrame3D(frameStage,caseModel,structure.result);
+          if(renderId!==engineeringRenderId){frameView?.cleanup?.();return}
+          engineeringCleanup=()=>frameView?.cleanup?.();
+        }catch(error){
+          if(renderId!==engineeringRenderId)return;
+          frameStage.textContent="3D beam unavailable: "+String(error.message||error)+". Use the 2D diagram.";
+          onView(false);
+        }
+      }
       bindEngineeringCaseExport(engineeringCaseReport({
         modelConfig:model,
         mode:"Structure",
@@ -1740,7 +1779,13 @@ async function engineeringPage(){
     <button type="button" class="btn" id="engineering-confirm-import" ${model.analysisCapabilities.hydro.enabled?"disabled":""}>${model.analysisCapabilities.hydro.enabled?"Axes + units acknowledged":"Confirm units and up-axis"}</button>
     <small>Exploratory geometry only. Mesh closure does not prove external-hull isolation, self-intersection freedom, true datum or certified stability.</small>
   </section>`:"";
-  const inspector=importedControls+(hydro?hydro.inspector:`
+  const inspector=importedControls+(hydro?hydro.inspector+`
+    <section class="hydro-sac-tools">
+      <h3>Sectional Area Curve (SAC)</h3>
+      <p class="muted">Generate area A(x) below the selected waterline from validated hull slices (exploratory, not class-approved).</p>
+      <button type="button" class="btn" id="engineering-sac-run">Generate SAC</button>
+      <div id="engineering-sac-result" role="status" aria-live="polite"></div>
+    </section>`:`
     <h3>Properties</h3>
     <div class="readout"><span>Component</span><strong id="prop-component">${selected?.name||"—"}</strong></div>
     <div class="readout"><span>Semantic role</span><strong id="prop-role">${selectedSemantic?.subtype||selectedSemantic?.role||selected?.type||"—"}</strong></div>
@@ -1797,6 +1842,28 @@ async function engineeringPage(){
   mountWorkspaceResultsResize(app.querySelector(".workspace"));
   bindEngineeringModelSelector();
   bindEngineeringCaseExport(engineeringReport);
+  app.querySelector("#engineering-sac-run")?.addEventListener("click",async event=>{
+    const button=event.currentTarget;
+    const result=app.querySelector("#engineering-sac-result");
+    if(!result)return;
+    button.disabled=true;result.textContent="Computing underwater sectional areas…";
+    try{
+      const documentModel=await getEngineeringDocument();
+      if(!button.isConnected)return;
+      const include=createHydroInclude(documentModel);
+      const validation=validateHydroModel(documentModel,{include});
+      if(!validation.passed)throw new Error("Hull mesh preflight required before calculating SAC");
+      const prepared=prepareHydroModel(documentModel,{include});
+      const sac=sectionalAreaCurve(prepared,{draft:Number(hydroDraft),stations:31});
+      result.innerHTML=sacCurvePanelHTML(sac);
+      result.querySelector("#engineering-sac-export")?.addEventListener("click",()=>{
+        downloadTextFile(sacCSV(sac),"sectional-area-curve.csv");
+      });
+    }catch(error){
+      if(result.isConnected)result.textContent="SAC unavailable: "+String(error?.message||error);
+    }finally{if(button.isConnected)button.disabled=false}
+  });
+
   app.querySelectorAll("[data-hydro-import-part]").forEach(input=>input.addEventListener("change",()=>{
     if(!importedHydroDocument||model.id!==LOCAL_HYDRO_MODEL_ID)return;
     const selected=[...app.querySelectorAll("[data-hydro-import-part]:checked")].map(node=>node.dataset.hydroImportPart);
@@ -2008,22 +2075,20 @@ async function engineeringPage(){
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
 
-async function render(){const currentPath=route();if(currentPath!=="/tools/python"){pythonToolCleanup?.();pythonToolCleanup=null;}app.__courseObserver?.disconnect();app.__courseObserver=null;const path=route();if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}if(!["/diverse/diving","/diverse/dive-map"].includes(path)){diveMapMountId++;diveMapCleanup?.();diveMapCleanup=null;}if(path!=="/diverse/brewing"){brewingMountId++;brewingCleanup?.();brewingCleanup=null;}if(path!=="/diverse/medisin"){medisinCleanup?.();medisinCleanup=null;}studyCatalogMountId++;studyCatalogCleanup?.cleanup?.();studyCatalogCleanup=null;const viewer=parseViewerRoute(path);
-  if(["/cv","/about","/contact"].includes(path)){
-    document.documentElement.dataset.lens="portfolio";
-    const page=path.slice(1);
-    app.innerHTML=top(page)+'<main class="section"><p>Loading profile…</p></main>';
-    bindNav();
-    try{
-      const cv=await loadCV();
-      if(route()!==path)return;
-      app.innerHTML=top(page)+portfolioInfoPageHTML(page,cv);
-      bindNav();
-    }catch(error){
-      if(route()!==path)return;
-      app.innerHTML=top(page)+'<main class="section"><h1>Profile unavailable</h1><p>CV data could not be loaded.</p></main>';
-      bindNav();
-    }
-    return;
-  }if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/diverse")return diversePage();if(path==="/diverse/diving"||path==="/diverse/dive-map")return diveMapPage();if(path==="/diverse/sandalen")return sandalenPage();if(path==="/diverse/matpris")return matprisPage();if(path==="/diverse/brewing")return brewingPage();if(path==="/diverse/medisin")return medisinPage();if(path==="/diverse/laos")return studyCatalogPage("laos");if(path==="/diverse/andrekok")return studyCatalogPage("kok");if(path==="/tools")return toolsPage();if(path==="/tools/python")return pythonToolPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/model-inspector")return modelInspectorPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings/theme-studio/manual")return themeStudioPage("manual");if(path==="/settings/theme-studio/image")return themeStudioPage("image");const settingsMatch=path.match(/^\/settings(?:\/(appearance|connections|courses|engineering|privacy|advanced))?$/);if(settingsMatch){settingsSection=settingsMatch[1]||"appearance";return settingsPage();}const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
+async function render(){const currentPath=route();if(currentPath!=="/tools/python"){pythonToolCleanup?.();pythonToolCleanup=null;}if(currentPath!=="/tools/vault"){vaultToolCleanup?.();vaultToolCleanup=null;}app.__courseObserver?.disconnect();app.__courseObserver=null;const path=route();
+  // Invalidate pending async engineering model loads when navigating to a
+  // different route. Otherwise a slow WebGL/model promise may overwrite CAD,
+  // KISSsoft, Tools or a document viewer after its page has already mounted.
+  const isEngineeringWorkspace=/^\/engineering(?:\/(?:model|hydro|structure|resistance|propulsion))?$/i.test(path);
+  if(!isEngineeringWorkspace){
+    engineeringRenderId++;
+    engineeringCleanup?.();
+    engineeringCleanup=null;
+  }
+  if(path!=="/engineering/kisssoft"){kisssoftCleanup?.();kisssoftCleanup=null;}if(path!=="/engineering/cad"){cadToolCleanup?.();cadToolCleanup=null;}if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}if(!["/diverse/diving","/diverse/dive-map"].includes(path)){diveMapMountId++;diveMapCleanup?.();diveMapCleanup=null;}if(path!=="/diverse/brewing"){brewingMountId++;brewingCleanup?.();brewingCleanup=null;}if(path!=="/diverse/medisin"){medisinCleanup?.();medisinCleanup=null;}studyCatalogMountId++;studyCatalogCleanup?.cleanup?.();studyCatalogCleanup=null;const viewer=parseViewerRoute(path);if(["/about","/cv","/contact"].includes(path)){document.documentElement.dataset.lens="portfolio";const page=path.slice(1);app.innerHTML=top(page)+'<main class="section"><p>Loading profile…</p></main>';bindNav();loadCV().then(cv=>{if(route()!==path)return;app.innerHTML=top(page)+portfolioInfoPageHTML(page,cv);bindNav();}).catch(error=>{if(route()!==path)return;app.innerHTML=top(page)+`<main class="section"><h1>Profile unavailable</h1><p>${String(error.message||error).replace(/[&<>"]/g,"")}</p></main>`;bindNav();});return;}if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/diverse")return diversePage();if(path==="/diverse/diving"||path==="/diverse/dive-map")return diveMapPage();if(path==="/diverse/sandalen")return sandalenPage();if(path==="/diverse/matpris")return matprisPage();if(path==="/diverse/brewing")return brewingPage();if(path==="/diverse/medisin")return medisinPage();if(path==="/diverse/laos")return studyCatalogPage("laos");if(path==="/diverse/andrekok")return studyCatalogPage("kok");if(path==="/engineering/cad"){
+  document.documentElement.dataset.lens="workspace";
+  app.innerHTML=top("engineering")+cadToolHTML();
+  bindNav();cadToolCleanup=mountCADTool(app);return;
+}
+if(path==="/engineering/kisssoft"){document.documentElement.dataset.lens="workspace";app.innerHTML=top("engineering")+kisssoftPageHTML();bindNav();kisssoftCleanup=mountKisssoft(app);return;}if(path==="/tools")return toolsPage();if(path==="/tools/vault")return vaultToolPage();if(path==="/tools/python")return pythonToolPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/model-inspector")return modelInspectorPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings/theme-studio/manual")return themeStudioPage("manual");if(path==="/settings/theme-studio/image")return themeStudioPage("image");const settingsMatch=path.match(/^\/settings(?:\/(appearance|connections|courses|engineering|privacy|advanced))?$/);if(settingsMatch){settingsSection=settingsMatch[1]||"appearance";return settingsPage();}const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
 window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();globalSearch.open()}});window.addEventListener("hashchange",render);render();

@@ -10,7 +10,7 @@ const native={
   obj:"obj",glb:"gltf",gltf:"gltf",py:"python",ipynb:"notebook",
   tex:"latex",html:"html",csv:"csv",tsv:"csv",psv:"csv",
   zip:"archive",png:"image",svg:"image",webp:"image",mp3:"audio",wav:"audio",
-  mp4:"video",md:"text",json:"text",js:"text",step:"conversion",sldprt:"conversion"
+  mp4:"video",md:"text",json:"text",js:"text",step:"cad",stp:"cad",iges:"cad",igs:"cad",brep:"cad",sldprt:"conversion"
 };
 test("all key course file types map to specific working viewer modules",async()=>{
   for(const [ext,expected] of Object.entries(native)){
@@ -54,7 +54,7 @@ test("Three mesh import applies world matrix and disallows empty/nontriangular f
   assert.throws(()=>modelDocumentFromThree({scene:{updateMatrixWorld(){},traverse(){}}}),/no triangulated/);
 });
 test("CAD conversion notices do not claim true geometry from non-mesh data",()=>{
-  assert.match(formatGuidance("step"),/tessellation/);
+  assert.equal(viewerKind({path:"part.step"}),"cad");
   assert.match(formatGuidance("sldprt"),/tessellation/);
   assert.match(formatGuidance("xls"),/PDF/);
   assert.match(formatGuidance("heic"),/JPEG/);

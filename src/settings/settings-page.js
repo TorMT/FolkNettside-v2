@@ -99,6 +99,7 @@ function privacyHTML(){
     <h1>Privacy & data</h1>
     <p class="muted">Study progress and UI preferences are stored locally in this browser. No course login is required.</p>
     <div class="settings-card">
+      <div class="setting-row"><div><strong>Anonymous analytics</strong><small>Opt in to Google Analytics page-view measurement. Reports remain private to the site owner. Disabled by default and unavailable without deployment configuration.</small></div><button class="btn" id="settings-analytics-toggle" type="button">Toggle analytics</button></div>
       <div class="setting-row"><div><strong>Study progress</strong><small>Quiz attempts and video resume/watched state.</small></div><button class="btn" id="settings-clear-study-progress">Clear progress</button></div>
       <div class="setting-row"><div><strong>Appearance preferences</strong><small>Stored locally so the interface remains consistent between visits.</small></div><span class="settings-status ready">Local</span></div>
     </div>

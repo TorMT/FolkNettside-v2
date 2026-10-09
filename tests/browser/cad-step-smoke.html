@@ -1,0 +1,38 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<title>OpenCascade real STEP import smoke</title>
+<body data-status="running"><div id="host"></div><pre id="result">running</pre>
+<script type="module">
+import {parseCADBuffer} from "../../src/model/parsers/cad-runtime.js";
+import {renderModelWorkbench} from "../../src/viewers/model-workbench.js";
+import {loadAdapter} from "../../src/viewers/registry.js";
+const check=(ok,text)=>{if(!ok)throw Error(text)};
+let cleanup=null;
+try{
+ const response=await fetch("./fixtures/occt-cube.stp");
+ check(response.ok,"Real STEP cube fixture unavailable");
+ const model=await parseCADBuffer(await response.arrayBuffer(),"cube.stp");
+ check(model.source.triangles>=12,"OpenCascade emitted too few triangles");
+ check(model.unitScaleToMeters===.001,"CAD output unit should be mm");
+ check(model.components.some(item=>item.geometry),"No CAD parts in assembly");
+ const verts=model.components.filter(part=>part.geometry).flatMap(part=>part.geometry.positions);
+ const extrema=[0,1,2].map(axis=>{
+   const values=verts.filter((_,i)=>i%3===axis);
+   return Math.max(...values)-Math.min(...values);
+ });
+ check(extrema.every(span=>Math.abs(span-300)<0.5),
+   "Real Siemens NX STEP fixture should measure 300×300×300 mm, got "+extrema.join("×"));
+
+ const host=document.querySelector("#host");
+ const viewer=await renderModelWorkbench(host,model);
+ cleanup=viewer?.cleanup;
+ check(host.querySelector("[data-model-stage] canvas"),"CAD preview did not mount an interactive WebGL canvas");
+ check(host.querySelector("[data-model-fit]"),"CAD fit camera control missing");
+ const adapter=await loadAdapter({path:"./fixtures/occt-cube.stp"});
+ check(adapter.kind==="cad","CAD file does not use real CAD adapter");
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent="OpenCascade STEP cube import, triangles, units and viewer PASSED";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error.stack||error);
+}finally{cleanup?.()}
+</script></body></html>

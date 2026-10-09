@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<title>Mobile tools and Engineering routing audit</title>
+<body data-status="running"><pre id="result">running</pre>
+<iframe id="site" style="width:390px;height:790px;border:0;display:block" src="../../index.html#/tools"></iframe>
+<script type="module">
+const frame=document.querySelector("#site"),report=document.querySelector("#result");
+const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function until(ok,description){
+ for(let i=0;i<85;i++){if(ok())return;await delay(120)}
+ throw Error("Timed out: "+description);
+}
+const doc=()=>frame.contentDocument;
+const routes=[
+  ["/tools", "#app .topbar"],
+  ["/tools/python",".python-workbench"],
+  ["/tools/fluid",".topbar"],
+  ["/tools/model-inspector",".topbar"],
+  ["/tools/chemistry-editor",".topbar"],
+  ["/tools/coolprop",".topbar"],
+  ["/tools/periodic",".topbar"],
+  ["/tools/crystal",".topbar"],
+  ["/engineering/model",".workspace"],
+  ["/engineering/kisssoft",".kisssoft-page"],
+  ["/engineering/hydro",".workspace"],
+  ["/engineering/structure",".workspace"],
+  ["/engineering/resistance",".workspace"],
+  ["/engineering/propulsion",".workspace"]
+];
+try{
+ await until(()=>doc()?.querySelector(".topbar"),"application loaded");
+ const problems=[];
+ for(const [route,selector] of routes){
+   frame.contentWindow.location.hash="#"+route;
+   await until(()=>frame.contentWindow.location.hash==="#"+route&&doc()?.querySelector(selector),route+" "+selector);
+   await delay(130);
+   const root=doc().querySelector("#app");
+   if(!root||root.innerHTML.length<500)throw Error("Blank app at "+route);
+   if(!doc().querySelector(".mobile-nav [data-mobile-more-toggle]"))
+     throw Error("Mobile profile menu lost on "+route);
+   const vw=doc().documentElement.clientWidth;
+   const sw=Math.max(doc().body.scrollWidth,doc().documentElement.scrollWidth);
+   if(sw>vw+8)problems.push(route+": horizontal overflow "+sw+"/"+vw);
+ }
+ if(problems.length)throw Error(problems.join("\n"));
+ report.textContent="Mobile tools and Engineering routes: "+routes.length+" checked without blank pages or document overflow";
+ document.body.dataset.status="pass";
+}catch(error){report.textContent=String(error.stack||error);document.body.dataset.status="fail"}
+</script></body></html>

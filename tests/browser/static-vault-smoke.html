@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<title>Offline encrypted resource browser smoke</title>
+<body data-status="running">
+<div id="host"></div><pre id="result">running</pre>
+<script type="module">
+import {encryptVault,decryptVault} from "../../src/viewers/vault-core.js";
+import {loadAdapter} from "../../src/viewers/registry.js";
+import {staticVaultPageHTML,bindStaticVaultPage} from "../../src/tools/static-vault-page.js";
+const check=(value,message)=>{if(!value)throw Error(message)};
+const text=new TextEncoder().encode("Private reference formula: F = ma.");
+const passphrase="random-meteor-copper-beam-83-strong";
+const originalFetch=window.fetch.bind(window);
+try{
+ const envelope=await encryptVault(text,passphrase,{mime:"text/plain"});
+ check(JSON.stringify(envelope).indexOf("Private reference formula")<0,"Plaintext leaked into ciphertext");
+ check(new TextDecoder().decode(await decryptVault(envelope,passphrase))==="Private reference formula: F = ma.","WebCrypto roundtrip failed");
+ await decryptVault(envelope,"incorrect key").then(()=>{throw Error("Wrong passphrase accepted")},()=>{});
+ const resource={kind:"VAULT",path:"./test.vault.json",name:"test.vault.json"};
+ const adapter=await loadAdapter(resource);
+ check(adapter.kind==="vault","Vault dispatched as raw text");
+ const host=document.getElementById("host");
+ window.fetch=async url=>String(url).includes("test.vault.json")?new Response(JSON.stringify(envelope),{
+   status:200,headers:{"content-type":"application/json"}
+ }):originalFetch(url);
+ const rendered=await adapter.render(host,resource);
+ const form=host.querySelector(".vault-form");
+ check(form,"Encrypted resource form missing");
+ form.querySelector('input[type="password"]').value=passphrase;
+ form.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
+ for(let i=0;i<70&&!host.querySelector(".vault-preview pre");i++)await new Promise(resolve=>setTimeout(resolve,50));
+ check(host.querySelector(".vault-preview pre")?.textContent.includes("Private reference formula"),
+   "Encrypted text was not unlocked in browser");
+ rendered?.cleanup?.();
+ host.innerHTML=staticVaultPageHTML();
+ check(host.querySelector("#vault-source")&&host.querySelector("#vault-encrypt-form"),"Encrypt wizard missing");
+ const clean=bindStaticVaultPage(host);clean();
+ document.body.dataset.status="pass";document.querySelector("#result").textContent="Offline encrypt and local unlock verified";
+}catch(error){
+ document.body.dataset.status="fail";document.querySelector("#result").textContent=String(error.stack||error);
+}finally{window.fetch=originalFetch}
+</script></body></html>

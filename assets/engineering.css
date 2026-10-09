@@ -164,3 +164,40 @@
   .hull-fem-3d-legend{left:8px;bottom:8px;padding:9px;max-width:66%}
   .hull-fem-results{padding:8px}
 }
+
+/* Geometry-derived Sectional Area Curve */
+.hydro-sac-tools{margin:14px 0;padding:13px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.hydro-sac-tools h3{margin:0 0 8px}
+.hydro-sac-tools .muted{line-height:1.5}
+.sac-results{min-width:0;display:grid;gap:12px;margin-top:12px}
+.sac-results svg{display:block;width:100%;height:auto;max-height:280px;border:1px solid var(--line);border-radius:8px;background:var(--surface-sunk)}
+.sac-stats{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;font-size:12px}
+.sac-stats strong{font-size:14px}
+.sac-results .btn{justify-self:start}
+@media(max-width:760px){.hydro-sac-tools{padding:11px}.sac-stats{display:grid;gap:5px}}
+
+/* Structure: interactive 3D visualization and true 2D reference diagram. */
+.structure-stage{width:100%;height:100%;min-height:0;display:flex;flex-direction:column;gap:8px;padding:clamp(8px,1.3vw,16px);box-sizing:border-box}
+.structure-view-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.structure-view-actions .btn[aria-pressed="true"]{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.structure-3d-stage{flex:1;min-width:0;min-height:300px;max-height:clamp(320px,68vh,760px);position:relative;border-radius:12px;overflow:hidden}
+.structure-3d-stage canvas{display:block;cursor:grab;touch-action:none;user-select:none}
+.structure-3d-stage canvas:active{cursor:grabbing}
+.structure-2d-stage{flex:1;min-width:0;overflow:auto}
+.structure-2d-stage[hidden],.structure-3d-stage[hidden]{display:none!important}
+.structure-2d-stage svg{max-width:100%;height:auto}
+.structure-view-hint{font-size:12px;line-height:1.5;margin:0}
+@media(max-width:760px){.structure-stage{padding:7px}.structure-3d-stage{min-height:285px;max-height:58vh}.structure-view-hint{font-size:11px}}
+
+/* Dedicated static CAD/STEP/IGES workbench */
+.engineering-cad-page{max-width:none;min-width:0}
+.cad-import-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin:16px 0}
+.cad-import-bar label{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.cad-import-bar input[type=file]{max-width:100%;box-sizing:border-box}
+.cad-geometry-stage{min-width:0;min-height:360px;width:100%}
+.cad-geometry-stage>.model-viewer-workbench{min-height:530px;max-width:100%}
+@media(max-width:760px){
+ .engineering-cad-page{padding:12px}
+ .cad-import-bar{display:grid;gap:10px}
+ .cad-geometry-stage>.model-viewer-workbench{min-height:420px}
+}

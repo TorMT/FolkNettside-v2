@@ -1,0 +1,73 @@
+<!doctype html><html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/viewer-enhancements.css">
+<title>Quiz and workbook toggle smoke</title>
+<style>body{margin:0}#app{height:100vh}</style></head>
+<body data-status="running"><div id="app"></div><pre id="result" hidden>running</pre>
+<script type="module">
+import {mountViewer} from "../../src/viewers/viewer-shell.js";
+import {render as renderOffice} from "../../src/viewers/adapters/office.js";
+import {getJSZip} from "../../src/vendor/jszip.js";
+const assert=(condition,label)=>{if(!condition)throw Error(label)};
+try{
+ const root=document.querySelector("#app");
+ await mountViewer(root,{
+   kind:"QUIZ",path:"../../examples/semesters/5/TMR4182/Quiz/hydro-basics.quiz.json",
+   relativePath:"tests/quiz/hydro-basics.quiz.json",name:"hydro-basics.quiz.json",
+   label:"Hydro basics",semester:5,courseCode:"TMR4182",section:"Quiz"
+ },()=>{});
+ const quiz=root.querySelector(".quiz-view"),canvas=root.querySelector(".viewer-canvas");
+ assert(quiz&&canvas,"Quiz not rendered");
+ assert(quiz.getBoundingClientRect().width>=canvas.clientWidth-20,"Quiz does not fill viewer canvas: quiz="+quiz.getBoundingClientRect().width+" canvasRect="+canvas.getBoundingClientRect().width+" canvasClient="+canvas.clientWidth+" computedMax="+getComputedStyle(quiz).maxWidth+" parent="+quiz.parentElement.className+" viewer="+root.querySelector(".viewer")?.className);
+ const chooser=root.querySelector("#quiz-chapter-select");
+ assert(chooser&&chooser.options.length===3,"Fixture missing chapter selection");
+ chooser.value="hydrostatics";chooser.dispatchEvent(new Event("change",{bubbles:true}));
+ assert(root.querySelector(".quiz-question-counter")?.textContent.trim()==="1/1","Chapter selection did not filter quiz");
+ root.querySelector('[data-choice="2"]')?.click();
+ assert(root.querySelector("#viewer-info")?.textContent.includes("1 answered"),"Quiz status bar not updated");
+ const nextChapter=root.querySelector("#quiz-chapter-select");
+ nextChapter.value="section-properties";nextChapter.dispatchEvent(new Event("change",{bubbles:true}));
+ assert(root.querySelector(".quiz-question-counter")?.textContent.trim()==="1/1","Second chapter did not load");
+ assert(!root.querySelector(".quiz-option[data-correct]"),"Separate chapter inherited the first chapter's answer");
+ const originalChapter=root.querySelector("#quiz-chapter-select");
+ originalChapter.value="hydrostatics";originalChapter.dispatchEvent(new Event("change",{bubbles:true}));
+ assert(root.querySelector('.quiz-option[data-correct="true"]'),"First chapter progress was not restored");
+ const info=root.querySelector("#viewer-quiz-info");
+ assert(info,"Quiz file information toggle missing");
+ info.click();
+ assert(root.querySelector(".viewer--quiz-info"),"File info panel not open");
+ info.click();
+ assert(!root.querySelector(".viewer--quiz-info"),"File info panel did not close");
+ root.__viewerCleanup?.();
+ // Construct a minimal OOXML worksheet containing one cached formula result.
+ const Zip=await getJSZip(),zip=new Zip();
+ zip.file("xl/worksheets/sheet1.xml",`<?xml version="1.0" encoding="utf-8"?>
+ <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+ <sheetData><row r="1"><c r="A1"><v>12</v></c><c r="B1"><v>30</v></c><c r="C1"><f>A1+B1</f><v>42</v></c></row></sheetData>
+ </worksheet>`);
+ const bytes=await zip.generateAsync({type:"uint8array"});
+ const originalFetch=window.fetch.bind(window);
+ window.fetch=async(input,init)=>String(input)==="fixture.xlsx"
+   ?new Response(bytes,{status:200,headers:{"content-type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}})
+   :originalFetch(input,init);
+ try{
+   const worksheet=document.createElement("div");root.replaceChildren(worksheet);
+   await renderOffice(worksheet,{path:"fixture.xlsx",name:"fixture.xlsx"});
+   const toggle=worksheet.querySelector(".office-formula-toggle");
+   const value=worksheet.querySelector(".office-cell-formula")?.previousElementSibling;
+   const formula=worksheet.querySelector(".office-cell-formula");
+   assert(toggle&&formula&&value,"XLSX formula toggle not rendered");
+   assert(!value.hidden&&formula.hidden,"Excel cached values should show by default");
+   toggle.click();
+   assert(value.hidden&&!formula.hidden&&formula.textContent==="=A1+B1","Formula view does not match source");
+   toggle.click();
+   assert(!value.hidden&&formula.hidden,"Value view not restored");
+ }finally{window.fetch=originalFetch}
+ document.body.dataset.status="pass";
+ document.querySelector("#result")?.replaceChildren("pass");
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result")?.replaceChildren(String(error.stack||error));
+}
+</script></body></html>

@@ -11,6 +11,7 @@ export function normalizeQuiz(data={}){
     }
     return {
       id:String(question.id||`q${index+1}`),
+      chapter:String(question.chapter??question.chapterId??"").trim(),
       prompt,
       choices,
       answer,
@@ -18,7 +19,33 @@ export function normalizeQuiz(data={}){
     };
   });
   if(!questions.length)throw new Error("Quiz has no questions");
-  return {title,questions,version:Number(data.version)||1};
+  const declared=Array.isArray(data.chapters)?data.chapters:[];
+  const chapters=new Map();
+  for(const entry of declared){
+    const id=String(typeof entry==="string"?entry:entry?.id??"").trim();
+    const label=String(typeof entry==="string"?entry:entry?.title??entry?.label??id).trim();
+    if(id)chapters.set(id,label||id);
+  }
+  for(const question of questions){
+    if(question.chapter&&!chapters.has(question.chapter))chapters.set(question.chapter,question.chapter);
+  }
+  if(chapters.size&&questions.some(q=>!q.chapter))chapters.set("general",chapters.get("general")||"General");
+  return {title,questions,version:Number(data.version)||1,
+    chapters:[...chapters].map(([id,label])=>({
+      id,label,count:questions.filter(q=>(q.chapter||"general")===id).length
+    })).filter(chapter=>chapter.count>0)};
+}
+
+export function quizChapterView(quiz,chapterId="all"){
+  if(chapterId==="all")return quiz;
+  if(!quiz.chapters?.some(chapter=>chapter.id===chapterId))throw new Error("Unknown quiz chapter");
+  return {...quiz,questions:quiz.questions.filter(q=>(q.chapter||"general")===chapterId)};
+}
+
+export function quizChapterStorageKey(resource,chapterId="all"){
+  const key=quizStorageKey(resource);
+  return chapterId==="all"?key:key+"::chapter:"+encodeURIComponent(chapterId);
+
 }
 
 export function createQuizAttempt(quiz){

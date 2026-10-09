@@ -1,7 +1,40 @@
 {
   "title": "Hydro basics fixture",
   "questions": [
-    {"prompt":"What is the displaced volume of a rectangular barge with L=10 m, B=3 m and T=1.2 m?","choices":["25 m³","30 m³","36 m³","42 m³"],"answer":2,"explanation":"For a rectangular barge, volume = L × B × T = 36 m³."},
-    {"prompt":"Which quantity has units of m⁴?","choices":["Waterplane area","Second moment of area","Displacement volume","Draft"],"answer":1,"explanation":"The second moment of area has dimensions length to the fourth power."}
+    {
+      "prompt": "What is the displaced volume of a rectangular barge with L=10 m, B=3 m and T=1.2 m?",
+      "choices": [
+        "25 m³",
+        "30 m³",
+        "36 m³",
+        "42 m³"
+      ],
+      "answer": 2,
+      "explanation": "For a rectangular barge, volume = L × B × T = 36 m³.",
+      "chapter": "hydrostatics"
+    },
+    {
+      "prompt": "Which quantity has units of m⁴?",
+      "choices": [
+        "Waterplane area",
+        "Second moment of area",
+        "Displacement volume",
+        "Draft"
+      ],
+      "answer": 1,
+      "explanation": "The second moment of area has dimensions length to the fourth power.",
+      "chapter": "section-properties"
+    }
+  ],
+  "version": 2,
+  "chapters": [
+    {
+      "id": "hydrostatics",
+      "title": "Hydrostatics"
+    },
+    {
+      "id": "section-properties",
+      "title": "Section properties"
+    }
   ]
 }

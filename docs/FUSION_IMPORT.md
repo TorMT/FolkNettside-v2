@@ -18,7 +18,7 @@ The local v2 importer:
 
 This gives a useful local/offline path for exported or prepared Fusion archives that contain tessellated fallback geometry. The optional semantic sidecar is deliberately format-neutral: Hydro and Propulsion consume the shared ModelDocument metadata, not F3Z-specific rules.
 
-If the archive contains no supported fallback geometry, the importer throws an explicit error with code:
+If the archive contains no supported embedded tessellated/neutral fallback geometry, the importer throws an explicit error with code:
 
 `APS_REQUIRED`
 
@@ -63,3 +63,5 @@ A converted Fusion document should retain, where available:
 Pure archive selection/inventory behavior is deterministic and Node-tested.
 
 A binary synthetic F3Z fixture should additionally cover browser-side JSZip parsing. This remains a fixture task and does not block the semantic importer contract.
+
+The STEP/IGES/BREP path downloads a pinned third-party OpenCascade WASM runtime on first use, in a worker; this needs network/CDN access, even though **CAD file bytes are never uploaded**. Browser translation is tessellated preview, not editable Fusion geometry. To make this mode offline-capable later, vendor the pinned WASM/loader files through a separate binary asset packaging workflow after auditing dependency license/size.

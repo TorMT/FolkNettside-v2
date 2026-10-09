@@ -25,6 +25,7 @@ test("Fusion inventory exposes supported fallback counts",()=>{
     entries:5,
     threeMF:1,
     stl:2,
+    cad:0,
     nativeFusion:1,
     candidate:"a.3mf",
     semanticManifest:null
@@ -64,4 +65,12 @@ test("semantic sidecar maps engineering roles without format-specific solver log
   assert.equal(model.components[1].metadata.semantic.subtype,"azimuth");
   assert.equal(model.components[1].metadata.propulsion.thrust,20000);
   assert.deepEqual(model.semanticManifest.appliedComponentIds,["hull","az-ps"]);
+});
+
+test("F3Z candidate discovers neutral STEP IGES and BREP after embedded 3MF and STL",()=>{
+ assert.equal(selectFusionArchiveCandidate(["Native/project.f3d","Geometry/gear.step"]),"Geometry/gear.step");
+ assert.equal(selectFusionArchiveCandidate(["Data/x.igs","a/part.brep"]),"a/part.brep");
+ const inventory=fusionArchiveInventory(["assembly.step","part.iges","a.3mf"]);
+ assert.equal(inventory.cad,2);
+ assert.equal(inventory.candidate,"a.3mf");
 });

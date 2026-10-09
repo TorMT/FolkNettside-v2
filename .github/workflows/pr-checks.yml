@@ -17,16 +17,6 @@ jobs:
         run: find src tests -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
       - name: Run regression tests
         run: npm test
-      - name: Public CV routes and mobile contact browser check
-        run: |
-          command -v chromedriver
-          python3 -m http.server 4210 --bind 127.0.0.1 >/tmp/cv-http.log 2>&1 &
-          server_pid=$!
-          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/cv-driver.log 2>&1 &
-          driver_pid=$!
-          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
-          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4210/tests/browser/mobile-cv-nav-smoke.html 40 1280,900
-
       - name: VS Code style Python and Jupyter viewer on desktop and mobile
         run: |
           command -v chromedriver
@@ -38,10 +28,155 @@ jobs:
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4217/tests/browser/vscode-code-viewer-smoke.html 50 1280,900
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4217/tests/browser/vscode-code-viewer-smoke.html 50 390,844
 
+      - name: Validate interactive SiteUpdater and nested resource indexing
+        run: python3 -m unittest discover -s tests -p 'test_update_site_interactive.py' -v
+      - name: Block protected resources from public static preview
+        run: |
+          python3 -m unittest discover -s tests -p 'test_public_asset_audit.py' -v
+          python3 scripts/audit_public_assets.py
+
+      - name: Mobile navigation About CV Contact and overflow browser regression
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4210 --bind 127.0.0.1 >/tmp/mobile-cv-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/mobile-cv-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4210/tests/browser/mobile-cv-nav-smoke.html 35 1280,900
+
+      - name: Mobile engineering and tools route matrix
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4211 --bind 127.0.0.1 >/tmp/mobile-eng-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/mobile-eng-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4211/tests/browser/mobile-engineering-tools-smoke.html 90 1280,900
+
+      - name: Structure workspace 3D beam and 2D switch integration smoke
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4215 --bind 127.0.0.1 >/tmp/structure-route-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/structure-route-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4215/tests/browser/structure-workspace-3d-smoke.html 45 1280,900
+
+      - name: Static encrypted resources and offline unlock browser smoke
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4214 --bind 127.0.0.1 >/tmp/vault-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/vault-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4214/tests/browser/static-vault-smoke.html 50 1280,900
+
+      - name: Native Fusion F3D and nested F3Z preview and 3D geometry smoke
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4218 --bind 127.0.0.1 >/tmp/fusion-native-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/fusion-native-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4218/tests/browser/fusion-native-archive-smoke.html 60 1400,950
+
+      - name: CAD nested groups, focused Fusion shortcuts and thruster intake WebGL
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4217 --bind 127.0.0.1 >/tmp/cad-assembly-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/cad-assembly-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4217/tests/browser/cad-assembly-navigation-smoke.html 60 1400,950
+
+      - name: Real STEP / OpenCascade WASM and browser 3D test
+        run: |
+          command -v chromedriver
+          mkdir -p tests/browser/fixtures
+          curl --fail --silent --show-error --location --max-time 35 \
+            'https://raw.githubusercontent.com/kovacsv/occt-import-js/main/test/testfiles/simple-basic-cube/cube.stp' \
+            -o tests/browser/fixtures/occt-cube.stp
+          grep -q '^ISO-10303-21' tests/browser/fixtures/occt-cube.stp
+          python3 -m http.server 4216 --bind 127.0.0.1 >/tmp/cad-step-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/cad-step-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4216/tests/browser/cad-step-smoke.html 160 1280,900
+
+      - name: Structure FEM interactive 3D beam orbit and pan browser smoke
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4213 --bind 127.0.0.1 >/tmp/frame-orbit-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/frame-orbit-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4213/tests/browser/structure-beam-orbit-smoke.html 40 1280,900
+
+      - name: Sectional Area Curve numerical and browser rendering check
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4212 --bind 127.0.0.1 >/tmp/sac-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/sac-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4212/tests/browser/sac-curve-smoke.html 30
+
       - name: Verify all CoolProp native/reference tables with real WASM
         run: |
           python3 scripts/fetch_coolprop_wasm.py
           node scripts/verify_coolprop_reference.mjs
+
+      - name: Courses sidebar scroll and highlight browser regression
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          python3 -m http.server 4209 --bind 127.0.0.1 >/tmp/course-nav-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python3 - <<'PY'
+          import time,urllib.request
+          for _ in range(60):
+              try:
+                  urllib.request.urlopen('http://127.0.0.1:4209/tests/browser/course-scrollspy-smoke.html',timeout=1)
+                  break
+              except Exception:time.sleep(.1)
+          else: raise SystemExit('Course test server did not start')
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --window-size=1280,800 --virtual-time-budget=7500 \
+            --dump-dom http://127.0.0.1:4209/tests/browser/course-scrollspy-smoke.html >/tmp/course-nav-dom.html
+          grep -q 'data-status="pass"' /tmp/course-nav-dom.html || {
+            grep -E 'data-status=|<pre class="test-result"' /tmp/course-nav-dom.html || true
+            exit 1
+          }
+
+      - name: Quiz chapter and Excel formula browser regression
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4207 --bind 127.0.0.1 >/tmp/quiz-formulas-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/quiz-formulas-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4207/tests/browser/quiz-formula-smoke.html 35 1440,900
+
+      - name: KISSsoft upload and visualization browser smoke
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4208 --bind 127.0.0.1 >/tmp/kisssoft-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/kisssoft-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4208/tests/browser/kisssoft-smoke.html 30
 
       - name: MedisinTimer browser smoke
         run: |

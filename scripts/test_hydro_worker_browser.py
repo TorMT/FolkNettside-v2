@@ -8,7 +8,7 @@ import urllib.request
 
 DRIVER = "http://127.0.0.1:9515"
 
-def call(method, path, body=None, timeout=10):
+def call(method, path, body=None, timeout=30):
     data = None if body is None else json.dumps(body).encode("utf-8")
     req = urllib.request.Request(DRIVER + path, data=data, method=method,
         headers={"Content-Type": "application/json"})
@@ -21,7 +21,7 @@ def call(method, path, body=None, timeout=10):
 def main(url):
     session=None
     try:
-        for _ in range(50):
+        for _ in range(90):
             try:
                 call("GET","/status",timeout=1)
                 break
@@ -32,10 +32,10 @@ def main(url):
             "browserName":"chrome",
             "goog:chromeOptions":{"args":["--headless=new","--no-sandbox",
                 "--disable-gpu","--disable-dev-shm-usage","--window-size="+window_size]}
-        }}})
+        }}},timeout=35)
         session=response.get("sessionId")
         if not session:raise RuntimeError("ChromeDriver did not return a session ID")
-        call("POST",f"/session/{session}/url",{"url":url},timeout=15)
+        call("POST",f"/session/{session}/url",{"url":url},timeout=30)
         deadline=time.monotonic()+int(sys.argv[2]) if len(sys.argv)>2 else time.monotonic()+30
         latest=None
         while time.monotonic()<deadline:

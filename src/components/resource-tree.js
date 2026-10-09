@@ -6,7 +6,7 @@ function buildTree(resources){
   const root={folders:new Map(),files:[]};
   for(const item of resources){
     let node=root;
-    for(const folder of item.folders||[]){
+    for(const folder of (Array.isArray(item.folders)?item.folders:[])){
       if(!node.folders.has(folder))node.folders.set(folder,{folders:new Map(),files:[]});
       node=node.folders.get(folder);
     }
@@ -25,8 +25,8 @@ function renderNode(node,indexOfResource,depth=0){
 
   const fileHTML=node.files
     .slice()
-    .sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:"base"}))
-    .map(item=>`<div class="resource-row" data-resource="${indexOfResource(item)}">
+    .sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),undefined,{numeric:true,sensitivity:"base"}))
+    .map(item=>`<div class="resource-row" role="button" tabindex="0" aria-label="Open ${escapeHTML(item.label||item.name)}" data-resource="${indexOfResource(item)}">
       <span class="file-icon">${escapeHTML(item.kind)}</span>
       <div><strong>${escapeHTML(item.label)}</strong><div class="muted">${escapeHTML(item.name)}</div></div>
       <span class="muted">Open ›</span>

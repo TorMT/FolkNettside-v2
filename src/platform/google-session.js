@@ -1,6 +1,7 @@
 const GOOGLE_GIS_SRC="https://accounts.google.com/gsi/client";
 const USERINFO_URL="https://openidconnect.googleapis.com/v1/userinfo";
-const CONFIG_ENDPOINT="/includes/brewing/api/storage.php";
+const STATIC_CONFIG="./data/google-auth.json";
+const LEGACY_CONFIG="/includes/brewing/api/storage.php";
 const DRIVE_SCOPE="https://www.googleapis.com/auth/drive.file";
 const IDENTITY_SCOPES=["openid","email","profile"];
 
@@ -91,10 +92,19 @@ export async function loadGoogleSessionConfig({force=false}={}){
     try{
       let raw=globalThis.__FOLK_GOOGLE_AUTH_CONFIG__||null;
       if(!raw){
-        const response=await fetch(CONFIG_ENDPOINT,{cache:"no-store",headers:{"Accept":"application/json"}});
-        if(!response.ok)throw new Error(`Google config HTTP ${response.status}`);
-        const payload=await response.json();
-        raw=payload?.googleDriveAuth||payload?.google||null;
+        // A Google OAuth browser client ID is public, unlike a client secret.
+        // Static GitHub Pages must not depend on a server-side PHP endpoint.
+        const paths=[STATIC_CONFIG];
+        if(!location.hostname.endsWith("github.io"))paths.push(LEGACY_CONFIG);
+        for(const path of paths){
+          try{
+            const response=await fetch(path,{cache:"no-store",headers:{"Accept":"application/json"}});
+            if(!response.ok)continue;
+            const payload=await response.json();
+            raw=payload?.googleDriveAuth||payload?.google||payload;
+            if(raw?.clientId)break;
+          }catch{ /* Optional configuration not present on this origin. */ }
+        }
       }
       const config=normalizedConfig(raw);
       if(!config)throw new Error("Google sign-in is not configured on this deployment.");
