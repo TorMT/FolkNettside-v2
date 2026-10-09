@@ -12,6 +12,9 @@ export function cadToolHTML(){
  <div class="cad-import-bar">
    <label>Model file <input id="cad-import-file" type="file"
      accept=".step,.stp,.iges,.igs,.brep,.stl,.3mf"></label>
+   <label>BREP units (if no metadata)
+    <select id="cad-brep-units"><option value="millimeter">mm</option><option value="meter">m</option><option value="inch">in</option><option value="centimeter">cm</option></select>
+   </label>
    <button class="btn" id="cad-import-cancel" type="button" disabled>Cancel import</button>
  </div>
  <p id="cad-import-status" role="status" aria-live="polite">Choose a file. Nothing is uploaded.</p>
@@ -44,7 +47,8 @@ export function mountCADTool(root){
      if(current!==request||disposed)return;
      status.textContent=isCADFile(file.name)?"Loading OpenCascade WASM for "+file.name+"…":"Reading mesh…";
      const documentModel= isCADFile(file.name)?
-       await parseCADBuffer(buffer,file.name,{format:ext,signal:controller.signal}):
+       await parseCADBuffer(buffer,file.name,{format:ext,signal:controller.signal,
+         brepUnit:root.querySelector("#cad-brep-units")?.value||"millimeter"}):
        ext==="stl"?parseSTL(buffer,file.name):
        ext==="3mf"?await parse3MF(buffer,file.name):
        (()=>{throw Error("Unsupported file extension")})();
