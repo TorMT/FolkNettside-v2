@@ -49,3 +49,54 @@ test("Markdown and notebook output are escaped, graphics only PNG data",()=>{
  const unsafe=renderNotebookOutput({data:{"image/png":'abc" onerror="alert(1)'}});
  assert.doesNotMatch(unsafe,/<img/);
 });
+
+
+test("Python session mounts nested project files, streams output and isolates stale Worker events",async()=>{
+ const session=createPythonSession({workerFactory:()=>new FakeWorker()});
+ const paths=["main.py","samplelib/__init__.py","samplelib/wave.py","data/measurements.csv"];
+ const mount=session.mount(paths.map(path=>({path,content:"fixture"})));
+ const old=FakeWorker.instances.at(-1);
+ assert.equal(old.sent[0].type,"mount");
+ assert.deepEqual(old.sent[0].files.map(file=>file.path),paths);
+ old.reply({id:old.sent[0].id,phase:"done",ok:true});
+ await mount;
+ const chunks=[],statuses=[];
+ const run=session.run("from samplelib.wave import wave",{
+   status:value=>statuses.push(value),
+   onOutput:value=>chunks.push(value),
+   sourceURL:"main.py"
+ });
+ assert.equal(session.running,true);
+ const message=old.sent[1];
+ assert.equal(message.sourceURL,"main.py");
+ old.reply({id:message.id,phase:"loading"});
+ old.reply({id:message.id,phase:"output",output:"imported"});
+ assert.equal(session.running,true);
+ old.reply({id:message.id,phase:"done",ok:true,stdout:"imported"});
+ assert.equal((await run).stdout,"imported");
+ assert.equal(session.running,false);
+ assert.deepEqual(chunks,["imported"]);
+ assert.equal(statuses.length,1);
+ session.stop();
+ const newer=session.run("print('new')");
+ const fresh=FakeWorker.instances.at(-1);
+ old.reply({id:message.id,phase:"done",ok:false,error:"stale"});
+ fresh.reply({id:fresh.sent[0].id,phase:"done",ok:true,stdout:"new"});
+ assert.equal((await newer).stdout,"new");
+ session.dispose();
+});
+test("Python worker crashes reject all outstanding cells and permit clean restart",async()=>{
+ const session=createPythonSession({workerFactory:()=>new FakeWorker()});
+ const first=session.run("print(1)"),second=session.run("print(2)");
+ const broken=FakeWorker.instances.at(-1);
+ broken.onerror({message:"Python Worker crashed"});
+ await assert.rejects(first,/crashed/);
+ await assert.rejects(second,/crashed/);
+ assert.equal(session.running,false);
+ assert.equal(broken.terminated,true);
+ const recovered=session.run("print(3)");
+ const fresh=FakeWorker.instances.at(-1);
+ fresh.reply({id:fresh.sent[0].id,phase:"done",ok:true,stdout:"3"});
+ assert.equal((await recovered).stdout,"3");
+ session.dispose();
+});
