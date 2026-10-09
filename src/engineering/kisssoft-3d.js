@@ -1,7 +1,7 @@
 import {getThreeRuntime} from "../model/three-runtime.js";
 import {conceptualHelicalToothGeometry} from "./gear-visual-shape.js";
 import {checkPlanetaryPitch} from "./gear-pitch-checks.js";
-import {fixedRingPlanetaryRates} from "./kisssoft-motion.js";
+import {planetaryRates} from "./kisssoft-motion.js";
 /** Concept-only mesh. Tooth blocks are schematic, not involute teeth. */
 export async function mountKisssoft3D(target,model){
  if(!model.planetary||!model.consistent)return ()=>{};
@@ -14,6 +14,10 @@ export async function mountKisssoft3D(target,model){
  controlsUI.innerHTML='<label><input type="checkbox" data-gear-housing checked> Show housing</label>'+
   '<label><input type="checkbox" data-gear-carrier checked> Show carrier / shafts</label>'+
   '<label>Explode assembly <input type="range" data-gear-explode min="0" max="100" value="0"></label>'+
+  '<label>Boundary condition <select data-gear-boundary aria-label="Ideal planetary boundary condition">'+
+  '<option value="ring-fixed">Ring fixed · sun drives</option>'+
+  '<option value="sun-fixed">Sun fixed · ring drives</option>'+
+  '<option value="carrier-fixed">Carrier fixed · sun drives</option></select></label>'+
   '<button class="btn" type="button" data-gear-play aria-pressed="true">Pause motion</button>'+
   '<label>Speed <input type="range" data-gear-speed min="0.25" max="2" step="0.25" value="0.75"></label>'+
   '<span data-gear-motion-hint>Sun 1× · Carrier 0.21× · Planet −0.36× · Ring fixed</span>';
@@ -50,7 +54,7 @@ export async function mountKisssoft3D(target,model){
  const pitch=checkPlanetaryPitch(model);
  const m=model.module,dist=pitch.sunPlanetCenterDistance;
  const beta=Number(model.beta||0);
- const rates=fixedRingPlanetaryRates(sun,planet,ring);
+ let rates=planetaryRates(sun,planet,ring);
  const planetGroups=[];
  const width=model.gears[0].width>0?model.gears[0].width:35;
  const add=(geometry,mat,x=0,y=0,z=0,rotation=0,part="ring",parent=layers[part])=>{
@@ -131,8 +135,12 @@ export async function mountKisssoft3D(target,model){
  const explode=controlsUI.querySelector("[data-gear-explode]");
  const playButton=controlsUI.querySelector("[data-gear-play]");
  const speedInput=controlsUI.querySelector("[data-gear-speed]");
+ const boundary=controlsUI.querySelector("[data-gear-boundary]");
  const motionHint=controlsUI.querySelector("[data-gear-motion-hint]");
- motionHint.textContent=`Illustrative, fixed-ring motion · sun 1× · carrier ${rates.carrier.toFixed(3)}× · planet ${rates.planet.toFixed(3)}× · ring 0×`;
+ const updateHint=()=>{
+   motionHint.textContent=`Illustrative ${boundary.value} · sun ${rates.sun.toFixed(3)}× · ring ${rates.ring.toFixed(3)}× · carrier ${rates.carrier.toFixed(3)}× · planet ${rates.planet.toFixed(3)}× · Willis residual ${rates.closureResidual.toExponential(1)}`;
+ };
+ updateHint();
  const updateAssembly=()=>{
    layers.housing.visible=showHousing.checked;
    layers.carrier.visible=showCarrier.checked;
@@ -168,12 +176,14 @@ export async function mountKisssoft3D(target,model){
  let phase=0;
  let animationFrame=0;
  const updatePhase=()=>{
-   layers.sun.rotation.z=phase;
+   layers.sun.rotation.z=rates.sun*phase;
+   layers.ring.rotation.z=rates.ring*phase;
    layers.carrier.rotation.z=rates.carrier*phase;
    layers.planets.rotation.z=rates.carrier*phase;
    for(const gear of planetGroups)gear.rotation.z=rates.planetRelativeCarrier*phase;
    // Expose model-space angles for deterministic browser regression checks.
-   canvas.dataset.sunAngle=String(phase);
+   canvas.dataset.sunAngle=String(rates.sun*phase);
+   canvas.dataset.ringAngle=String(rates.ring*phase);
    canvas.dataset.carrierAngle=String(rates.carrier*phase);
    canvas.dataset.planetSpin=String(rates.planetRelativeCarrier*phase);
  };
@@ -204,6 +214,10 @@ export async function mountKisssoft3D(target,model){
    if(playing)startLoop();else stopLoop();
  };
  playButton.addEventListener("click",()=>setPlaying(!playing));
+ boundary.addEventListener("change",()=>{
+   rates=planetaryRates(sun,planet,ring,{mode:boundary.value});
+   phase=0;previousFrame=null;updatePhase();updateHint();draw();
+ });
  const visibility=()=>{if(document.hidden)stopLoop();else startLoop();};
  document.addEventListener("visibilitychange",visibility);
  controls.addEventListener("change",draw);
