@@ -1,4 +1,5 @@
 import {extension} from "../viewers/utils.js";
+import {parseCADBuffer} from "./parsers/cad-runtime.js";
 import {parse3MF} from "./parsers/three-mf.js";
 import {parseSTL} from "./parsers/stl.js";
 import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js";
@@ -36,7 +37,8 @@ export async function loadModelDocument(config){
     if(!Array.isArray(partMetadata))throw new Error("partMetadataPath must resolve to an array");
   }
   let documentModel;
-  if(ext==="3mf")documentModel=await parse3MF(buffer,config.name);
+  if(["step","stp","iges","igs","brep"].includes(ext))documentModel=await parseCADBuffer(buffer,config.name||"CAD model",{format:ext});
+  else if(ext==="3mf")documentModel=await parse3MF(buffer,config.name);
   else if(ext==="stl")documentModel=parseSTL(buffer,config.name);
   else if(ext==="f3z")documentModel=await parseFusionArchive(buffer,config.name);
   else if(ext==="f3d")documentModel=nativeFusionPlaceholder({name:config.name,format:"F3D"});
