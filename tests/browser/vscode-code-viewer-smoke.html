@@ -31,7 +31,7 @@ try{
  edit.click();
  const editor=host.querySelector(".python-code-edit");
  check(!host.querySelector(".python-editor-stage").hidden,"Editor not visible");
- check(host.querySelector(".python-code-edit-highlight .hljs-keyword"),"Editor is plain text rather than colored");
+ check(host.querySelector(".python-code-edit-highlight .hljs-string")&&host.querySelector(".python-code-edit-highlight .hljs-number"),"Editor does not color strings and numeric literals");
  editor.value="if True:";
  editor.setSelectionRange(editor.value.length,editor.value.length);
  editor.dispatchEvent(new Event("input",{bubbles:true}));
