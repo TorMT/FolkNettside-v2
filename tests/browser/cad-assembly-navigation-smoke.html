@@ -1,0 +1,79 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/viewer-enhancements.css">
+<title>Fusion navigation, groups and thruster overlay regression</title>
+<style>body{margin:0}#viewer{height:82vh;min-height:630px}</style></head>
+<body data-status="running">
+<div id="viewer"></div><pre id="result">running</pre>
+<script type="module">
+import {createModelDocument} from "../../src/model/model-document.js";
+import {renderModelWorkbench} from "../../src/viewers/model-workbench.js";
+const check=(value,message)=>{if(!value)throw Error(message)};
+function geometry(x){
+ return {positions:[x,0,0,x+.7,0,0,x,.6,0,x,0,.4,x+.7,0,.4,x,.6,.4],
+  indices:[0,1,2,3,5,4]};
+}
+const components=[
+ {id:"thr-f",name:"Thruster fremre",geometry:geometry(-2)},
+ {id:"thr-b",name:"Thruster bakre",geometry:geometry(2)},
+ {id:"hfp",name:"Fremre skrog babord",geometry:geometry(-3)},
+ {id:"hfs",name:"Fremre skrog styrbord",geometry:geometry(-1)},
+ {id:"hb",name:"Bakre skrog",geometry:geometry(3)}
+];
+let view=null;
+try{
+ const doc=createModelDocument({name:"Marine assembly",format:"OBJ",unit:"meter",components});
+ view=await renderModelWorkbench(document.querySelector("#viewer"),doc);
+ const $=sel=>document.querySelector(sel);
+ const canvas=$(".three-canvas");
+ check(canvas&&canvas.tabIndex===0,"3D CAD focus surface unavailable");
+ const group=$(".cad-group-tree");
+ check(group,"Nested component group viewer missing");
+ const thruster=[...group.querySelectorAll("button")].find(item=>item.textContent.includes("Thruster (2)"));
+ check(thruster,"Thruster front and rear not merged into common group");
+ thruster.click();
+ const selectedIds=["thr-f","thr-b"];
+ check($("[data-cad-selected]").textContent.includes("2 component"),"Thruster group selection did not include two parts");
+ const slider=$("[data-cad-group-explode]");
+ slider.value="1";slider.dispatchEvent(new Event("input",{bubbles:true}));
+ check(view.actions.getExplodeState().selected===1,"Selected-group explosion slider is disconnected");
+ check(view.actions.getExplodeState().ids.length===2,"Selected-group explosion applied to wrong mesh IDs");
+ check(view.actions.getWaterlineInfo().status!=="ok","Exploded CAD display cannot claim assembled Hydro geometry");
+ $("[data-cad-solo]").click();
+ check(view.actions.getVisibleComponentIds().length===2,"Group isolation did not hide other CAD meshes");
+ $("[data-cad-thrust-dia]").value="1.8";
+ $("[data-cad-thrust-axis]").value="1,0,0";
+ $("[data-cad-thrust-mark]").click();
+ check(view.actions.getThrusterFlowCount()===2,"Grouped thruster ring overlays not created");
+ $("[data-cad-show]").click();
+ check(view.actions.getVisibleComponentIds().length===5,"Reset must show all CAD components");
+ const hull=[...group.querySelectorAll("button")].find(item=>item.textContent.includes("Skrog (3)"));
+ check(hull,"Fore and aft hull are not in a common group");
+ hull.click();
+ const hullChild=[...group.querySelectorAll("button")].find(item=>item.textContent.includes("Fremre (2)"));
+ check(hullChild,"Hierarchy did not retain two nested fore hull panels");
+ hullChild.click();
+ check($("[data-cad-selected]").textContent.includes("2 component"),"Nested subgroup selection failed");
+ const old=view.actions.cameraState();
+ canvas.focus();
+ canvas.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowRight",shiftKey:true,bubbles:true,cancelable:true}));
+ const after=view.actions.cameraState();
+ check(JSON.stringify(old.position)!==JSON.stringify(after.position),"Focused Fusion orbit shortcut failed");
+ canvas.dispatchEvent(new KeyboardEvent("keydown",{key:"f",bubbles:true,cancelable:true}));
+ const fitted=view.actions.cameraState();
+ check(fitted.position.every(Number.isFinite),"Fit keyboard command corrupted camera");
+ view.actions.navigate3D({pan:[.02,.01,.01],orbit:[.015,.025,.01]});
+ const moved=view.actions.cameraState();
+ check(JSON.stringify(moved.target)!==JSON.stringify(fitted.target),"Six-axis camera translation did not pan");
+ const link=$("[data-model-spacemouse]");
+ check(link,"SpaceMouse Connect button not visible");
+ check($("[data-model-spacemouse-status]")?.textContent.includes("WebHID")||
+   $("[data-model-spacemouse-status]")?.textContent.includes("SpaceMouse"),
+   "SpaceMouse capability status missing");
+ document.body.dataset.status="pass";
+ $("#result").textContent="CAD nested groups, isolated explode, thruster rings, hotkeys and 6-axis movement passed";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error.stack||error);
+}finally{view?.cleanup?.()}
+</script></body></html>
