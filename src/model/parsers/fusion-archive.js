@@ -97,7 +97,10 @@ export function applySemanticManifest(model,manifest={}){
   return model;
 }
 
-export async function parseFusionArchive(buffer,name="Fusion archive"){
+export async function parseFusionArchive(buffer,name="Fusion archive",depth=0){
+  if(depth>1)throw new FusionConversionRequiredError("Nested Fusion archive depth exceeded");
+  if(!(buffer instanceof ArrayBuffer)||buffer.byteLength>55*1024*1024)
+    throw new Error("Fusion archive exceeds safe size limit");
   const JSZip=await getJSZip();
   let zip;
   try{
@@ -112,8 +115,32 @@ export async function parseFusionArchive(buffer,name="Fusion archive"){
   const inventory=fusionArchiveInventory(paths);
   const candidate=inventory.candidate;
   if(!candidate){
+    // Real F3Z packages typically hold F3D design documents rather than a
+    // direct STEP/STL. Look one layer into bounded native designs for any
+    // genuine neutral geometry; do not fabricate triangles from thumbnails.
+    if(depth===0){
+      for(const nestedPath of paths.filter(path=>/\.f3d$/i.test(path)).slice(0,12)){
+        const nestedEntry=zip.file(nestedPath);
+        if(!nestedEntry||Number(nestedEntry._data?.uncompressedSize||0)>38*1024*1024)continue;
+        try{
+          const nestedBytes=await nestedEntry.async("arraybuffer");
+          if(nestedBytes.byteLength>38*1024*1024)continue;
+          const parsed=await parseFusionArchive(nestedBytes,nestedPath,depth+1);
+          parsed.format="F3Z";
+          parsed.source={...parsed.source,format:"F3Z",
+            archiveEntry:nestedPath+" / "+parsed.source.archiveEntry,
+            nestedDesign:nestedPath};
+          return parsed;
+        }catch(error){
+          // A native Fusion F3D need not include neutral fallback meshes.
+          // Try other embedded designs. Non-geometric designs are still shown
+          // as original archive previews through fusion-package-view.
+          if(error?.code!=="APS_REQUIRED"&&error?.message?.includes("safe size"))throw error;
+        }
+      }
+    }
     const error=new FusionConversionRequiredError(
-      "F3Z contains no embedded 3MF/STL/STEP/IGES/BREP fallback geometry. Autodesk APS conversion is required."
+      "Fusion archive contains no directly readable 3MF/STL/STEP/IGES/BREP geometry. Native F3D geometry requires an authorized Fusion or Autodesk translation."
     );
     error.inventory=inventory;
     throw error;
@@ -136,9 +163,10 @@ export async function parseFusionArchive(buffer,name="Fusion archive"){
     model=await parseCADBuffer(embedded,name,{format});
   }
 
-  model.format="F3Z";
+  const sourceFormat=String(name).toLowerCase().endsWith(".f3d")?"F3D":"F3Z";
+  model.format=sourceFormat;
   model.source={
-    format:"F3Z",
+    format:sourceFormat,
     archiveEntry:candidate,
     embeddedFormat:candidate.split(".").pop().toUpperCase(),
     conversion:"embedded-fallback",
