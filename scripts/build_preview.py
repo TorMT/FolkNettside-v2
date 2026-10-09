@@ -46,7 +46,39 @@ def stamp_index(text: str, version: str) -> str:
     )
     return text
 
+def validate_sources_for_publish() -> None:
+    """Do not copy sensitive filenames or follow symlinks into the public site."""
+    import runpy
+    check = runpy.run_path(str(ROOT / "scripts" / "audit_public_assets.py"))["resource_violations"]
+    for name in COPY_FILES + COPY_DIRS:
+        source = ROOT / name
+        if source.is_symlink():
+            raise ValueError(f"Refusing symbolic link in public source: {name}")
+        if not source.exists():
+            raise FileNotFoundError(f"Missing public source: {name}")
+        paths = source.rglob("*") if source.is_dir() else [source]
+        for path in paths:
+            relative = path.relative_to(ROOT).as_posix()
+            if path.is_symlink():
+                raise ValueError(f"Refusing symbolic link in public source: {relative}")
+            if path.is_file():
+                violations = check(relative)
+                if violations:
+                    raise ValueError(f"Refusing private/secret-like public file: {relative} ({', '.join(violations)})")
+
+
 def build(version: str, output: Path) -> None:
+    output = output.absolute()
+    if not version or any(c in version for c in "\\r\\n"):
+        raise ValueError("Build version must be a non-empty, single-line identifier")
+    if output.is_symlink() or output == ROOT or ROOT.is_relative_to(output):
+        raise ValueError("Unsafe Pages build destination")
+    if any(output == ROOT / name or output.is_relative_to(ROOT / name) for name in COPY_DIRS):
+        raise ValueError("Cannot build inside a public source directory")
+    if output.exists():
+        if not output.is_dir() or (any(output.iterdir()) and not (output / "build.txt").is_file()):
+            raise ValueError("Refusing to overwrite an unmarked nonempty directory")
+    validate_sources_for_publish()
     if output.exists():
         shutil.rmtree(output)
     output.mkdir(parents=True)
