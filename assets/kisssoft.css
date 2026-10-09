@@ -1,0 +1,9 @@
+.kisssoft-layout{display:grid;grid-template-columns:minmax(280px,1.1fr) minmax(270px,1fr);gap:18px;align-items:start}
+.kisssoft-summary{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.kisssoft-summary h2{margin:0 0 8px}
+.kisssoft-summary table,.brew-inventory-list table{width:100%;border-collapse:collapse}
+.kisssoft-summary td,.kisssoft-summary th{padding:7px;text-align:left;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.kisssoft-summary details{margin-top:18px}.kisssoft-summary details td{font-size:12px}
+.kisssoft-summary svg{max-width:100%}
+.kisssoft-page input[type=file]{display:block;margin:12px 0}
+@media(max-width:830px){.kisssoft-layout{grid-template-columns:minmax(0,1fr)}}
