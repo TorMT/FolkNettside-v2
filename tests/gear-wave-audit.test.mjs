@@ -42,3 +42,20 @@ test("Anchored vessel stays motionless while follow-mode visual heave matches li
  assert.ok(Math.abs(waveModelHeave(wave,1,"follow",0,0)-waveElevation(wave,0,0,1))<1e-12);
  assert.throws(()=>waveModelHeave(wave,1,"response-prediction"),/Unknown/);
 });
+
+test("KISSsoft internal ring/pinion uses positive ratio, ring helix hand and exact pitch gap",()=>{
+ const model=parseKisssoft([
+   "KSOFTVERSION=2026","MODULE=Z012",
+   "ZR[0].z=20","ZR[1].z=-225",
+   "ZR[0].b=30","ZR[1].b=40","ZS.Geo.mn=20","ZS.Geo.beta=15"
+ ].join("\\n"),"pitch-ring.Z12");
+ const pair=externalGearPair(model);
+ assert.ok(pair);
+ assert.equal(pair.kind,"internal-pair");
+ assert.equal(pair.internal,true);
+ assert.ok(Math.abs(pair.velocityRatio-20/225)<1e-12);
+ assert.ok(Math.abs(pair.centerDistance-(225-20)*10/Math.cos(15*Math.PI/180))<1e-9);
+ assert.ok(Math.abs(pair.tangencyResidual)<1e-9);
+ const invalid=parseKisssoft("MODULE=Z014\\nZR[0].z=25\\nZR[1].z=35\\nZR[2].z=-96\\nZS.Geo.mn=2","bad.Z14");
+ assert.equal(externalGearPair(invalid),null,"Broken planetary must never silently become a two-shaft pair");
+});
