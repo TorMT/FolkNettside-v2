@@ -80,7 +80,7 @@ export function bindKisssoftParameterSearch(container,model){
 export function kisssoftSummary(model,rotation=0){
  const pair=externalGearPair(model);
  const check=model.planetary?checkPlanetaryPitch(model):null;
- const gearNames=model.planetary?["Sun","Planet","Internal ring"]:pair?.internal?["Pinion","Internal ring"]:["Gear 1","Gear 2","Gear 3"];
+ const gearNames=model.planetary?["Sun","Planet","Internal ring"]:pair?.internal?(pair.pinionIndex===0?["Pinion","Internal ring"]:["Internal ring","Pinion"]):["Gear 1","Gear 2","Gear 3"];
  const gearRows=(pair?model.gears.slice(0,2):model.gears).map((g,i)=>`<tr><td>${gearNames[i]}</td><td>${esc(g.teeth)}</td><td>${mm(g.width)}</td><td>${esc(g.material)}</td></tr>`).join("");
  const status=model.planetary?(model.consistent?"Tooth-count geometry consistent":"Tooth-count mismatch; verify source values"):pair?(pair.internal?"Internal ring/pinion: nominal pitch geometry":"External gear pair: nominal pitch geometry"):"No validated gear geometry";
  return `<section class="kisssoft-summary"><h2>${esc(model.name)}</h2>
