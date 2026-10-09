@@ -85,6 +85,7 @@ export const TOOL_REGISTRY=[
   },
   {
     id:"encrypted-resources",
+    newTool:true,
     title:"Encrypted resources",
     short:"SEC",
     route:"/tools/vault",
