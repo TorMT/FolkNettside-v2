@@ -41,7 +41,7 @@ export function sectionalAreaAtStation(geometries,x,draft,{maxTriangles=60000}={
  let triangles=0;
  for(const geo of geometries){
    const p=geo.positions,indices=geo.indices?.length?geo.indices:null;
-   if(!Array.isArray(p)||p.length%9&& !indices)throw Error("SAC geometry requires triangular coordinates");
+   if(!p||p.length%3||(!indices&&p.length%9))throw Error("SAC geometry requires triangular coordinates");
    const size=indices?.length||p.length/3;
    if(size%3)throw Error("Invalid triangular hull data");
    triangles+=size/3;
@@ -74,9 +74,16 @@ export function sectionalAreaCurve(prepared,{draft,stations=31,maxTriangles=6000
  if(!Number.isInteger(stations)||stations<3||stations>101)throw Error("SAC stations must be from 3 to 101");
  if(!Number.isFinite(draft))throw Error("SAC draft must be finite");
  const geometries=prepared.components.map(c=>c.geometry);
- const xs=geometries.flatMap(g=>g.positions.filter((_,i)=>i%3===0));
- if(!xs.length)throw Error("No station coordinates");
- const min=Math.min(...xs),max=Math.max(...xs),length=max-min;
+ let min=Infinity,max=-Infinity;
+ for(const geo of geometries){
+   const values=geo.positions||[];
+   for(let i=0;i<values.length;i+=3){
+     min=Math.min(min,values[i]);
+     max=Math.max(max,values[i]);
+   }
+ }
+ if(!Number.isFinite(min)||!Number.isFinite(max))throw Error("No station coordinates");
+ const length=max-min;
  if(!(length>0))throw Error("Hull must extend in longitudinal X");
  const epsilon=length*1e-6;
  const samples=Array.from({length:stations},(_,i)=>{
