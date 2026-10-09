@@ -86,7 +86,8 @@ export function kisssoftSummary(model,rotation=0){
  return `<section class="kisssoft-summary"><h2>${esc(model.name)}</h2>
   <p><strong>${esc(model.moduleCode)}</strong> · KISSsoft ${esc(model.version)} · ${esc(status)}</p>
   <div class="kisssoft-layout"><div><div class="kisssoft-3d-slot" data-kisssoft-3d aria-label="Interactive concept model"></div>${kisssoftDiagram(model,{rotation})}<p class="muted">Concept sketch using pitch proportions and schematic teeth; not a manufacturable tooth profile or validated CAD model. Three planets are shown illustratively: planet count is not inferred from this file.</p></div>
-  <div><h3>Imported parameters</h3><p>Normal module: ${mm(model.module)} · Helix angle: ${esc(model.beta)}°</p>
+  <div><h3>Imported parameters</h3><p>Normal module: ${mm(model.module)} · Helix β: ${Number.isFinite(model.beta)?model.beta.toFixed(3)+"°":"unknown"} ${Number.isFinite(model.betaRad)?`(file ${model.betaRad.toFixed(6)} rad)`:""}</p>
+  ${Number.isFinite(model.pressureAngleNormalDeg)?`<p>Normal pressure angle αₙ: ${model.pressureAngleNormalDeg.toFixed(3)}°</p>`:""}
   <p>Nominal center distance: ${mm(check?.sunPlanetCenterDistance??pair?.centerDistance??model.centerDistance)}</p>
   ${check?`<p>Planetary pitch closure: ${Math.abs(check.residual)<1e-7?"consistent":mm(check.residual)+" mismatch"}</p>`:""}
   ${pair?`<p>Mesh: ${pair.internal?"internal":"external"} · Nominal speed ratio ω₂/ω₁: ${pair.velocityRatio.toFixed(4)} · Pitch tangency residual: ${pair.tangencyResidual.toExponential(1)} mm</p>`:""}
