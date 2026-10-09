@@ -126,32 +126,62 @@ export function kisssoftPageHTML(){
  return `<main class="section kisssoft-page"><p class="crumbs">Engineering / KISSsoft</p><h1>KISSsoft gear inspector</h1>
  <p>Open a local .Z14, .Z12, .W10 or .KSYS file. Z014 planetary datasets and compatible two-shaft external pairs support conceptual rotating 3D gears and approximate helix. Other formats show available parameter information.</p>
  <label class="form-field">KISSsoft file <input id="kisssoft-file" type="file" accept=".z12,.z14,.w10,.ksys"></label>
+ <div class="kisssoft-example"><button class="btn" type="button" data-kisssoft-example>Open example planetary gearbox</button> <a href="./examples/kisssoft/PlanetaryExample.Z14" download="PlanetaryExample.Z14">Download example .Z14</a><small>Synthetic Z014-compatible parameter fixture for learning; not an original KISSsoft calculation or validated design.</small></div>
  <div id="kisssoft-output" role="status" aria-live="polite"><p>No file loaded. Your file stays in your browser.</p></div></main>`;
 }
 export function mountKisssoft(root){
  const input=root.querySelector("#kisssoft-file"),output=root.querySelector("#kisssoft-output");
+ const example=root.querySelector("[data-kisssoft-example]");
  if(!input||!output)return ()=>{};
- let dispose3D=()=>{};
- let generation=0;
- input.addEventListener("change",async()=>{
+ let dispose3D=()=>{},generation=0,disposed=false;
+ async function showModel(buffer,name,current){
+   if(current!==generation||disposed)return;
+   const model=parseKisssoftBuffer(buffer,name);
+   let rotation=0;
+   const show=()=>{
+     output.innerHTML=kisssoftSummary(model,rotation)+
+       '<label>Concept rotation <input id="kisssoft-rotation" type="range" min="0" max="360" value="'+Math.round(rotation*180/Math.PI)+'"></label>';
+     output.querySelector("#kisssoft-rotation").oninput=e=>{
+       rotation=Number(e.target.value)*Math.PI/180;
+       const visual=output.querySelector("svg");
+       if(visual)visual.outerHTML=kisssoftDiagram(model,{rotation});
+     };
+   };
+   show();
+   bindKisssoftParameterSearch(output,model);
+   const dispose=await mountKisssoftVisual(output,model);
+   if(current!==generation||disposed){dispose();return}
+   dispose3D=dispose;
+ }
+ async function openBuffer(read,name){
    const current=++generation;
    dispose3D();dispose3D=()=>{};
-   const file=input.files?.[0];if(!file)return;
    output.textContent="Reading KISSsoft parameters…";
    try{
-     if(file.size>12_000_000)throw Error("File exceeds 12 MB safe preview limit");
-     const model=parseKisssoftBuffer(await file.arrayBuffer(),file.name);
-     let rotation=0;
-     const show=()=>{output.innerHTML=kisssoftSummary(model,rotation)+
-       '<label>Concept rotation <input id="kisssoft-rotation" type="range" min="0" max="360" value="'+Math.round(rotation*180/Math.PI)+'"></label>';
-       output.querySelector("#kisssoft-rotation").oninput=e=>{rotation=Number(e.target.value)*Math.PI/180;const visual=output.querySelector("svg");if(visual)visual.outerHTML=kisssoftDiagram(model,{rotation});};
-     };
-     show();
-     bindKisssoftParameterSearch(output,model);
-     const dispose=await mountKisssoftVisual(output,model);
-     if(current!==generation){dispose();return}
-     dispose3D=dispose;
-   }catch(error){output.textContent="Unable to import file: "+String(error.message||error)}
- });
- return ()=>{generation++;dispose3D();};
+     const buffer=await read();
+     if(current!==generation||disposed)return;
+     if(buffer.byteLength>12_000_000)throw Error("File exceeds 12 MB safe preview limit");
+     await showModel(buffer,name,current);
+   }catch(error){
+     if(current===generation&&!disposed)output.textContent="Unable to import file: "+String(error?.message||error);
+   }
+ }
+ const onFile=()=>{
+   const file=input.files?.[0];
+   if(file)void openBuffer(()=>file.arrayBuffer(),file.name);
+ };
+ const onExample=()=>{
+   void openBuffer(async()=>{
+     const response=await fetch("./examples/kisssoft/PlanetaryExample.Z14",{cache:"no-cache"});
+     if(!response.ok)throw Error("Example unavailable (HTTP "+response.status+")");
+     return response.arrayBuffer();
+   },"PlanetaryExample.Z14");
+ };
+ input.addEventListener("change",onFile);
+ example?.addEventListener("click",onExample);
+ return ()=>{
+   disposed=true;generation++;dispose3D();
+   input.removeEventListener("change",onFile);
+   example?.removeEventListener("click",onExample);
+ };
 }
