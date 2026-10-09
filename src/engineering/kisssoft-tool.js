@@ -88,6 +88,8 @@ export function kisssoftSummary(model,rotation=0){
   <div class="kisssoft-layout"><div><div class="kisssoft-3d-slot" data-kisssoft-3d aria-label="Interactive concept model"></div>${kisssoftDiagram(model,{rotation})}<p class="muted">Concept sketch using pitch proportions and schematic teeth; not a manufacturable tooth profile or validated CAD model. Three planets are shown illustratively: planet count is not inferred from this file.</p></div>
   <div><h3>Imported parameters</h3><p>Normal module: ${mm(model.module)} · Helix β: ${Number.isFinite(model.beta)?model.beta.toFixed(3)+"°":"unknown"} ${Number.isFinite(model.betaRad)?`(file ${model.betaRad.toFixed(6)} rad)`:""}</p>
   ${Number.isFinite(model.pressureAngleNormalDeg)?`<p>Normal pressure angle αₙ: ${model.pressureAngleNormalDeg.toFixed(3)}°</p>`:""}
+  ${Number.isFinite(pair?.a?.pressureAngleTransverseDeg??check?.sun?.pressureAngleTransverseDeg)?`<p>Transverse pressure angle αₜ: ${(pair?.a?.pressureAngleTransverseDeg??check?.sun?.pressureAngleTransverseDeg).toFixed(3)}°
+   · Reference base circle radius: ${mm(pair?.a?.baseRadius??check?.sun?.baseRadius)}</p>`:""}
   <p>Nominal center distance: ${mm(check?.sunPlanetCenterDistance??pair?.centerDistance??model.centerDistance)}</p>
   ${Number.isFinite(model.sourceCenterDistance)?`<p>KISSsoft reported center distance (ZP[0].a): ${mm(model.sourceCenterDistance)}
     ${Number.isFinite(check?.sunPlanetCenterDistance??pair?.centerDistance??model.centerDistance)?
