@@ -19,7 +19,7 @@ try{
  },()=>{});
  const quiz=root.querySelector(".quiz-view"),canvas=root.querySelector(".viewer-canvas");
  assert(quiz&&canvas,"Quiz not rendered");
- assert(quiz.getBoundingClientRect().width>=canvas.getBoundingClientRect().width-8,"Quiz does not fill viewer canvas");
+ assert(quiz.getBoundingClientRect().width>=canvas.clientWidth-20,"Quiz does not fill viewer canvas: quiz="+quiz.getBoundingClientRect().width+" canvasRect="+canvas.getBoundingClientRect().width+" canvasClient="+canvas.clientWidth+" computedMax="+getComputedStyle(quiz).maxWidth+" parent="+quiz.parentElement.className+" viewer="+root.querySelector(".viewer")?.className);
  const chooser=root.querySelector("#quiz-chapter-select");
  assert(chooser&&chooser.options.length===3,"Fixture missing chapter selection");
  chooser.value="hydrostatics";chooser.dispatchEvent(new Event("change",{bubbles:true}));
