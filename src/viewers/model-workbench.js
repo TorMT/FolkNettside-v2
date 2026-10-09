@@ -203,7 +203,11 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
     try{
       // requestDevice is invoked by the button gesture. No prompting on load.
       const selected=await connectSpaceMouse({
-        isActive:()=>!disposed&&document.hasFocus()&&container.contains(document.activeElement),
+        isActive:()=>{
+          const active=document.activeElement;
+          return !disposed&&document.hasFocus()&&container.contains(active)&&
+            !["INPUT","TEXTAREA","SELECT"].includes(active?.tagName);
+        },
         onStatus:setConnectionStatus,
         onVector:({kind,values})=>{
           if(kind==="translate")
