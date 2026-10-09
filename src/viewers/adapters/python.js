@@ -67,7 +67,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     try{
       const files=[];
       for(const file of selected)files.push({
-        name:file.name,data:new Uint8Array(await file.arrayBuffer())
+        name:file.webkitRelativePath||file.name,data:new Uint8Array(await file.arrayBuffer())
       });
       const result=await session.mount(files);
       fileStatus.textContent=result.mounted+" file(s) mounted";
