@@ -25,9 +25,9 @@ try{
  assert(!host.querySelector("img").classList.contains("is-native"),"Image reset failed");
  await audioViewer.render(host,{path:"data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",name:"sound.wav"});
  assert(host.querySelector("audio[controls]"),"Audio controls missing");
- const conversion=await conversionViewer.render(host,{path:"model.step"});
- assert(host.querySelector(".viewer-conversion-required"),"CAD conversion explanation missing");
- assert(conversion.info.includes("conversion"),"False STEP preview");
+ const conversion=await conversionViewer.render(host,{path:"model.sldprt"});
+ assert(host.querySelector(".viewer-conversion-required"),"Proprietary CAD conversion explanation missing");
+ assert(conversion.info.includes("conversion"),"Proprietary CAD conversion guidance missing");
  await unsupportedViewer.render(host,{path:"unknown.7z"});
  assert(host.textContent.includes("Download original file"),"Unsupported viewer lacks recovery");
  const JSZip=await getJSZip(),zip=new JSZip();
@@ -67,10 +67,10 @@ try{
  gltf.cleanup?.();
  const all=await Promise.all(["glb","gltf","obj","png","zip","wav","step","7z"].map(async ext=>
    (await loadAdapter({kind:"FILE",path:"test."+ext})).kind));
- assert(all.join(",")==="gltf,gltf,obj,image,archive,audio,conversion,unsupported",
+ assert(all.join(",")==="gltf,gltf,obj,image,archive,audio,cad,unsupported",
    "Unexpected file adapter dispatch: "+all);
  document.body.dataset.status="pass";
- result.textContent="PASS: PNG image/zoom, WAV playback controls, STEP conversion, unknown fallback, searchable ZIP, 3D OBJ with units, glTF geometry and extension routing";
+ result.textContent="PASS: PNG image/zoom, WAV playback controls, native STEP/IGES routing, proprietary CAD conversion, unknown fallback, searchable ZIP, 3D OBJ with units, glTF geometry and extension routing";
 }catch(error){
  document.body.dataset.status="fail";
  result.textContent=String(error.stack||error);
