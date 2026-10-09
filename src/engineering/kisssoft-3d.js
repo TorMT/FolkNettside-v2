@@ -6,7 +6,12 @@ export async function mountKisssoft3D(target,model){
  if(!target.isConnected)return ()=>{};
  const canvas=document.createElement("canvas");
  canvas.style.cssText="display:block;width:100%;height:400px;border-radius:12px;background:#081820";
- target.replaceChildren(canvas);
+ const controlsUI=document.createElement("div");
+ controlsUI.className="kisssoft-assembly-controls";
+ controlsUI.innerHTML='<label><input type="checkbox" data-gear-housing checked> Show housing</label>'+
+  '<label><input type="checkbox" data-gear-carrier checked> Show carrier / shafts</label>'+
+  '<label>Explode assembly <input type="range" data-gear-explode min="0" max="100" value="0"></label>';
+ target.replaceChildren(canvas,controlsUI);
  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
  const scene=new THREE.Scene();
@@ -24,20 +29,31 @@ export async function mountKisssoft3D(target,model){
  const solids=[];
  const material=c=>new THREE.MeshStandardMaterial({color:c,metalness:0.45,roughness:0.46,side:THREE.DoubleSide});
  const paints=[material(0x58c4b6),material(0xe3b65b),material(0x8297b0)];
+ const carrierPaint=material(0xe8e8ed);
+ const housingPaint=new THREE.MeshStandardMaterial({
+   color:0x5683a4,metalness:0.3,roughness:0.68,transparent:true,opacity:0.22,
+   depthWrite:false,side:THREE.DoubleSide
+ });
+ paints.push(carrierPaint,housingPaint);
+ const layers={
+   sun:new THREE.Group(),planets:new THREE.Group(),ring:new THREE.Group(),
+   carrier:new THREE.Group(),housing:new THREE.Group()
+ };
+ Object.values(layers).forEach(group=>scene.add(group));
  const [sun,planet,ring]=model.gears.map(g=>Math.abs(g.teeth));
  const m=model.module,dist=m*(sun+planet)/2;
  const width=model.gears[0].width>0?model.gears[0].width:35;
- const add=(geometry,mat,x=0,y=0,z=0,rotation=0)=>{
-   const mesh=new THREE.Mesh(geometry,mat);mesh.position.set(x,y,z);mesh.rotation.z=rotation;scene.add(mesh);solids.push(mesh);return mesh;
+ const add=(geometry,mat,x=0,y=0,z=0,rotation=0,part="ring")=>{
+   const mesh=new THREE.Mesh(geometry,mat);mesh.position.set(x,y,z);mesh.rotation.z=rotation;layers[part].add(mesh);solids.push(mesh);return mesh;
  };
- function external(z,x,y,mat,phase){
+ function external(z,x,y,mat,phase,part){
    const pitch=m*z/2,base=Math.max(1,pitch-.95*m),count=Math.round(z);
-   const hub=add(new THREE.CylinderGeometry(base,base,width,Math.max(48,Math.min(180,count*2))),mat,x,y,width/2);hub.rotation.x=Math.PI/2;
+   const hub=add(new THREE.CylinderGeometry(base,base,width,Math.max(48,Math.min(180,count*2))),mat,x,y,width/2,0,part);hub.rotation.x=Math.PI/2;
    const radial=m*1.8,tangential=Math.max(.4,2*Math.PI*pitch/count*.47);
    const geo=new THREE.BoxGeometry(radial,tangential,width);
    for(let i=0;i<count;i++){
      const theta=phase+2*Math.PI*i/count;
-     add(geo,mat,x+(base+radial*.29)*Math.cos(theta),y+(base+radial*.29)*Math.sin(theta),width/2,theta);
+     add(geo,mat,x+(base+radial*.29)*Math.cos(theta),y+(base+radial*.29)*Math.sin(theta),width/2,theta,part);
    }
  }
  const ringPitch=m*ring/2,outer=ringPitch+2.5*m,inner=ringPitch-1.2*m;
@@ -56,9 +72,46 @@ export async function mountKisssoft3D(target,model){
    tooth.position.set((inner-.35*m)*Math.cos(theta),(inner-.35*m)*Math.sin(theta),width/2);
    tooth.rotation.z=theta;
  }
- external(sun,0,0,paints[0],0);
+ external(sun,0,0,paints[0],0,"sun");
  for(const a of [0,2*Math.PI/3,4*Math.PI/3])
-   external(planet,dist*Math.cos(a),dist*Math.sin(a),paints[1],a*.2);
+   external(planet,dist*Math.cos(a),dist*Math.sin(a),paints[1],a*.2,"planets");
+ // The following casing, bearings and shafts are illustrative only. KISSsoft
+ // parameters do not specify their actual dimensions or assembly layout.
+ const plateRadius=dist+Math.max(2,m);
+ for(const z of [-m,width+m]){
+   add(new THREE.TorusGeometry(plateRadius,Math.max(1,m*1.15),10,96),carrierPaint,0,0,z,0,"carrier");
+ }
+ for(const angle of [0,2*Math.PI/3,4*Math.PI/3]){
+   const x=dist*Math.cos(angle),y=dist*Math.sin(angle);
+   const bearing=add(new THREE.CylinderGeometry(Math.max(2,m*2),Math.max(2,m*2),width+5*m,20),
+      carrierPaint,x,y,width/2,0,"carrier");
+   bearing.rotation.x=Math.PI/2;
+ }
+ const shaft=add(new THREE.CylinderGeometry(Math.max(3,m*3),Math.max(3,m*3),width+14*m,36),
+   carrierPaint,0,0,width/2,0,"carrier");
+ shaft.rotation.x=Math.PI/2;
+ for(const z of [-2*m,width+2*m]){
+   add(new THREE.TorusGeometry(outer+4*m,Math.max(2,m*2),12,96),
+       housingPaint,0,0,z,0,"housing");
+ }
+ const housingBarrel=add(
+   new THREE.CylinderGeometry(outer+4*m,outer+4*m,width+8*m,96,1,true),
+   housingPaint,0,0,width/2,0,"housing");
+ housingBarrel.rotation.x=Math.PI/2;
+ const showHousing=controlsUI.querySelector("[data-gear-housing]");
+ const showCarrier=controlsUI.querySelector("[data-gear-carrier]");
+ const explode=controlsUI.querySelector("[data-gear-explode]");
+ const updateAssembly=()=>{
+   layers.housing.visible=showHousing.checked;
+   layers.carrier.visible=showCarrier.checked;
+   const amount=Number(explode.value)/100;
+   layers.sun.position.z=amount*width*.6;
+   layers.planets.position.z=-amount*width*.2;
+   layers.ring.position.z=-amount*width*.52;
+   layers.carrier.position.z=amount*width*1.05;
+   layers.housing.position.z=-amount*width*1.35;
+   draw();
+ };
  const ground=new THREE.GridHelper(2.5*outer,10,0x355269,0x294154);
  ground.rotation.x=Math.PI/2;ground.position.z=-1.5;scene.add(ground);
  let disposed=false;
@@ -69,12 +122,14 @@ export async function mountKisssoft3D(target,model){
    renderer.render(scene,camera);
  };
  controls.addEventListener("change",draw);
+ for(const control of [showHousing,showCarrier,explode])
+   control.addEventListener("input",updateAssembly);
  const observer=typeof ResizeObserver!=="undefined"?new ResizeObserver(draw):null;
  observer?.observe(target);
  draw();
  return ()=>{
    disposed=true;observer?.disconnect();controls.removeEventListener("change",draw);controls.dispose();
-   for(const item of solids)scene.remove(item);
+   for(const item of solids)item.parent?.remove(item);
    for(const geometry of new Set(solids.map(item=>item.geometry)))geometry.dispose();
    paints.forEach(mat=>mat.dispose());renderer.dispose();renderer.forceContextLoss();
  };
