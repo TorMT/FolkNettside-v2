@@ -84,6 +84,17 @@ export const TOOL_REGISTRY=[
     keywords:["stl","3d","hydro","measure","cg","cb","waterline","trim","heel","alignment"]
   },
   {
+    id:"encrypted-resources",
+    title:"Encrypted resources",
+    short:"SEC",
+    route:"/tools/vault",
+    status:"prototype",
+    parity:"partial",
+    category:"Privacy",
+    summary:"Encrypt files locally with a strong passphrase before adding ciphertext to static course folders. No password in HTML.",
+    keywords:["encrypt","vault","protected","password","static","files","privacy"]
+  },
+  {
     id:"theme-creator",
     title:"Theme creator",
     short:"TH",
