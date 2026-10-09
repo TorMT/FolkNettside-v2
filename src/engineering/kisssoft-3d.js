@@ -162,6 +162,10 @@ export async function mountKisssoft3D(target,model){
    layers.carrier.rotation.z=rates.carrier*phase;
    layers.planets.rotation.z=rates.carrier*phase;
    for(const gear of planetGroups)gear.rotation.z=rates.planetRelativeCarrier*phase;
+   // Expose model-space angles for deterministic browser regression checks.
+   canvas.dataset.sunAngle=String(phase);
+   canvas.dataset.carrierAngle=String(rates.carrier*phase);
+   canvas.dataset.planetSpin=String(rates.planetRelativeCarrier*phase);
  };
  const stopLoop=()=>{
    if(animationFrame)cancelAnimationFrame(animationFrame);
@@ -197,6 +201,7 @@ export async function mountKisssoft3D(target,model){
    control.addEventListener("input",updateAssembly);
  const observer=typeof ResizeObserver!=="undefined"?new ResizeObserver(draw):null;
  observer?.observe(target);
+ updatePhase();
  draw();
  setPlaying(playing);
  return ()=>{
