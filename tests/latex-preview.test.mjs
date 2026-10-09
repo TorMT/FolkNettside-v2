@@ -33,6 +33,6 @@ test("LaTeX unavailable CDN produces safe source fallback instead of a blank ada
  assert.match(html,/latex-math-fallback/);
  assert.match(html,/latex-native-frac/);
  assert.match(html,/<sup>3<\/sup>/);
- assert.match(simpleLatexMathHTML(String.raw`\\nabla=\\frac{LB^3}{12}`),/∇/);
+ assert.match(simpleLatexMathHTML(String.raw`\nabla=\frac{LB^3}{12}`),/∇/);
  assert.doesNotMatch(latexPreviewHTML(String.raw`\[<script>alert(1)<\/script>\]`),/<script>/);
 });
