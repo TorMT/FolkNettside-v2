@@ -1,4 +1,6 @@
 import {getThreeRuntime} from "../model/three-runtime.js";
+import {conceptualHelicalToothGeometry} from "./gear-visual-shape.js";
+import {checkPlanetaryPitch} from "./gear-pitch-checks.js";
 import {fixedRingPlanetaryRates} from "./kisssoft-motion.js";
 /** Concept-only mesh. Tooth blocks are schematic, not involute teeth. */
 export async function mountKisssoft3D(target,model){
@@ -45,7 +47,9 @@ export async function mountKisssoft3D(target,model){
  };
  Object.values(layers).forEach(group=>scene.add(group));
  const [sun,planet,ring]=model.gears.map(g=>Math.abs(g.teeth));
- const m=model.module,dist=m*(sun+planet)/2;
+ const pitch=checkPlanetaryPitch(model);
+ const m=model.module,dist=pitch.sunPlanetCenterDistance;
+ const beta=Number(model.beta||0);
  const rates=fixedRingPlanetaryRates(sun,planet,ring);
  const planetGroups=[];
  const width=model.gears[0].width>0?model.gears[0].width:35;
@@ -57,24 +61,27 @@ export async function mountKisssoft3D(target,model){
    solids.push(mesh);
    return mesh;
  };
- function external(z,x,y,mat,phase,part){
+ function external(z,x,y,mat,phase,part,hand=beta){
    // Each gear is a separate transform origin. Planet groups orbit with the
    // carrier, while their own local rotation models spin relative to it.
    const gearRoot=new THREE.Group();
    gearRoot.position.set(x,y,0);
    layers[part].add(gearRoot);
-   const pitch=m*z/2,base=Math.max(1,pitch-.95*m),count=Math.round(z);
+   const pitchR=m*z/(2*Math.cos(beta*Math.PI/180)),base=Math.max(1,pitchR-.95*m),count=Math.round(z);
    const hub=add(new THREE.CylinderGeometry(base,base,width,Math.max(48,Math.min(180,count*2))),mat,0,0,width/2,0,part,gearRoot);
    hub.rotation.x=Math.PI/2;
    const radial=m*1.8,tangential=Math.max(.4,2*Math.PI*pitch/count*.47);
-   const geo=new THREE.BoxGeometry(radial,tangential,width);
+   const geo=conceptualHelicalToothGeometry(THREE,{
+     pitchRadius:base+radial*.29,radialSize:radial,
+     tangentialSize:tangential,width,helixAngleDeg:hand
+   });
    for(let i=0;i<count;i++){
      const theta=phase+2*Math.PI*i/count;
-     add(geo,mat,(base+radial*.29)*Math.cos(theta),(base+radial*.29)*Math.sin(theta),width/2,theta,part,gearRoot);
+     add(geo,mat,0,0,width/2,theta,part,gearRoot);
    }
    return gearRoot;
  }
- const ringPitch=m*ring/2,outer=ringPitch+2.5*m,inner=ringPitch-1.2*m;
+ const ringPitch=pitch.ring.pitchRadius,outer=ringPitch+2.5*m,inner=ringPitch-1.2*m;
  const ringShape=new THREE.Shape();
  ringShape.absarc(0,0,outer,0,Math.PI*2,false);
  const hole=new THREE.Path();
@@ -82,17 +89,20 @@ export async function mountKisssoft3D(target,model){
  ringShape.holes.push(hole);
  const ringMesh=new THREE.ExtrudeGeometry(ringShape,{depth:width,bevelEnabled:false,curveSegments:160});
  add(ringMesh,paints[2]);
- const toothGeo=new THREE.BoxGeometry(1.6*m,Math.max(.3,Math.PI*m*.48),width);
+ const toothGeo=conceptualHelicalToothGeometry(THREE,{
+   pitchRadius:inner-.35*m,radialSize:1.6*m,
+   tangentialSize:Math.max(.3,Math.PI*m*.48),width,helixAngleDeg:-beta
+ });
  for(let i=0;i<ring;i++){
    const theta=2*Math.PI*i/ring;
    add(toothGeo,paints[2],0,0,0);
    const tooth=solids[solids.length-1];
-   tooth.position.set((inner-.35*m)*Math.cos(theta),(inner-.35*m)*Math.sin(theta),width/2);
+   tooth.position.set(0,0,width/2);
    tooth.rotation.z=theta;
  }
- external(sun,0,0,paints[0],0,"sun");
+ external(sun,0,0,paints[0],0,"sun",beta);
  for(const a of [0,2*Math.PI/3,4*Math.PI/3])
-   planetGroups.push(external(planet,dist*Math.cos(a),dist*Math.sin(a),paints[1],a*.2,"planets"));
+   planetGroups.push(external(planet,dist*Math.cos(a),dist*Math.sin(a),paints[1],a*.2,"planets",-beta));
  // The following casing, bearings and shafts are illustrative only. KISSsoft
  // parameters do not specify their actual dimensions or assembly layout.
  const plateRadius=dist+Math.max(2,m);
