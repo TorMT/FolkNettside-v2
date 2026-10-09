@@ -1117,7 +1117,7 @@
 /* Mobile navigation audit: five destinations, including an accessible profile menu. */
 .mobile-more-menu{display:none}
 @media(max-width:760px){
- .mobile-nav{grid-template-columns:repeat(5,minmax(0,1fr));gap:2px}
+ .mobile-nav{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}
  .mobile-more-menu:not([hidden]){
    display:grid;position:fixed;z-index:101;right:10px;
    bottom:calc(var(--mobile-nav-h,64px) + env(safe-area-inset-bottom,0px) + 7px);
