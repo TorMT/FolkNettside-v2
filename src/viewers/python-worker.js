@@ -85,16 +85,26 @@ function safeName(name){
     throw new Error("Invalid Python workspace filename");
   return base.replace(/[^a-zA-Z0-9_.() +\-]/g,"_").slice(0,140);
 }
+function safeMountPath(name){
+  const value=String(name||"").replace(/\\/g,"/");
+  const segments=value.split("/");
+  if(!segments.length||segments.length>12||value.length>500||
+     segments.some(part=>!part||part==="."||part===".."||
+       part.startsWith(".")||!/[a-zA-Z0-9]/.test(part)))
+    throw new Error("Invalid Python workspace path");
+  return segments.map(part=>part.replace(/[^a-zA-Z0-9_.() +\-]/g,"_").slice(0,140)).join("/");
+}
 async function mountFiles(files){
   if(!Array.isArray(files)||files.length>40)
     throw new Error("Choose at most 40 local files");
   const py=await ensurePython();
   let total=0;
   for(const file of files){
-    const name=safeName(file?.name);
+    const name=safeMountPath(file?.name);
     const bytes=file?.data instanceof Uint8Array?file.data:new Uint8Array(file?.data||0);
     if(bytes.length>8_000_000||(total+=bytes.length)>25_000_000)
       throw new Error("Input files exceed the 8 MB per-file / 25 MB total limit");
+    if(name.includes("/"))py.FS.mkdirTree(WORKSPACE+"/"+name.slice(0,name.lastIndexOf("/")));
     py.FS.writeFile(WORKSPACE+"/"+name,bytes);
     uploadedFiles.add(name);
   }

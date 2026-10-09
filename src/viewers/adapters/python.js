@@ -1,7 +1,7 @@
-import {fetchText} from "../utils.js?v=b2469ea3ea62fe23f80a6609903a1d6eb27adbcd";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=b2469ea3ea62fe23f80a6609903a1d6eb27adbcd";
-import {createPythonSession} from "../python-session.js?v=b2469ea3ea62fe23f80a6609903a1d6eb27adbcd";
-import {createDomFinder} from "../dom-search.js?v=b2469ea3ea62fe23f80a6609903a1d6eb27adbcd";
+import {fetchText} from "../utils.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
+import {createPythonSession} from "../python-session.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
+import {createDomFinder} from "../dom-search.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
 
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
   const source=resource.sourceText!==undefined?String(resource.sourceText):await fetchText(resource.path||resource.url);
@@ -13,6 +13,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
         <button type="button" id="python-open-vscode">VS Code</button>
         <button type="button" id="python-download">Save .py</button>
         <label class="python-upload-label">Add data / .py modules<input id="python-local-files" type="file" multiple hidden></label>
+        <label class="python-upload-label">Add folder<input id="python-local-folder" type="file" webkitdirectory directory multiple hidden></label>
         <button type="button" id="python-restart">Reset Python</button>
       </div>
     </div>
@@ -61,13 +62,14 @@ export async function render(container,resource,{sessionFactory=createPythonSess
   const fileStatus=document.createElement("span");
   fileStatus.className="python-files-status";
   localFiles.closest("label").append(fileStatus);
-  localFiles.addEventListener("change",async()=>{
-    const selected=[...localFiles.files||[]];
+  const localFolder=container.querySelector("#python-local-folder");
+  const addFiles=async input=>{
+    const selected=[...input.files||[]];
     if(!selected.length)return;
     try{
       const files=[];
       for(const file of selected)files.push({
-        name:file.name,data:new Uint8Array(await file.arrayBuffer())
+        name:file.webkitRelativePath||file.name,data:new Uint8Array(await file.arrayBuffer())
       });
       const result=await session.mount(files);
       fileStatus.textContent=result.mounted+" file(s) mounted";
@@ -76,8 +78,10 @@ export async function render(container,resource,{sessionFactory=createPythonSess
       fileStatus.textContent=String(error?.message||error);
       cell.setStatus("File import error");
     }
-    localFiles.value="";
-  });
+    input.value="";
+  };
+  localFiles.addEventListener("change",()=>addFiles(localFiles));
+  localFolder.addEventListener("change",()=>addFiles(localFolder));
   container.querySelector("#python-restart").addEventListener("click",()=>{
     session.stop();cell.setStatus("Runtime reset");cell.setRunning(false);
   });

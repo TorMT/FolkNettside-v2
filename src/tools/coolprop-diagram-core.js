@@ -1,4 +1,4 @@
-import {applyBookBasis} from "./coolprop-core.js?v=b2469ea3ea62fe23f80a6609903a1d6eb27adbcd";
+import {applyBookBasis} from "./coolprop-core.js?v=c9ea8c067f9c93d09a5551a1f941bc460a51f21f";
 
 export const DIAGRAM_TYPES={
   "log-ph":{id:"log-ph",label:"log P-h",xLabel:"Specific enthalpy h (kJ/kg)",yLabel:"Pressure P (bar)",logY:true},
