@@ -28,8 +28,7 @@ export async function mountFrame3D(host,frame,result){
  camera.up.set(0,0,1);
  camera.position.set(center.x+length*.85,-length*1.65,center.z+length*.95);
  const controls=new OrbitControls(camera,canvas);
- controls.enableDamping=true;
- controls.dampingFactor=.12;
+ controls.enableDamping=false;
  controls.screenSpacePanning=true;
  controls.target.copy(center);
  controls.update();
@@ -99,7 +98,7 @@ export async function mountFrame3D(host,frame,result){
  const guide=new THREE.GridHelper(Math.max(3,length*1.5),10,0x39546a,0x2a4156);
  guide.rotation.x=Math.PI/2;guide.position.z=ymin-width*2;
  scene.add(guide);
- let disposed=false,frameId=0,viewportWidth=0,viewportHeight=0;
+ let disposed=false,viewportWidth=0,viewportHeight=0;
  const draw=()=>{
    if(disposed||!canvas.isConnected)return;
    const w=Math.max(240,host.clientWidth),h=Math.max(240,host.clientHeight);
@@ -110,11 +109,7 @@ export async function mountFrame3D(host,frame,result){
    controls.update();
    renderer.render(scene,camera);
  };
- const onControl=()=>{if(!frameId)frameId=requestAnimationFrame(tick)};
- const tick=()=>{
-   frameId=0;if(disposed)return;
-   draw();if(controls.enableDamping)frameId=requestAnimationFrame(tick);
- };
+ const onControl=()=>draw();
  const observer=typeof ResizeObserver!=="undefined"?new ResizeObserver(onControl):null;
  observer?.observe(host);
  const homePosition=camera.position.clone(),homeTarget=center.clone();
@@ -122,13 +117,12 @@ export async function mountFrame3D(host,frame,result){
    camera.position.copy(homePosition);controls.target.copy(homeTarget);controls.update();draw();
  };
  controls.addEventListener("change",onControl);
- draw();onControl();
+ draw();
  return {
    reset,
    getView:()=>({position:camera.position.toArray(),target:controls.target.toArray()}),
    cleanup(){
      disposed=true;
-     if(frameId)cancelAnimationFrame(frameId);
      observer?.disconnect();
      controls.removeEventListener("change",onControl);
      controls.dispose();
