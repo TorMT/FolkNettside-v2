@@ -2,7 +2,7 @@
 <body data-status="running"><pre id="result">running</pre>
 <script type="module">
 import {parseKisssoftBuffer} from "../../src/engineering/kisssoft-core.js";
-import {kisssoftPageHTML,mountKisssoft} from "../../src/engineering/kisssoft-tool.js";
+import {kisssoftPageHTML,mountKisssoft,kisssoftSummary,mountKisssoftVisual} from "../../src/engineering/kisssoft-tool.js";
 import {viewerKind,loadAdapter} from "../../src/viewers/registry.js";
 const sample="KSOFTVERSION=2026 -SP1¶MODULE=Z014¶ZR[0].z=25¶ZR[1].z=35¶ZR[2].z=-95¶ZR[0].b=35¶ZR[1].b=35¶ZR[2].b=35¶ZS.Geo.mn=2¶ZS.Geo.beta=0¶";
 const bytes=new Uint8Array([255,254,...Array.from(sample).flatMap(c=>[c.charCodeAt(0)&255,c.charCodeAt(0)>>8])]);
@@ -65,6 +65,25 @@ try{
    host.remove();
  }finally{window.fetch=originalFetch}
 
+ const pairText="KSOFTVERSION=2026 -SP1¶MODULE=Z012¶ZR[0].z=18¶ZR[1].z=36¶ZR[0].b=30¶ZR[1].b=30¶ZS.Geo.mn=2¶ZS.Geo.beta=20¶";
+ const pairBytes=new Uint8Array([255,254,...Array.from(pairText).flatMap(c=>[c.charCodeAt(0)&255,c.charCodeAt(0)>>8])]);
+ const pairModel=parseKisssoftBuffer(pairBytes.buffer,"TwoShaftHelical.Z12");
+ const pairHost=document.createElement("div");
+ pairHost.innerHTML=kisssoftSummary(pairModel);
+ document.body.append(pairHost);
+ const stopPair=await mountKisssoftVisual(pairHost,pairModel);
+ const pairCanvas=pairHost.querySelector("[data-kisssoft-3d] canvas");
+ if(!pairCanvas)throw Error("Nonplanetary helical two-shaft model was not displayed");
+ const pairPause=pairHost.querySelector("[data-gear-play]");
+ if(!pairPause)throw Error("Pair motion button missing");
+ if(pairPause.textContent.includes("Play"))pairPause.click();
+ const pairStart=Number(pairCanvas.dataset.driverAngle||0);
+ await new Promise(resolve=>setTimeout(resolve,500));
+ const pairEnd=Number(pairCanvas.dataset.driverAngle||0);
+ if(!(pairEnd>pairStart))throw Error("Pair driver did not rotate");
+ const ratio=Number(pairCanvas.dataset.drivenAngle||0)/pairEnd;
+ if(Math.abs(ratio+.5)>1e-8)throw Error("Wrong two-shaft rotation ratio "+ratio);
+ stopPair();pairHost.remove();
  document.body.dataset.status="pass";
  document.querySelector("#result")?.replaceChildren("pass");
 }catch(error){document.body.dataset.status="fail";document.querySelector("#result")?.replaceChildren(String(error?.stack||error));}
