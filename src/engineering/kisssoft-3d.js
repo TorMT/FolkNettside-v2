@@ -21,9 +21,6 @@ export async function mountKisssoft3D(target,model){
   '<option value="carrier-fixed" selected>Carrier fixed · sun drives</option></select></label>'+
   '<button class="btn" type="button" data-gear-play aria-pressed="true">Pause motion</button>'+
   '<label>Speed <input type="range" data-gear-speed min="0.25" max="2" step="0.25" value="0.75"></label>'+
-  '<label>Helix β (visual) <input type="range" data-gear-beta min="-45" max="45" step="1" value="0"></label>'+
-  '<output data-gear-beta-value>0°</output>'+
-  '<button type="button" class="btn" data-gear-beta-reset>File β</button>'+
   '<span data-gear-motion-hint>Sun 1× · Carrier fixed · Ring −zₛ/zᵣ×</span>';
  target.replaceChildren(canvas,controlsUI);
  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
@@ -57,9 +54,8 @@ export async function mountKisssoft3D(target,model){
  const [sun,planet,ring]=model.gears.map(g=>Math.abs(g.teeth));
  const pitch=checkPlanetaryPitch(model);
  const m=model.module,dist=pitch.sunPlanetCenterDistance;
- const fileBeta=Number(model.beta||0);
- let visualBeta=Math.max(-45,Math.min(45,fileBeta));
- const toothGroups=[];
+ const beta=Number(model.beta||0);
+ canvas.dataset.helixBeta=String(beta);
  let rates=planetaryRates(sun,planet,ring,{mode:"carrier-fixed"});
  const planetGroups=[];
  const width=model.gears[0].width>0?model.gears[0].width:35;
@@ -71,27 +67,24 @@ export async function mountKisssoft3D(target,model){
    solids.push(mesh);
    return mesh;
  };
- function external(z,x,y,mat,phase,part,hand=1){
+ function external(z,x,y,mat,phase,part,hand=beta){
    // Each gear is a separate transform origin. Planet groups orbit with the
    // carrier, while their own local rotation models spin relative to it.
    const gearRoot=new THREE.Group();
    gearRoot.position.set(x,y,0);
    layers[part].add(gearRoot);
-   const pitchR=m*z/(2*Math.cos(fileBeta*Math.PI/180)),base=Math.max(1,pitchR-.95*m),count=Math.round(z);
+   const pitchR=m*z/(2*Math.cos(beta*Math.PI/180)),base=Math.max(1,pitchR-.95*m),count=Math.round(z);
    const hub=add(new THREE.CylinderGeometry(base,base,width,Math.max(48,Math.min(180,count*2))),mat,0,0,width/2,0,part,gearRoot);
    hub.rotation.x=Math.PI/2;
    const radial=m*1.8,tangential=Math.max(.4,2*Math.PI*pitchR/count*.47);
    const geo=conceptualHelicalToothGeometry(THREE,{
      pitchRadius:base+radial*.29,radialSize:radial,
-     tangentialSize:tangential,width,helixAngleDeg:hand*visualBeta
+     tangentialSize:tangential,width,helixAngleDeg:hand
    });
-   const teeth=[];
    for(let i=0;i<count;i++){
      const theta=phase+2*Math.PI*i/count;
-     teeth.push(add(geo,mat,0,0,width/2,theta,part,gearRoot));
+     add(geo,mat,0,0,width/2,theta,part,gearRoot);
    }
-   toothGroups.push({teeth,geometry:geo,hand,
-     params:{pitchRadius:base+radial*.29,radialSize:radial,tangentialSize:tangential,width}});
    return gearRoot;
  }
  const ringPitch=pitch.ring.pitchRadius,outer=ringPitch+2.5*m,inner=ringPitch-1.2*m;
@@ -104,23 +97,18 @@ export async function mountKisssoft3D(target,model){
  add(ringMesh,paints[2]);
  const toothGeo=conceptualHelicalToothGeometry(THREE,{
    pitchRadius:inner-.35*m,radialSize:1.6*m,
-   tangentialSize:Math.max(.3,Math.PI*m*.48),width,helixAngleDeg:-visualBeta
+   tangentialSize:Math.max(.3,Math.PI*m*.48),width,helixAngleDeg:-beta
  });
- const ringTeeth=[];
  for(let i=0;i<ring;i++){
    const theta=2*Math.PI*i/ring;
    add(toothGeo,paints[2],0,0,0);
    const tooth=solids[solids.length-1];
-   ringTeeth.push(tooth);
    tooth.position.set(0,0,width/2);
    tooth.rotation.z=theta;
  }
- toothGroups.push({teeth:ringTeeth,geometry:toothGeo,hand:-1,
-   params:{pitchRadius:inner-.35*m,radialSize:1.6*m,
-     tangentialSize:Math.max(.3,Math.PI*m*.48),width}});
- external(sun,0,0,paints[0],0,"sun",1);
+ external(sun,0,0,paints[0],0,"sun",beta);
  for(const a of [0,2*Math.PI/3,4*Math.PI/3])
-   planetGroups.push(external(planet,dist*Math.cos(a),dist*Math.sin(a),paints[1],a*.2,"planets",-1));
+   planetGroups.push(external(planet,dist*Math.cos(a),dist*Math.sin(a),paints[1],a*.2,"planets",-beta));
  // The following casing, bearings and shafts are illustrative only. KISSsoft
  // parameters do not specify their actual dimensions or assembly layout.
  const plateRadius=dist+Math.max(2,m);
@@ -151,29 +139,6 @@ export async function mountKisssoft3D(target,model){
  const speedInput=controlsUI.querySelector("[data-gear-speed]");
  const boundary=controlsUI.querySelector("[data-gear-boundary]");
  const motionHint=controlsUI.querySelector("[data-gear-motion-hint]");
- const betaInput=controlsUI.querySelector("[data-gear-beta]");
- const betaLabel=controlsUI.querySelector("[data-gear-beta-value]");
- betaInput.value=String(Math.round(visualBeta));
- const updateBeta=()=>{
-   visualBeta=Number(betaInput.value);
-   for(const item of toothGroups){
-     const next=conceptualHelicalToothGeometry(THREE,{
-       ...item.params,helixAngleDeg:visualBeta*item.hand
-     });
-     for(const mesh of item.teeth)mesh.geometry=next;
-     item.geometry.dispose();
-     item.geometry=next;
-   }
-   canvas.dataset.helixBeta=String(visualBeta);
-   betaLabel.textContent=visualBeta.toFixed(0)+"° (file "+fileBeta.toFixed(1)+"°)";
-   draw();
- };
- betaInput.addEventListener("input",updateBeta);
- controlsUI.querySelector("[data-gear-beta-reset]").addEventListener("click",()=>{
-   betaInput.value=String(Math.max(-45,Math.min(45,Math.round(fileBeta))));
-   updateBeta();
- });
- betaLabel.textContent=visualBeta.toFixed(1)+"° (file "+fileBeta.toFixed(1)+"°)";
  const updateHint=()=>{
    motionHint.textContent=`Illustrative ${boundary.value} · sun ${rates.sun.toFixed(3)}× · ring ${rates.ring.toFixed(3)}× · carrier ${rates.carrier.toFixed(3)}× · planet ${rates.planet.toFixed(3)}× · Willis residual ${rates.closureResidual.toExponential(1)}`;
  };
@@ -212,7 +177,7 @@ export async function mountKisssoft3D(target,model){
    }
  });
  // A purely illustrative constant-speed animation. The tooth-count ratios
- // follow the chosen ideal boundary condition, but RPM is normalized and
+ // follow the selected ideal boundary condition; RPM is normalized and
  // neither loads nor measured KISSsoft speeds are implied.
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
  let playing=!reducedMotion;
