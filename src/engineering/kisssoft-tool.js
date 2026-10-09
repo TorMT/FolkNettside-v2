@@ -61,7 +61,7 @@ export function mountKisssoft(root){
      let rotation=0;
      const show=()=>{output.innerHTML=kisssoftSummary(model,rotation)+
        '<label>Concept rotation <input id="kisssoft-rotation" type="range" min="0" max="360" value="'+Math.round(rotation*180/Math.PI)+'"></label>';
-       output.querySelector("#kisssoft-rotation").oninput=e=>{rotation=Number(e.target.value)*Math.PI/180;show()};
+       output.querySelector("#kisssoft-rotation").oninput=e=>{rotation=Number(e.target.value)*Math.PI/180;const visual=output.querySelector("svg");if(visual)visual.outerHTML=kisssoftDiagram(model,{rotation});};
      };
      show();
    }catch(error){output.textContent="Unable to import file: "+String(error.message||error)}
