@@ -11,7 +11,7 @@ export function decodeKisssoft(buffer){
  return new TextDecoder("utf-8",{fatal:true}).decode(bytes);
 }
 export function parseKisssoft(text,name="model.z14"){
- const ext=String(name).split(/[\\/]/).pop().replace(/\\(\\d+\\)$/,"").split(".").pop().toLowerCase();
+ const ext=String(name).split(/[\\/]/).pop().replace(/\(\d+\)$/,"").split(".").pop().toLowerCase();
  if(!supported.has(ext))throw Error("Unsupported KISSsoft extension");
  const fields=Object.create(null);
  const lines=text.replace(/\r/g,"\n").replace(/¶/g,"\n").split("\n");
