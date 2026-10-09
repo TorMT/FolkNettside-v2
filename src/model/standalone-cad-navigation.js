@@ -1,5 +1,6 @@
 import {connectCADKeyboard} from "./cad-navigation.js";
 import {connectSpaceMouse} from "./spacemouse-webhid.js";
+import {spaceMouseMovement} from "./spacemouse-motion.js";
 
 /** Attach the same desktop CAD navigation to standalone WebGL gear views.
  * This does not rotate actual design objects, only the display camera.
@@ -64,7 +65,17 @@ export function mountStandaloneCADNavigation({
  const status=document.createElement("span");
  status.className="muted";status.dataset.gearSpacemouseStatus="";
  status.textContent="Optional WebHID · desktop Chrome/Edge";
- toolbar.append(connect,disconnect,status);
+ const options=document.createElement("label");
+ options.className="model-spacemouse-settings";
+ options.textContent="3D mouse sensitivity ";
+ const gain=document.createElement("input");
+ gain.type="range";gain.min=".2";gain.max="2";gain.step=".1";gain.value=".6";
+ gain.setAttribute("aria-label","3D mouse sensitivity");
+ const gainValue=document.createElement("output");
+ gainValue.textContent="0.6×";
+ gain.addEventListener("input",()=>gainValue.textContent=gain.value+"×");
+ options.append(gain,gainValue);
+ toolbar.append(connect,disconnect,status,options);
  if(!globalThis.navigator?.hid)connect.disabled=true;
  const stop=async()=>{
    if(session){const local=session;session=null;await local.disconnect()}
@@ -82,13 +93,14 @@ export function mountStandaloneCADNavigation({
            !["INPUT","SELECT","TEXTAREA"].includes(active?.tagName);
        },
        onStatus:message=>{if(!disposed)status.textContent=message},
-       onVector:({kind,values})=>{
-         if(kind==="translate")navigate3D({pan:[values[0]*.014,-values[1]*.014,-values[2]*.014]});
-         else navigate3D({orbit:[-values[0]*.025,values[1]*.025,values[2]*.025]});
+       onVector:sample=>{
+         const motion=spaceMouseMovement(sample,{sensitivity:Number(gain.value)});
+         if(motion)navigate3D(motion);
        }
      });
      if(disposed){await selected.disconnect();return}
      session=selected;disconnect.disabled=false;
+     canvas.focus({preventScroll:true});
    }catch(e){if(!disposed)status.textContent=String(e?.message||e)}
    finally{connecting=false;if(!disposed&&!session)connect.disabled=!globalThis.navigator?.hid}
  });
@@ -100,7 +112,7 @@ export function mountStandaloneCADNavigation({
      canvas.removeEventListener("pointerdown",down,true);
      canvas.removeEventListener("pointerup",up);
      canvas.removeEventListener("pointercancel",up);
-     connect.remove();disconnect.remove();status.remove();
+     connect.remove();disconnect.remove();status.remove();options.remove();
    }
  };
 }

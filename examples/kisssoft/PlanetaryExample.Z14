@@ -1,0 +1,16 @@
+KSOFTVERSION=2026 -SP1
+MODULE=Z014
+VERSION=26.0
+ZR[0].z=25
+ZR[1].z=35
+ZR[2].z=-95
+ZR[0].b=35
+ZR[1].b=35
+ZR[2].b=35
+ZR[0].x=0
+ZR[1].x=0
+ZR[2].x=0
+ZS.Geo.mn=2
+ZS.Geo.beta=0
+ZS.Geo.alfn=0.3490658503988659
+ZP[0].a=60

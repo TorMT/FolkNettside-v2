@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/engineering.css">
+<link rel="stylesheet" href="../../assets/viewer-enhancements.css">
+<title>Standalone CAD workbench smoke</title></head>
+<body data-status="running"><div id="host"></div><pre id="result">running</pre>
+<script type="module">
+import {cadToolHTML,mountCADTool} from "../../src/engineering/cad-tool.js";
+try{
+ const host=document.querySelector("#host");
+ host.innerHTML=cadToolHTML();
+ const cleanup=mountCADTool(host);
+ const stage=host.querySelector("#cad-geometry-stage");
+ if(stage.clientHeight<350||stage.clientWidth<300)
+   throw Error("CAD stage has no usable geometry: "+stage.clientWidth+"x"+stage.clientHeight);
+ const demo=host.querySelector("[data-cad-demo]");
+ if(!demo)throw Error("Demo assembly missing");
+ demo.click();
+ for(let i=0;i<160&&!host.querySelector(".three-canvas");i++)
+   await new Promise(resolve=>setTimeout(resolve,90));
+ const canvas=host.querySelector(".three-canvas");
+ if(!canvas)throw Error("3D canvas failed to mount: "+host.querySelector("#cad-import-status")?.textContent);
+ await new Promise(resolve=>setTimeout(resolve,200));
+ if(canvas.clientHeight<330||canvas.clientWidth<200)
+   throw Error("CAD canvas collapsed: "+canvas.clientWidth+"x"+canvas.clientHeight);
+ if(!host.querySelector("[data-model-fit]")||!host.querySelector("[data-model-spacemouse]"))
+   throw Error("Workbench camera/SpaceMouse actions missing");
+ host.querySelector("[data-model-fit]").click();
+ canvas.focus();
+ canvas.dispatchEvent(new KeyboardEvent("keydown",{key:"i",bubbles:true,cancelable:true}));
+ const status=host.querySelector("#cad-import-status").textContent;
+ if(!status.includes("2 components"))throw Error("Demo mount failed: "+status);
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent="CAD live viewport, demo assembly, Fit and SpaceMouse controls ready";
+ cleanup();
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>

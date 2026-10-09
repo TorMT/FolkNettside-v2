@@ -1,5 +1,5 @@
 /** KISSsoft text parameter reader. Not a KISSsoft calculation engine. */
-const supported=new Set(["z12","z14","w10","ksys"]);
+const supported=new Set(["z12","z14","z012","z014","z012rs","z014rs","w10","ksys"]);
 export function decodeKisssoft(buffer){
  const bytes=new Uint8Array(buffer);
  if(bytes.byteLength>12_000_000)throw Error("KISSsoft file exceeds the 12 MB preview limit");
@@ -11,7 +11,7 @@ export function decodeKisssoft(buffer){
  return new TextDecoder("utf-8",{fatal:true}).decode(bytes);
 }
 export function parseKisssoft(text,name="model.z14"){
- const ext=String(name).split(".").pop().toLowerCase();
+ const ext=String(name).split(/[\\/]/).pop().replace(/\(\d+\)$/,"").split(".").pop().toLowerCase();
  if(!supported.has(ext))throw Error("Unsupported KISSsoft extension");
  const fields=Object.create(null);
  const lines=text.replace(/\r/g,"\n").replace(/¶/g,"\n").split("\n");
@@ -36,12 +36,13 @@ export function parseKisssoft(text,name="model.z14"){
  const sourceCenterDistance=number("ZP[0].a");
  const pressureAngleNormalRad=number("ZS.Geo.alfn");
  const pressureAngleNormalDeg=pressureAngleNormalRad===null?null:pressureAngleNormalRad*180/Math.PI;
- const planetary=fields.MODULE==="Z014"&&gears[0].teeth>0&&gears[1].teeth>0&&gears[2].teeth<0&&module>0;
+ const moduleCode=String(fields.MODULE||(ext.startsWith("z014")||ext==="z14"?"Z014":ext.startsWith("z012")||ext==="z12"?"Z012":"unknown")).toUpperCase();
+ const planetary=/^Z0?14(?:RS)?$/.test(moduleCode)&&gears[0].teeth>0&&gears[1].teeth>0&&gears[2].teeth<0&&module>0;
  const sun=gears[0].teeth,planet=gears[1].teeth,ring=Math.abs(gears[2].teeth||0);
  const consistent=planetary&&sun+2*planet===ring;
  return {
    name:String(name).split(/[\\/]/).pop(),
-   format:ext.toUpperCase(),moduleCode:fields.MODULE||"unknown",
+   format:ext.toUpperCase(),moduleCode,
    version:fields.KSOFTVERSION||fields.VERSION||"unknown",
    module,beta,betaRad,pressureAngleNormalRad,pressureAngleNormalDeg,sourceCenterDistance,gears,planetary,consistent,
    centerDistance:planetary?module*(sun+planet)/(2*Math.cos((beta||0)*Math.PI/180)):null,

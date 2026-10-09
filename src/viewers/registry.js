@@ -7,7 +7,8 @@ import {extension} from "./utils.js";
  */
 const adapters={
   pdf:"pdf",
-  z12:"kisssoft",z14:"kisssoft",w10:"kisssoft",ksys:"kisssoft",
+  z12:"kisssoft",z14:"kisssoft",z012:"kisssoft",z014:"kisssoft",
+  z012rs:"kisssoft",z014rs:"kisssoft",w10:"kisssoft",ksys:"kisssoft",
   docx:"office",xlsx:"office",pptx:"office",
   csv:"csv",tsv:"csv",psv:"csv",
   html:"html",htm:"html",ipynb:"notebook",tex:"latex",
@@ -48,7 +49,9 @@ export function viewerKind(resource={}){
   if(kind==="YOUTUBE")return "youtube";
   if(kind==="QUIZ")return "quiz";
   if(kind==="VAULT"||String(resource.path||resource.url||resource.name||"").split(/[?#]/,1)[0].toLowerCase().endsWith(".vault.json"))return "vault";
-  const ext=extension(resource.path||resource.url||resource.name||"");
+  const input=String(resource.path||resource.url||resource.name||"");
+  const cleaned=input.replace(/\(\d+\)(?=[?#]|$)/,"");
+  const ext=extension(cleaned);
   return adapters[ext] || "unsupported";
 }
 export function viewerFormatCoverage(){

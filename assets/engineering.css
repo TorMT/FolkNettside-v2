@@ -201,3 +201,28 @@
  .cad-import-bar{display:grid;gap:10px}
  .cad-geometry-stage>.model-viewer-workbench{min-height:420px}
 }
+
+/* Engineering navigation actions: CAD and KISSsoft are peers of Import STL/3MF. */
+.workspace-bar .engineering-model-control{gap:8px;flex-wrap:wrap;min-width:0}
+.workspace-bar .engineering-model-control>.btn,
+.workspace-bar .engineering-model-control>#engineering-import-hull{
+  display:inline-flex;justify-content:center;align-items:center;
+  box-sizing:border-box;min-height:36px;padding:8px 13px;
+  font:inherit;font-size:11px;font-weight:680;line-height:1.25;
+  white-space:nowrap;border:1px solid rgb(255 255 255 / .25);
+  border-radius:7px;background:#133b4b;color:#edf5fa
+}
+.workspace-bar .engineering-model-control>.btn:hover,
+.workspace-bar .engineering-model-control>#engineering-import-hull:hover{background:#1c5064;border-color:#9cbfcd}
+.kisssoft-example{display:flex;align-items:center;flex-wrap:wrap;gap:10px;
+  padding:11px 14px;border:1px solid var(--line);border-radius:10px;
+  background:var(--surface);margin:12px 0}
+.kisssoft-example small{flex-basis:100%;color:var(--ink-3);font-size:11px;line-height:1.45}
+.kisssoft-page{max-width:1450px;margin:0 auto}
+.kisssoft-page .kisssoft-3d-slot canvas{max-width:100%}
+.kisssoft-assembly-controls [data-gear-beta]{min-width:110px;width:145px}
+.kisssoft-assembly-controls [data-gear-beta-value]{font-variant-numeric:tabular-nums;white-space:nowrap}
+@media(max-width:760px){
+ .workspace-bar .engineering-model-control>.btn{min-height:36px;padding:8px 10px}
+ .kisssoft-assembly-controls [data-gear-beta]{width:110px}
+}
