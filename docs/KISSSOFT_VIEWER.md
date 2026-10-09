@@ -20,3 +20,21 @@ For accurate 3D geometry, export a neutral CAD mesh from KISSsoft or another aut
 ## Test approach
 
 Run `npm test` for parser/UTF-16/parameter/sanitization regression tests. A complete end-to-end check requires uploading a genuine file in a browser and checking the Engineering link and shared ViewerShell. Real KISSsoft calculation parity remains out of scope.
+
+## Animated fixed-ring interpretation
+
+The conceptual WebGL assembly now has Play/Pause, a normalized playback-speed
+slider, housing/carrier visibility and exploded-view controls. The sample
+25/35/95-tooth assembly uses the ideal *fixed ring* relation:
+
+- Sun = +1.000 normalized revolution rate
+- Ring = 0
+- Carrier = 25 / (25 + 95) = +0.2083
+- Planet gear (absolute) = -0.3571, relative to the carrier = -0.5655
+
+These values describe ideal gear kinematics under the **assumed boundary
+condition** that the ring is stationary and the sun is driving. This is a visual
+explanation, not an assertion that the actual KISSsoft shaft speeds, number of
+planets, tooth geometry, housing or bearings match the illustrative model.
+Pause and reduced-motion preferences are respected. The same KISSsoft file
+adapter is used from Courses resources and the Engineering page.
