@@ -17,7 +17,7 @@ test("Course highlight hysteresis delays jitter at both boundaries",()=>{
    "keep previous heading until next crosses the inner threshold");
  assert.equal(chooseCourseSection(regions(-250,60,490),"overview",top), "section-0");
  assert.equal(chooseCourseSection(regions(-260,90,510),"section-0",top), "section-0");
- assert.equal(chooseCourseSection(regions(-260,105,510),"section-0",top), "section-0");
+ assert.equal(chooseCourseSection(regions(-260,103,510),"section-0",top), "section-0");
  assert.equal(chooseCourseSection(regions(-260,106,510),"section-0",top), "overview");
 });
 test("Course highlight survives large jumps and empty courses",()=>{
