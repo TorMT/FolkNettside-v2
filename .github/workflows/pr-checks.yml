@@ -64,6 +64,16 @@ jobs:
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4214/tests/browser/static-vault-smoke.html 50 1280,900
 
+      - name: CAD nested groups, focused Fusion shortcuts and thruster intake WebGL
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4217 --bind 127.0.0.1 >/tmp/cad-assembly-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/cad-assembly-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4217/tests/browser/cad-assembly-navigation-smoke.html 60 1400,950
+
       - name: Real STEP / OpenCascade WASM and browser 3D test
         run: |
           command -v chromedriver
