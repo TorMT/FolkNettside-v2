@@ -41,6 +41,19 @@ try{
  canvas.dispatchEvent(new KeyboardEvent("keydown",{key:"x",bubbles:true,cancelable:true}));
  if(Number(explode.value)===0)throw Error("Planetary explode not restored");
 
+ const boundaryOnLoad=document.querySelector("[data-gear-boundary]");
+ if(boundaryOnLoad?.value!=="carrier-fixed")throw Error("Carrier fixed / sun drives is not default");
+ const betaControl=document.querySelector("[data-gear-beta]");
+ if(!betaControl)throw Error("Planetary helix β control missing");
+ betaControl.value="25";betaControl.dispatchEvent(new Event("input",{bubbles:true}));
+ if(canvas.dataset.helixBeta!=="25")throw Error("Planetary β preview did not update");
+ betaControl.value="-25";betaControl.dispatchEvent(new Event("input",{bubbles:true}));
+ if(canvas.dataset.helixBeta!=="-25")throw Error("Planetary negative helix hand not supported");
+ document.querySelector("[data-gear-beta-reset]").click();
+ if(canvas.dataset.helixBeta!=="0")throw Error("KISSsoft source β not restored");
+ // Existing speed-ratio checks below exercise the original ring-fixed mode.
+ boundaryOnLoad.value="ring-fixed";
+ boundaryOnLoad.dispatchEvent(new Event("change",{bubbles:true}));
  const pause=document.querySelector("[data-gear-play]");
  if(!pause)throw Error("Gear animation control missing");
  if(pause.textContent.includes("Play"))pause.click();
@@ -99,6 +112,12 @@ try{
  if(!pairHost.querySelector("[data-gear-spacemouse]"))throw Error("External KISSsoft missing SpaceMouse control");
  const pairExplode=pairHost.querySelector("[data-pair-explode]");
  if(!pairExplode)throw Error("External gear-pair explode control missing");
+ const pairBeta=pairHost.querySelector("[data-gear-beta]");
+ pairBeta.value="35";pairBeta.dispatchEvent(new Event("input",{bubbles:true}));
+ if(pairCanvas.dataset.helixBeta!=="35")throw Error("Pair β preview did not update");
+ pairHost.querySelector("[data-gear-beta-reset]").click();
+ if(Math.abs(Number(pairCanvas.dataset.helixBeta)-20)>1)
+   throw Error("Pair β reset ignored file angle");
  pairCanvas.focus();
  pairCanvas.dispatchEvent(new KeyboardEvent("keydown",{key:"x",bubbles:true,cancelable:true}));
  if(Number(pairExplode.value)<=0)throw Error("External gear exploded shortcut failed");
