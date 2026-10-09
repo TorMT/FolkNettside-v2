@@ -9,6 +9,7 @@ export function explodeOffsets(centres,amount=0,{span=1}={}){
  if(!Array.isArray(centres)||centres.some(c=>!Array.isArray(c)||c.length!==3||!c.every(Number.isFinite)))
    throw Error("Valid part centres required");
  if(!centres.length)return [];
+ if(factor===0)return centres.map(()=>[0,0,0]);
  const global=centres.reduce((sum,c)=>sum.map((v,j)=>v+c[j]),[0,0,0]).map(v=>v/centres.length);
  return centres.map((centre,i)=>{
    let direction=centre.map((v,j)=>v-global[j]);
