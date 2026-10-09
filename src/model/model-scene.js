@@ -818,6 +818,8 @@ export async function mountModelScene(container,documentModel,options={}){
       setExplode,
       setScopedExplode,
       setIsolation,
+      getVisibleComponentIds:()=>meshes.filter(mesh=>mesh.visible).map(mesh=>mesh.userData.component.id),
+      getExplodeState:()=>({assembly:explodedFactor,selected:scopedExplodeFactor,ids:[...scopedExplodeIds]}),
       focusComponents,
       navigate3D,
       cameraState,
