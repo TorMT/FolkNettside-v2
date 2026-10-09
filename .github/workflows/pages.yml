@@ -22,6 +22,10 @@ jobs:
           python scripts/update_site.py --check
       - name: Validate content and project data
         run: python scripts/validate_content.py
+      - name: Deny private or credential-like files in public assets
+        run: |
+          python scripts/audit_public_assets.py
+          python -m unittest discover -s tests -p 'test_public_asset_audit.py' -v
       - name: JavaScript syntax check
         run: find src tests -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
       - name: Regression tests
