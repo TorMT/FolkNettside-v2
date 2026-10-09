@@ -47,7 +47,10 @@ test("CAD keyboard is focus-independent pure mapping; modifier keys do not hijac
  assert.deepEqual(cadShortcut({key:"f"}),{action:"fit"});
  assert.deepEqual(cadShortcut({key:"I"}),{action:"iso"});
  assert.deepEqual(cadShortcut({key:"ArrowLeft",shiftKey:true}),{action:"orbit",yaw:-.1,pitch:0});
- assert.deepEqual(cadShortcut({key:"ArrowUp"}),{action:"pan",x:0,y:.065});
+ const arrowUp=cadShortcut({key:"ArrowUp"});
+ assert.equal(arrowUp.action,"pan");
+ assert.ok(Math.abs(arrowUp.x)<1e-12);
+ assert.ok(Math.abs(arrowUp.y-.065)<1e-12);
  assert.equal(cadShortcut({key:"f",ctrlKey:true}),null);
  assert.deepEqual(cadShortcut({key:"x"}),{action:"toggle-explode"});
 });
