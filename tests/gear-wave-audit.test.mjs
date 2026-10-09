@@ -59,3 +59,13 @@ test("KISSsoft internal ring/pinion uses positive ratio, ring helix hand and exa
  const invalid=parseKisssoft("MODULE=Z014\\nZR[0].z=25\\nZR[1].z=35\\nZR[2].z=-96\\nZS.Geo.mn=2","bad.Z14");
  assert.equal(externalGearPair(invalid),null,"Broken planetary must never silently become a two-shaft pair");
 });
+
+test("KISSsoft normal pressure and helix angles define transverse pressure and base radius",()=>{
+ const gear=gearPitchGeometry({module:2,beta:20,teeth:25,normalPressureAngleDeg:20});
+ const expected=Math.atan(Math.tan(Math.PI/9)/Math.cos(Math.PI/9))*180/Math.PI;
+ assert.ok(Math.abs(gear.pressureAngleTransverseDeg-expected)<1e-12);
+ assert.ok(Math.abs(gear.baseRadius-gear.pitchRadius*Math.cos(expected*Math.PI/180))<1e-12);
+ assert.ok(gear.pressureAngleTransverseDeg>20);
+ const unreported=gearPitchGeometry({module:2,beta:20,teeth:25});
+ assert.equal(unreported.baseRadius,null,"Do not fabricate tooth pressure angle when file provides none");
+});
