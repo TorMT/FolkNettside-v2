@@ -135,6 +135,14 @@ try{
  if(!internalCanvas)throw Error("Internal ring/pinion 3D concept failed to mount");
  if(Math.abs(Number(internalCanvas.dataset.helixBeta)-15)>1e-8)
    throw Error("Internal ring uses file β=15°");
+ if(internalCanvas.dataset.meshKind!=="internal")
+   throw Error("Signed negative ring teeth did not produce an internal gear");
+ const cameraDistance=Number(internalCanvas.dataset.cameraDistance);
+ const cameraFar=Number(internalCanvas.dataset.cameraFar);
+ if(!(cameraDistance>0&&cameraFar>cameraDistance*1.5))
+   throw Error("Internal ring+pinion outside camera clipping planes: "+cameraDistance+" / "+cameraFar);
+ if(!Number.isFinite(cameraDistance)||cameraDistance>cameraFar*.65)
+   throw Error("Ring gear view is too zoomed out or far-clipped");
  const internalPlay=internalHost.querySelector("[data-gear-play]");
  if(internalPlay.textContent.includes("Play"))internalPlay.click();
  await new Promise(resolve=>setTimeout(resolve,570));
