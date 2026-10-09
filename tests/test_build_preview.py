@@ -67,7 +67,7 @@ class PagesBuildTests(unittest.TestCase):
     def test_build_rejects_control_characters_in_version(self):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(ValueError,"single-line"):
-                preview.build("sha\\nspoofed",Path(directory)/"preview")
+                preview.build("sha\nspoofed",Path(directory)/"preview")
 
 if __name__ == "__main__":
     unittest.main()
