@@ -1,7 +1,7 @@
-import {mountModelScene} from "../model/model-scene.js?v=32b251adf493102ba1bcd46f60f58333e902f3d4";
-import {mountWaveControls} from "../model/model-wave-controls.js?v=32b251adf493102ba1bcd46f60f58333e902f3d4";
-import {mountAssemblyInspector} from "./assembly-inspector.js?v=32b251adf493102ba1bcd46f60f58333e902f3d4";
-import {connectSpaceMouse} from "../model/spacemouse-webhid.js?v=32b251adf493102ba1bcd46f60f58333e902f3d4";
+import {mountModelScene} from "../model/model-scene.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
+import {mountWaveControls} from "../model/model-wave-controls.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
+import {mountAssemblyInspector} from "./assembly-inspector.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
+import {connectSpaceMouse} from "../model/spacemouse-webhid.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
 
 export async function renderModelWorkbench(container,model,{showSidebar=false}={}){
   container.innerHTML=`<div class="model-viewer-workbench">
