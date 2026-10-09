@@ -43,7 +43,12 @@ export function safeVaultMime(vault){
  return allowed.has(type)?type:"application/octet-stream";
 }
 
-const b64=bytes=>btoa(String.fromCharCode(...bytes));
+const b64=bytes=>{
+ let value="";
+ for(let i=0;i<bytes.length;i+=16384)
+   value+=String.fromCharCode(...bytes.subarray(i,i+16384));
+ return btoa(value);
+};
 export async function encryptVault(bytes,passphrase,{mime="application/octet-stream",subtle=globalThis.crypto?.subtle,random=globalThis.crypto}={}){
  if(!subtle||!random?.getRandomValues)throw new Error("HTTPS secure context required");
  if(typeof passphrase!=="string"||passphrase.length<20)throw new Error("Use a long, randomly generated passphrase (20+ characters)");
