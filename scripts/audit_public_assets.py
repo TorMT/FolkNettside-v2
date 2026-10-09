@@ -47,10 +47,16 @@ def validate_manifest(manifest):
 def validate_sources(paths):
     problems=[]
     for source in paths:
+        if source.is_symlink():
+            problems.append((str(source),"symbolic link in static source"))
+            continue
         if not source.exists():continue
         for path in source.rglob("*"):
-            if not path.is_file() or path.is_symlink():continue
             rel=path.relative_to(ROOT).as_posix()
+            if path.is_symlink():
+                problems.append((rel,"symbolic link in static source"))
+                continue
+            if not path.is_file():continue
             for violation in resource_violations(rel):
                 problems.append((rel,violation))
     return problems
@@ -58,7 +64,8 @@ def validate_sources(paths):
 def main():
     path=ROOT/"data"/"content-manifest.json"
     manifest=json.loads(path.read_text(encoding="utf-8"))
-    sources=[ROOT/"examples"/"semesters"]
+    # Every directory copied by build_preview.py is public, not just course files.
+    sources=[ROOT/name for name in ("assets","src","config","data","examples")]
     declared=Path(str(manifest.get("source") or "examples/semesters"))
     candidate=(ROOT/declared).resolve()
     if not candidate.is_relative_to(ROOT.resolve()):
