@@ -32,6 +32,15 @@ try{
  document.querySelector("#kisssoft-rotation").dispatchEvent(new Event("input",{bubbles:true}));
  if(!document.querySelector("#kisssoft-rotation"))throw Error("Rotation slider unmounted");
  const canvas=document.querySelector("[data-kisssoft-3d] canvas");
+ if(!document.querySelector("[data-gear-spacemouse]"))
+   throw Error("Planetary KISSsoft missing SpaceMouse opt-in control");
+ if(canvas.tabIndex!==0)throw Error("Planetary KISSsoft canvas not keyboard focusable");
+ canvas.focus();
+ canvas.dispatchEvent(new KeyboardEvent("keydown",{key:"x",bubbles:true,cancelable:true}));
+ if(Number(explode.value)!==0)throw Error("Planetary KISSsoft keyboard explode toggle failed");
+ canvas.dispatchEvent(new KeyboardEvent("keydown",{key:"x",bubbles:true,cancelable:true}));
+ if(Number(explode.value)===0)throw Error("Planetary explode not restored");
+
  const pause=document.querySelector("[data-gear-play]");
  if(!pause)throw Error("Gear animation control missing");
  if(pause.textContent.includes("Play"))pause.click();
@@ -87,6 +96,13 @@ try{
  document.body.append(pairHost);
  const stopPair=await mountKisssoftVisual(pairHost,pairModel);
  const pairCanvas=pairHost.querySelector("[data-kisssoft-3d] canvas");
+ if(!pairHost.querySelector("[data-gear-spacemouse]"))throw Error("External KISSsoft missing SpaceMouse control");
+ const pairExplode=pairHost.querySelector("[data-pair-explode]");
+ if(!pairExplode)throw Error("External gear-pair explode control missing");
+ pairCanvas.focus();
+ pairCanvas.dispatchEvent(new KeyboardEvent("keydown",{key:"x",bubbles:true,cancelable:true}));
+ if(Number(pairExplode.value)<=0)throw Error("External gear exploded shortcut failed");
+
  if(!pairCanvas)throw Error("Nonplanetary helical two-shaft model was not displayed");
  const pairPause=pairHost.querySelector("[data-gear-play]");
  if(!pairPause)throw Error("Pair motion button missing");
