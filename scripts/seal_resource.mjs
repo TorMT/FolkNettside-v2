@@ -38,7 +38,11 @@ async function main(){
    if(phrase!==again)throw new Error("Passphrases differ; no output produced");
    const source=await readFile(file);
    if(source.byteLength>25*1024*1024)throw new Error("Maximum vault input is 25 MB");
-   const vault=await sealBytes(source,phrase);
+   const ext=basename(file).toLowerCase().split(".").pop();
+   const mime=({pdf:"application/pdf",txt:"text/plain",md:"text/markdown",
+     csv:"text/csv",json:"application/json",png:"image/png",jpg:"image/jpeg",
+     jpeg:"image/jpeg",webp:"image/webp",gif:"image/gif"})[ext]||"application/octet-stream";
+   const vault=await sealBytes(source,phrase,{mime});
    const finalPath=resolve(destination);
    await mkdir(dirname(finalPath),{recursive:true});
    await writeFile(finalPath,JSON.stringify(vault)+"\n",{flag:"wx",mode:0o600});
