@@ -20,7 +20,7 @@ const overflow=()=>{
 };
 try{
  await wait(()=>btn(".mobile-nav [data-mobile-more-toggle]"));
- check(dom().querySelectorAll(".mobile-nav button").length===5,"Mobile navigation count not five");
+ check(dom().querySelectorAll(".mobile-nav button").length===6,"Mobile navigation count not six");
  const more=()=>btn(".mobile-nav [data-mobile-more-toggle]");
  more().click();
  check(btn("#mobile-more-menu")&&!btn("#mobile-more-menu").hidden,"Mobile More menu did not open");
