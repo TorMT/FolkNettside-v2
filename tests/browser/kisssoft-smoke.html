@@ -18,6 +18,8 @@ try{
  input.dispatchEvent(new Event("change",{bubbles:true}));
  await new Promise(resolve=>setTimeout(resolve,150));
  if(!document.querySelector(".kisssoft-summary svg"))throw Error("Engineering view not rendered");
+ for(let i=0;i<120&&!document.querySelector("[data-kisssoft-3d] canvas");i++)await new Promise(resolve=>setTimeout(resolve,100));
+ if(!document.querySelector("[data-kisssoft-3d] canvas"))throw Error("Interactive Three.js 3D gear model did not mount");
  document.querySelector("#kisssoft-rotation").value="45";
  document.querySelector("#kisssoft-rotation").dispatchEvent(new Event("input",{bubbles:true}));
  if(!document.querySelector("#kisssoft-rotation"))throw Error("Rotation slider unmounted");
