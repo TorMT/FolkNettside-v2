@@ -50,7 +50,7 @@ test("KISSsoft internal ring/pinion uses positive ratio, ring helix hand and exa
    "ZR[0].b=30","ZR[1].b=40","ZS.Geo.mn=20","ZS.Geo.beta=0.2617993877991494"
  ].join("\n"),"pitch-ring.Z12");
  const pair=externalGearPair(model);
- assert.ok(pair);
+ assert.ok(pair,JSON.stringify({module:model.module,gears:model.gears,beta:model.beta,fields:model.fields}));
  assert.equal(pair.kind,"internal-pair");
  assert.equal(pair.internal,true);
  assert.ok(Math.abs(pair.velocityRatio-20/225)<1e-12);
