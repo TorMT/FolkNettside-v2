@@ -1,4 +1,5 @@
 import {parseKisssoftBuffer} from "./kisssoft-core.js";
+import {externalGearPair,checkPlanetaryPitch} from "./gear-pitch-checks.js";
 const esc=x=>String(x??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const mm=n=>Number.isFinite(n)?n.toFixed(2)+" mm":"unknown";
 function gearShape(cx,cy,r,z,{internal=false,fill="#75b9e0",phase=0}={}){
@@ -13,7 +14,19 @@ function gearShape(cx,cy,r,z,{internal=false,fill="#75b9e0",phase=0}={}){
  return `<polygon points="${pts.join(" ")}" fill="${fill}" stroke="#142936" stroke-width="0.7"/>`;
 }
 export function kisssoftDiagram(model,{rotation=0}={}){
- if(!model.planetary)return '<p>Parameter inspection only. Full geometry is unavailable for this KISSsoft module; export STL/3MF from KISSsoft for a precise 3D preview.</p>';
+ if(!model.planetary){
+   const pair=externalGearPair(model);
+   if(!pair)return '<p>Parameter inspection only. Insufficient tooth/module data for a gear preview; export STL/3MF from KISSsoft for actual geometry.</p>';
+   const total=pair.a.pitchRadius+pair.b.pitchRadius;
+   const scale=180/Math.max(total,pair.a.pitchRadius*2,pair.b.pitchRadius*2);
+   const cx1=210-pair.b.pitchRadius*scale,cx2=210+pair.a.pitchRadius*scale;
+   return `<svg viewBox="0 0 420 360" role="img" aria-label="Approximate two external gears with ${pair.a.teeth} and ${pair.b.teeth} teeth" style="width:min(100%,520px);height:auto;display:block;margin:auto;background:#102d40;border-radius:12px">
+    ${gearShape(cx1,180,pair.a.pitchRadius*scale,pair.a.teeth,{fill:"#6cc5bc",phase:rotation})}
+    ${gearShape(cx2,180,pair.b.pitchRadius*scale,pair.b.teeth,{fill:"#c6a164",phase:rotation*pair.velocityRatio})}
+    <circle cx="${cx1}" cy="180" r="6" fill="#153245"/><circle cx="${cx2}" cy="180" r="6" fill="#153245"/>
+    </svg>`;
+ }
+
  const [sun,planet,ring]=model.gears.map(g=>Math.abs(g.teeth));
  const scale=190/ring,rs=sun*scale,rp=planet*scale,rr=ring*scale;
  const gap=(sun+planet)*scale;
@@ -52,25 +65,37 @@ export function bindKisssoftParameterSearch(container,model){
  });
 }
 export function kisssoftSummary(model,rotation=0){
- const gearNames=["Sun","Planet","Internal ring"];
- const gearRows=model.gears.map((g,i)=>`<tr><td>${gearNames[i]}</td><td>${esc(g.teeth)}</td><td>${mm(g.width)}</td><td>${esc(g.material)}</td></tr>`).join("");
- const status=model.planetary?(model.consistent?"Tooth-count geometry consistent":"Tooth-count mismatch; verify source values"):"No validated planetary layout";
+ const pair=externalGearPair(model);
+ const check=model.planetary?checkPlanetaryPitch(model):null;
+ const gearNames=model.planetary?["Sun","Planet","Internal ring"]:["Gear 1","Gear 2","Gear 3"];
+ const gearRows=(pair?model.gears.slice(0,2):model.gears).map((g,i)=>`<tr><td>${gearNames[i]}</td><td>${esc(g.teeth)}</td><td>${mm(g.width)}</td><td>${esc(g.material)}</td></tr>`).join("");
+ const status=model.planetary?(model.consistent?"Tooth-count geometry consistent":"Tooth-count mismatch; verify source values"):pair?"External gear pair: validated nominal pitch ratio":"No validated gear geometry";
  return `<section class="kisssoft-summary"><h2>${esc(model.name)}</h2>
   <p><strong>${esc(model.moduleCode)}</strong> · KISSsoft ${esc(model.version)} · ${esc(status)}</p>
   <div class="kisssoft-layout"><div><div class="kisssoft-3d-slot" data-kisssoft-3d aria-label="Interactive concept model"></div>${kisssoftDiagram(model,{rotation})}<p class="muted">Concept sketch using pitch proportions and schematic teeth; not a manufacturable tooth profile or validated CAD model. Three planets are shown illustratively: planet count is not inferred from this file.</p></div>
-  <div><h3>Imported parameters</h3><p>Normal module: ${mm(model.module)} · Helix angle: ${esc(model.beta)}°</p><p>Nominal sun–planet center distance: ${mm(model.centerDistance)}</p>
+  <div><h3>Imported parameters</h3><p>Normal module: ${mm(model.module)} · Helix angle: ${esc(model.beta)}°</p>
+  <p>Nominal center distance: ${mm(check?.sunPlanetCenterDistance??pair?.centerDistance??model.centerDistance)}</p>
+  ${check?`<p>Planetary pitch closure: ${Math.abs(check.residual)<1e-7?"consistent":mm(check.residual)+" mismatch"}</p>`:""}
+  ${pair?`<p>Nominal speed ratio ω₂/ω₁: ${pair.velocityRatio.toFixed(4)} · Pitch tangency residual: ${pair.tangencyResidual.toExponential(1)} mm</p>`:""}
   <table><thead><tr><th>Gear</th><th>Teeth</th><th>Face width</th><th>Material</th></tr></thead><tbody>${gearRows}</tbody></table>
   <details><summary>Search recognized parameters (${Object.keys(model.fields).length})</summary><input type="search" data-kisssoft-filter placeholder="Search by parameter name or value" aria-label="Search KISSsoft parameters"><p data-kisssoft-count>Showing up to 150 records</p><div style="max-height:280px;overflow:auto"><table><tbody data-kisssoft-records>${parameterRows(filterKisssoftFields(model.fields))}</tbody></table></div></details></div></div></section>`;
 }
 export async function mountKisssoftVisual(target,model){
- if(!model.planetary||!model.consistent)return ()=>{};
+ if(!(model.planetary&&model.consistent)&&!externalGearPair(model))return ()=>{};
  const stage=target.querySelector("[data-kisssoft-3d]");
  if(!stage)return ()=>{};
  stage.textContent="Loading interactive 3D concept…";
  try{
-  const {mountKisssoft3D}=await import("./kisssoft-3d.js");
-  if(!stage.isConnected)return ()=>{};
-  const cleanup=await mountKisssoft3D(stage,model);
+  let cleanup;
+  if(model.planetary&&model.consistent){
+    const {mountKisssoft3D}=await import("./kisssoft-3d.js");
+    if(!stage.isConnected)return ()=>{};
+    cleanup=await mountKisssoft3D(stage,model);
+  }else{
+    const {mountKisssoftPair3D}=await import("./kisssoft-pair-3d.js");
+    if(!stage.isConnected)return ()=>{};
+    cleanup=await mountKisssoftPair3D(stage,model);
+  }
   return cleanup;
  }catch(error){
   if(stage.isConnected)stage.textContent="3D rendering unavailable. The 2D gear diagram remains available.";
@@ -79,7 +104,7 @@ export async function mountKisssoftVisual(target,model){
 }
 export function kisssoftPageHTML(){
  return `<main class="section kisssoft-page"><p class="crumbs">Engineering / KISSsoft</p><h1>KISSsoft gear inspector</h1>
- <p>Open a local .Z14, .Z12, .W10 or .KSYS file. A validated Z014 planetary dataset supports conceptual gear visualization. Other formats show available parameter information only.</p>
+ <p>Open a local .Z14, .Z12, .W10 or .KSYS file. Z014 planetary datasets and compatible two-shaft external pairs support conceptual rotating 3D gears and approximate helix. Other formats show available parameter information.</p>
  <label class="form-field">KISSsoft file <input id="kisssoft-file" type="file" accept=".z12,.z14,.w10,.ksys"></label>
  <div id="kisssoft-output" role="status" aria-live="polite"><p>No file loaded. Your file stays in your browser.</p></div></main>`;
 }
