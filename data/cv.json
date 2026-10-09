@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "name": "Tor Markus Tønnessen",
+  "tagline": "Marine Technology · Naval Architecture · NTNU",
+  "profile": "Marine engineering student at NTNU, combining ship design, CAD and hydrostatics with practical logistics and technical work. Interested in developing engineering tools and taking ideas from early calculations to working designs.",
+  "location": "Trondheim / Stavanger",
+  "email": "tormtonnessen@gmail.com",
+  "phone": "+47 958 70 670",
+  "linkedin": "https://www.linkedin.com/in/tor-t%C3%B8nnessen-b9589a210",
+  "github": "https://github.com/TorMT",
+  "education": [
+    {
+      "id": "ntnu-marine",
+      "title": "MSc in Marine Technology",
+      "organization": "NTNU",
+      "period": "2024–2029",
+      "description": "Five-year engineering programme covering ship design, marine dynamics, machinery and engineering calculations."
+    }
+  ],
+  "experience": [
+    {
+      "id": "njord",
+      "title": "Naval Architect",
+      "organization": "Njord NTNU",
+      "period": "Feb 2026–present",
+      "description": "Ship design, CAD, hydrostatics and technical calculations, including work for AutoDrone 2026."
+    },
+    {
+      "id": "subsea7",
+      "title": "Summer Worker — Logistics & Goods Receiving",
+      "organization": "Subsea7, Dusavik",
+      "period": "Summers 2024–2026",
+      "description": "Inspection and documentation of offshore equipment, goods receiving, vessel loading/unloading and forklift work."
+    },
+    {
+      "id": "fsan",
+      "title": "Ambulance Driver",
+      "organization": "Norwegian Armed Forces — Medical Services",
+      "period": "Aug 2023–Jun 2024",
+      "description": "Navigation, vehicle checks and medical training emphasizing readiness and teamwork."
+    }
+  ],
+  "projects": [
+    {
+      "id": "lereravnen",
+      "title": "LeseRavnen",
+      "period": "2026",
+      "description": "React/TypeScript demo, user insights, structured testing and product-development work.",
+      "url": "https://github.com/TorMT/LeseRavnen"
+    },
+    {
+      "id": "dive-mount",
+      "title": "Dive Computer Mount",
+      "period": "2026",
+      "description": "Fusion 360 replacement mount using elastic bungee to retain fit as a drysuit compresses."
+    },
+    {
+      "id": "folk-v2",
+      "title": "FolkNettside V2",
+      "period": "2026",
+      "description": "Engineering portfolio and open-source technical tools.",
+      "url": "https://github.com/TorMT/FolkNettside-v2"
+    }
+  ],
+  "skills": [
+    "Fusion 360",
+    "SOLIDWORKS",
+    "DELFTship",
+    "3D-Beam",
+    "Python",
+    "Git / GitHub",
+    "React / TypeScript",
+    "LaTeX",
+    "Hydrostatics",
+    "Technical documentation"
+  ],
+  "certifications": [],
+  "updates": []
+}
