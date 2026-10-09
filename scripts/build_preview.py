@@ -69,7 +69,7 @@ def validate_sources_for_publish() -> None:
 
 def build(version: str, output: Path) -> None:
     output = output.absolute()
-    if not version or any(c in version for c in "\\r\\n"):
+    if not version or any(c in version for c in "\r\n"):
         raise ValueError("Build version must be a non-empty, single-line identifier")
     if output.is_symlink() or output == ROOT or ROOT.is_relative_to(output):
         raise ValueError("Unsafe Pages build destination")
