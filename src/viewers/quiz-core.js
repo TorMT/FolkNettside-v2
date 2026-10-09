@@ -44,7 +44,7 @@ export function quizChapterView(quiz,chapterId="all"){
 
 export function quizChapterStorageKey(resource,chapterId="all"){
   const key=quizStorageKey(resource);
-  return chapterId==="all"?key+"::chapter:"+encodeURIComponent(chapterId);
+  return chapterId==="all"?key:key+"::chapter:"+encodeURIComponent(chapterId);
 
 }
 
