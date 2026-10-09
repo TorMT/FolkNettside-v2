@@ -53,3 +53,36 @@ test("model diagnostics use world transforms and source units",()=>{
   assert.deepEqual(result.bounds.min,[4.5,-1,0]);
   assert.deepEqual(result.bounds.max,[5.5,1,3]);
 });
+
+
+test("diagnostics never certify degenerate or nonfinite hull meshes as watertight",()=>{
+  const invalid=boxMesh({L:10,B:3,H:2});
+  invalid.indices.push(0,0,0);
+  const a=analyzeGeometryDiagnostics(invalid);
+  assert.ok(a.degenerateTriangles>0);
+  assert.equal(a.watertight,false);
+  const other=boxMesh({L:10,B:3,H:2});
+  other.positions[0]=NaN;
+  const b=analyzeGeometryDiagnostics(other);
+  assert.ok(b.invalidVertices>0);
+  assert.equal(b.watertight,false);
+});
+
+test("model diagnostic cache respects the requested welding tolerance",()=>{
+  const model={unitScaleToMeters:1,components:[{
+    id:"test-hull",name:"Hull",geometry:boxMesh({L:10,B:3,H:2})
+  }]};
+  const fine=analyzeModelDiagnostics(model,{tolerance:1e-8});
+  assert.equal(fine.watertight,true);
+  const broad=analyzeModelDiagnostics(model,{tolerance:100});
+  assert.equal(broad.watertight,false);
+  const fineAgain=analyzeModelDiagnostics(model,{tolerance:1e-8});
+  assert.equal(fineAgain.watertight,true);
+  assert.notEqual(fine,broad);
+});
+
+test("empty model yields diagnostics instead of WeakMap key failure",()=>{
+  const result=analyzeModelDiagnostics(null);
+  assert.equal(result.watertight,false);
+  assert.equal(result.geometryComponents,0);
+});
