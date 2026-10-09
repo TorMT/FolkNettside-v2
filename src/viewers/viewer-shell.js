@@ -61,6 +61,7 @@ export async function mountViewer(root,resource,onBack){
 
   const canvas=root.querySelector("#viewer-canvas");
   const status=root.querySelector("#viewer-info");
+  canvas.addEventListener("viewer-info-update",event=>{if(event.detail)status.textContent=String(event.detail)});
   const toolbar=root.querySelector(".viewer-toolbar");
   const findButton=toolbar.querySelector('[data-action="find"]');
   const findWrap=toolbar.querySelector(".viewer-find");
