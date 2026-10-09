@@ -24,6 +24,16 @@ jobs:
           python3 scripts/fetch_coolprop_wasm.py
           node scripts/verify_coolprop_reference.mjs
 
+      - name: Courses sidebar scroll and highlight browser regression
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4209 --bind 127.0.0.1 >/tmp/course-nav-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/course-nav-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4209/tests/browser/course-scrollspy-smoke.html 45 1280,800
+
       - name: KISSsoft upload and visualization browser smoke
         run: |
           command -v chromedriver
