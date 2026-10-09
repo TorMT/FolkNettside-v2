@@ -63,3 +63,20 @@ test("large internal ring/pinion camera does not clip geometry or shrink it offs
  const phone=gearPairFraming(pair,{aspect:.6});
  assert.ok(phone.distance>view.distance);
 });
+
+test("KISSsoft internal ring may be source gear 1 while pinion is source gear 2",()=>{
+ const model=parseKisssoft([
+  "MODULE=Z012","ZR[0].z=-225","ZR[1].z=20",
+  "ZR[0].b=40","ZR[1].b=30","ZS.Geo.mn=20",
+  "ZS.Geo.beta=0.2617993877991494"
+ ].join("\n"),"InternalFirst.Z012RS");
+ const pair=externalGearPair(model);
+ assert.ok(pair?.internal);
+ assert.equal(pair.pinionIndex,1);
+ assert.equal(pair.ringIndex,0);
+ assert.equal(pair.a.teeth,20);
+ assert.equal(pair.b.teeth,225);
+ assert.equal(pair.shaft1Width,30);
+ assert.equal(pair.shaft2Width,40);
+ assert.ok(gearPairFraming(pair,{aspect:1}).distance>pair.b.pitchRadius);
+});
