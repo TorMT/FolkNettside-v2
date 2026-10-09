@@ -1,0 +1,28 @@
+/* Viewer-specific refinements: keep document/PDF layouts unchanged. */
+.viewer--quiz .viewer-main{grid-template-columns:minmax(0,1fr)}
+.viewer--quiz .viewer-panel{display:none}
+.viewer--quiz.viewer--quiz-info .viewer-main{grid-template-columns:minmax(0,1fr) 285px}
+.viewer--quiz.viewer--quiz-info .viewer-panel{display:block}
+.viewer--quiz .viewer-canvas{background:var(--surface);scrollbar-gutter:auto}
+.viewer--quiz .quiz-view{box-sizing:border-box;max-width:none;width:100%;min-height:100%;margin:0;padding:clamp(18px,2.4vw,40px) clamp(16px,4vw,70px)}
+.viewer--quiz .quiz-topline,.viewer--quiz .quiz-progress,.viewer--quiz .quiz-question-nav,.viewer--quiz .quiz-nav-actions{width:100%}
+.viewer--quiz .quiz-prompt{max-width:80ch}
+.viewer--quiz .quiz-option{min-height:60px}
+.viewer--quiz .quiz-options{width:100%}
+.quiz-chapter-picker{display:flex;align-items:center;gap:12px;margin:8px 0 18px;flex-wrap:wrap}
+.quiz-chapter-picker label{font-weight:700;font-size:13px}
+.quiz-chapter-picker select{min-width:220px;max-width:100%;padding:9px 12px;background:var(--surface-sunk);color:var(--ink);border:1px solid var(--line);border-radius:7px}
+.office-workbook-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:10px 14px;margin-bottom:14px;background:var(--surface);border:1px solid var(--line);border-radius:9px}
+.office-workbook-toolbar .muted{font-size:12px}
+.office-workbook-toolbar .btn{margin-left:auto}
+.office-cell-formula{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;white-space:pre-wrap;overflow-wrap:anywhere}
+.office-cell-value[hidden],.office-cell-formula[hidden]{display:none!important}
+@media(min-width:1200px){
+ .viewer--quiz:not(.viewer--quiz-info) .quiz-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ .viewer--quiz.viewer--quiz-info .viewer-main{grid-template-columns:1fr}
+ .viewer--quiz.viewer--quiz-info .viewer-panel{display:none}
+ .viewer--quiz .quiz-view{padding:18px 13px}
+ .quiz-chapter-picker select{flex:1;min-width:150px}
+}
