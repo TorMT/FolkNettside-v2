@@ -3,9 +3,10 @@ export const CAD_IMPORT_MAX_BYTES=25*1024*1024;
 const FORMATS={step:"step",stp:"step",iges:"iges",igs:"iges",brep:"brep"};
 export async function parseCADBuffer(buffer,name="CAD model",{
  format=String(name).split(".").pop().toLowerCase(),
- timeoutMs=120_000,signal,workerFactory=url=>new Worker(url,{type:"module"})
+ timeoutMs=120_000,signal,brepUnit="millimeter",workerFactory=url=>new Worker(url,{type:"module"})
 }={}){
  const normalized=FORMATS[String(format).toLowerCase()];
+ if(!["millimeter","meter","inch","centimeter"].includes(brepUnit))throw Error("Unsupported BREP source unit");
  if(!normalized)throw Error("Unsupported CAD extension");
  if(!(buffer instanceof ArrayBuffer)||!buffer.byteLength||buffer.byteLength>CAD_IMPORT_MAX_BYTES)
    throw Error("CAD file must be between 1 byte and 25 MB");
@@ -32,7 +33,10 @@ export async function parseCADBuffer(buffer,name="CAD model",{
      worker.onerror=error=>finish(reject,new Error("CAD worker unavailable: "+(error.message||"loading error")));
      worker.postMessage({id:1,format:normalized,buffer},[buffer]);
    });
-   return occtToModelDocument(result,{name,format:normalized.toUpperCase(),unit:"millimeter"});
+   const outputUnit=normalized==="brep"?brepUnit:"millimeter";
+   const model=occtToModelDocument(result,{name,format:normalized.toUpperCase(),unit:outputUnit});
+   if(normalized==="brep")model.source.unitAssumption="BREP has no reliable unit metadata; user-selected "+brepUnit;
+   return model;
  }finally{worker.terminate()}
 }
 export const isCADFile=name=>CAD_EXTENSIONS.includes(String(name).split(".").pop().toLowerCase());
