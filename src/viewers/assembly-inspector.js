@@ -1,3 +1,5 @@
+import {validateHydroModel} from "../model/hull-surface-validator.js";
+import {analyzeModelDocument} from "../hydro/hydrostatics.js";
 import {componentGroupTree} from "../model/component-groups.js";
 import {identifiedThrusterIntakes,manualThrusterAtComponent,modelThrusterCandidates} from "../model/thruster-intake.js";
 
@@ -36,6 +38,13 @@ export function mountAssemblyInspector(host,model,scene,{updateWaterline=()=>{}}
      '<input type="text" data-cad-group-path maxlength="140" placeholder="Thruster / Fremre"></label>'+
    '<button type="button" data-cad-assign class="btn">Assign selected to group</button>'+
    '<p class="muted">Manual grouping changes only this visual session, never the source CAD file.</p>'+
+   '</section><section class="assembly-inspector">'+
+   '<h3>Hydro preflight (original geometry)</h3>'+
+   '<p class="muted">Select closed hull components, not entire CAD machinery. Hydro is calculated from the original unmodified mesh, never the exploded display.</p>'+
+   '<label class="model-viewer-label">Still-water elevation Z (m)'+
+     '<input data-cad-hydro-z type="number" step=".1" value="0"></label>'+
+   '<button class="btn" type="button" data-cad-hydro-run>Validate and compute selected hull</button>'+
+   '<p data-cad-hydro-result role="status" aria-live="polite">Select hull meshes and run preflight.</p>'+
    '</section><section class="assembly-inspector">'+
    '<h3>Thruster intake direction</h3>'+
    '<p class="muted">Select a thruster component or group. Rings flow toward the intake, then the arrow points through the propeller and out. This is directional illustration, not CFD.</p>'+
@@ -133,6 +142,38 @@ export function mountAssemblyInspector(host,model,scene,{updateWaterline=()=>{}}
    for(const id of selected)overrides[id]=path;
    renderTree();summary.textContent=selected.size+" component(s) assigned to "+path;
  });
+  $("[data-cad-hydro-run]").addEventListener("click",()=>{
+    const report=$("[data-cad-hydro-result]");
+    if(!selected.size){report.textContent="Select hull components first";return}
+    const included=new Set(selected);
+    const chosen=model.components.filter(component=>included.has(component.id)&&component.geometry);
+    const triangles=chosen.reduce((sum,component)=>{
+      const g=component.geometry;
+      return sum+((g.indices?.length??g.positions.length/3)/3);
+    },0);
+    if(triangles>100000){
+      report.textContent="Large mesh ("+Math.round(triangles)+" triangles). Run the dedicated Hydro tool to avoid blocking the browser.";
+      return;
+    }
+    try{
+      const include=component=>included.has(component.id);
+      const preflight=validateHydroModel(model,{include});
+      if(!preflight.passed){
+        report.textContent="Hydro blocked by mesh validation: "+preflight.errors.slice(0,4).join("; ")+
+          (preflight.errors.length>4?" (additional errors omitted)":"");
+        return;
+      }
+      const waterline=Number($("[data-cad-hydro-z]").value);
+      if(!Number.isFinite(waterline))throw Error("Enter a finite waterline");
+      const result=analyzeModelDocument(model,waterline,{include});
+      report.textContent="Geometry-only Hydro preview: volume="+result.volume.toFixed(5)+
+        " m³; CB=("+result.centerOfBuoyancy.map(n=>n.toFixed(3)).join(", ")+
+        ") m; waterplane="+result.waterplane.area.toFixed(4)+
+        " m². External verification and complete watertight hull still required.";
+    }catch(error){
+      report.textContent="Hydro unavailable: "+String(error?.message||error);
+    }
+  });
  $("[data-cad-thrust-mark]").addEventListener("click",()=>{
    if(!selected.size){status.textContent="Select a group or part first";return}
    const axis=selectAxis.value.split(",").map(Number);
