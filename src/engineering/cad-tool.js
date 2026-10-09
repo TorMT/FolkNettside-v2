@@ -2,16 +2,17 @@ import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js";
 import {parseSTL} from "../model/parsers/stl.js";
 import {parse3MF} from "../model/parsers/three-mf.js";
 import {renderModelWorkbench} from "../viewers/model-workbench.js";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js";
 
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
  <p class="crumbs">Engineering / CAD</p><h1>CAD workbench</h1>
- <p>Open STEP/STP, IGES/IGS, BREP, STL or 3MF locally. OpenCascade converts
+ <p>Open STEP/STP, IGES/IGS, BREP, STL, 3MF or native Fusion F3D/F3Z archives locally. OpenCascade converts
  exact CAD surfaces to a <strong>tessellated visual mesh</strong> in a browser worker;
  measurements and exports are therefore approximate, not a substitute for CAD inspection in your authoring tool.</p>
  <div class="cad-import-bar">
    <label>Model file <input id="cad-import-file" type="file"
-     accept=".step,.stp,.iges,.igs,.brep,.stl,.3mf"></label>
+     accept=".step,.stp,.iges,.igs,.brep,.stl,.3mf,.f3d,.f3z"></label>
    <label>BREP units (if no metadata)
     <select id="cad-brep-units"><option value="millimeter">mm</option><option value="meter">m</option><option value="inch">in</option><option value="centimeter">cm</option></select>
    </label>
@@ -42,9 +43,18 @@ export function mountCADTool(root){
    controller=new AbortController();cancel.disabled=false;
    status.textContent="Reading "+file.name+" locally…";
    try{
-     if(file.size>25*1024*1024)throw Error("File exceeds 25 MB import limit");
+     const fusion=ext==="f3d"||ext==="f3z";
+     if(file.size>(fusion?55:25)*1024*1024)throw Error("File exceeds safe import size limit");
      const buffer=await file.arrayBuffer();
      if(current!==request||disposed)return;
+     if(fusion){
+       status.textContent="Inspecting Fusion archive and nested designs locally…";
+       const preview=await renderFusionPackage(stage,buffer,file.name);
+       if(current!==request||disposed){preview.cleanup?.();return}
+       cleanup=preview.cleanup||(()=>{});
+       status.textContent=preview.info;
+       return;
+     }
      status.textContent=isCADFile(file.name)?"Loading OpenCascade WASM for "+file.name+"…":"Reading mesh…";
      const documentModel= isCADFile(file.name)?
        await parseCADBuffer(buffer,file.name,{format:ext,signal:controller.signal,
