@@ -67,6 +67,9 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     const selected=[...input.files||[]];
     if(!selected.length)return;
     try{
+      if(selected.length>40||selected.some(file=>file.size>8_000_000)||
+         selected.reduce((size,file)=>size+file.size,0)>25_000_000)
+        throw new Error("Choose at most 40 files, 8 MB per file, 25 MB total");
       const files=[];
       for(const file of selected)files.push({
         name:file.webkitRelativePath||file.name,data:new Uint8Array(await file.arrayBuffer())
