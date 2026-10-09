@@ -18,6 +18,7 @@ import copy
 import json
 import os
 import sys
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -335,6 +336,33 @@ def choose_scope(source: Path) -> tuple[int | None, str | None]:
     return semester, matches[0]
 
 
+def public_manifest_violations(manifest: dict) -> list[tuple[str, str]]:
+    """Check public course metadata with the same resource guard as CI."""
+    import runpy
+    guard = runpy.run_path(str(ROOT / "scripts" / "audit_public_assets.py"))
+    return guard["validate_manifest"](manifest)
+
+
+def write_manifest_atomic(output: Path, manifest: dict) -> None:
+    """Avoid truncated manifest files on interruption or write failures."""
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=output.parent,
+            prefix=f".{output.name}.", suffix=".tmp", delete=False
+        ) as stream:
+            temp_path = Path(stream.name)
+            json.dump(manifest, stream, ensure_ascii=False, indent=2)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp_path, output)
+    finally:
+        if temp_path is not None:
+            temp_path.unlink(missing_ok=True)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
@@ -342,11 +370,14 @@ def main() -> int:
     parser.add_argument("--semester", type=int, help="Only update one semester")
     parser.add_argument("--course", help="Only update one course; requires --semester")
     parser.add_argument("--check", action="store_true", help="Fail if the full committed manifest is stale")
+    parser.add_argument("--dry-run", action="store_true", help="Preview the manifest without writing it")
     parser.add_argument("--interactive", action="store_true", help="Choose the semester and course from discovered folders")
     args = parser.parse_args()
 
     if args.interactive and (args.check or args.semester is not None or args.course):
         parser.error("--interactive cannot be combined with --check, --semester or --course")
+    if args.check and args.dry_run:
+        parser.error("--check and --dry-run cannot be combined")
     if args.course and args.semester is None:
         parser.error("--course requires --semester")
     if args.check and (args.semester is not None or args.course):
@@ -375,6 +406,13 @@ def main() -> int:
         if args.course:
             scope += f" / {args.course}"
 
+    violations = public_manifest_violations(manifest)
+    if violations:
+        for path, problem in violations:
+            print(f"Unsafe public resource: {path} ({problem})", file=sys.stderr)
+        print("No manifest written; move protected files outside public sources.", file=sys.stderr)
+        return 2
+
     if args.check:
         if not output.exists():
             print(f"manifest missing: {output}", file=sys.stderr)
@@ -386,8 +424,14 @@ def main() -> int:
         print(f"content manifest is up to date ({time.perf_counter()-started:.3f}s)")
         return 0
 
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if args.dry_run:
+        current = load_json(output) if output.exists() else {}
+        changed = stable_for_check(current) != stable_for_check(manifest)
+        state = "updated" if changed else "unchanged"
+        print(f"DRY RUN: {scope}; manifest would be {state}. No files changed.")
+        return 0
+
+    write_manifest_atomic(output, manifest)
 
     target_courses = [
         course
