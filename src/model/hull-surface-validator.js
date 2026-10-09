@@ -1,5 +1,5 @@
-import {createHydroInclude} from "../hydro/hydro-selection.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
-import {inspectMeshIntersections,inspectDisconnectedMeshShells} from "./mesh-intersections.js?v=e843d668948dc608b7eaefa073bc4895a7f7df6a";
+import {createHydroInclude} from "../hydro/hydro-selection.js?v=b2469ea3ea62fe23f80a6609903a1d6eb27adbcd";
+import {inspectMeshIntersections,inspectDisconnectedMeshShells} from "./mesh-intersections.js?v=b2469ea3ea62fe23f80a6609903a1d6eb27adbcd";
 
 const IDENTITY=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
 const finite=n=>typeof n==="number"&&Number.isFinite(n);
@@ -17,7 +17,7 @@ export function validateHydroGeometry(geometry,{transform=null,scale=1,tolerance
   if(transform&&(transform.length!==16||Array.from(transform).some(v=>!finite(v))))errors.push("Invalid 4x4 world transform");
   if(p&&Array.from(p).some(v=>!finite(v)))errors.push("Non-finite vertex coordinates");
   if(rawIndex&&rawIndex.length&&rawIndex.length%3!==0)errors.push("Triangle indices are incomplete");
-  if(rawIndex&&Array.from(rawIndex).some(v=>!Number.isSafeInteger(v)||v<0||v>=p.length/3))errors.push("Triangle index is outside the vertex buffer");
+  if(rawIndex&&Array.from(rawIndex).some(v=>!Number.isSafeInteger(v)||v<0||!p||v>=p.length/3))errors.push("Triangle index is outside the vertex buffer");
   if(errors.length)return {passed:false,errors,warnings,metrics:null};
   const count=p.length/3;
   const m=transform||IDENTITY;
