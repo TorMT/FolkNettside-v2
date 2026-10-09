@@ -42,3 +42,21 @@ export function safeVaultMime(vault){
   "image/png","image/jpeg","image/webp","image/gif","application/octet-stream"]);
  return allowed.has(type)?type:"application/octet-stream";
 }
+
+const b64=bytes=>btoa(String.fromCharCode(...bytes));
+export async function encryptVault(bytes,passphrase,{mime="application/octet-stream",subtle=globalThis.crypto?.subtle,random=globalThis.crypto}={}){
+ if(!subtle||!random?.getRandomValues)throw new Error("HTTPS secure context required");
+ if(typeof passphrase!=="string"||passphrase.length<20)throw new Error("Use a long, randomly generated passphrase (20+ characters)");
+ const content=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);
+ if(!content.byteLength||content.byteLength>25*1024*1024)throw new Error("Choose a nonempty file under 25 MiB");
+ const salt=random.getRandomValues(new Uint8Array(16)),iv=random.getRandomValues(new Uint8Array(12));
+ const keyMaterial=await subtle.importKey("raw",encoder.encode(passphrase),"PBKDF2",false,["deriveKey"]);
+ const key=await subtle.deriveKey({name:"PBKDF2",salt,iterations:600_000,hash:"SHA-256"},keyMaterial,{name:"AES-GCM",length:256},false,["encrypt"]);
+ const contentType=safeVaultMime({mime});
+ const result=await subtle.encrypt({name:"AES-GCM",iv,additionalData:encoder.encode(AAD)},key,content);
+ const cipher=new Uint8Array(result);
+ const output={format:"folk-vault-v1",kdf:"PBKDF2-SHA256",iterations:600_000,cipher:"AES-256-GCM",
+   salt:b64(salt),iv:b64(iv),data:b64(cipher),mime:contentType};
+ assertVaultEnvelope(output);
+ return output;
+}
