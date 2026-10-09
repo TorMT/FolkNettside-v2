@@ -1,4 +1,5 @@
 import {getThreeRuntime} from "../model/three-runtime.js";
+import {mountStandaloneCADNavigation} from "../model/standalone-cad-navigation.js";
 import {externalGearPair} from "./gear-pitch-checks.js";
 import {conceptualHelicalToothGeometry} from "./gear-visual-shape.js";
 
@@ -14,6 +15,7 @@ export async function mountKisssoftPair3D(target,model){
  panel.className="kisssoft-assembly-controls";
  panel.innerHTML='<button type="button" class="btn" data-gear-play>Pause motion</button>'+
    '<label>Speed <input data-gear-speed type="range" min=".25" max="2" step=".25" value=".75"></label>'+
+   '<label>Explode pair <input data-pair-explode type="range" min="0" max="100" value="0"></label>'+
    '<span>'+(pair.internal?'Internal ring/pinion':'External pair')+' · Driver +1× · Driven '+pair.velocityRatio.toFixed(3)+'× · schematic teeth</span>';
  target.replaceChildren(canvas,panel);
  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
@@ -87,12 +89,27 @@ export async function mountKisssoftPair3D(target,model){
  let viewportWidth=0,disposed=false,frame=0,phase=0,previous=null;
  const play=panel.querySelector("[data-gear-play]"),speed=panel.querySelector("[data-gear-speed]");
  let playing=!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+ const explode=panel.querySelector("[data-pair-explode]");
  const draw=()=>{
    if(disposed)return;
    const width=Math.max(280,target.clientWidth);
    if(width!==viewportWidth){viewportWidth=width;renderer.setSize(width,400,false);camera.aspect=width/400;camera.updateProjectionMatrix()}
    renderer.render(scene,camera);
  };
+ const explodePair=()=>{
+   const amount=Number(explode.value)/100;
+   gears[0].position.z=amount*pair.shaft1Width*1.4;
+   gears[1].position.z=-amount*pair.shaft2Width*1.4;
+   draw();
+ };
+ explode.addEventListener("input",explodePair);
+ const cameraNav=mountStandaloneCADNavigation({
+   THREE,camera,controls:orbit,canvas,toolbar:panel,draw,
+   onExplode:restore=>{
+     explode.value=restore?"0":Number(explode.value)>0?"0":"60";
+     explodePair();
+   }
+ });
  const spin=time=>{
    frame=0;
    if(disposed||!playing||document.hidden)return;
@@ -120,6 +137,7 @@ export async function mountKisssoftPair3D(target,model){
    disposed=true;stop();observer?.disconnect();
    document.removeEventListener("visibilitychange",visibility);
    play.removeEventListener("click",onClick);
+   cameraNav.dispose();
    orbit.removeEventListener("change",draw);orbit.dispose();
    geometries.forEach(geo=>geo.dispose());materials.forEach(mat=>mat.dispose());
    renderer.dispose();renderer.forceContextLoss();
