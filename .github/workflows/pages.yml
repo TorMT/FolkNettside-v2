@@ -281,6 +281,8 @@ jobs:
           PY
       - name: Verify CoolProp numerical references
         run: node scripts/verify_coolprop_reference.mjs
+      - name: Test Pages build integrity
+        run: python -m unittest discover -s tests -p "test_build_preview.py" -v
       - name: Build cache-busted Pages tree
         run: |
           python scripts/build_preview.py --version "${GITHUB_SHA}"
