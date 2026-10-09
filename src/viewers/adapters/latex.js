@@ -2,6 +2,7 @@ import {escapeHTML,fetchText} from "../utils.js";
 import {getKaTeX} from "../../vendor/katex.js";
 import {createDomFinder} from "../dom-search.js";
 import {latexBlocks,latexSectionTitle} from "../latex-core.js";
+import {simpleLatexMathHTML} from "../latex-native.js";
 
 function textNodes(input){
  return input.split(/\n/).map(line=>{
@@ -30,7 +31,7 @@ export function latexPreviewHTML(source,katex=null){
    }
    // Readable, safe fallback if a CDN is blocked/offline or TeX uses an
    // unsupported package. Never show an empty preview.
-   nodes.push('<pre class="latex-math-fallback">'+escapeHTML(block.source)+"</pre>");
+   nodes.push('<span class="latex-math-fallback">'+simpleLatexMathHTML(block.source)+"</span>");
  }
  return nodes.join("")||'<p>No LaTeX document content found.</p>';
 }
@@ -38,7 +39,7 @@ export async function render(container,resource){
  const source=await fetchText(resource.path||resource.url);
  let renderer=null,warning="";
  try{renderer=await getKaTeX()}catch{
-   warning="Math renderer unavailable (offline or CDN blocked). Original equations are shown as LaTeX source; use Show LaTeX source for the complete document.";
+   warning="KaTeX is unavailable (offline or CDN blocked). Using a limited built-in math preview; use Show LaTeX source for the complete document.";
  }
  container.innerHTML='<article class="latex-view">'+
    '<div class="latex-viewer-toolbar"><button class="btn latex-formula-toggle" type="button" aria-pressed="false">Show LaTeX source</button></div>'+
