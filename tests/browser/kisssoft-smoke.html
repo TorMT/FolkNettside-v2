@@ -9,7 +9,8 @@ const bytes=new Uint8Array([255,254,...Array.from(sample).flatMap(c=>[c.charCode
 try{
  const model=parseKisssoftBuffer(bytes.buffer,"Stage3PlanetaryGear.Z14");
  if(model.centerDistance!==60||model.consistent!==true)throw Error("Geometry calculation mismatch");
- for(const ext of ["Z12","Z14","W10","KSYS"])if(viewerKind({path:"test."+ext})!=="kisssoft")throw Error("Adapter missing "+ext);
+ for(const ext of ["Z12","Z14","Z012","Z014","Z012RS","Z014RS","W10","KSYS"])if(viewerKind({path:"test."+ext})!=="kisssoft")throw Error("Adapter missing "+ext);
+ if(viewerKind({path:"PitchInternal.Z012RS(1)"})!=="kisssoft")throw Error("Numbered real KISSsoft file unsupported");
  document.body.innerHTML=kisssoftPageHTML()+'<pre id="result">running</pre>';
  const cleanupEngineering=mountKisssoft(document.body);
  const input=document.querySelector("#kisssoft-file");
