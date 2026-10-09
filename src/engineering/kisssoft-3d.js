@@ -1,4 +1,5 @@
 import {getThreeRuntime} from "../model/three-runtime.js";
+import {fixedRingPlanetaryRates} from "./kisssoft-motion.js";
 /** Concept-only mesh. Tooth blocks are schematic, not involute teeth. */
 export async function mountKisssoft3D(target,model){
  if(!model.planetary||!model.consistent)return ()=>{};
@@ -10,7 +11,10 @@ export async function mountKisssoft3D(target,model){
  controlsUI.className="kisssoft-assembly-controls";
  controlsUI.innerHTML='<label><input type="checkbox" data-gear-housing checked> Show housing</label>'+
   '<label><input type="checkbox" data-gear-carrier checked> Show carrier / shafts</label>'+
-  '<label>Explode assembly <input type="range" data-gear-explode min="0" max="100" value="0"></label>';
+  '<label>Explode assembly <input type="range" data-gear-explode min="0" max="100" value="0"></label>'+
+  '<button class="btn" type="button" data-gear-play aria-pressed="true">Pause motion</button>'+
+  '<label>Speed <input type="range" data-gear-speed min="0.25" max="2" step="0.25" value="0.75"></label>'+
+  '<span data-gear-motion-hint>Sun 1× · Carrier 0.21× · Planet −0.36× · Ring fixed</span>';
  target.replaceChildren(canvas,controlsUI);
  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
@@ -42,19 +46,33 @@ export async function mountKisssoft3D(target,model){
  Object.values(layers).forEach(group=>scene.add(group));
  const [sun,planet,ring]=model.gears.map(g=>Math.abs(g.teeth));
  const m=model.module,dist=m*(sun+planet)/2;
+ const rates=fixedRingPlanetaryRates(sun,planet,ring);
+ const planetGroups=[];
  const width=model.gears[0].width>0?model.gears[0].width:35;
- const add=(geometry,mat,x=0,y=0,z=0,rotation=0,part="ring")=>{
-   const mesh=new THREE.Mesh(geometry,mat);mesh.position.set(x,y,z);mesh.rotation.z=rotation;layers[part].add(mesh);solids.push(mesh);return mesh;
+ const add=(geometry,mat,x=0,y=0,z=0,rotation=0,part="ring",parent=layers[part])=>{
+   const mesh=new THREE.Mesh(geometry,mat);
+   mesh.position.set(x,y,z);
+   mesh.rotation.z=rotation;
+   parent.add(mesh);
+   solids.push(mesh);
+   return mesh;
  };
  function external(z,x,y,mat,phase,part){
+   // Each gear is a separate transform origin. Planet groups orbit with the
+   // carrier, while their own local rotation models spin relative to it.
+   const gearRoot=new THREE.Group();
+   gearRoot.position.set(x,y,0);
+   layers[part].add(gearRoot);
    const pitch=m*z/2,base=Math.max(1,pitch-.95*m),count=Math.round(z);
-   const hub=add(new THREE.CylinderGeometry(base,base,width,Math.max(48,Math.min(180,count*2))),mat,x,y,width/2,0,part);hub.rotation.x=Math.PI/2;
+   const hub=add(new THREE.CylinderGeometry(base,base,width,Math.max(48,Math.min(180,count*2))),mat,0,0,width/2,0,part,gearRoot);
+   hub.rotation.x=Math.PI/2;
    const radial=m*1.8,tangential=Math.max(.4,2*Math.PI*pitch/count*.47);
    const geo=new THREE.BoxGeometry(radial,tangential,width);
    for(let i=0;i<count;i++){
      const theta=phase+2*Math.PI*i/count;
-     add(geo,mat,x+(base+radial*.29)*Math.cos(theta),y+(base+radial*.29)*Math.sin(theta),width/2,theta,part);
+     add(geo,mat,(base+radial*.29)*Math.cos(theta),(base+radial*.29)*Math.sin(theta),width/2,theta,part,gearRoot);
    }
+   return gearRoot;
  }
  const ringPitch=m*ring/2,outer=ringPitch+2.5*m,inner=ringPitch-1.2*m;
  const ringShape=new THREE.Shape();
@@ -74,7 +92,7 @@ export async function mountKisssoft3D(target,model){
  }
  external(sun,0,0,paints[0],0,"sun");
  for(const a of [0,2*Math.PI/3,4*Math.PI/3])
-   external(planet,dist*Math.cos(a),dist*Math.sin(a),paints[1],a*.2,"planets");
+   planetGroups.push(external(planet,dist*Math.cos(a),dist*Math.sin(a),paints[1],a*.2,"planets"));
  // The following casing, bearings and shafts are illustrative only. KISSsoft
  // parameters do not specify their actual dimensions or assembly layout.
  const plateRadius=dist+Math.max(2,m);
@@ -101,6 +119,10 @@ export async function mountKisssoft3D(target,model){
  const showHousing=controlsUI.querySelector("[data-gear-housing]");
  const showCarrier=controlsUI.querySelector("[data-gear-carrier]");
  const explode=controlsUI.querySelector("[data-gear-explode]");
+ const playButton=controlsUI.querySelector("[data-gear-play]");
+ const speedInput=controlsUI.querySelector("[data-gear-speed]");
+ const motionHint=controlsUI.querySelector("[data-gear-motion-hint]");
+ motionHint.textContent=`Illustrative, fixed-ring motion · sun 1× · carrier ${rates.carrier.toFixed(3)}× · planet ${rates.planet.toFixed(3)}× · ring 0×`;
  const updateAssembly=()=>{
    layers.housing.visible=showHousing.checked;
    layers.carrier.visible=showCarrier.checked;
@@ -115,20 +137,75 @@ export async function mountKisssoft3D(target,model){
  const ground=new THREE.GridHelper(2.5*outer,10,0x355269,0x294154);
  ground.rotation.x=Math.PI/2;ground.position.z=-1.5;scene.add(ground);
  let disposed=false;
+ let viewportWidth=0;
  const draw=()=>{
    if(disposed)return;
    const w=Math.max(target.clientWidth,270),h=400;
-   renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+   if(w!==viewportWidth){
+     viewportWidth=w;
+     renderer.setSize(w,h,false);
+     camera.aspect=w/h;
+     camera.updateProjectionMatrix();
+   }
    renderer.render(scene,camera);
  };
+ // A purely illustrative constant-speed animation. The tooth-count ratios
+ // are physically consistent for a fixed ring, but RPM is normalized and
+ // neither loads nor measured KISSsoft speeds are implied.
+ const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
+ let playing=!reducedMotion;
+ let previousFrame=null;
+ let phase=0;
+ let animationFrame=0;
+ const updatePhase=()=>{
+   layers.sun.rotation.z=phase;
+   layers.carrier.rotation.z=rates.carrier*phase;
+   layers.planets.rotation.z=rates.carrier*phase;
+   for(const gear of planetGroups)gear.rotation.z=rates.planetRelativeCarrier*phase;
+ };
+ const stopLoop=()=>{
+   if(animationFrame)cancelAnimationFrame(animationFrame);
+   animationFrame=0;
+   previousFrame=null;
+ };
+ const loop=now=>{
+   animationFrame=0;
+   if(disposed||!playing||document.hidden)return;
+   const dt=previousFrame===null?0:Math.min(.075,Math.max(0,(now-previousFrame)/1000));
+   previousFrame=now;
+   phase+=dt*0.82*Number(speedInput.value);
+   updatePhase();
+   draw();
+   animationFrame=requestAnimationFrame(loop);
+ };
+ const startLoop=()=>{
+   if(disposed||!playing||document.hidden||animationFrame)return;
+   previousFrame=null;
+   animationFrame=requestAnimationFrame(loop);
+ };
+ const setPlaying=value=>{
+   playing=Boolean(value);
+   playButton.setAttribute("aria-pressed",String(playing));
+   playButton.textContent=playing?"Pause motion":"Play motion";
+   if(playing)startLoop();else stopLoop();
+ };
+ playButton.addEventListener("click",()=>setPlaying(!playing));
+ const visibility=()=>{if(document.hidden)stopLoop();else startLoop();};
+ document.addEventListener("visibilitychange",visibility);
  controls.addEventListener("change",draw);
  for(const control of [showHousing,showCarrier,explode])
    control.addEventListener("input",updateAssembly);
  const observer=typeof ResizeObserver!=="undefined"?new ResizeObserver(draw):null;
  observer?.observe(target);
  draw();
+ setPlaying(playing);
  return ()=>{
-   disposed=true;observer?.disconnect();controls.removeEventListener("change",draw);controls.dispose();
+   disposed=true;
+   stopLoop();
+   document.removeEventListener("visibilitychange",visibility);
+   observer?.disconnect();
+   controls.removeEventListener("change",draw);
+   controls.dispose();
    for(const item of solids)item.parent?.remove(item);
    for(const geometry of new Set(solids.map(item=>item.geometry)))geometry.dispose();
    paints.forEach(mat=>mat.dispose());renderer.dispose();renderer.forceContextLoss();
