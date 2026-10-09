@@ -116,6 +116,7 @@ export async function mountKisssoftPair3D(target,model){
      geometries.splice(geometries.indexOf(item.geometry),1,next);
      item.geometry=next;
    });
+   canvas.dataset.helixBeta=String(visualBeta);
    betaValue.textContent=visualBeta.toFixed(0)+"° (file "+fileBeta.toFixed(1)+"°)";
    draw();
  };
