@@ -80,3 +80,24 @@ test("no preflight can certify source provenance or external hull isolation",()=
  assert.equal(gate.requiresIndependentReview,true);
  assert.ok(gate.warnings.some(x=>x.includes("not vessel certification")));
 });
+
+
+test("missing vertex buffers with indices are reported as invalid, not an exception",()=>{
+ const result=validateHydroGeometry({indices:[0,1,2]});
+ assert.equal(result.passed,false);
+ assert.ok(result.errors.some(error=>error.includes("Vertex coordinates")));
+ assert.ok(result.errors.some(error=>error.includes("index")));
+});
+test("malformed CAD-derived transforms and nonfinite unit scales fail closed",()=>{
+ const geometry=valid();
+ for(const options of [
+  {transform:Array(16).fill(NaN)},
+  {transform:Array(12).fill(0)},
+  {scale:Infinity},
+  {scale:-0.001},
+  {tolerance:0}
+ ]){
+   const result=validateHydroGeometry(geometry,options);
+   assert.equal(result.passed,false,JSON.stringify(options));
+ }
+});
