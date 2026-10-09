@@ -1,0 +1,57 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/viewer-enhancements.css">
+<title>Fusion native F3D and nested F3Z preview smoke</title></head>
+<body data-status="running"><div id="stage"></div><pre id="result">running</pre>
+<script type="module">
+import {getJSZip} from "../../src/vendor/jszip.js";
+import {inspectFusionPackage} from "../../src/model/parsers/fusion-preview.js";
+import {renderFusionPackage} from "../../src/viewers/fusion-package-view.js";
+const assert=(value,message)=>{if(!value)throw Error(message)};
+const Zip=await getJSZip();
+const png=Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg=="),c=>c.charCodeAt(0));
+const stl=["solid sample",
+" facet normal 0 0 1",
+"  outer loop",
+"   vertex 0 0 0",
+"   vertex 1 0 0",
+"   vertex 0 1 0",
+"  endloop",
+" endfacet","endsolid sample"].join("\n");
+let viewer=null;
+try{
+ const first=new Zip();
+ first.file("Previews/large.png",png);
+ first.file("Meshes/real-geometry.stl",stl);
+ const firstBytes=await first.generateAsync({type:"arraybuffer"});
+ const second=new Zip();second.file("Previews/large.png",png);
+ const secondBytes=await second.generateAsync({type:"arraybuffer"});
+ const assembly=new Zip();
+ assembly.file("designs/Thruster fremre.f3d",firstBytes);
+ assembly.file("designs/Thruster bakre.f3d",secondBytes);
+ const assemblyBytes=await assembly.generateAsync({type:"arraybuffer"});
+ const info=await inspectFusionPackage(assemblyBytes,"Assembly.f3z");
+ assert(info.format==="F3Z"&&info.designsTotal===2,"F3Z nested designs not enumerated");
+ assert(info.documents.filter(doc=>doc.preview).length===2,"Native Fusion thumbnails were not found");
+ const stage=document.querySelector("#stage");
+ viewer=await renderFusionPackage(stage,assemblyBytes,"Assembly.f3z");
+ assert(stage.querySelectorAll("[data-fusion-design]").length===2,"Nested design selection controls missing");
+ assert(stage.querySelector(".fusion-native-thumbnail"),"Saved Fusion thumbnail missing");
+ assert(stage.querySelector("[data-fusion-model]"),"Neutral STL fallback button missing");
+ stage.querySelectorAll("[data-fusion-design]")[1].click();
+ assert(stage.querySelector(".fusion-native-thumbnail"),"Second design thumbnail not displayed");
+ stage.querySelector("[data-fusion-model]").click();
+ for(let i=0;i<80&&!stage.querySelector(".three-canvas");i++)
+   await new Promise(resolve=>setTimeout(resolve,80));
+ assert(stage.querySelector(".three-canvas"),"Nested F3D's actual STL did not open as 3D geometry");
+ viewer.cleanup();viewer=null;
+ const single=document.createElement("div");document.body.append(single);
+ viewer=await renderFusionPackage(single,secondBytes,"native-image-only.f3d");
+ assert(single.querySelector(".fusion-native-thumbnail"),"Native F3D thumbnail unavailable");
+ assert(!single.querySelector("[data-fusion-model]"),"F3D image-only archive invented a 3D model");
+ document.body.dataset.status="pass";document.querySelector("#result").textContent="F3D and nested F3Z ZIP thumbnails and real neutral 3D PASSED";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error.stack||error);
+}finally{viewer?.cleanup?.()}
+</script></body></html>
