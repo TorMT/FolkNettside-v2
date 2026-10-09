@@ -51,3 +51,61 @@ The conversion is documented by KISSsoft's report notation
 https://www.kisssoft.com/files/TXGMHz/KISSsoft-Manual-en-v2402.pdf
 The browser test uses 0.3490658504 radians to represent 20°. Treating this
 source value as 20° would have corrupted helix and center-distance results.
+
+## Fusion-style navigation, component groups and SpaceMouse
+
+All imported mesh/CAD formats use the same orbitable workbench, including
+neutral geometries inside F3D/F3Z archives. Select the 3D canvas (click or Tab)
+to activate local keyboard controls:
+
+| Gesture / key | Effect |
+|---|---|
+| Left mouse drag | Orbit the camera |
+| Middle mouse drag | Pan |
+| Shift + middle mouse drag | Orbit (Fusion-style) |
+| Wheel / two-finger pinch | Zoom |
+| F, I, T | Fit, isometric, top |
+| 1–5 | Front, rear, port, starboard, top |
+| Arrow keys | Pan the camera |
+| Shift + arrows | Orbit the camera |
+| + / − | Zoom |
+| X / Escape | Toggle whole assembly explosion / restore assembled view |
+
+The 3DConnexion SpaceMouse integration uses the **WebHID API** in supporting
+desktop Chromium browsers over HTTPS. Press **Connect 3D mouse** inside the
+viewer and explicitly grant device permission. The integration reads 3-axis
+translation and 3-axis rotation HID reports, with a deadzone and clamping.
+It never requests permission on page load and ignores reports unless the
+CAD workbench is focused and the page is visible. The device connection is
+closed on viewer disposal. The actual hardware/device-driver/OS mapping and
+3DConnexion driver interactions still require physical-hardware validation.
+WebHID is not supported in Safari/Firefox and cannot be promised to work with
+every SpaceMouse firmware/driver. Mouse and touch remain available.
+
+Component grouping is **view-only**. Shared root words form assemblies:
+`Fremre skrog babord` and `Bakre skrog` are grouped under `Skrog`,
+with nested `Fremre`/`Babord` subgroups where multiple parts share them.
+`Thruster fremre` and `Thruster bakre` are grouped under `Thruster`.
+Manual group paths such as `Thruster / Fremre / Motor` can override naming
+for the current session. Users can focus, isolate or explode **the whole
+assembly, a group, a subgroup or one existing CAD component**. A single
+monolithic mesh cannot be split into internal parts without an actual
+assembly structure. Changes never modify ModelDocument or source CAD.
+
+The optional thruster markup requires an explicitly selected group/component,
+thrust-axis (+X/−X/+Y/−Y/+Z/−Z) and propeller diameter. Animated intake rings
+visually travel from the suction side toward the propeller disk and arrows
+show assumed flow direction. This is an illustration of direction only,
+**not simulated CFD, streamtube contraction, velocity magnitude or
+cavitation prediction**. Source metadata is used only if axis and diameter
+are explicitly provided. Selected original hull geometry can be checked
+for watertightness and used for a preliminary still-water volume/CB/waterplane
+calculation; invalid, intersecting, open or overly large hull meshes are
+blocked from producing hydrostatic figures. The exploded presentation is
+never used in Hydro calculations.
+
+New regression checks:
+`tests/cad-groups-navigation-spacemouse.test.mjs` and
+`tests/browser/cad-assembly-navigation-smoke.html` verify shared-name
+hierarchies, manual groups, scoped explosions, isolation, focus,
+thruster ring markup, keyboard movement and gated WebHID reports.
