@@ -1,7 +1,7 @@
-import {fetchText} from "../utils.js?v=cb8c664828c02e239eed87f23e753ac23a4592df";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=cb8c664828c02e239eed87f23e753ac23a4592df";
-import {createPythonSession} from "../python-session.js?v=cb8c664828c02e239eed87f23e753ac23a4592df";
-import {createDomFinder} from "../dom-search.js?v=cb8c664828c02e239eed87f23e753ac23a4592df";
+import {fetchText} from "../utils.js?v=643dfdb81d5ea07b42f66658b2cef5d0af15b430";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=643dfdb81d5ea07b42f66658b2cef5d0af15b430";
+import {createPythonSession} from "../python-session.js?v=643dfdb81d5ea07b42f66658b2cef5d0af15b430";
+import {createDomFinder} from "../dom-search.js?v=643dfdb81d5ea07b42f66658b2cef5d0af15b430";
 
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
   const source=resource.sourceText!==undefined?String(resource.sourceText):await fetchText(resource.path||resource.url);
@@ -67,6 +67,9 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     const selected=[...input.files||[]];
     if(!selected.length)return;
     try{
+      if(selected.length>40||selected.some(file=>file.size>8_000_000)||
+         selected.reduce((size,file)=>size+file.size,0)>25_000_000)
+        throw new Error("Choose at most 40 files, 8 MB per file, 25 MB total");
       const files=[];
       for(const file of selected)files.push({
         name:file.webkitRelativePath||file.name,data:new Uint8Array(await file.arrayBuffer())

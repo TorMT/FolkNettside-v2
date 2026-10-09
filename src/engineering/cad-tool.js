@@ -1,8 +1,8 @@
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=cb8c664828c02e239eed87f23e753ac23a4592df";
-import {parseSTL} from "../model/parsers/stl.js?v=cb8c664828c02e239eed87f23e753ac23a4592df";
-import {parse3MF} from "../model/parsers/three-mf.js?v=cb8c664828c02e239eed87f23e753ac23a4592df";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=cb8c664828c02e239eed87f23e753ac23a4592df";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=cb8c664828c02e239eed87f23e753ac23a4592df";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=643dfdb81d5ea07b42f66658b2cef5d0af15b430";
+import {parseSTL} from "../model/parsers/stl.js?v=643dfdb81d5ea07b42f66658b2cef5d0af15b430";
+import {parse3MF} from "../model/parsers/three-mf.js?v=643dfdb81d5ea07b42f66658b2cef5d0af15b430";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=643dfdb81d5ea07b42f66658b2cef5d0af15b430";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=643dfdb81d5ea07b42f66658b2cef5d0af15b430";
 
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">

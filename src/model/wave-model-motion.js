@@ -1,4 +1,4 @@
-import {waveElevation} from "./wave-core.js?v=cb8c664828c02e239eed87f23e753ac23a4592df";
+import {waveElevation} from "./wave-core.js?v=643dfdb81d5ea07b42f66658b2cef5d0af15b430";
 
 /** Visualization-only heave under a prescribed regular linear wave.
  *  Anchored means the model remains at its original translation.
