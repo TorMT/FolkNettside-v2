@@ -3,12 +3,14 @@ import assert from "node:assert/strict";
 import {parseKisssoft,decodeKisssoft,parseKisssoftBuffer} from "../src/engineering/kisssoft-core.js";
 import {kisssoftDiagram,kisssoftSummary,filterKisssoftFields} from "../src/engineering/kisssoft-tool.js";
 
-const sample="VERSION=26.0;\nKSOFTVERSION=2026 -SP1¶MODULE=Z014¶ZR[0].z=25¶ZR[1].z=35¶ZR[2].z=-95¶ZR[0].b=35¶ZR[1].b=35¶ZR[2].b=35¶ZS.Geo.mn=2¶ZS.Geo.beta=0¶";
+const sample="VERSION=26.0;\nKSOFTVERSION=2026 -SP1¶MODULE=Z014¶ZR[0].z=25¶ZR[1].z=35¶ZR[2].z=-95¶ZR[0].b=35¶ZR[1].b=35¶ZR[2].b=35¶ZS.Geo.mn=2¶ZS.Geo.beta=0¶ZP[0].a=60¶";
 test("KISSsoft Z014 parses planetary dimensions without hardcoding file name",()=>{
  const model=parseKisssoft(sample,"Stage3PlanetaryGear.Z14");
  assert.equal(model.moduleCode,"Z014");
  assert.deepEqual(model.gears.map(g=>g.teeth),[25,35,-95]);
  assert.equal(model.centerDistance,60);
+ assert.equal(model.sourceCenterDistance,60);
+ assert.match(kisssoftSummary(model),/ZP\[0\]\.a/);
  assert.equal(model.consistent,true);
  assert.match(kisssoftDiagram(model),/<svg/);
  assert.match(kisssoftSummary(model),/Concept sketch/);
