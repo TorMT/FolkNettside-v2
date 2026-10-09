@@ -44,6 +44,16 @@ jobs:
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4211/tests/browser/mobile-engineering-tools-smoke.html 90 1280,900
 
+      - name: Structure workspace 3D beam and 2D switch integration smoke
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4215 --bind 127.0.0.1 >/tmp/structure-route-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/structure-route-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4215/tests/browser/structure-workspace-3d-smoke.html 45 1280,900
+
       - name: Static encrypted resources and offline unlock browser smoke
         run: |
           command -v chromedriver
