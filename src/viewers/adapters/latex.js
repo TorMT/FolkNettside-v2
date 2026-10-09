@@ -12,6 +12,18 @@ export async function render(container,resource){
     last=pattern.lastIndex;
   }
   const rest=body.slice(last).trim();if(rest)blocks.push(`<p>${escapeHTML(rest)}</p>`);
-  container.innerHTML=`<article class="latex-view"><div class="latex-rendered"><h2>${escapeHTML(resource.label)}</h2>${blocks.join("")}</div><details><summary>LaTeX source</summary><pre>${escapeHTML(source)}</pre></details></article>`;
+  container.innerHTML=`<article class="latex-view">
+    <div class="latex-viewer-toolbar"><button class="btn latex-formula-toggle" type="button" aria-pressed="false">Show LaTeX source</button></div>
+    <div class="latex-rendered" data-latex-preview><h2>${escapeHTML(resource.label)}</h2>${blocks.join("")}</div>
+    <pre data-latex-source hidden>${escapeHTML(source)}</pre>
+  </article>`;
+  const toggle=container.querySelector(".latex-formula-toggle");
+  toggle.addEventListener("click",()=>{
+    const show=toggle.getAttribute("aria-pressed")!=="true";
+    toggle.setAttribute("aria-pressed",String(show));
+    toggle.textContent=show?"Show rendered equations":"Show LaTeX source";
+    container.querySelector("[data-latex-preview]").hidden=show;
+    container.querySelector("[data-latex-source]").hidden=!show;
+  });
   return {info:"KaTeX preview · source fallback included",actions:{find:createDomFinder(container)}};
 }
