@@ -17,6 +17,19 @@ export function kisssoftDiagram(model,{rotation=0}={}){
  if(!model.planetary){
    const pair=externalGearPair(model);
    if(!pair)return '<p>Parameter inspection only. Insufficient tooth/module data for a gear preview; export STL/3MF from KISSsoft for actual geometry.</p>';
+   if(pair.internal){
+     const scale=160/pair.b.pitchRadius;
+     const cxRing=210,cy=180;
+     const cxPinion=cxRing+pair.centerDistance*scale;
+     const rRing=pair.b.pitchRadius*scale,rPinion=pair.a.pitchRadius*scale;
+     return `<svg viewBox="0 0 420 360" role="img" aria-label="Conceptual internal ring and pinion gearing; both shafts turn in the same direction" style="width:min(100%,520px);height:auto;display:block;margin:auto;background:#102d40;border-radius:12px">
+       <circle cx="${cxRing}" cy="${cy}" r="${rRing+9}" fill="#607e94"/>
+       ${gearShape(cxRing,cy,rRing,pair.b.teeth,{internal:true,fill:"#a8bacb",phase:rotation*pair.velocityRatio})}
+       <circle cx="${cxRing}" cy="${cy}" r="${rRing*.922}" fill="#102d40"/>
+       ${gearShape(cxPinion,cy,rPinion,pair.a.teeth,{fill:"#6cc5bc",phase:rotation})}
+       <circle cx="${cxPinion}" cy="${cy}" r="6" fill="#153245"/>
+     </svg>`;
+   }
    const total=pair.a.pitchRadius+pair.b.pitchRadius;
    const scale=180/Math.max(total,pair.a.pitchRadius*2,pair.b.pitchRadius*2);
    const cx1=210-pair.b.pitchRadius*scale,cx2=210+pair.a.pitchRadius*scale;
@@ -67,16 +80,16 @@ export function bindKisssoftParameterSearch(container,model){
 export function kisssoftSummary(model,rotation=0){
  const pair=externalGearPair(model);
  const check=model.planetary?checkPlanetaryPitch(model):null;
- const gearNames=model.planetary?["Sun","Planet","Internal ring"]:["Gear 1","Gear 2","Gear 3"];
+ const gearNames=model.planetary?["Sun","Planet","Internal ring"]:pair?.internal?["Pinion","Internal ring"]:["Gear 1","Gear 2","Gear 3"];
  const gearRows=(pair?model.gears.slice(0,2):model.gears).map((g,i)=>`<tr><td>${gearNames[i]}</td><td>${esc(g.teeth)}</td><td>${mm(g.width)}</td><td>${esc(g.material)}</td></tr>`).join("");
- const status=model.planetary?(model.consistent?"Tooth-count geometry consistent":"Tooth-count mismatch; verify source values"):pair?"External gear pair: validated nominal pitch ratio":"No validated gear geometry";
+ const status=model.planetary?(model.consistent?"Tooth-count geometry consistent":"Tooth-count mismatch; verify source values"):pair?(pair.internal?"Internal ring/pinion: nominal pitch geometry":"External gear pair: nominal pitch geometry"):"No validated gear geometry";
  return `<section class="kisssoft-summary"><h2>${esc(model.name)}</h2>
   <p><strong>${esc(model.moduleCode)}</strong> · KISSsoft ${esc(model.version)} · ${esc(status)}</p>
   <div class="kisssoft-layout"><div><div class="kisssoft-3d-slot" data-kisssoft-3d aria-label="Interactive concept model"></div>${kisssoftDiagram(model,{rotation})}<p class="muted">Concept sketch using pitch proportions and schematic teeth; not a manufacturable tooth profile or validated CAD model. Three planets are shown illustratively: planet count is not inferred from this file.</p></div>
   <div><h3>Imported parameters</h3><p>Normal module: ${mm(model.module)} · Helix angle: ${esc(model.beta)}°</p>
   <p>Nominal center distance: ${mm(check?.sunPlanetCenterDistance??pair?.centerDistance??model.centerDistance)}</p>
   ${check?`<p>Planetary pitch closure: ${Math.abs(check.residual)<1e-7?"consistent":mm(check.residual)+" mismatch"}</p>`:""}
-  ${pair?`<p>Nominal speed ratio ω₂/ω₁: ${pair.velocityRatio.toFixed(4)} · Pitch tangency residual: ${pair.tangencyResidual.toExponential(1)} mm</p>`:""}
+  ${pair?`<p>Mesh: ${pair.internal?"internal":"external"} · Nominal speed ratio ω₂/ω₁: ${pair.velocityRatio.toFixed(4)} · Pitch tangency residual: ${pair.tangencyResidual.toExponential(1)} mm</p>`:""}
   <table><thead><tr><th>Gear</th><th>Teeth</th><th>Face width</th><th>Material</th></tr></thead><tbody>${gearRows}</tbody></table>
   <details><summary>Search recognized parameters (${Object.keys(model.fields).length})</summary><input type="search" data-kisssoft-filter placeholder="Search by parameter name or value" aria-label="Search KISSsoft parameters"><p data-kisssoft-count>Showing up to 150 records</p><div style="max-height:280px;overflow:auto"><table><tbody data-kisssoft-records>${parameterRows(filterKisssoftFields(model.fields))}</tbody></table></div></details></div></div></section>`;
 }
