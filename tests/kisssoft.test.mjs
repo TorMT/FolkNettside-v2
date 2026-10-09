@@ -59,7 +59,7 @@ test("KISSsoft stores native helix and normal pressure angles in radians, normal
 
 
 test("actual KISSsoft Z012RS and copied Z012RS(1) filenames parse as internal ring pair",()=>{
- const source="VERSION=26.0\\nMODULE=Z012\\nZR[0].z=20\\nZR[1].z=-225\\nZS.Geo.mn=20\\nZS.Geo.beta=0.2617993877991494";
+ const source="VERSION=26.0\nMODULE=Z012\nZR[0].z=20\nZR[1].z=-225\nZS.Geo.mn=20\nZS.Geo.beta=0.2617993877991494";
  for(const name of ["PitchInternal.Z012RS","PitchInternal.Z012RS(1)"]){
    const model=parseKisssoft(source,name);
    assert.equal(model.moduleCode,"Z012");
@@ -70,7 +70,7 @@ test("actual KISSsoft Z012RS and copied Z012RS(1) filenames parse as internal ri
 });
 test("Z014RS files retain planetary module detection",()=>{
  const model=parseKisssoft(
-   "MODULE=Z014\\nZR[0].z=25\\nZR[1].z=35\\nZR[2].z=-95\\nZS.Geo.mn=2",
+   "MODULE=Z014\nZR[0].z=25\nZR[1].z=35\nZR[2].z=-95\nZS.Geo.mn=2",
    "Sample.Z014RS");
  assert.equal(model.planetary,true);
  assert.equal(model.consistent,true);
