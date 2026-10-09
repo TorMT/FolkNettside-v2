@@ -27,7 +27,7 @@ test("registry lookup is deterministic",()=>{
 
 test("unfinished legacy migrations always preserve full legacy access",()=>{
   for(const tool of toolsNeedingParityReview()){
-    assert.ok(tool.legacyUrl?.startsWith("https://"),tool.id+" lost its legacy fallback before full parity");
+    if(!tool.newTool)assert.ok(tool.legacyUrl?.startsWith("https://"),tool.id+" lost its legacy fallback before full parity");
   }
 });
 
@@ -74,4 +74,11 @@ test("Image-to-Theme is full after deployed browser verification",()=>{
   assert.equal(tool.parity,"full");
   assert.equal(toolParityComplete(tool),true);
   assert.ok(tool.legacyUrl?.startsWith("https://"));
+});
+
+test("new static-only tools are not mislabeled as incomplete legacy migrations",()=>{
+ const tool=toolById("encrypted-resources");
+ assert.equal(tool.newTool,true);
+ assert.equal(tool.parity,"partial");
+ assert.equal(tool.legacyUrl,undefined);
 });
