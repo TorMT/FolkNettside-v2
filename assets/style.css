@@ -1105,3 +1105,11 @@
   background:var(--surface-sunk);color:var(--ink)}
 .obj-viewer-scene{min-height:400px;min-width:0;overflow:hidden}
 @media(max-width:760px){.obj-viewer-scene{min-height:330px}}
+
+/* Courses: same topbar-relative anchor for click navigation and active section. */
+.layout .course-header,
+.layout .resource-section{scroll-margin-top:82px}
+@media(max-width:600px){
+ .layout .course-header,
+ .layout .resource-section{scroll-margin-top:76px}
+}
