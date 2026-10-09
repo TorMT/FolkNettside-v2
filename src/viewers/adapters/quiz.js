@@ -117,6 +117,7 @@ export async function render(container,resource){
 
   function draw(){
     const s=score();
+    container.dispatchEvent(new CustomEvent("viewer-info-update",{detail:`${s.total} questions · ${s.answered} answered · ${s.correct} correct`}));
     if(attempt.completed&&!review){
      container.innerHTML=resultHTML();
       bindChapters();
