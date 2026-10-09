@@ -164,6 +164,7 @@ export async function mountKisssoft3D(target,model){
      item.geometry.dispose();
      item.geometry=next;
    }
+   canvas.dataset.helixBeta=String(visualBeta);
    betaLabel.textContent=visualBeta.toFixed(0)+"° (file "+fileBeta.toFixed(1)+"°)";
    draw();
  };
