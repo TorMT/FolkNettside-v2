@@ -7,7 +7,8 @@ import {extension} from "./utils.js";
  */
 const adapters={
   pdf:"pdf",
-  z12:"kisssoft",z14:"kisssoft",w10:"kisssoft",ksys:"kisssoft",
+  z12:"kisssoft",z14:"kisssoft",z012:"kisssoft",z014:"kisssoft",
+  z012rs:"kisssoft",z014rs:"kisssoft",w10:"kisssoft",ksys:"kisssoft",
   docx:"office",xlsx:"office",pptx:"office",
   csv:"csv",tsv:"csv",psv:"csv",
   html:"html",htm:"html",ipynb:"notebook",tex:"latex",
