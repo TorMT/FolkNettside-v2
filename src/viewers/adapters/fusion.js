@@ -8,7 +8,7 @@ function conversionNotice(container,resource,reason){
   headline.textContent="CAD conversion required";
   const description=document.createElement("p");
   description.textContent=String(reason||"The original Fusion geometry needs APS conversion. This viewer will not invent geometry.");
-  const detail=document.createElement("p");detail.textContent="Native F3D is not triangulated model data. F3Z is previewable when its archive contains an embedded 3MF or STL. Export a 3MF/STL from Fusion to enable local viewing.";
+  const detail=document.createElement("p");detail.textContent="Native F3D is not triangulated model data. F3Z is previewable when its archive contains embedded 3MF, STL, STEP, IGES or BREP. Otherwise export a neutral format from Fusion to enable local viewing.";
   const link=document.createElement("a");link.className="btn";
   link.textContent="Open original CAD file";link.href=resource.url||resource.path;
   link.target="_blank";link.rel="noopener noreferrer";
