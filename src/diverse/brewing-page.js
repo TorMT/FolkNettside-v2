@@ -217,8 +217,18 @@ export async function mountBrewing(root,{account={},onBack=()=>{}}={}){
     }
     if(disposed)return()=>{};
     if(note&&!githubPreview){
-      note.textContent="Brewing modules loaded · live backend connection active when the server APIs respond.";
-      note.dataset.kind="ready";
+      note.textContent="Brewing modules loaded. Checking backend availability separately; loading scripts does not confirm server access.";
+      note.dataset.kind="preview";
+      try{
+        const response=await fetch("/includes/rapt/api/dashboard.php?days=1",{method:"GET",cache:"no-store",signal:AbortSignal.timeout(7000)});
+        const type=response.headers.get("content-type")||"";
+        if(!response.ok||!type.includes("json"))throw new Error("Unexpected API status or response format");
+        const payload=await response.json();
+        if(!payload||typeof payload!=="object"||Array.isArray(payload))throw new Error("Invalid API response");
+        if(!disposed){note.textContent="RAPT dashboard endpoint responded. Recipes, logs and Google Drive still need independent checks.";note.dataset.kind="ready";}
+      }catch(error){
+        if(!disposed){note.textContent="Brewing backend not verified: "+String(error.message||error)+". Legacy fallback is available.";note.dataset.kind="preview";}
+      }
     }
   }catch(error){
     if(note){
