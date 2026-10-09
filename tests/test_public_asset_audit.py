@@ -24,4 +24,27 @@ class PublicResourceTests(unittest.TestCase):
           {"path":"./examples/semesters/3/MAT/Beskyttet/fasit.pdf"}]}]}]}
         self.assertEqual(len(guard.validate_manifest(manifest)),1)
 
+
+    def test_static_source_audit_rejects_unlisted_credential_files(self):
+        import tempfile
+        with tempfile.TemporaryDirectory(dir=ROOT) as folder:
+            path=Path(folder)/"service-account.json"
+            path.write_text("{}",encoding="utf-8")
+            issues=guard.validate_sources([Path(folder)])
+            self.assertTrue(any("credential-like" in issue for _,issue in issues))
+
+    def test_static_source_audit_rejects_symlink_before_copy(self):
+        import tempfile
+        with tempfile.TemporaryDirectory(dir=ROOT) as folder:
+            path=Path(folder)
+            target=path/"legitimate.txt"
+            target.write_text("test",encoding="utf-8")
+            link=path/"linked.txt"
+            try:
+                link.symlink_to(target)
+            except (OSError,NotImplementedError):
+                self.skipTest("Symlinks not available")
+            issues=guard.validate_sources([path])
+            self.assertTrue(any("symbolic link" in issue for _,issue in issues))
+
 if __name__=="__main__":unittest.main()
