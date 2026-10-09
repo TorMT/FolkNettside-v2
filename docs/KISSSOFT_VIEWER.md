@@ -13,9 +13,9 @@ The shared Courses ViewerShell registers these formats. Engineering has a dedica
 
 The test fixture `Stage3PlanetaryGear.Z14` from KISSsoft 2026 SP1 has `ZR[0].z=25`, `ZR[1].z=35`, `ZR[2].z=-95`, `ZS.Geo.mn=2`, `ZS.Geo.beta=0`, and face widths of 35 mm. A nominal sun-to-planet center distance of 60 mm and nominal pitch diameters of 50/70/190 mm follow geometrically.
 
-**The 2D SVG diagram is only a schematic** of the gear layout and pitch proportions. Teeth are stylized, not true involute profiles; ring tooth spacing, phases, profile shifts, helix, fillets, backlash, axes/bearings, clearance, and 3D CAD are not solved here. Three planets are displayed illustratively, not read as an asserted planet count.
+**The optional orbitable Three.js 3D scene and the 2D SVG diagram are both schematic** of the gear layout and pitch proportions. 3D tooth blocks and 2D teeth are stylized, not true involute profiles; ring tooth spacing, phases, profile shifts, helix, fillets, backlash, axes/bearings, clearance, and 3D CAD are not solved here. Three planets are displayed illustratively, not read as an asserted planet count.
 
-For actual 3D geometry, export a neutral CAD mesh from KISSsoft or another authorized engineering tool (STL/3MF) and open it in the existing V2 Model Inspector. Do not label a conceptual sketch as a model certified for manufacture, tooth strength or mesh compatibility.
+For accurate 3D geometry, export a neutral CAD mesh from KISSsoft or another authorized engineering tool (STL/3MF) and open it in the existing V2 Model Inspector. Do not label a conceptual sketch as a model certified for manufacture, tooth strength or mesh compatibility.
 
 ## Test approach
 
