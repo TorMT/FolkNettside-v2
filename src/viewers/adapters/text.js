@@ -1,23 +1,19 @@
-import {escapeHTML,fetchText,extension} from "../utils.js?v=c8321a3bee675387a645129059471c24e3f49f03";
-import {getHighlighter} from "../../vendor/highlight.js?v=c8321a3bee675387a645129059471c24e3f49f03";
-import {createDomFinder} from "../dom-search.js?v=c8321a3bee675387a645129059471c24e3f49f03";
+import {escapeHTML,fetchText,extension} from "../utils.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {getHighlighter} from "../../vendor/highlight.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {createDomFinder} from "../dom-search.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {codeRows} from "../highlighted-lines.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
 
 const languageByExtension={
   py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",
-  json:"json",yaml:"yaml",yml:"yaml",md:"markdown",tex:"latex",c:"c",cpp:"cpp",
-  h:"c",hpp:"cpp",cs:"csharp",java:"java"
+  json:"json",jsonl:"json",ndjson:"json",yaml:"yaml",yml:"yaml",md:"markdown",tex:"latex",c:"c",cpp:"cpp",
+  h:"c",hpp:"cpp",cs:"csharp",java:"java",rs:"rust",go:"go",php:"php",sql:"sql",
+  css:"css",scss:"scss",xml:"xml",sh:"bash",bash:"bash",zsh:"bash",toml:"ini",rb:"ruby",swift:"swift"
 };
 const labelByExtension={
   py:"Python",js:"JavaScript",mjs:"JavaScript",ts:"TypeScript",tsx:"TSX",jsx:"JSX",
   json:"JSON",yaml:"YAML",yml:"YAML",md:"Markdown",tex:"LaTeX",c:"C",cpp:"C++",
   h:"C/C++ header",hpp:"C++ header",cs:"C#",java:"Java",txt:"Text"
 };
-
-function withLineNumbers(html){
-  return html.split("\n").map((line,index)=>
-    `<span class="code-line"><span class="code-line-number">${index+1}</span><span class="code-line-text">${line||" "}</span></span>`
-  ).join("\n");
-}
 
 export async function render(container,resource){
   const text=await fetchText(resource.path);
@@ -36,13 +32,13 @@ export async function render(container,resource){
 
   container.innerHTML=`<div class="code-shell">
     <div class="code-meta"><span>${escapeHTML(labelByExtension[ext]||ext.toUpperCase())}</span>
-      <div class="code-view-actions">
+      <div class="code-view-actions" role="group" aria-label="Code view options">
         <button type="button" class="code-wrap" aria-pressed="false">Wrap</button>
         <button type="button" class="code-lines" aria-pressed="true">Lines</button>
         <button type="button" class="code-copy">Copy</button>
       </div>
     </div>
-    <pre class="code-view"><code>${withLineNumbers(highlighted)}</code></pre>
+    <pre class="code-view"><code>${codeRows(highlighted)}</code></pre>
   </div>`;
 
   const block=container.querySelector(".code-view");
@@ -58,9 +54,10 @@ export async function render(container,resource){
   });
 
   container.querySelector(".code-copy").onclick=async event=>{
-    await navigator.clipboard?.writeText(text);
-    event.currentTarget.textContent="Copied";
-    setTimeout(()=>event.currentTarget.textContent="Copy",1200);
+    try{if(!navigator.clipboard?.writeText)throw Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(text);
+      event.currentTarget.textContent="Copied";
+    }catch{event.currentTarget.textContent="Copy unavailable"}
   };
 
   return {info:`${labelByExtension[ext]||"Text"} · ${text.split("\n").length} lines · ${text.length.toLocaleString()} chars`,actions:{find:createDomFinder(container)}};

@@ -1,7 +1,7 @@
-import {getThreeRuntime} from "./three-runtime.js?v=c8321a3bee675387a645129059471c24e3f49f03";
-import {modelWaterlineContours} from "./waterline-preview.js?v=c8321a3bee675387a645129059471c24e3f49f03";
-import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=c8321a3bee675387a645129059471c24e3f49f03";
-import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=c8321a3bee675387a645129059471c24e3f49f03";
+import {getThreeRuntime} from "./three-runtime.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {modelWaterlineContours} from "./waterline-preview.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
+import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=609330a9305f060859d0eb4e1dd1bd93e449dee8";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;
