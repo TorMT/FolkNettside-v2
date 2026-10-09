@@ -10,7 +10,7 @@ export const PRIMARY_NAV=[
 export const MOBILE_NAV=[
   {id:"portfolio",label:"Projects",route:"/portfolio",icon:"◇"},
   {id:"courses",label:"Courses",route:"/courses",icon:"▤"},
-  {id:"engineering",label:"Engineering",route:"/engineering",icon:"⌁"},
+  {id:"engineering",label:"Eng.",route:"/engineering",icon:"⌁"},
   {id:"diverse",label:"Diverse",route:"/diverse",icon:"•••"},
   {id:"search",label:"Search",action:"search",icon:"⌕"},
   {id:"more",label:"More",action:"more",icon:"☰"}
@@ -26,7 +26,7 @@ function navButton(item,active,{mobile=false,coursesLabel="Courses"}={}){
     return `<button data-search-open class="${activeClass}"><span>${item.icon||""}</span>${label}</button>`;
   }
   if(mobile){
-    return `<button data-go="${item.route}" class="${activeClass}"><span>${item.icon||""}</span>${label}</button>`;
+    return `<button data-go="${item.route}" aria-label="${item.id==="engineering"?"Engineering":label}" class="${activeClass}"><span>${item.icon||""}</span>${label}</button>`;
   }
   return `<button data-go="${item.route}" class="${activeClass}">${label}</button>`;
 }
