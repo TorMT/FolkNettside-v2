@@ -20,6 +20,14 @@ try{
  if(!document.querySelector(".kisssoft-summary svg"))throw Error("Engineering view not rendered");
  for(let i=0;i<120&&!document.querySelector("[data-kisssoft-3d] canvas");i++)await new Promise(resolve=>setTimeout(resolve,100));
  if(!document.querySelector("[data-kisssoft-3d] canvas"))throw Error("Interactive Three.js 3D gear model did not mount");
+ const housing=document.querySelector("[data-gear-housing]");
+ const carrier=document.querySelector("[data-gear-carrier]");
+ const explode=document.querySelector("[data-gear-explode]");
+ if(!housing||!carrier||!explode)throw Error("Assembly concept controls are missing");
+ housing.checked=false;housing.dispatchEvent(new Event("input",{bubbles:true}));
+ carrier.checked=false;carrier.dispatchEvent(new Event("input",{bubbles:true}));
+ explode.value="70";explode.dispatchEvent(new Event("input",{bubbles:true}));
+ if(!document.querySelector("[data-kisssoft-3d] canvas"))throw Error("WebGL scene disappeared after control input");
  document.querySelector("#kisssoft-rotation").value="45";
  document.querySelector("#kisssoft-rotation").dispatchEvent(new Event("input",{bubbles:true}));
  if(!document.querySelector("#kisssoft-rotation"))throw Error("Rotation slider unmounted");
