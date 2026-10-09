@@ -124,7 +124,7 @@ export function mountPythonCodeCell(container,{
       if(!file?.name||!file?.bytes)continue;
       const blob=new Blob([file.bytes]),url=URL.createObjectURL(blob);
       const link=document.createElement("a");
-      link.href=url;link.download=String(file.name);
+      link.href=url;link.download=String(file.name).replace(/[\\/]+/g,"_");
       link.dataset.pythonDownload="true";link.dataset.blobUrl=url;
       link.textContent="Download "+String(file.name);
       fileHost.append(link);
