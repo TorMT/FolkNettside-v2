@@ -8,7 +8,7 @@ import {waveModelHeave} from "../src/model/wave-model-motion.js";
 test("non-planetary two-shaft helix preview uses transverse module and tooth ratio",()=>{
  const model=parseKisssoft([
   "KSOFTVERSION=2026 -SP1","MODULE=Z012",
-  "ZR[0].z=18","ZR[1].z=36","ZS.Geo.mn=2","ZS.Geo.beta=20",
+  "ZR[0].z=18","ZR[1].z=36","ZS.Geo.mn=2","ZS.Geo.beta=0.3490658503988659",
   "ZR[0].b=30","ZR[1].b=30"
  ].join("\n"),"two-shaft.Z12");
  assert.equal(model.planetary,false);
@@ -23,7 +23,7 @@ test("non-planetary two-shaft helix preview uses transverse module and tooth rat
 });
 
 test("helical planetary pitch closure works with transverse module and rejects invalid teeth",()=>{
- const model=parseKisssoft("MODULE=Z014\nZR[0].z=25\nZR[1].z=35\nZR[2].z=-95\nZS.Geo.mn=2\nZS.Geo.beta=25\n","planet.Z14");
+ const model=parseKisssoft("MODULE=Z014\nZR[0].z=25\nZR[1].z=35\nZR[2].z=-95\nZS.Geo.mn=2\nZS.Geo.beta=0.4363323129985824\n","planet.Z14");
  const check=checkPlanetaryPitch(model);
  assert.ok(Math.abs(check.residual)<1e-9);
  assert.ok(Math.abs(check.sunPlanetCenterDistance-check.ringPlanetCenterDistance)<1e-9);
@@ -47,7 +47,7 @@ test("KISSsoft internal ring/pinion uses positive ratio, ring helix hand and exa
  const model=parseKisssoft([
    "KSOFTVERSION=2026","MODULE=Z012",
    "ZR[0].z=20","ZR[1].z=-225",
-   "ZR[0].b=30","ZR[1].b=40","ZS.Geo.mn=20","ZS.Geo.beta=15"
+   "ZR[0].b=30","ZR[1].b=40","ZS.Geo.mn=20","ZS.Geo.beta=0.2617993877991494"
  ].join("\\n"),"pitch-ring.Z12");
  const pair=externalGearPair(model);
  assert.ok(pair);
