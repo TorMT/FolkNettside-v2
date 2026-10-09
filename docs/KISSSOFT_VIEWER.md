@@ -38,3 +38,17 @@ explanation, not an assertion that the actual KISSsoft shaft speeds, number of
 planets, tooth geometry, housing or bearings match the illustrative model.
 Pause and reduced-motion preferences are respected. The same KISSsoft file
 adapter is used from Courses resources and the Engineering page.
+
+## Native KISSsoft angular units
+
+KISSsoft parameter files store `ZS.Geo.beta` as **radians**, not degrees. The
+native value in `model.fields` remains unchanged; the parsed `model.betaRad`
+and `model.beta` represent radians and degrees respectively. Calculations
+such as `m_t=m_n/cos(beta)` convert the normalized degree angle back to
+radians for JavaScript trigonometry. `ZS.Geo.alfn` similarly denotes the
+normal pressure angle in radians; the preview displays its degree equivalent.
+The conversion is documented by KISSsoft's report notation
+`Grad(ZS.Geo.beta)` in the official KISSsoft user manual (2024, section 12.1):
+https://www.kisssoft.com/files/TXGMHz/KISSsoft-Manual-en-v2402.pdf
+The browser test uses 0.3490658504 radians to represent 20°. Treating this
+source value as 20° would have corrupted helix and center-distance results.
