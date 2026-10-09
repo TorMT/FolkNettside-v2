@@ -1,5 +1,5 @@
-import {parseKisssoftBuffer} from "./kisssoft-core.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
-import {externalGearPair,checkPlanetaryPitch} from "./gear-pitch-checks.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
+import {parseKisssoftBuffer} from "./kisssoft-core.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {externalGearPair,checkPlanetaryPitch} from "./gear-pitch-checks.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
 const esc=x=>String(x??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const mm=n=>Number.isFinite(n)?n.toFixed(2)+" mm":"unknown";
 function gearShape(cx,cy,r,z,{internal=false,fill="#75b9e0",phase=0}={}){
@@ -80,7 +80,7 @@ export function bindKisssoftParameterSearch(container,model){
 export function kisssoftSummary(model,rotation=0){
  const pair=externalGearPair(model);
  const check=model.planetary?checkPlanetaryPitch(model):null;
- const gearNames=model.planetary?["Sun","Planet","Internal ring"]:pair?.internal?["Pinion","Internal ring"]:["Gear 1","Gear 2","Gear 3"];
+ const gearNames=model.planetary?["Sun","Planet","Internal ring"]:pair?.internal?(pair.pinionIndex===0?["Pinion","Internal ring"]:["Internal ring","Pinion"]):["Gear 1","Gear 2","Gear 3"];
  const gearRows=(pair?model.gears.slice(0,2):model.gears).map((g,i)=>`<tr><td>${gearNames[i]}</td><td>${esc(g.teeth)}</td><td>${mm(g.width)}</td><td>${esc(g.material)}</td></tr>`).join("");
  const status=model.planetary?(model.consistent?"Tooth-count geometry consistent":"Tooth-count mismatch; verify source values"):pair?(pair.internal?"Internal ring/pinion: nominal pitch geometry":"External gear pair: nominal pitch geometry"):"No validated gear geometry";
  return `<section class="kisssoft-summary"><h2>${esc(model.name)}</h2>
@@ -108,11 +108,11 @@ export async function mountKisssoftVisual(target,model){
  try{
   let cleanup;
   if(model.planetary&&model.consistent){
-    const {mountKisssoft3D}=await import("./kisssoft-3d.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136");
+    const {mountKisssoft3D}=await import("./kisssoft-3d.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193");
     if(!stage.isConnected)return ()=>{};
     cleanup=await mountKisssoft3D(stage,model);
   }else{
-    const {mountKisssoftPair3D}=await import("./kisssoft-pair-3d.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136");
+    const {mountKisssoftPair3D}=await import("./kisssoft-pair-3d.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193");
     if(!stage.isConnected)return ()=>{};
     cleanup=await mountKisssoftPair3D(stage,model);
   }
@@ -124,34 +124,74 @@ export async function mountKisssoftVisual(target,model){
 }
 export function kisssoftPageHTML(){
  return `<main class="section kisssoft-page"><p class="crumbs">Engineering / KISSsoft</p><h1>KISSsoft gear inspector</h1>
- <p>Open a local .Z14, .Z12, .W10 or .KSYS file. Z014 planetary datasets and compatible two-shaft external pairs support conceptual rotating 3D gears and approximate helix. Other formats show available parameter information.</p>
- <label class="form-field">KISSsoft file <input id="kisssoft-file" type="file" accept=".z12,.z14,.w10,.ksys"></label>
+ <p>Open a local .Z14, .Z12, .Z012RS, .Z014RS, .W10 or .KSYS file. Z014 planetary datasets and compatible two-shaft external pairs support conceptual rotating 3D gears and approximate helix. Other formats show available parameter information.</p>
+ <label class="form-field">KISSsoft file <input id="kisssoft-file" type="file" accept=".z12,.z14,.z012,.z014,.z012rs,.z014rs,.w10,.ksys"></label>
+ <div class="kisssoft-example"><button class="btn" type="button" data-kisssoft-example>Open example planetary gearbox</button> <a href="./examples/kisssoft/PlanetaryExample.Z14" download="PlanetaryExample.Z14">Download example .Z14</a> <button class="btn" type="button" data-kisssoft-ring-example>Open internal ring + pinion</button> <a href="./examples/kisssoft/InternalRingAndPinion.Z12" download="InternalRingAndPinion.Z12">Download example .Z12</a><small>Synthetic Z014-compatible parameter fixture for learning; not an original KISSsoft calculation or validated design.</small></div>
  <div id="kisssoft-output" role="status" aria-live="polite"><p>No file loaded. Your file stays in your browser.</p></div></main>`;
 }
 export function mountKisssoft(root){
  const input=root.querySelector("#kisssoft-file"),output=root.querySelector("#kisssoft-output");
+ const example=root.querySelector("[data-kisssoft-example]");
  if(!input||!output)return ()=>{};
- let dispose3D=()=>{};
- let generation=0;
- input.addEventListener("change",async()=>{
+ let dispose3D=()=>{},generation=0,disposed=false;
+ async function showModel(buffer,name,current){
+   if(current!==generation||disposed)return;
+   const model=parseKisssoftBuffer(buffer,name);
+   let rotation=0;
+   const show=()=>{
+     output.innerHTML=kisssoftSummary(model,rotation)+
+       '<label>Concept rotation <input id="kisssoft-rotation" type="range" min="0" max="360" value="'+Math.round(rotation*180/Math.PI)+'"></label>';
+     output.querySelector("#kisssoft-rotation").oninput=e=>{
+       rotation=Number(e.target.value)*Math.PI/180;
+       const visual=output.querySelector("svg");
+       if(visual)visual.outerHTML=kisssoftDiagram(model,{rotation});
+     };
+   };
+   show();
+   bindKisssoftParameterSearch(output,model);
+   const dispose=await mountKisssoftVisual(output,model);
+   if(current!==generation||disposed){dispose();return}
+   dispose3D=dispose;
+ }
+ async function openBuffer(read,name){
    const current=++generation;
    dispose3D();dispose3D=()=>{};
-   const file=input.files?.[0];if(!file)return;
    output.textContent="Reading KISSsoft parameters…";
    try{
-     if(file.size>12_000_000)throw Error("File exceeds 12 MB safe preview limit");
-     const model=parseKisssoftBuffer(await file.arrayBuffer(),file.name);
-     let rotation=0;
-     const show=()=>{output.innerHTML=kisssoftSummary(model,rotation)+
-       '<label>Concept rotation <input id="kisssoft-rotation" type="range" min="0" max="360" value="'+Math.round(rotation*180/Math.PI)+'"></label>';
-       output.querySelector("#kisssoft-rotation").oninput=e=>{rotation=Number(e.target.value)*Math.PI/180;const visual=output.querySelector("svg");if(visual)visual.outerHTML=kisssoftDiagram(model,{rotation});};
-     };
-     show();
-     bindKisssoftParameterSearch(output,model);
-     const dispose=await mountKisssoftVisual(output,model);
-     if(current!==generation){dispose();return}
-     dispose3D=dispose;
-   }catch(error){output.textContent="Unable to import file: "+String(error.message||error)}
- });
- return ()=>{generation++;dispose3D();};
+     const buffer=await read();
+     if(current!==generation||disposed)return;
+     if(buffer.byteLength>12_000_000)throw Error("File exceeds 12 MB safe preview limit");
+     await showModel(buffer,name,current);
+   }catch(error){
+     if(current===generation&&!disposed)output.textContent="Unable to import file: "+String(error?.message||error);
+   }
+ }
+ const onFile=()=>{
+   const file=input.files?.[0];
+   if(file)void openBuffer(()=>file.arrayBuffer(),file.name);
+ };
+ const onExample=()=>{
+   void openBuffer(async()=>{
+     const response=await fetch("./examples/kisssoft/PlanetaryExample.Z14",{cache:"no-cache"});
+     if(!response.ok)throw Error("Example unavailable (HTTP "+response.status+")");
+     return response.arrayBuffer();
+   },"PlanetaryExample.Z14");
+ };
+ const ringExample=root.querySelector("[data-kisssoft-ring-example]");
+ const onRingExample=()=>{
+   void openBuffer(async()=>{
+     const response=await fetch("./examples/kisssoft/InternalRingAndPinion.Z12",{cache:"no-cache"});
+     if(!response.ok)throw Error("Ring example unavailable (HTTP "+response.status+")");
+     return response.arrayBuffer();
+   },"InternalRingAndPinion.Z12");
+ };
+ input.addEventListener("change",onFile);
+ example?.addEventListener("click",onExample);
+ ringExample?.addEventListener("click",onRingExample);
+ return ()=>{
+   disposed=true;generation++;dispose3D();
+   input.removeEventListener("change",onFile);
+   example?.removeEventListener("click",onExample);
+   ringExample?.removeEventListener("click",onRingExample);
+ };
 }

@@ -1,8 +1,8 @@
-import {getThreeRuntime} from "../model/three-runtime.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
-import {mountStandaloneCADNavigation} from "../model/standalone-cad-navigation.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
-import {conceptualHelicalToothGeometry} from "./gear-visual-shape.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
-import {checkPlanetaryPitch} from "./gear-pitch-checks.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
-import {planetaryRates} from "./kisssoft-motion.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
+import {getThreeRuntime} from "../model/three-runtime.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {mountStandaloneCADNavigation} from "../model/standalone-cad-navigation.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {conceptualHelicalToothGeometry} from "./gear-visual-shape.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {checkPlanetaryPitch} from "./gear-pitch-checks.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {planetaryRates} from "./kisssoft-motion.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
 /** Concept-only mesh. Tooth blocks are schematic, not involute teeth. */
 export async function mountKisssoft3D(target,model){
  if(!model.planetary||!model.consistent)return ()=>{};
@@ -18,10 +18,10 @@ export async function mountKisssoft3D(target,model){
   '<label>Boundary condition <select data-gear-boundary aria-label="Ideal planetary boundary condition">'+
   '<option value="ring-fixed">Ring fixed · sun drives</option>'+
   '<option value="sun-fixed">Sun fixed · ring drives</option>'+
-  '<option value="carrier-fixed">Carrier fixed · sun drives</option></select></label>'+
+  '<option value="carrier-fixed" selected>Carrier fixed · sun drives</option></select></label>'+
   '<button class="btn" type="button" data-gear-play aria-pressed="true">Pause motion</button>'+
   '<label>Speed <input type="range" data-gear-speed min="0.25" max="2" step="0.25" value="0.75"></label>'+
-  '<span data-gear-motion-hint>Sun 1× · Carrier 0.21× · Planet −0.36× · Ring fixed</span>';
+  '<span data-gear-motion-hint>Sun 1× · Carrier fixed · Ring −zₛ/zᵣ×</span>';
  target.replaceChildren(canvas,controlsUI);
  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
@@ -55,7 +55,8 @@ export async function mountKisssoft3D(target,model){
  const pitch=checkPlanetaryPitch(model);
  const m=model.module,dist=pitch.sunPlanetCenterDistance;
  const beta=Number(model.beta||0);
- let rates=planetaryRates(sun,planet,ring);
+ canvas.dataset.helixBeta=String(beta);
+ let rates=planetaryRates(sun,planet,ring,{mode:"carrier-fixed"});
  const planetGroups=[];
  const width=model.gears[0].width>0?model.gears[0].width:35;
  const add=(geometry,mat,x=0,y=0,z=0,rotation=0,part="ring",parent=layers[part])=>{
@@ -176,7 +177,7 @@ export async function mountKisssoft3D(target,model){
    }
  });
  // A purely illustrative constant-speed animation. The tooth-count ratios
- // are physically consistent for a fixed ring, but RPM is normalized and
+ // follow the selected ideal boundary condition; RPM is normalized and
  // neither loads nor measured KISSsoft speeds are implied.
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
  let playing=!reducedMotion;

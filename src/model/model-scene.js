@@ -1,11 +1,12 @@
-import {getThreeRuntime} from "./three-runtime.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
-import {modelWaterlineContours} from "./waterline-preview.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
-import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
-import {waveModelHeave} from "./wave-model-motion.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
-import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
-import {createThrusterFlowRings} from "./thruster-flow-rings.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
-import {explodeOffsets} from "./explode-layout.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
-import {connectCADKeyboard} from "./cad-navigation.js?v=5fc1b305ac9f0c03373168e16c639aa66f439136";
+import {getThreeRuntime} from "./three-runtime.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {modelWaterlineContours} from "./waterline-preview.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {waveModelHeave} from "./wave-model-motion.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {createThrusterFlowRings} from "./thruster-flow-rings.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {explodeOffsets} from "./explode-layout.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {connectCADKeyboard} from "./cad-navigation.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {fitDistanceForBox} from "./cad-camera-fit.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;
@@ -188,7 +189,9 @@ export async function mountModelScene(container,documentModel,options={}){
     const radius=Math.max(box.getSize(new THREE.Vector3()).length()/2,.02);
     const direction=camera.position.clone().sub(controls.target).normalize();
     controls.target.copy(target);
-    const distance=Math.max(radius/Math.sin(THREE.MathUtils.degToRad(camera.fov)/2)*1.18,radius*1.6);
+    const size=box.getSize(new THREE.Vector3());
+    const aspect=Math.max(.15,(canvas.clientWidth||800)/(canvas.clientHeight||540));
+    const distance=fitDistanceForBox(size.toArray(),direction.toArray(),{aspect,fovDeg:camera.fov});
     camera.position.copy(target).addScaledVector(direction,distance);
     controls.update();draw();
     return {count,center:target.toArray()};
@@ -213,31 +216,27 @@ export async function mountModelScene(container,documentModel,options={}){
 
   function draw(){renderer.render(scene,camera)}
 
-  function placeCamera(direction,distanceFactor=2.75){
+  function placeCamera(direction){
     currentBounds=bounds();
     const dir=direction.clone().normalize();
+    const aspect=Math.max(.15,(canvas.clientWidth||800)/(canvas.clientHeight||540));
+    const distance=fitDistanceForBox(currentBounds.size.toArray(),dir.toArray(),
+      {aspect,fovDeg:camera.fov});
     controls.target.copy(currentBounds.center);
-    camera.position.copy(currentBounds.center).add(dir.multiplyScalar(currentBounds.radius*distanceFactor));
-    camera.near=Math.max(currentBounds.radius/1000,.001);
-    camera.far=Math.max(currentBounds.radius*100,100);
+    camera.position.copy(currentBounds.center).add(dir.multiplyScalar(distance));
+    camera.near=Math.max(.0001,Math.min(currentBounds.radius/1000,distance/5000));
+    camera.far=Math.max(currentBounds.radius*100,distance*50,100);
     camera.updateProjectionMatrix();
     controls.update();
     draw();
   }
 
-  function resetView(){placeCamera(canonicalDirection,2.75)}
+  function resetView(){placeCamera(canonicalDirection)}
 
   function fitView(){
-    currentBounds=bounds();
     const direction=camera.position.clone().sub(controls.target);
     if(direction.lengthSq()<1e-12)direction.copy(canonicalDirection);
-    direction.normalize();
-    const fov=THREE.MathUtils.degToRad(camera.fov);
-    const distance=Math.max(currentBounds.radius/Math.sin(fov/2)*1.12,currentBounds.radius*1.2);
-    controls.target.copy(currentBounds.center);
-    camera.position.copy(currentBounds.center).add(direction.multiplyScalar(distance));
-    controls.update();
-    draw();
+    placeCamera(direction);
   }
 
   function navigate3D({pan=[0,0,0],orbit=[0,0,0],zoom:zoomFactor=1}={}){
@@ -289,7 +288,7 @@ export async function mountModelScene(container,documentModel,options={}){
     starboard:new THREE.Vector3(1,0,.15),
     top:new THREE.Vector3(0,-.001,1)
   };
-  function setView(name){placeCamera((viewDirections[name]||canonicalDirection).clone(),2.75)}
+  function setView(name){placeCamera((viewDirections[name]||canonicalDirection).clone())}
 
   function select(mesh,notify=true){
     selectedMesh=mesh||null;
