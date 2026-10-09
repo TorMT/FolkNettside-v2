@@ -42,12 +42,14 @@ export function analyzeGeometryDiagnostics(geometry,{
     min:[Infinity,Infinity,Infinity],
     max:[-Infinity,-Infinity,-Infinity]
   };
-  const pointsByIndex=new Array(positions.length/3);
+  let invalidVertices=positions.length%3===0?0:1;
+  const pointsByIndex=new Array(Math.ceil(positions.length/3));
   const weldedKeyByIndex=new Array(positions.length/3);
 
   for(let i=0;i<positions.length;i+=3){
     const point=transformPoint(positions[i],positions[i+1],positions[i+2],transform,scale);
     const vi=i/3;
+    if(point.some(value=>!Number.isFinite(value)))invalidVertices++;
     pointsByIndex[vi]=point;
     weldedKeyByIndex[vi]=vertexKey(point,tolerance);
     for(let axis=0;axis<3;axis++){
@@ -94,9 +96,11 @@ export function analyzeGeometryDiagnostics(geometry,{
     triangleCount,
     degenerateTriangles,
     invalidTriangles,
+    invalidVertices,
     boundaryEdges,
     nonManifoldEdges,
-    watertight:triangleCount>0&&boundaryEdges===0&&nonManifoldEdges===0&&invalidTriangles===0,
+    watertight:triangleCount>0&&boundaryEdges===0&&nonManifoldEdges===0&&
+      invalidTriangles===0&&degenerateTriangles===0&&invalidVertices===0,
     bounds:{...bounds,size}
   };
 }
@@ -104,7 +108,9 @@ export function analyzeGeometryDiagnostics(geometry,{
 const cache=new WeakMap();
 
 export function analyzeModelDiagnostics(modelDocument,{tolerance=DEFAULT_TOLERANCE}={}){
-  if(cache.has(modelDocument))return cache.get(modelDocument);
+  const cacheable=modelDocument!==null&&typeof modelDocument==="object";
+  const previous=cacheable?cache.get(modelDocument):null;
+  if(previous?.tolerance===tolerance)return previous.result;
   const scale=Number(modelDocument?.unitScaleToMeters)||1;
   const components=(modelDocument?.components||[])
     .filter(component=>component.geometry)
@@ -142,6 +148,6 @@ export function analyzeModelDiagnostics(modelDocument,{tolerance=DEFAULT_TOLERAN
     watertight:components.length>0&&components.every(item=>item.watertight),
     bounds:modelBounds
   };
-  cache.set(modelDocument,result);
+  if(cacheable)cache.set(modelDocument,{tolerance,result});
   return result;
 }
