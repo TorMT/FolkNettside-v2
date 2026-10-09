@@ -13,18 +13,27 @@ export function gearPitchGeometry({module,normalModule,beta=0,teeth}){
    pitchDiameter,pitchRadius:pitchDiameter/2,
    helixLead:Math.abs(b)<1e-9?Infinity:Math.PI*pitchDiameter/Math.tan(b*Math.PI/180)};
 }
+/** Normal external-external mesh or external pinion/internal ring.
+ * Signed ring teeth are conventional in KISSsoft Z012/Z012-family modules.
+ * Kinematic assumptions are nominal, no backlash, tooth modification or load.
+ */
 export function externalGearPair(model){
  const z1=model?.gears?.[0]?.teeth,z2=model?.gears?.[1]?.teeth;
- if(!Number.isInteger(z1)||!Number.isInteger(z2)||z1<=2||z2<=2||model?.planetary)return null;
+ if(!Number.isInteger(z1)||!Number.isInteger(z2)||z1<=2||Math.abs(z2)<=2||
+    model?.planetary||String(model?.moduleCode||"").toUpperCase()==="Z014")return null;
+ const internal=z2<0;
+ if(internal&&Math.abs(z2)<=z1) return null;
  let a,b;
  try{
    a=gearPitchGeometry({module:model.module,beta:model.beta??0,teeth:z1});
-   b=gearPitchGeometry({module:model.module,beta:model.beta??0,teeth:z2});
+   b=gearPitchGeometry({module:model.module,beta:model.beta??0,teeth:Math.abs(z2)});
  }catch{return null}
- const centerDistance=a.pitchRadius+b.pitchRadius;
- const velocityRatio=-z1/z2;
- const tangencyResidual=a.pitchRadius+velocityRatio*b.pitchRadius;
- return {kind:"external-pair",a,b,centerDistance,velocityRatio,tangencyResidual,
+ const centerDistance=internal?b.pitchRadius-a.pitchRadius:a.pitchRadius+b.pitchRadius;
+ const velocityRatio=internal?z1/Math.abs(z2):-z1/z2;
+ const tangencyResidual=internal?a.pitchRadius-velocityRatio*b.pitchRadius:
+   a.pitchRadius+velocityRatio*b.pitchRadius;
+ return {kind:internal?"internal-pair":"external-pair",internal,a,b,
+   centerDistance,velocityRatio,tangencyResidual,
    shaft1Width:Number(model.gears[0].width)>0?Number(model.gears[0].width):20,
    shaft2Width:Number(model.gears[1].width)>0?Number(model.gears[1].width):20};
 }
