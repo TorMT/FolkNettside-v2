@@ -48,6 +48,8 @@ def rel_web(path: Path) -> str:
 
 def detect_kind(path: Path) -> str:
     lower = path.name.lower()
+    if lower.endswith(".vault.json"):
+        return "VAULT"
     if lower.endswith(".quiz.json"):
         return "QUIZ"
     return KIND_BY_SUFFIX.get(path.suffix.lower(), path.suffix.lstrip(".").upper() or "FILE")
