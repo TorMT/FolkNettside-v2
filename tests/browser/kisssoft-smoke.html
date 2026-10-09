@@ -3,7 +3,7 @@
 <script type="module">
 import {parseKisssoftBuffer} from "../../src/engineering/kisssoft-core.js";
 import {kisssoftPageHTML,mountKisssoft} from "../../src/engineering/kisssoft-tool.js";
-import {viewerKind} from "../../src/viewers/registry.js";
+import {viewerKind,loadAdapter} from "../../src/viewers/registry.js";
 const sample="KSOFTVERSION=2026 -SP1¶MODULE=Z014¶ZR[0].z=25¶ZR[1].z=35¶ZR[2].z=-95¶ZR[0].b=35¶ZR[1].b=35¶ZR[2].b=35¶ZS.Geo.mn=2¶ZS.Geo.beta=0¶";
 const bytes=new Uint8Array([255,254,...Array.from(sample).flatMap(c=>[c.charCodeAt(0)&255,c.charCodeAt(0)>>8])]);
 try{
@@ -11,7 +11,7 @@ try{
  if(model.centerDistance!==60||model.consistent!==true)throw Error("Geometry calculation mismatch");
  for(const ext of ["Z12","Z14","W10","KSYS"])if(viewerKind({path:"test."+ext})!=="kisssoft")throw Error("Adapter missing "+ext);
  document.body.innerHTML=kisssoftPageHTML();
- mountKisssoft(document.body);
+ const cleanupEngineering=mountKisssoft(document.body);
  const input=document.querySelector("#kisssoft-file");
  const file=new File([bytes],"Stage3PlanetaryGear.Z14",{type:"application/octet-stream"});
  const transfer=new DataTransfer();transfer.items.add(file);input.files=transfer.files;
@@ -31,6 +31,40 @@ try{
  document.querySelector("#kisssoft-rotation").value="45";
  document.querySelector("#kisssoft-rotation").dispatchEvent(new Event("input",{bubbles:true}));
  if(!document.querySelector("#kisssoft-rotation"))throw Error("Rotation slider unmounted");
+ const canvas=document.querySelector("[data-kisssoft-3d] canvas");
+ const pause=document.querySelector("[data-gear-play]");
+ if(!pause)throw Error("Gear animation control missing");
+ if(pause.textContent.includes("Play"))pause.click();
+ const start=Number(canvas.dataset.sunAngle||0);
+ await new Promise(resolve=>setTimeout(resolve,500));
+ const end=Number(canvas.dataset.sunAngle||0);
+ if(!(end>start))throw Error("Gear animation is not turning");
+ const carrierAngle=Number(canvas.dataset.carrierAngle||0);
+ const planetAngle=Number(canvas.dataset.planetSpin||0);
+ if(Math.abs(carrierAngle/end-25/120)>1e-8)throw Error("Carrier ratio incorrect");
+ if(Math.abs(planetAngle/end+(25/35)*(1-25/120))>1e-8)throw Error("Planet ratio incorrect");
+ pause.click();
+ const stopped=Number(canvas.dataset.sunAngle);
+ await new Promise(resolve=>setTimeout(resolve,170));
+ if(Number(canvas.dataset.sunAngle)!==stopped)throw Error("Pause did not stop rotation");
+ cleanupEngineering();
+ const courseResource={
+   kind:"FILE",path:"./example-course/Stage3PlanetaryGear.Z14",name:"Stage3PlanetaryGear.Z14",
+   label:"KISSsoft planetary",semester:5,courseCode:"TMR4182",section:"Gear design"
+ };
+ const adapter=await loadAdapter(courseResource);
+ if(adapter.kind!=="kisssoft")throw Error("KISSsoft file not registered in Courses");
+ const originalFetch=window.fetch.bind(window);
+ window.fetch=async path=>String(path).endsWith(".Z14")?new Response(bytes,{status:200}):originalFetch(path);
+ try{
+   const host=document.createElement("div");
+   document.body.append(host);
+   const instance=await adapter.render(host,courseResource);
+   if(!host.querySelector(".kisssoft-summary"))throw Error("Course KISSsoft viewer failed");
+   instance?.cleanup?.();
+   host.remove();
+ }finally{window.fetch=originalFetch}
+
  document.body.dataset.status="pass";
  document.querySelector("#result")?.replaceChildren("pass");
 }catch(error){document.body.dataset.status="fail";document.querySelector("#result")?.replaceChildren(String(error?.stack||error));}
