@@ -94,33 +94,57 @@ function safeMountPath(name){
     throw new Error("Invalid Python workspace path");
   return segments.map(part=>part.replace(/[^a-zA-Z0-9_.() +\-]/g,"_").slice(0,140)).join("/");
 }
-async function mountFiles(files){
+function prepareMountFiles(files){
   if(!Array.isArray(files)||files.length>40)
     throw new Error("Choose at most 40 local files");
-  const py=await ensurePython();
+  const pending=[],names=new Set();
   let total=0;
   for(const file of files){
     const name=safeMountPath(file?.name);
+    if(names.has(name))throw new Error("Duplicate Python workspace path: "+name);
+    names.add(name);
     const bytes=file?.data instanceof Uint8Array?file.data:new Uint8Array(file?.data||0);
-    if(bytes.length>8_000_000||(total+=bytes.length)>25_000_000)
+    total+=bytes.length;
+    if(bytes.length>8_000_000||total>25_000_000)
       throw new Error("Input files exceed the 8 MB per-file / 25 MB total limit");
+    pending.push({name,bytes});
+  }
+  return pending;
+}
+async function mountFiles(files){
+  // Validate the whole batch before mutating the Python filesystem.
+  const pending=prepareMountFiles(files);
+  const py=await ensurePython();
+  for(const {name,bytes} of pending){
     if(name.includes("/"))py.FS.mkdirTree(WORKSPACE+"/"+name.slice(0,name.lastIndexOf("/")));
     py.FS.writeFile(WORKSPACE+"/"+name,bytes);
     uploadedFiles.add(name);
   }
-  return {mounted:files.length,filenames:[...uploadedFiles]};
+  return {mounted:pending.length,filenames:[...uploadedFiles]};
 }
 function generatedFiles(py){
-  const outputs=[];
-  for(const name of py.FS.readdir(WORKSPACE)){
-    if(uploadedFiles.has(name)||name==="."||name===".."||name==="__pycache__")continue;
-    if(name.startsWith("."))continue;
-    const path=WORKSPACE+"/"+name;
-    let stat;
-    try{stat=py.FS.stat(path)}catch{continue}
-    if(!py.FS.isFile(stat.mode)||stat.size>4_000_000||stat.size<1)continue;
-    if(outputs.length>=15)break;
-    outputs.push({name,bytes:py.FS.readFile(path)});
+  const outputs=[],stack=[{path:"",depth:0}];
+  let visited=0;
+  while(stack.length&&outputs.length<15&&visited<500){
+    const current=stack.pop();
+    let names;
+    try{names=py.FS.readdir(WORKSPACE+(current.path?"/"+current.path:""))}catch{continue}
+    for(const name of names){
+      if(outputs.length>=15||visited>=500)break;
+      if(name==="."||name===".."||name==="__pycache__"||name.startsWith("."))continue;
+      visited++;
+      const relative=current.path?current.path+"/"+name:name;
+      const path=WORKSPACE+"/"+relative;
+      let stat;
+      try{stat=py.FS.stat(path)}catch{continue}
+      if(py.FS.isDir(stat.mode)){
+        if(current.depth<7)stack.push({path:relative,depth:current.depth+1});
+        continue;
+      }
+      if(uploadedFiles.has(relative)||fetchedFiles.has(relative))continue;
+      if(!py.FS.isFile(stat.mode)||stat.size>4_000_000||stat.size<1)continue;
+      outputs.push({name:relative,bytes:py.FS.readFile(path)});
+    }
   }
   return outputs;
 }
