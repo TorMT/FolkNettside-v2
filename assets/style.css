@@ -1101,3 +1101,24 @@
   background:var(--surface-sunk);color:var(--ink)}
 .obj-viewer-scene{min-height:400px;min-width:0;overflow:hidden}
 @media(max-width:760px){.obj-viewer-scene{min-height:330px}}
+
+/* CV navigation in static V2: keep Projects/Engineering links unchanged. */
+.mobile-more-menu{display:none}
+@media(max-width:760px){
+ .mobile-nav{grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}
+ .mobile-more-menu:not([hidden]){
+   display:grid;position:fixed;z-index:101;right:10px;
+   bottom:calc(var(--mobile-nav-h,64px) + env(safe-area-inset-bottom,0px) + 7px);
+   width:min(255px,calc(100vw - 20px));padding:8px;
+   border:1px solid var(--line-strong);border-radius:12px;
+   background:var(--surface);box-shadow:var(--shadow);
+ }
+ .mobile-more-menu button{
+   width:100%;min-height:44px;border:0;border-radius:8px;
+   padding:11px 12px;text-align:left;background:transparent;
+   color:var(--ink);font-weight:650;cursor:pointer;
+ }
+ .mobile-more-menu button:hover,.mobile-more-menu button:focus-visible{
+   color:var(--accent-ink);background:var(--accent-soft);
+ }
+}
