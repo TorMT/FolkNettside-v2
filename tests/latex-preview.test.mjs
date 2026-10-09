@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {latexDocumentBody,latexBlocks,latexSectionTitle} from "../src/viewers/latex-core.js";
 import {latexPreviewHTML} from "../src/viewers/adapters/latex.js";
+import {simpleLatexMathHTML} from "../src/viewers/latex-native.js";
 
 const source=String.raw`\documentclass{article}
 \begin{document}
@@ -30,6 +31,8 @@ test("LaTeX preview recognizes inline, display and align environments",()=>{
 test("LaTeX unavailable CDN produces safe source fallback instead of a blank adapter",()=>{
  const html=latexPreviewHTML(source);
  assert.match(html,/latex-math-fallback/);
- assert.match(html,/frac/);
+ assert.match(html,/latex-native-frac/);
+ assert.match(html,/<sup>3<\\/sup>/);
+ assert.match(simpleLatexMathHTML(String.raw`\\nabla=\\frac{LB^3}{12}`),/∇/);
  assert.doesNotMatch(latexPreviewHTML(String.raw`\[<script>alert(1)<\/script>\]`),/<script>/);
 });
