@@ -1,17 +1,19 @@
-import {loadAdapter} from "./registry.js";
+import {loadAdapter,viewerKind} from "./registry.js";
 import {escapeHTML} from "./utils.js";
 
 export async function mountViewer(root,resource,onBack){
   root.__viewerCleanup?.();
   root.__viewerCleanup=null;
 
-  root.innerHTML=`<main class="viewer">
+  const isQuiz=viewerKind(resource)==="quiz";
+  root.innerHTML=`<main class="viewer ${isQuiz?"viewer--quiz":""}">
     <header class="viewer-head">
       <div>
         <div class="muted">Courses / Semester ${escapeHTML(resource.semester)} / ${escapeHTML(resource.courseCode)} / ${escapeHTML(resource.section)}</div>
         <strong>${escapeHTML(resource.label)}</strong>
       </div>
       <div>
+        ${isQuiz?'<button class="btn" id="viewer-quiz-info" aria-pressed="false">File info</button>':""}
         <button class="btn" id="open-original">Open original</button>
         <button class="btn" id="viewer-back">Back</button>
       </div>
@@ -84,6 +86,12 @@ export async function mountViewer(root,resource,onBack){
     }catch{
       event.currentTarget.textContent="Copy unavailable";
     }
+  });
+
+  root.querySelector("#viewer-quiz-info")?.addEventListener("click",event=>{
+    const toggled=root.querySelector(".viewer")?.classList.toggle("viewer--quiz-info");
+    event.currentTarget.setAttribute("aria-pressed",String(Boolean(toggled)));
+    event.currentTarget.textContent=toggled?"Hide file info":"File info";
   });
 
   root.querySelector("#viewer-back").onclick=()=>{
