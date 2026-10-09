@@ -30,3 +30,15 @@
 .latex-viewer-toolbar{display:flex;justify-content:flex-end;margin-bottom:18px}
 .latex-view [data-latex-source]{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
 .latex-view [data-latex-source][hidden],.latex-view [data-latex-preview][hidden]{display:none!important}
+
+/* Native LaTeX fallback when the external KaTeX module is unavailable. */
+.latex-math-fallback{display:inline-block;max-width:100%;margin:10px 0;font-size:1.07em;overflow-wrap:anywhere}
+.latex-native-math{font-family:"Cambria Math","STIX Two Math",Georgia,serif;line-height:1.8}
+.latex-native-frac{display:inline-flex;vertical-align:middle;flex-direction:column;text-align:center;line-height:1.2;padding:0 4px}
+.latex-native-frac>span:first-child{border-bottom:1px solid currentColor;padding:0 4px 3px}
+.latex-native-frac>span:last-child{padding:3px 4px 0}
+.latex-native-sqrt>span{border-top:1px solid currentColor;padding:0 3px}
+.latex-native-math sup,.latex-native-math sub{font-size:.7em}
+.latex-native-text{font-family:inherit}
+.latex-newline{display:block}
+.latex-math-display{display:block;overflow-x:auto;max-width:100%;padding:8px 0}
