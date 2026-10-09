@@ -33,6 +33,10 @@
 <script type="module">
 import {bindCourseNavigation} from "../../src/courses/course-navigation.js";
 const entries=[["overview","#course-overview"],["section-0","#course-section-0"],["section-1","#course-section-1"],["karakterweb","#course-karakterweb"]].map(([id,sel])=>({id,element:document.querySelector(sel)}));
+// This test validates final click alignment in headless Chrome without depending
+// on its compositor's smooth-scroll animation clock.
+const nativeMatchMedia=window.matchMedia.bind(window);
+window.matchMedia=query=>query.includes("prefers-reduced-motion")?{matches:true}:nativeMatchMedia(query);
 const nav=bindCourseNavigation({sections:entries,buttons:document.querySelectorAll("[data-course-nav]"),topbar:document.querySelector(".topbar")});
 const wait=ms=>new Promise(ok=>setTimeout(ok,ms));
 const selected=()=>[...document.querySelectorAll("[data-course-nav].active")].map(x=>x.dataset.courseNav);
