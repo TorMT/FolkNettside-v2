@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<link rel="stylesheet" href="../../assets/style.css"><title>SAC hydro preview smoke</title>
+<body data-status="running"><div id="host"></div><pre id="result">running</pre>
+<script type="module">
+import {boxMesh} from "../../src/hydro/fixtures.js";
+import {sectionalAreaCurve,sacCSV} from "../../src/hydro/sac-curve.js";
+import {sacCurvePanelHTML} from "../../src/engineering/sac-panel.js";
+try{
+ const prepared={components:[{name:"Box",geometry:boxMesh({L:10,B:3,H:2})}]};
+ const preview=sectionalAreaCurve(prepared,{draft:1,stations:31});
+ if(Math.abs(preview.maximumSectionArea-3)>1e-6)throw Error("Sectional area mismatch");
+ if(Math.abs(preview.estimatedVolume-30)>1e-5)throw Error("Submerged volume mismatch");
+ document.querySelector("#host").innerHTML=sacCurvePanelHTML(preview);
+ if(!document.querySelector(".sac-results svg polyline"))throw Error("SAC chart not rendered");
+ if(sacCSV(preview).split("\n").length<30)throw Error("SAC export too short");
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent="SAC diagram PASS; A=3 m² and V=30 m³";
+}catch(e){document.body.dataset.status="fail";document.querySelector("#result").textContent=String(e.stack||e)}
+</script></body></html>
