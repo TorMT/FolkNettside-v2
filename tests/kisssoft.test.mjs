@@ -48,7 +48,7 @@ test("large parameter lists render in bounded, searchable batches",()=>{
 test("KISSsoft stores native helix and normal pressure angles in radians, normalizes for geometry",()=>{
  const radians=Math.PI/9;
  const model=parseKisssoft(
-  "MODULE=Z012\\nZR[0].z=20\\nZR[1].z=40\\nZS.Geo.mn=3\\nZS.Geo.beta="+radians+"\\nZS.Geo.alfn="+radians,
+  "MODULE=Z012\nZR[0].z=20\nZR[1].z=40\nZS.Geo.mn=3\nZS.Geo.beta="+radians+"\nZS.Geo.alfn="+radians,
   "gears.Z12");
  assert.equal(model.betaRad,radians);
  assert.ok(Math.abs(model.beta-20)<1e-10);
