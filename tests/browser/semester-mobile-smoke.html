@@ -19,8 +19,8 @@
 const rail=document.querySelector(".semester-tabs");
 const active=rail.querySelector(".active");
 const isDesktop=new URLSearchParams(location.search).has("desktop");
-active.scrollIntoView({block:"nearest",inline:"center"});
-requestAnimationFrame(()=>{
+active.scrollIntoView({behavior:"instant",block:"nearest",inline:"center"});
+{
   const cs=getComputedStyle(rail);
   const activeShort=getComputedStyle(active.querySelector(".semester-label-short"));
   const activeLong=getComputedStyle(active.querySelector(".semester-label-long"));
@@ -42,7 +42,7 @@ requestAnimationFrame(()=>{
     ...checks,mode:isDesktop?"desktop":"mobile",
     scrollLeft:rail.scrollLeft,scrollWidth:rail.scrollWidth,clientWidth:rail.clientWidth
   });
-});
+}
 </script>
 </body>
 </html>
