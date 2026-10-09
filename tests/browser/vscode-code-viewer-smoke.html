@@ -24,7 +24,7 @@ try{
  const sourceViewer=await renderPython(host,fixture,{sessionFactory:fakeSession});
  cleanup.push(sourceViewer.cleanup);
  const preview=host.querySelector(".python-code-preview");
- check(preview&&preview.querySelector(".hljs-keyword"),"Python syntax not colored offline");
+ check(preview&&preview.querySelector(".hljs-string")&&preview.querySelector(".hljs-number")&&preview.querySelector(".hljs-built_in"),"Python docstring, numbers and builtins not colored offline");
  check(preview.querySelectorAll(".python-code-line").length>5,"Python line numbers missing");
  check(getComputedStyle(preview).backgroundColor==="rgb(30, 30, 30)","VS Code dark preview CSS missing");
  const edit=host.querySelector("[data-py-edit]");
