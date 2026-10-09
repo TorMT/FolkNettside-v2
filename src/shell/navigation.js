@@ -12,6 +12,7 @@ export const MOBILE_NAV=[
   {id:"courses",label:"Courses",route:"/courses",icon:"▤"},
   {id:"engineering",label:"Engineering",route:"/engineering",icon:"⌁"},
   {id:"diverse",label:"Diverse",route:"/diverse",icon:"•••"},
+  {id:"search",label:"Search",action:"search",icon:"⌕"},
   {id:"more",label:"More",action:"more",icon:"☰"}
 ];
 
