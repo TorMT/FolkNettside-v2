@@ -80,3 +80,52 @@
 .model-viewer-stage .three-canvas{touch-action:none;cursor:grab}
 .model-viewer-stage .three-canvas:active{cursor:grabbing}
 @media(max-width:760px){.cad-group-tree{max-height:31vh}.assembly-inspector{padding:10px 0}.cad-group-tree button{min-height:40px}}
+
+
+/* Standalone CAD workbench: explicit viewport size is required by Three.js.
+   Without a non-zero stage height, percentage-based canvases collapse. */
+.engineering-cad-page{max-width:1560px;margin-inline:auto}
+.engineering-cad-page>p:not(.crumbs){max-width:960px;line-height:1.55}
+.cad-import-bar{display:flex;align-items:end;flex-wrap:wrap;gap:12px;padding:15px;
+  margin:16px 0 10px;background:var(--surface);border:1px solid var(--line);
+  border-radius:12px}
+.cad-import-bar>label{display:grid;gap:6px;color:var(--ink-2);font-size:12px;min-width:170px}
+.cad-import-bar input[type="file"],.cad-import-bar select{max-width:100%;padding:8px;
+  border:1px solid var(--line);border-radius:8px;background:var(--surface-sunk);color:var(--ink)}
+.cad-import-bar .btn{min-height:36px}
+#cad-import-status{margin:10px 2px;color:var(--ink-2);font-size:12px}
+.cad-geometry-stage{height:clamp(560px,72dvh,900px);min-height:560px;min-width:0;
+  overflow:hidden;border:1px solid var(--line);border-radius:14px;
+  background:var(--surface-sunk)}
+.cad-geometry-stage:empty{display:grid;place-items:center}
+.cad-geometry-stage .model-viewer-workbench{min-height:0;height:100%;
+  grid-template-columns:minmax(0,1fr) minmax(265px,315px)}
+.cad-geometry-stage .model-viewer-stage,.cad-geometry-stage .three-stage,
+.cad-geometry-stage .three-canvas{height:100%;min-height:0}
+.cad-geometry-stage .model-viewer-inspector{font-size:12px}
+.cad-geometry-stage .model-viewer-section{padding:14px;gap:9px}
+.cad-geometry-stage .model-viewer-section>strong{font-size:13px}
+.cad-geometry-stage .model-cad-shortcuts{font-size:11px;line-height:1.55}
+.cad-geometry-stage .model-viewer-actions button{font-size:11px;min-height:32px}
+.cad-geometry-stage .cad-group-tree{max-height:31vh}
+.cad-empty-state{height:100%;display:grid;place-content:center;text-align:center;
+  justify-items:center;gap:12px;padding:25px;color:var(--ink-2)}
+.cad-empty-state strong{font-size:17px;color:var(--ink)}
+.cad-empty-state p{max-width:500px;margin:0;line-height:1.5}
+.cad-empty-state button{min-height:36px}
+.model-spacemouse-settings{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:11px}
+.model-spacemouse-settings>label{display:flex;align-items:center;gap:5px}
+.model-spacemouse-settings input[type="range"]{width:112px}
+@media(max-width:900px){
+ .cad-geometry-stage{height:auto;min-height:0}
+ .cad-geometry-stage .model-viewer-workbench{height:auto;grid-template-columns:minmax(0,1fr)}
+ .cad-geometry-stage .model-viewer-stage,.cad-geometry-stage .three-stage,
+ .cad-geometry-stage .three-canvas{height:clamp(340px,55dvh,660px);min-height:340px}
+ .cad-geometry-stage .model-viewer-inspector{overflow:visible;max-height:none;border-left:0;
+   border-top:1px solid var(--line)}
+}
+@media(max-width:560px){
+ .cad-import-bar{padding:10px}
+ .cad-import-bar>label{width:100%}
+ .cad-geometry-stage{border-radius:10px}
+}
