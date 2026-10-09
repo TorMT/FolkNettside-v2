@@ -14,6 +14,8 @@ export async function mountModelScene(container,documentModel,options={}){
   stage.className="three-stage"+(showSidebar?"":" three-stage-no-sidebar");
   const canvas=document.createElement("canvas");
   canvas.className="three-canvas";
+  canvas.tabIndex=0;
+  canvas.setAttribute("aria-label","3D CAD viewer. Left drag orbit, middle drag pan, Shift-middle drag orbit; press F to fit and I for isometric view.");
   const sidebar=showSidebar?document.createElement("div"):null;
   if(sidebar)sidebar.className="three-components";
   stage.append(canvas);
@@ -32,6 +34,8 @@ export async function mountModelScene(container,documentModel,options={}){
   const controls=new OrbitControls(camera,canvas);
   controls.enableDamping=false;
   controls.screenSpacePanning=true;
+  // Fusion-style navigation preset: middle mouse pans, Shift + middle orbits.
+  controls.mouseButtons.MIDDLE=THREE.MOUSE.PAN;
   scene.add(new THREE.HemisphereLight(0xd8edf5,0x24313a,2.2));
   const key=new THREE.DirectionalLight(0xffffff,2.4);
   key.position.set(4,6,8);
@@ -85,7 +89,8 @@ export async function mountModelScene(container,documentModel,options={}){
     return {box,center,size,radius};
   }
 
-  let explodedFactor=0;
+  let explodedFactor=0,scopedExplodeFactor=0,scopedExplodeIds=[];
+  let isolatedIds=null;
   const axesHelper=new THREE.AxesHelper(Math.max(bounds().radius*.55,.5));
   axesHelper.visible=false;scene.add(axesHelper);
   const boxHelper=new THREE.Box3Helper(bounds().box.clone(),0xe3b25f);
@@ -112,35 +117,80 @@ export async function mountModelScene(container,documentModel,options={}){
     for(const mesh of meshes){mesh.material.flatShading=mode==="flat";mesh.material.needsUpdate=true}
     draw();
   }
-  function setExplode(value=0){
-    const factor=Number(value);
-    if(!Number.isFinite(factor)||factor<0||factor>3)
-      throw new Error("Explosion amount must be 0–3");
-    explodedFactor=factor;
-    for(const mesh of meshes)mesh.position.copy(mesh.userData.restPosition);
-    root.updateMatrixWorld(true);
-    const boxes=meshes.map(mesh=>new THREE.Box3().setFromObject(mesh));
-    const baseBox=new THREE.Box3();
-    for(const box of boxes)baseBox.union(box);
-    const offsets=explodeOffsets(boxes.map(box=>box.getCenter(new THREE.Vector3()).toArray()),
-      factor,{span:Math.max(baseBox.getSize(new THREE.Vector3()).length(),.1)});
-    meshes.forEach((mesh,i)=>mesh.position.copy(mesh.userData.restPosition)
-      .add(new THREE.Vector3(...offsets[i])));
-    root.updateMatrixWorld(true);updateBoxHelper();
-    if(factor>0){
-      // Geometry has been deliberately moved. Do not present a hydrostatic
-      // intersection of separated parts as a valid displacement section.
+  function hydroVisualState(){
+    if(explodedFactor>0||scopedExplodeFactor>0||isolatedIds!==null){
       clearContours();
       contourGroup.visible=false;waterlineMesh.visible=false;
-      waterlineInfo={status:"exploded",loops:[],segments:0,
-        reason:"Exploded view is visual only. Reset explode to 0 for waterline or Hydro analysis."};
+      waterlineInfo={status:"visual-only",loops:[],segments:0,
+        reason:"Exploded/isolated view is visual only. Reset assembly for original-hull Hydro."};
     }else{
       contourGroup.visible=true;
       waterlineMesh.visible=waterlineState.visible&&!waveMesh.visible;
       refreshWaterlineContours();
     }
-    draw();
-    return {factor,components:meshes.length};
+  }
+  function refreshExplodedMeshes(){
+    // Always start with immutable CAD transforms; the model document and
+    // numerical Hydro/FEM inputs are never modified by this visual control.
+    for(const mesh of meshes)mesh.position.copy(mesh.userData.restPosition);
+    root.updateMatrixWorld(true);
+    const boxes=meshes.map(mesh=>new THREE.Box3().setFromObject(mesh));
+    const box=new THREE.Box3();
+    for(const b of boxes)box.union(b);
+    const span=Math.max(box.getSize(new THREE.Vector3()).length(),.1);
+    const centres=boxes.map(b=>b.getCenter(new THREE.Vector3()).toArray());
+    const global=explodeOffsets(centres,explodedFactor,{span});
+    meshes.forEach((mesh,i)=>mesh.position.add(new THREE.Vector3(...global[i])));
+    const chosen=meshes.map((mesh,i)=>({mesh,i}))
+      .filter(x=>scopedExplodeIds.includes(x.mesh.userData.component.id));
+    if(chosen.length&&scopedExplodeFactor>0){
+      const offsets=explodeOffsets(chosen.map(x=>centres[x.i]),scopedExplodeFactor,{span});
+      chosen.forEach(({mesh},i)=>mesh.position.add(new THREE.Vector3(...offsets[i])));
+    }
+    root.updateMatrixWorld(true);updateBoxHelper();
+    hydroVisualState();draw();
+  }
+  function setExplode(value=0){
+    const n=Number(value);
+    if(!Number.isFinite(n)||n<0||n>3)throw Error("Explode factor must be in [0,3]");
+    explodedFactor=n;refreshExplodedMeshes();
+    return {factor:n,components:meshes.length};
+  }
+  function setScopedExplode({ids=[],amount=0}={}){
+    const factor=Number(amount);
+    const valid=new Set(meshes.map(mesh=>mesh.userData.component.id));
+    if(!Number.isFinite(factor)||factor<0||factor>3)throw Error("Scoped explode factor must be in [0,3]");
+    if(!Array.isArray(ids)||ids.some(id=>!valid.has(id)))throw Error("Unknown CAD components for scoped explode");
+    scopedExplodeFactor=factor;scopedExplodeIds=[...new Set(ids)];
+    refreshExplodedMeshes();return {factor,components:scopedExplodeIds.length};
+  }
+  function setIsolation(ids=null){
+    const valid=new Set(meshes.map(mesh=>mesh.userData.component.id));
+    if(ids!==null&&(!Array.isArray(ids)||ids.some(id=>!valid.has(id))))
+      throw Error("Unknown CAD components for isolation");
+    isolatedIds=ids===null?null:new Set(ids);
+    for(const mesh of meshes)mesh.visible=isolatedIds===null||
+      isolatedIds.has(mesh.userData.component.id);
+    hydroVisualState();draw();
+    return {isolated:isolatedIds!==null,visible:meshes.filter(mesh=>mesh.visible).length};
+  }
+  function focusComponents(ids=[]){
+    const selection=new Set(ids);
+    const box=new THREE.Box3();
+    let count=0;
+    for(const mesh of meshes){
+      if(!selection.has(mesh.userData.component.id))continue;
+      box.expandByObject(mesh);count++;
+    }
+    if(!count||box.isEmpty())return null;
+    const target=box.getCenter(new THREE.Vector3());
+    const radius=Math.max(box.getSize(new THREE.Vector3()).length()/2,.02);
+    const direction=camera.position.clone().sub(controls.target).normalize();
+    controls.target.copy(target);
+    const distance=Math.max(radius/Math.sin(THREE.MathUtils.degToRad(camera.fov)/2)*1.18,radius*1.6);
+    camera.position.copy(target).addScaledVector(direction,distance);
+    controls.update();draw();
+    return {count,center:target.toArray()};
   }
   const markerGroup=new THREE.Group();scene.add(markerGroup);
   function setMarkers({cg=null,cb=null}={}){
@@ -416,11 +466,11 @@ export async function mountModelScene(container,documentModel,options={}){
     waterlineMesh.visible=waterlineState.visible&&!waveMesh.visible;
     waterlineMesh.position.set(0,0,waterlineState.z);
     waveMesh.position.z=waterlineState.z;
-    if(explodedFactor>0){
+    if(explodedFactor>0||scopedExplodeFactor>0||isolatedIds!==null){
       waterlineMesh.visible=false;contourGroup.visible=false;
       draw();
       return {status:"exploded",loops:[],segments:0,
-        reason:"Reset exploded view to 0 before viewing waterline contours."};
+        reason:"Reset assembly explode/isolation before viewing waterline contours."};
     }
     const info=refreshWaterlineContours();
     draw();
@@ -710,6 +760,9 @@ export async function mountModelScene(container,documentModel,options={}){
       setEdges,
       setShading,
       setExplode,
+      setScopedExplode,
+      setIsolation,
+      focusComponents,
       setThrusterFlows:descriptors=>{thrusterFlows.update(descriptors);return thrusterFlows.count},
       playThrusterFlows:enabled=>thrusterFlows.setPlaying(enabled),
       getThrusterFlowCount:()=>thrusterFlows.count,
