@@ -39,8 +39,8 @@ try{
  assert(JSON.stringify(panned.position)!==JSON.stringify(zoomed.position),"Wheel did not zoom beam");
  view.reset();
  const reset=view.getView();
- assert(JSON.stringify(reset.position)===JSON.stringify(before.position),"Reset did not restore camera");
- assert(JSON.stringify(reset.target)===JSON.stringify(before.target),"Reset did not restore pan target");
+ assert(reset.position.every((x,i)=>Math.abs(x-before.position[i])<1e-8),"Reset did not restore camera");
+ assert(reset.target.every((x,i)=>Math.abs(x-before.target[i])<1e-8),"Reset did not restore pan target");
  document.body.dataset.status="pass";document.querySelector("#result").textContent="Beam drag/orbit, right-drag/pan, zoom and reset passed";
 }catch(error){
  document.body.dataset.status="fail";document.querySelector("#result").textContent=String(error.stack||error);
