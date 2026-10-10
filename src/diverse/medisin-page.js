@@ -173,7 +173,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
         if(disposed||accountId()!==syncProfile||vaultPassphrase!==passphrase||
           !medisinCloudSyncAllowed(syncProfile))return;
         await writeEncryptedMedisinDriveBackup(syncProfile,passphrase,merged,{
-          folderId,allowReplace:Boolean(remote)});
+          folderId,allowReplace:Boolean(remote),expectedRevision:remote?.revision||null});
       }
       message("Kryptert Google Drive-backup synkronisert · "+date(Date.now()));
     })();
