@@ -101,8 +101,6 @@ def legacy_course_inventory(site_root: Path | None) -> tuple[dict, list[str], bo
             if not course.is_dir() or course.is_symlink():
                 continue
             code = course.name.upper() if COURSE_RE.fullmatch(course.name.upper()) else None
-            if code is None:
-                warnings.append(f"Semester {sid} / {course.name}: requires reviewed slug-to-course-code mapping")
             public_files, excluded, symlinks = [], 0, 0
             for file in file_inventory(course):
                 rel = file.relative_to(course)
