@@ -63,3 +63,14 @@ For å se fagbruk i Analytics:
 6. Ikke tolk få besøk som et pedagogisk kvalitetsmål alene. Sammenlign trends med ressursantall, semesterperiode og anonym, frivillig tilbakemelding.
 
 **Begrensninger:** Preload av Google Tag før samtykke gjør en tredjepartsforespørsel og kan ha personvernim­plikasjoner; måling skjer etter nåværende V2-samtykke. Eier må gjennomgå lovlig behandlingsgrunnlag og faktisk nettverkstrafikk i sin jurisdiksjon. Live GA4-mottak og custom dimensions må bekreftes via kontoen; CI bekrefter bare implementasjonen.
+
+### Google OAuth frontend-isolasjon (2026-10-10)
+
+V2 leser nå kun `window.__FOLK_GOOGLE_AUTH_CONFIG__` eller V2s egne
+`data/google-auth.json` (begge kun med en **offentlig browser client ID**).
+Den henter ikke konfigurasjon fra V1 `/includes/brewing/api/storage.php`
+selv om staging kjøres på `folk.ntnu.no`. Tillatte Google OAuth scopes er
+begrenset til `openid email profile drive.file`. Utlogging under en pågående
+innloggingsforespørsel avbryter den, slik at et sent svar ikke kan logge inn
+brukeren etterpå. Produksjonsgodkjenning krever fortsatt reell test med to
+Google-kontoer og to enheter.

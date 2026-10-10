@@ -18,10 +18,13 @@ See `docs/INTEGRATION_CONFIGURATION_REGISTER.md` for client/server setup.
 
 ## Google account and Drive
 
-The shared account consumer reads `window.__FOLK_GOOGLE_AUTH_CONFIG__` or the
-existing NTNU `/includes/brewing/api/storage.php` config endpoint.
-GitHub Pages does not execute PHP, so a valid **public OAuth browser client ID**
-must be injected by deployment configuration for sign-in to work in the preview.
+The shared account consumer reads `window.__FOLK_GOOGLE_AUTH_CONFIG__`
+or V2's own optional `./data/google-auth.json` public browser configuration.
+**It no longer falls back to the V1 NTNU PHP storage endpoint**, including when
+V2 runs under `folk.ntnu.no/v2-staging/`. A valid **public OAuth browser client
+ID** is required for sign-in; client secrets stay server-side. The V2 client
+requests only `openid email profile drive.file` rather than accepting extra
+OAuth scopes from a legacy server config.
 Register the actual GitHub Pages origin under authorized JavaScript origins
 in Google Cloud OAuth settings. Do not commit an OAuth client secret.
 
