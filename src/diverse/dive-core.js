@@ -66,8 +66,9 @@ export function diveWildlifeIndex(features,{minCount=1}={}){
 }
 
 export function diveDistanceKm(a,b){
-  const lat1=Number(a?.lat),lon1=Number(a?.lon),lat2=Number(b?.lat),lon2=Number(b?.lon);
-  if(![lat1,lon1,lat2,lon2].every(Number.isFinite))return null;
+  if([a?.lat,a?.lon,b?.lat,b?.lon].some(value=>value===null||value===undefined||value===""))return null;
+  const lat1=Number(a.lat),lon1=Number(a.lon),lat2=Number(b.lat),lon2=Number(b.lon);
+  if(![lat1,lon1,lat2,lon2].every(Number.isFinite)||Math.abs(lat1)>90||Math.abs(lat2)>90||Math.abs(lon1)>180||Math.abs(lon2)>180)return null;
   const rad=Math.PI/180,R=6371;
   const dLat=(lat2-lat1)*rad,dLon=(lon2-lon1)*rad;
   const h=Math.sin(dLat/2)**2+Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;
@@ -75,8 +76,10 @@ export function diveDistanceKm(a,b){
 }
 
 function featurePoint(feature){
-  const [lon,lat]=feature?.geometry?.coordinates||[];
-  return Number.isFinite(Number(lat))&&Number.isFinite(Number(lon))?{lat:Number(lat),lon:Number(lon)}:null;
+  if(feature?.geometry?.type!=="Point"||!Array.isArray(feature.geometry.coordinates))return null;
+  const [lon,lat]=feature.geometry.coordinates;
+  if([lat,lon].some(value=>value===null||value===undefined||value===""))return null;
+  return Number.isFinite(Number(lat))&&Number.isFinite(Number(lon))&&Math.abs(Number(lat))<=90&&Math.abs(Number(lon))<=180?{lat:Number(lat),lon:Number(lon)}:null;
 }
 
 export function filterDiveFeatures(features,{query="",level="all",kind="all",quality="all",maxDepth="",wildlife="all",excludeWildlife=false}={}){
