@@ -177,7 +177,14 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
       }
       message("Kryptert Google Drive-backup synkronisert · "+date(Date.now()));
     })();
-    try{await syncPromise;}catch(error){message("Synk feilet: "+String(error?.message||error)+". Data er lagret lokalt.");}
+    try{await syncPromise;}catch(error){
+      const detail=String(error?.message||error);
+      if(/Vault could not be unlocked|Unsupported or incomplete encrypted MedisinTimer vault|Invalid encrypted MedisinTimer vault/i.test(detail)){
+        vaultPassphrase=null;
+        root.querySelector("#medisin-vault-passphrase").value="";
+      }
+      message("Kryptert synk feilet: "+detail+". Lokale data er ikke tapt; ingen gammel Drive-backup ble overskrevet.");
+    }
     finally{
       syncPromise=null;
       updateStatus();
