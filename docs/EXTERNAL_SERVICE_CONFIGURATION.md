@@ -7,10 +7,14 @@ tokens, service account JSON, or API secrets in the repository, HTML or JavaScri
 
 The original FolkNettside GA4 measurement ID is configured in `index.html`
 (`G-BJ41MZJP0L`). This ID is a *public client identifier*, not a password.
-The optional integration lives in `src/platform/analytics.js`. Visitors must
-explicitly enable page-view analytics in Settings -> Privacy & data. A decline
-never initializes the script. Actual GA4 reports require access to the Google
-Analytics property and must not be proxied to the public site.
+The optional integration lives in `src/platform/analytics.js`. The external
+Google Tag script loads before user consent in denied analytics-storage mode;
+V2's GA4 configuration and manual page_view measurement are deferred until
+opt-in via Settings -> Privacy & data. V2 adds the manifest-verified public
+course code as `course_code` (and semester as `course_semester`) to consented
+course page views, never document names or visitor identifiers. Real GA4
+reports require private owner access and are not embedded on the public site.
+See `docs/INTEGRATION_CONFIGURATION_REGISTER.md` for client/server setup.
 
 ## Google account and Drive
 
