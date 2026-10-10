@@ -50,7 +50,8 @@ test("encrypted Drive revision detects stale snapshots without exposing contents
   assert.match(expected,/^[a-f0-9]{64}$/);
   assert.equal(expected,await vaultRevision(first));
   assert.doesNotThrow(()=>assertVaultRevision(expected,expected));
-  assert.throws(()=>assertVaultRevision(expected,await vaultRevision(second)),/annen enhet/);
+  const changedRevision=await vaultRevision(second);
+  assert.throws(()=>assertVaultRevision(expected,changedRevision),/annen enhet/);
   assert.throws(()=>assertVaultRevision("",expected),/annen enhet/);
   assert.doesNotMatch(expected,/private-entry|Sensitive/);
 });
