@@ -1,10 +1,10 @@
 /**
- * Consent for sensitive MedisinTimer JSON backups is separate from Google login.
- * Until E2E encryption is implemented, never upload health data just because
- * an account is connected. Opt-in is local and scoped per verified Google sub.
+ * Consent for encrypted MedisinTimer vault uploads is independent of Google login.
+ * Legacy plaintext-sync consent keys are deliberately ignored. The passphrase
+ * is required for each session, even if encrypted cloud sync was opted in.
  */
-const PREFIX="folk-medisin-v2:plaintext-drive-optin:";
-const ACCEPTED="explicit-plaintext-v1";
+const PREFIX="folk-medisin-v2:encrypted-drive-optin:";
+const ACCEPTED="explicit-encrypted-v2";
 export function medisinCloudConsentKey(sub){
   if(typeof sub!=="string"||!sub.trim()||sub.length>256)return null;
   return PREFIX+sub;
