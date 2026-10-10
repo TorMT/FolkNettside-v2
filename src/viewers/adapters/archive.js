@@ -1,16 +1,15 @@
 import {getJSZip} from "../../vendor/jszip.js";
-import {escapeHTML} from "../utils.js";
+import {escapeHTML,fetchBoundedBuffer} from "../utils.js";
 export async function render(container,resource){
  const path=resource.url||resource.path;
- const response=await fetch(path);
- if(!response.ok)throw new Error("Archive HTTP "+response.status);
- const buffer=await response.arrayBuffer();
- if(buffer.byteLength>80_000_000)throw new Error("Archive exceeds browser preview limit (80 MB). Download it instead.");
+ const buffer=await fetchBoundedBuffer(path,{maxBytes:80_000_000});
  const JSZip=await getJSZip();
  let zip;
  try{zip=await JSZip.loadAsync(buffer)}
  catch{throw new Error("Could not read ZIP archive. Download to inspect with a desktop application.")}
- const entries=Object.values(zip.files).filter(entry=>!entry.dir);
+ const all=Object.values(zip.files);
+ if(all.length>10000)throw new Error("Archive contains too many entries for browser preview (10,000). Download it instead.");
+ const entries=all.filter(entry=>!entry.dir);
  const list=entries.slice(0,3000);
  container.innerHTML=`<section class="archive-viewer">
    <div class="archive-viewer-head"><strong>Archive contents</strong>
@@ -38,7 +37,7 @@ export async function render(container,resource){
    const entry=list[Number(btn.dataset.archiveIndex)];
    if(!entry)return;
    const size=entry._data?.uncompressedSize;
-   if(!Number.isFinite(size)||size>12_000_000){btn.textContent="Too large";return}
+   if(!Number.isFinite(size)||size<0||size>12_000_000){btn.textContent="Too large or unknown size";return}
    btn.disabled=true;btn.textContent="Extracting…";
    try{
      const blob=await entry.async("blob");
