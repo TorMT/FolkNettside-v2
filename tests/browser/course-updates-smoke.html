@@ -1,0 +1,42 @@
+<!doctype html><html lang="nb"><head><meta charset="utf-8"><title>V2 course updates browser smoke</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body data-status="running"><pre id="result">running</pre>
+<script type="module">
+const expect=(yes,message)=>{if(!yes)throw Error(message)};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const wait=async(fn,message)=>{for(let i=0;i<130;i++){const found=fn();if(found)return found;await sleep(100)}throw Error(message)};
+const key="folk-v2:course-file-notices.v1";
+try{
+  localStorage.setItem(key,JSON.stringify({version:1,keys:[]}));
+  const frame=document.createElement("iframe");
+  frame.src="../../index.html#/courses/5";
+  frame.style.width="1100px";frame.style.height="900px";
+  document.body.append(frame);
+  const doc=()=>frame.contentDocument;
+  const badge=await wait(()=>doc()?.querySelector(".course-update-count"),"No new-file nav badge");
+  expect(Number(badge.textContent)>0,"Expected nonzero new resource count");
+  const card=await wait(()=>doc()?.querySelector('.course-card[data-course="TMR4182"]'),"No course card");
+  expect(card.querySelector(".course-update-pill"),"No course-specific new file pill");
+  card.click();
+  const list=await wait(()=>doc()?.querySelector(".course-updates-list"),"New resource list did not render");
+  expect(list.querySelector('[data-resource="0"]'),"New resource links were not clickable");
+  const acknowledge=doc().querySelector("#course-updates-ack");
+  expect(acknowledge,"No acknowledgement action");
+  acknowledge.click();
+  await wait(()=>!doc()?.querySelector(".course-update-count"),"Update badge did not clear");
+  expect(!doc().querySelector(".course-updates-list"),"Course new files did not clear");
+  const stored=JSON.parse(localStorage.getItem(key));
+  expect(stored.keys?.length>=1,"New baseline was not saved");
+
+  frame.contentWindow.location.hash="#/courses/5/%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E";
+  await wait(()=>doc()?.querySelector(".course-header h1")?.textContent==="Not found",
+    "Not-found route did not render");
+  expect(!doc().querySelector(".course-header img"),"Malformed course route injected untrusted HTML");
+  localStorage.removeItem(key);
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent="New-file nav badges, course quick links, acknowledgement and XSS-safe routes PASS";
+}catch(e){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(e?.stack||e);
+}
+</script></body></html>
