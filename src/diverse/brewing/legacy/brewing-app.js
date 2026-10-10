@@ -332,7 +332,9 @@
     els.deviceList.innerHTML = '<div class="loading">Henter hydrometerdata...</div>';
 
     try {
-      const response = await fetch('/includes/rapt/api/dashboard.php?days=' + encodeURIComponent(state.maxDaysLoaded), { cache: 'no-store' });
+      const endpoint = global.FolkBrewingEndpoint && global.FolkBrewingEndpoint('rapt', 'dashboard.php');
+      if (!endpoint) throw new Error('RAPT backend is not configured for V2');
+      const response = await fetch(endpoint + '?days=' + encodeURIComponent(state.maxDaysLoaded), { cache: 'no-store' });
       const payload = await response.json();
       if (!response.ok) throw new Error((payload && payload.error) || ('HTTP ' + response.status));
       writeCache(payload);
