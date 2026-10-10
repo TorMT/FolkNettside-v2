@@ -49,6 +49,22 @@ try{
  const followTrough=workbench.actions.setWave({enabled:true,heightM:1.2,periodS:5,
    headingDeg:0,animate:false,motionMode:"follow",timeS:2.5});
  near(workbench.actions.getWaveMotionOffset(),-.6);
+ const pitchPreview=workbench.actions.setWave({enabled:true,heightM:1.2,periodS:5,
+   headingDeg:0,phaseDeg:90,animate:false,motionMode:"follow-slope",timeS:0});
+ assert(pitchPreview.motionMode==="follow-slope","Wave slope mode not returned");
+ const p=workbench.actions.getWaveMotionPose();
+ near(p.heaveM,0,1e-9);
+ assert(p.pitchRad>0&&Math.abs(p.rollRad)<1e-9,"Head seas must show pitch only");
+ assert(Number(stage.querySelector("canvas").dataset.wavePitchDeg)>0,
+   "3D scene pitch transform not applied");
+ workbench.actions.setWave({enabled:true,heightM:1.2,periodS:5,
+   headingDeg:90,phaseDeg:90,animate:false,motionMode:"follow-slope",timeS:0});
+ const b=workbench.actions.getWaveMotionPose();
+ assert(b.rollRad<0&&Math.abs(b.pitchRad)<1e-9,"Beam seas must show roll only");
+ workbench.actions.setWave({enabled:true,heightM:1.2,periodS:5,
+   headingDeg:90,phaseDeg:90,animate:false,motionMode:"anchored",timeS:0});
+ const still=workbench.actions.getWaveMotionPose();
+ near(still.heaveM,0);near(still.rollRad,0);near(still.pitchRad,0);
  workbench.actions.setWave({enabled:false});
  near(workbench.actions.getWaveMotionOffset(),0);
 
@@ -56,6 +72,18 @@ try{
  const details=root.querySelector(".model-wave-controls");
  assert(details,"Wave interface missing");details.open=true;
  assert(details.querySelector("[data-wave-motion]"),"Anchored/follow UI selector missing");
+ assert(details.querySelector('[data-wave-motion] option[value="follow-slope"]'),
+   "Wave surface tilt preview option missing");
+ const phase=details.querySelector("[data-wave-phase]");
+ assert(phase,"Paused wave phase scrubber missing");
+ details.querySelector("[data-wave-motion]").value="follow-slope";
+ details.querySelector("[data-wave-show]").click();
+ phase.value="90";phase.dispatchEvent(new Event("input",{bubbles:true}));
+ const scrubbed=workbench.actions.getWaveMotionPose();
+ assert(Math.abs(scrubbed.pitchRad)>1e-6,"Scrubbing should reveal pitch at 90°");
+ assert(details.querySelector("[data-wave-play]").textContent==="Play",
+   "Phase scrub should pause wave animation");
+ details.querySelector("[data-wave-show]").click();
  details.querySelector("[data-wave-capture]").click();
  assert(readWaveCollection().length===1,"Synthetic wave collection not persisted");
  const input=details.querySelector("[data-wave-import]");
