@@ -50,7 +50,7 @@ export function viewerKind(resource={}){
   if(["PLAYLIST","LECTURE_LIST","LECTURES"].includes(kind))return "lecture-list";
   const basename=String(resource.name||resource.path||resource.url||"")
     .split(/[?#]/,1)[0].split(/[\\/]/).pop();
-  if(/^forelesninger?\.(?:json|txt)$/i.test(basename))return "lecture-list";
+  if(/^forelesning(?:er)?\.(?:json|txt)$/i.test(basename))return "lecture-list";
   if(kind==="QUIZ")return "quiz";
   if(kind==="VAULT"||String(resource.path||resource.url||resource.name||"").split(/[?#]/,1)[0].toLowerCase().endsWith(".vault.json"))return "vault";
   const input=String(resource.path||resource.url||resource.name||"");
