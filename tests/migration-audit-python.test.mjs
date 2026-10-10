@@ -21,3 +21,12 @@ test("V1/V2 migration inventory Python regressions",()=>{
   if(run.error?.code==="ENOENT"&&!process.env.CI)return;
   assert.equal(run.status,0,[run.error?.message,run.stdout,run.stderr].filter(Boolean).join("\n"));
 });
+
+test("NTNU local staging packages only reviewed public files and keeps PHP opt-in",()=>{
+  const run=spawnSync("python3",[
+    "-m","unittest","discover","-s","tests",
+    "-p","test_ntnu_staging.py","-v"
+  ],{encoding:"utf8",timeout:90000});
+  if(run.error?.code==="ENOENT"&&!process.env.CI)return;
+  assert.equal(run.status,0,[run.error?.message,run.stdout,run.stderr].filter(Boolean).join("\n"));
+});

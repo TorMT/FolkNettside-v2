@@ -158,7 +158,7 @@ python scripts/audit_public_assets.py
 
 Gjenta for hvert fag i backupens verifiserte liste, og vis at `resources[]` peker på eksisterende filer. Slå opp i `scripts/update_site.py` for nøyaktige parametre; **ikke** bruk SiteUpdater3.py direkte i V2, da den gamle oppdatereren bygger en annen indeksstruktur.
 
-**Viktig build-felle:** Den nåværende `.github/workflows/pages.yml` kjører `python scripts/update_site.py` **uten `--source`**, som bruker `examples/semesters` som standard. Før vi endrer `data/content-manifest.json` til ekte kursmateriale må workflow og lokal standardkilde endres, testes og låses til `site-content/semesters`. Ellers kan publisering erstatte faktisk kursmanifest med eksempelkurset. Dette er en produksjonsblokkerer inntil løst.
+**Oppdatert byggesikkerhet (10.10.2026):** SiteUpdater gjenbruker nå kilden fra gjeldende manifest i stedet for å falle lydløst tilbake til `examples/semesters`. **Men GitHub Pages-bygget pakker fortsatt ikke inn et separat NTNU-kursarkiv.** Kjør en egen [NTNU lokal stagingpakke](NTNU_FOLK_HOSTING.md) med `--manifest` og `--approved-root` som peker til en gjennomgått *offentlig* lokalkopi, ikke kopier kursarkivet inn i GitHub. Private filer administreres separat bak Apache `.htaccess`/LDAP etter live autorisasjonstest.
 
 ## 4. Read-only paritetsrapport fra ekte sikkerhetskopi
 
@@ -177,6 +177,12 @@ python scripts/audit_migration_readiness.py --legacy-repo "D:\Repos\FolkNettside
 Skriptet sammenligner per kurs med filnavn og byte-størrelse, ignorerer beskyttede filer og **fører opp alle manglende offentlige filer**, men kopierer eller sletter ingenting. Det kan ikke bevise likt byteinnhold eller applikasjonsparitet; suppler med SHA-256 mot kopier du har lov til å publisere. En manglende kildekatalog gir **STOP**, ikke «tom katalog = godkjent».
 
 Fortsett å oppdatere [gap-registeret](PRODUCTION_PARITY_GAP_REGISTER.md). Ikke merk et fag `PASS` bare fordi alle filene finnes: åpne videoer, modeller, bilder, quiz og Office-dokumenter gjennom V2-viewerne.
+
+## 4.1 NTNU-målarkitektur, basert på dokumentert Apache-tilgang
+
+NTNU har offisielt dokumentert server-side **Apache `.htaccess`-tilgangskontroll** for kataloger under `folk.ntnu.no`, inklusive `AuthBasicProvider ldap` og `Require ldap-user <konto>`. Det er derfor ikke et teknisk krav at private kursmapper må til Cloudflare Access; **GitHub Pages er fortsatt offentlig**. Bruk egen NTNU-beskyttet mappe utenfor V2s offentlig pakke. Test en ufarlig markør for 401/403 uten innlogging og tilgang bare for autorisert konto før reelle filer importeres. Google OAuth gir ikke NTNU LDAP-rettigheter.
+
+**NTNU dokumenterer ikke entydig PHP-versjon, kvote, `getenv()` eller eksternt HTTPS/cURL-tilgang for denne brukerkontoen.** Det må testes på en egen midlertidig NTNU-stagingadresse før Brewing/RAPT/Matpris/leaderboard kan erklæres produksjonsklart. Se [den komplette, kildebaserte NTNU-arkitekturplanen](NTNU_FOLK_HOSTING.md).
 
 ## 5. Portering og verifikasjon av tjenester, secrets og brukertilstand
 

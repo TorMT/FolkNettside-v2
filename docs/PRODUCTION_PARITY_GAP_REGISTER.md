@@ -7,6 +7,8 @@
 **Ny offentlig V1-verifikasjon:** `https://tormt.folk.ntnu.no/includes/navbar.html` oppgir **24 kurslenker** fordelt på semester 1–5; den offentlige `/semestre/index.json` viser også enkelte mapper med navneledd `(beskyttet)`. Et NAVBAR-mappenavn er ikke nødvendigvis en faktisk NTNU-emnekode. Se [detaljert V1-kursinventar](PUBLIC_V1_COURSE_INVENTORY_2026-10-10.md) og [mapping-forslag](../data/migration-course-map.example.json). Ikke overfør slike beskyttede ressurser til offentlige V2.
 
 
+**NTNU-hosting avklart på dokumentasjonsnivå:** Folk-sidene kjører Apache med `.htaccess` og offisielt dokumentert NTNU LDAP/htpasswd-katalogbeskyttelse. En separat, ikke-publisert kandidatbygging kan nå opprettes med `scripts/build_ntnu_staging.py`. **Dette beviser ikke at PHP-moduler, miljøvariabler, disk­kvote, RAPT/APS, autentisering i praksis eller full dataflyt virker.** Se [NTNU hosting-planen](NTNU_FOLK_HOSTING.md). Opprinnelige V1-filer og V1-URL-er forblir urørt.
+
 ## Betydning av kolonnene
 
 - **Dekning:** `CI-dekning` = implementasjon med automatiserte tester, men fortsatt krav om sammenligning med live V1; `delvis` = et kjent funksjonelt gap; `ikke bevist` = ikke nok evidens; `ekstern` = separat tjeneste/lenke beholdes; `mangler data` = live kilde ikke tilgjengelig.

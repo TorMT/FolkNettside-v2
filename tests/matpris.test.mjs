@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import {groupProductsByEan,matprisProxyUrl,matprisBackendAvailable,normalizeProduct,unwrapProducts} from "../src/diverse/matpris-api.js";
+import {groupProductsByEan,matprisProxyUrl,matprisBackendAvailable,configuredMatprisEndpoint,normalizeProduct,unwrapProducts} from "../src/diverse/matpris-api.js";
 import {matprisPageHTML} from "../src/diverse/matpris-page.js";
 
 test("Matpris normalizes current API price shapes",()=>{
@@ -41,10 +41,30 @@ test("Matpris server proxy reads the API key from the environment",()=>{
   assert.doesNotMatch(source,/KASSALAPP_API_KEY\s*=\s*['"][^'"]+['"]/);
 });
 
-test("Matpris fails closed on static GitHub Pages without probing missing PHP endpoints",()=>{
+test("Matpris never probes V1 PHP implicitly, including NTNU V2 subdirectory staging",()=>{
   assert.equal(matprisBackendAvailable({hostname:"tormt.github.io"}),false);
-  assert.equal(matprisBackendAvailable({hostname:"user.github.io"}),false);
-  assert.equal(matprisBackendAvailable({hostname:"tormt.folk.ntnu.no"}),true);
-  assert.equal(matprisBackendAvailable({hostname:"localhost"}),true);
-  assert.equal(matprisBackendAvailable({hostname:"tormt.github.io",endpoint:"https://api.example.org/matpris"}),true);
+  assert.equal(matprisBackendAvailable({hostname:"tormt.folk.ntnu.no"}),false);
+  assert.equal(matprisBackendAvailable({hostname:"localhost"}),false);
+  assert.equal(matprisBackendAvailable({endpoint:"./includes/matpris/api.php"}),true);
+  assert.equal(configuredMatprisEndpoint({matpris:{enabled:false,endpoint:"./includes/matpris/api.php"}}),null);
+  assert.equal(configuredMatprisEndpoint({matpris:{enabled:true,endpoint:"/includes/matpris/api.php"}}),null);
+  assert.equal(configuredMatprisEndpoint({matpris:{enabled:true,endpoint:"https://evil.example/matpris"}}),null);
+  assert.equal(configuredMatprisEndpoint({matpris:{enabled:true,endpoint:"./includes/matpris/api.php"}}),"./includes/matpris/api.php");
+});
+
+test("Matpris staged relative PHP URL stays inside V2 folder",()=>{
+  const prior=globalThis.location;
+  const priorDocument=globalThis.document;
+  try{
+    Object.defineProperty(globalThis,"location",{value:{origin:"https://tormt.folk.ntnu.no",
+      href:"https://tormt.folk.ntnu.no/v2-staging/index.html#/diverse/matpris"},configurable:true});
+    Object.defineProperty(globalThis,"document",{value:{baseURI:"https://tormt.folk.ntnu.no/v2-staging/index.html"},configurable:true});
+    assert.equal(matprisProxyUrl("search",{q:"vann"},"./includes/matpris/api.php"),
+      "/v2-staging/includes/matpris/api.php?action=search&q=vann");
+  }finally{
+    if(prior===undefined)delete globalThis.location;
+    else Object.defineProperty(globalThis,"location",{value:prior,configurable:true});
+    if(priorDocument===undefined)delete globalThis.document;
+    else Object.defineProperty(globalThis,"document",{value:priorDocument,configurable:true});
+  }
 });

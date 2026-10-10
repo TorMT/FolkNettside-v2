@@ -42,6 +42,23 @@ On Windows, run **Run SiteUpdater.cmd** to choose all semesters, a semester or a
 
 The default source is **example fixtures** under examples/semesters, not the full legacy course archive. Only stage approved public content. SiteUpdater writes manifests atomically and rejects protected paths; this is not a substitute for manual privacy review. Never publish plaintext private folders, passwords, OAuth client secrets or medical records to GitHub Pages.
 
+## Separate NTNU staging build (no changes to V1)
+
+NTNU's [own folk hosting docs](docs/NTNU_FOLK_HOSTING.md) confirm webedit
+publishing, Apache directory authentication via `.htaccess` (NTNU LDAP or
+`htpasswd`) and PHP-related support guidance. **PHP modules, disk quotas,
+environmental secret availability and external API access must be live-tested
+on this account; do not assume they are available.**
+
+The tested `scripts/build_ntnu_staging.py` produces an **offline-only**
+V2 candidate from the public GitHub build, optionally combining a separately
+reviewed manifest with only explicitly approved *public* files in a local
+`site-content/semesters` source. It never copies private folders or uploads
+anything to NTNU. Matpris PHP is bundled and enabled only with an explicit
+`--enable-matpris` opt-in, using a subdirectory-relative endpoint that
+cannot silently access V1 from NTNU staging. V1 and the Engineering
+Portfolio are frozen until at least 2027-01-01 and separate GO approval.
+
 ## Migration readiness and course analytics
 
 **V2 has not replaced V1.** The GitHub history of V1 is not a complete backup

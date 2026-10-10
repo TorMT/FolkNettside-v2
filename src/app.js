@@ -65,6 +65,7 @@ import {diveMapHTML,mountDiveMap} from "./diverse/dive-map.js";
 import {sandalenPageHTML} from "./diverse/sandalen-page.js";
 import {studyCatalogPageHTML,mountStudyCatalog} from "./diverse/study-catalog-pages.js";
 import {matprisPageHTML,mountMatpris} from "./diverse/matpris-page.js";
+import {configuredMatprisEndpoint} from "./diverse/matpris-api.js";
 import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js";
 import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js";
 import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js";
@@ -482,7 +483,18 @@ function matprisPage(){
   document.documentElement.dataset.lens="study";
   app.innerHTML=top("diverse")+matprisPageHTML()+'<div class="preview-badge">Matpris · server-key architecture</div>';
   bindNav();
-  mountMatpris(app);
+  const form=app.querySelector("#matpris-search-form");
+  if(form)form.querySelector('button[type="submit"]').disabled=true;
+  const status=app.querySelector("#matpris-status");
+  if(status)status.textContent="Kontrollerer om en autorisert serverproxy er tilgjengelig…";
+  fetch("./data/service-endpoints.json",{cache:"no-store"})
+    .then(async response=>response.ok?response.json():null)
+    .catch(()=>null)
+    .then(config=>{
+      if(route()!=="/diverse/matpris"||!form?.isConnected)return;
+      const endpoint=configuredMatprisEndpoint(config);
+      mountMatpris(app,{endpoint});
+    });
 }
 
 function sandalenPage(){

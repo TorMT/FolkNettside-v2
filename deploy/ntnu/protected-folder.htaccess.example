@@ -1,0 +1,10 @@
+# Review and install as .htaccess INSIDE the final protected NTNU directory.
+# Do not commit credentials or place raw private course documents in GitHub.
+# NTNU documents AuthBasicProvider ldap on folk.ntnu.no.
+# Use Require ldap-user YOUR_NTNU_USERNAME for a single account.
+# Require valid-user admits ALL authenticated NTNU users; do not use it for
+# personal/private materials or for material restricted to a small group.
+AuthName "FolkNettside protected resources - NTNU login"
+AuthType Basic
+AuthBasicProvider ldap
+Require ldap-user REPLACE_WITH_AUTHORIZED_NTNU_USERNAME
