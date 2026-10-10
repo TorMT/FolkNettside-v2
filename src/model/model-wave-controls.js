@@ -1,7 +1,7 @@
-import {normaliseWaveCase,waveObservationsCSV} from "./wave-core.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {legacyAddedWaveResistance,legacyMorisonWaveForce} from "./wave-concept-estimates.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {normaliseWaveCase,waveObservationsCSV} from "./wave-core.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {legacyAddedWaveResistance,legacyMorisonWaveForce} from "./wave-concept-estimates.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
 import {appendWaveRecord,importWaveCSV,readWaveCollection,
-  sampleWaveRecord,writeWaveCollection,importWaveCollectionJSON} from "./wave-collection.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+  sampleWaveRecord,writeWaveCollection,importWaveCollectionJSON} from "./wave-collection.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
 
 export function waveTraceSVG(points){
   if(!Array.isArray(points)||!points.length)return "<span>No observations</span>";
@@ -32,10 +32,16 @@ export function mountWaveControls(host,scene,{open=false}={}){
     <div class="model-wave-fields">
       <label>Wave height H (m)<input data-wave-height type="number" min="0" max="100" step=".1" value="1"></label>
       <label>Period T (s)<input data-wave-period type="number" min=".01" step=".1" value="6"></label>
-      <label>Heading (°)<input data-wave-heading type="number" step="5" value="0"></label>
+      <label>Propagation heading (°)<input data-wave-heading type="number" step="5" value="0"></label>
       <label>Water depth (m)<input data-wave-depth type="number" min=".01" step="1" placeholder="Deep water"></label>
       <label>Probe X (m)<input data-wave-x type="number" step=".5" value="0"></label>
       <label>Probe Y (m)<input data-wave-y type="number" step=".5" value="0"></label>
+    </div>
+    <div class="model-wave-actions wave-heading-presets" aria-label="Wave approach presets">
+      <button type="button" data-wave-heading-preset="180">Head seas</button>
+      <button type="button" data-wave-heading-preset="0">Following seas</button>
+      <button type="button" data-wave-heading-preset="90">Port beam</button>
+      <button type="button" data-wave-heading-preset="270">Starboard beam</button>
     </div>
     <div class="model-wave-actions">
       <button type="button" data-wave-show>Show waves in 3D</button>
@@ -73,6 +79,7 @@ export function mountWaveControls(host,scene,{open=false}={}){
       <button type="button" data-wave-estimate>Calculate concept estimates</button>
       <pre data-wave-estimate-output role="status">No wave loads calculated.</pre>
     </details>
+    <p class="model-wave-note">Wave heading is the direction of propagation (+X is following seas); Head seas = 180°, port beam = 90° and starboard beam = 270°. The labels refer to a vessel with forward along +X and port along +Y.</p>
     <p class="model-wave-note">Movement is relative to the model's geometric centre. Follow adds illustrative heave; Surface tilt also aligns the hull with the local wave tangent (limited to ±12°) so the effect is visible. Neither mode predicts physical heave, roll, pitch, mooring dynamics or RAOs. Hydro and still-water contours are unchanged.</p>
     <p class="model-wave-note">Synthetic series are explicitly labeled. CSV columns: time_s,eta_m. Imported measurements do not automatically become spatial waves or validated wave loads. Records stay in this browser until exported or cleared.</p>`;
   host.append(root);
@@ -145,7 +152,22 @@ export function mountWaveControls(host,scene,{open=false}={}){
   $("[data-wave-show]").addEventListener("click",event=>{
     active=!active;event.currentTarget.textContent=active?"Hide waves":"Show waves in 3D";updateWave();
   });
-  $("[data-wave-motion]").addEventListener("change",()=>{if(active)updateWave()});
+  // Selecting a motion or sea direction should be immediately visible even
+  // when the water surface was previously hidden.
+  const showWave=()=>{
+    if(!active){
+      active=true;
+      $("[data-wave-show]").textContent="Hide waves";
+    }
+    updateWave();
+  };
+  $("[data-wave-motion]").addEventListener("change",showWave);
+  for(const preset of root.querySelectorAll("[data-wave-heading-preset]")){
+    preset.addEventListener("click",()=>{
+      $("[data-wave-heading]").value=preset.dataset.waveHeadingPreset;
+      showWave();
+    });
+  }
   $("[data-wave-play]").addEventListener("click",event=>{
     if(animate&&active){
       const state=scene.actions.getWaveMotionPose?.();
@@ -163,7 +185,7 @@ export function mountWaveControls(host,scene,{open=false}={}){
       $("[data-wave-play]").textContent="Play";
     }
     phaseValue.textContent=phaseInput.value+"°";
-    if(active)updateWave();
+    showWave();
   });
   $("[data-wave-capture]").addEventListener("click",()=>{
     try{

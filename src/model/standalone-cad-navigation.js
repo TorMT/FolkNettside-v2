@@ -1,6 +1,7 @@
-import {connectCADKeyboard} from "./cad-navigation.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {connectSpaceMouse} from "./spacemouse-webhid.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {spaceMouseMovement} from "./spacemouse-motion.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {connectCADKeyboard} from "./cad-navigation.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {connectSpaceMouse} from "./spacemouse-webhid.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {spaceMouseMovement} from "./spacemouse-motion.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {readSpaceMouseSettings,writeSpaceMouseSettings} from "./spacemouse-settings.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
 
 /** Attach the same desktop CAD navigation to standalone WebGL gear views.
  * This does not rotate actual design objects, only the display camera.
@@ -38,13 +39,34 @@ export function mountStandaloneCADNavigation({
  };
  const standardView=type=>{
    const distance=originalPosition.distanceTo(originalTarget);
-   const directions={top:[0,-.001,1],front:[0,-1,.1],rear:[0,1,.1],
-     port:[-1,0,.1],starboard:[1,0,.1]};
+   const directions={top:[0,0,1],front:[0,-1,0],rear:[0,1,0],
+     port:[-1,0,0],starboard:[1,0,0]};
    const dir=new THREE.Vector3(...(directions[type]||[1,-1,1])).normalize();
+   camera.up.set(0,dir.z>.98?1:0,dir.z>.98?0:1);
    controls.target.copy(originalTarget);
    camera.position.copy(originalTarget).add(dir.multiplyScalar(distance));
    controls.update();draw();
  };
+ const views=document.createElement("div");
+ views.className="cad-view-presets";
+ for(const [name,title] of [["iso","Iso"],["top","Top"],["front","Front"],
+   ["rear","Rear"],["port","Port"],["starboard","Starboard"]]){
+   const button=document.createElement("button");
+   button.type="button";button.className="btn";button.textContent=title;
+   button.dataset.gearView=name;
+   button.addEventListener("click",()=>{
+     if(name==="iso")reset();else standardView(name);
+   });
+   views.append(button);
+ }
+ for(const [title,direction] of [["Tilt −",[.13,0,0]],["Tilt +",[-.13,0,0]]]){
+   const button=document.createElement("button");button.type="button";
+   button.className="btn";button.textContent=title;
+   button.dataset.gearTilt=String(direction[0]);
+   button.addEventListener("click",()=>navigate3D({orbit:direction}));
+   views.append(button);
+ }
+ toolbar.append(views);
  const offKeys=connectCADKeyboard(canvas,{
    fit:reset,resetZoom:reset,setView:standardView,navigate3D,
    setIsolation:()=>{},setScopedExplode:()=>{}
@@ -69,12 +91,20 @@ export function mountStandaloneCADNavigation({
  options.className="model-spacemouse-settings";
  options.textContent="3D mouse sensitivity ";
  const gain=document.createElement("input");
- gain.type="range";gain.min=".2";gain.max="2";gain.step=".1";gain.value=".6";
+ gain.type="range";gain.min=".2";gain.max="2";gain.step=".1";gain.value=String(readSpaceMouseSettings().sensitivity);
  gain.setAttribute("aria-label","3D mouse sensitivity");
  const gainValue=document.createElement("output");
- gainValue.textContent="0.6×";
- gain.addEventListener("input",()=>gainValue.textContent=gain.value+"×");
+ gainValue.textContent=gain.value+"×";
+ const sync3DMouse=()=>{
+   gain.value=String(readSpaceMouseSettings().sensitivity);
+   gainValue.textContent=gain.value+"×";
+ };
+ const change3DMouse=()=>sync3DMouse();
+ window.addEventListener("folk:spacemouse-settings",change3DMouse);
+ gain.addEventListener("input",()=>writeSpaceMouseSettings({sensitivity:Number(gain.value)}));
  options.append(gain,gainValue);
+ const details=document.createElement("a");details.href="#/settings/engineering";
+ details.textContent="All SpaceMouse axes";options.append(details);
  toolbar.append(connect,disconnect,status,options);
  if(!globalThis.navigator?.hid)connect.disabled=true;
  const stop=async()=>{
@@ -94,7 +124,7 @@ export function mountStandaloneCADNavigation({
        },
        onStatus:message=>{if(!disposed)status.textContent=message},
        onVector:sample=>{
-         const motion=spaceMouseMovement(sample,{sensitivity:Number(gain.value)});
+         const motion=spaceMouseMovement(sample,readSpaceMouseSettings());
          if(motion)navigate3D(motion);
        }
      });
@@ -109,10 +139,11 @@ export function mountStandaloneCADNavigation({
    navigate3D,reset,
    dispose(){
      disposed=true;offKeys();void stop();
+     window.removeEventListener("folk:spacemouse-settings",change3DMouse);
      canvas.removeEventListener("pointerdown",down,true);
      canvas.removeEventListener("pointerup",up);
      canvas.removeEventListener("pointercancel",up);
-     connect.remove();disconnect.remove();status.remove();options.remove();
+     connect.remove();disconnect.remove();status.remove();options.remove();views.remove();
    }
  };
 }

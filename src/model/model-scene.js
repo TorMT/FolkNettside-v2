@@ -1,12 +1,12 @@
-import {getThreeRuntime} from "./three-runtime.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {modelWaterlineContours} from "./waterline-preview.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {waveModelPose} from "./wave-model-motion.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {createThrusterFlowRings} from "./thruster-flow-rings.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {explodeOffsets} from "./explode-layout.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {connectCADKeyboard} from "./cad-navigation.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {fitDistanceForBox} from "./cad-camera-fit.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {getThreeRuntime} from "./three-runtime.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {modelWaterlineContours} from "./waterline-preview.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {waveModelPose} from "./wave-model-motion.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {createThrusterFlowRings} from "./thruster-flow-rings.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {explodeOffsets} from "./explode-layout.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {connectCADKeyboard} from "./cad-navigation.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {fitDistanceForBox} from "./cad-camera-fit.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;
@@ -91,6 +91,8 @@ export async function mountModelScene(container,documentModel,options={}){
     return {box,center,size,radius};
   }
 
+  // Rotate visual heel and trim about the imported hull rather than (0,0,0).
+  const attitudePivot=bounds().center.clone();
   let explodedFactor=0,scopedExplodeFactor=0,scopedExplodeIds=[];
   let isolatedIds=null;
   const axesHelper=new THREE.AxesHelper(Math.max(bounds().radius*.55,.5));
@@ -219,6 +221,9 @@ export async function mountModelScene(container,documentModel,options={}){
   function placeCamera(direction){
     currentBounds=bounds();
     const dir=direction.clone().normalize();
+    // SpaceMouse roll changes camera.up. Restore a deterministic up vector for
+    // named views; near-vertical Top needs Y-up to avoid an undefined basis.
+    camera.up.set(0,Math.abs(dir.z)>.98?1:0,Math.abs(dir.z)>.98?0:1);
     const aspect=Math.max(.15,(canvas.clientWidth||800)/(canvas.clientHeight||540));
     const distance=fitDistanceForBox(currentBounds.size.toArray(),dir.toArray(),
       {aspect,fovDeg:camera.fov});
@@ -282,11 +287,11 @@ export async function mountModelScene(container,documentModel,options={}){
 
   const viewDirections={
     iso:canonicalDirection,
-    front:new THREE.Vector3(0,-1,.15),
-    rear:new THREE.Vector3(0,1,.15),
-    port:new THREE.Vector3(-1,0,.15),
-    starboard:new THREE.Vector3(1,0,.15),
-    top:new THREE.Vector3(0,-.001,1)
+    front:new THREE.Vector3(0,-1,0),
+    rear:new THREE.Vector3(0,1,0),
+    port:new THREE.Vector3(-1,0,0),
+    starboard:new THREE.Vector3(1,0,0),
+    top:new THREE.Vector3(0,0,1)
   };
   function setView(name){placeCamera((viewDirections[name]||canonicalDirection).clone())}
 
@@ -621,18 +626,28 @@ export async function mountModelScene(container,documentModel,options={}){
   }
 
   function setRotation({x=0,y=0,z=0}={}){
-    attitudeGroup.rotation.set(THREE.MathUtils.degToRad(Number(x)||0),THREE.MathUtils.degToRad(Number(y)||0),THREE.MathUtils.degToRad(Number(z)||0));
+    for(const angle of [x,y,z])
+      if(!Number.isFinite(Number(angle))||Math.abs(Number(angle))>360)
+        throw Error("Attitude must be a finite angle within ±360°");
+    attitudeGroup.rotation.set(
+      THREE.MathUtils.degToRad(Number(x)),
+      THREE.MathUtils.degToRad(Number(y)),
+      THREE.MathUtils.degToRad(Number(z)));
+    // Preserve hull centre in the same local frame during heel/trim/yaw.
+    attitudeGroup.position.copy(attitudePivot).sub(
+      attitudePivot.clone().applyQuaternion(attitudeGroup.quaternion));
     attitudeGroup.updateMatrixWorld(true);
     refreshWaterlineContours();
-    fitView();
+    draw(); // Do not unexpectedly reset the user's chosen side/camera.
   }
 
   function resetAttitude(){
     attitudeGroup.rotation.set(0,0,0);
     attitudeGroup.quaternion.identity();
+    attitudeGroup.position.set(0,0,0);
     attitudeGroup.updateMatrixWorld(true);
     refreshWaterlineContours();
-    fitView();
+    draw();
   }
 
   const clipPlane=new THREE.Plane(new THREE.Vector3(1,0,0),0);
@@ -868,6 +883,11 @@ export async function mountModelScene(container,documentModel,options={}){
       swapAxes,
       setRotation,
       resetAttitude,
+      getAttitude:()=>({
+        heelDeg:THREE.MathUtils.radToDeg(attitudeGroup.rotation.x),
+        trimDeg:THREE.MathUtils.radToDeg(attitudeGroup.rotation.y),
+        yawDeg:THREE.MathUtils.radToDeg(attitudeGroup.rotation.z)
+      }),
       setAppearance,
       setAxes,
       setBoundingBox,

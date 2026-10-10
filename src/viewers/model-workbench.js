@@ -1,8 +1,9 @@
-import {mountModelScene} from "../model/model-scene.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {mountWaveControls} from "../model/model-wave-controls.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {mountAssemblyInspector} from "./assembly-inspector.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {connectSpaceMouse} from "../model/spacemouse-webhid.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
-import {spaceMouseMovement} from "../model/spacemouse-motion.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {mountModelScene} from "../model/model-scene.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {mountWaveControls} from "../model/model-wave-controls.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {mountAssemblyInspector} from "./assembly-inspector.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {connectSpaceMouse} from "../model/spacemouse-webhid.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {spaceMouseMovement} from "../model/spacemouse-motion.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {readSpaceMouseSettings,writeSpaceMouseSettings} from "../model/spacemouse-settings.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
 
 export async function renderModelWorkbench(container,model,{showSidebar=false}={}){
   container.innerHTML=`<div class="model-viewer-workbench">
@@ -17,11 +18,15 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
           <button type="button" data-model-spacemouse-stop disabled>Disconnect</button>
         </div>
         <p class="muted" data-model-spacemouse-status role="status">SpaceMouse: optional WebHID in desktop Chrome/Edge over HTTPS. Permission required.</p>
-        <div class="model-spacemouse-settings"><label>Sensitivity <input type="range" data-model-spacemouse-gain min=".2" max="2" step=".1" value=".6"></label><output data-model-spacemouse-gain-value>0.6×</output><label><input type="checkbox" data-model-spacemouse-invert> Invert zoom</label></div>
+        <div class="model-spacemouse-settings"><label>Sensitivity <input type="range" data-model-spacemouse-gain min=".2" max="2" step=".1" value=".6"></label><output data-model-spacemouse-gain-value>0.6×</output><label><input type="checkbox" data-model-spacemouse-invert> Invert zoom</label><a href="#/settings/engineering" data-spacemouse-settings-link>All 6-axis settings</a></div>
         <div class="model-viewer-actions">
           <button type="button" data-model-fit>Fit</button>
           <button type="button" data-model-iso>Iso</button>
           <button type="button" data-model-top>Top</button>
+          <button type="button" data-model-side="front">Front</button>
+          <button type="button" data-model-side="rear">Rear</button>
+          <button type="button" data-model-side="port">Port</button>
+          <button type="button" data-model-side="starboard">Starboard</button>
           <button type="button" data-model-auto>Auto align</button>
           <button type="button" data-model-align-reset>Reset align</button>
           <button type="button" data-model-png>PNG</button>
@@ -58,6 +63,12 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
           <label>Heel X (°)<input data-model-roll type="number" step="1" value="0"></label>
           <label>Trim Y (°)<input data-model-trim type="number" step="1" value="0"></label>
           <label>Yaw Z (°)<input data-model-yaw type="number" step="1" value="0"></label>
+        </div>
+        <div class="model-viewer-actions" data-model-attitude-actions>
+          <button type="button" data-model-tilt="roll:-5">Heel −5°</button>
+          <button type="button" data-model-tilt="roll:5">Heel +5°</button>
+          <button type="button" data-model-tilt="trim:-5">Trim −5°</button>
+          <button type="button" data-model-tilt="trim:5">Trim +5°</button>
         </div>
         <button type="button" data-model-reset-rotation>Reset attitude</button>
       </div>
@@ -134,6 +145,12 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
       if(action==="autoAlign"||action==="resetAlignment")updateWaterline();
     });
   }
+  for(const side of container.querySelectorAll("[data-model-side]")){
+    side.addEventListener("click",()=>{
+      scene.actions.setView(side.dataset.modelSide);
+      $("[data-model-view]").value=side.dataset.modelSide;
+    });
+  }
   const appearance=()=>{
     scene.actions.setAppearance({wireframe:$("[data-model-appearance]").value==="wireframe",
       opacity:Number($("[data-model-opacity]").value)});
@@ -161,7 +178,15 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
     });updateWaterline();
   };
   for(const selector of ["[data-model-roll]","[data-model-trim]","[data-model-yaw]"])
-    $(selector).addEventListener("change",applyRotation);
+    $(selector).addEventListener("input",applyRotation);
+  for(const button of container.querySelectorAll("[data-model-tilt]"))
+    button.addEventListener("click",()=>{
+      const [axis,stepText]=button.dataset.modelTilt.split(":");
+      const field=axis==="roll"?$("[data-model-roll]"):$("[data-model-trim]");
+      const previous=Number(field.value);
+      field.value=String(Math.max(-89,Math.min(89,(Number.isFinite(previous)?previous:0)+Number(stepText))));
+      applyRotation();
+    });
   $("[data-model-reset-rotation]").addEventListener("click",()=>{
     for(const selector of ["[data-model-roll]","[data-model-trim]","[data-model-yaw]"])
       $(selector).value="0";
@@ -192,7 +217,16 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
   let session=null,connecting=false,disposed=false;
   const gain=$("[data-model-spacemouse-gain]");
   const inverted=$("[data-model-spacemouse-invert]");
-  gain.addEventListener("input",()=>$("[data-model-spacemouse-gain-value]").textContent=gain.value+"×");
+  const sync3DSettings=()=>{
+    const config=readSpaceMouseSettings();
+    gain.value=String(config.sensitivity);inverted.checked=config.invertZoom;
+    $("[data-model-spacemouse-gain-value]").textContent=gain.value+"×";
+  };
+  sync3DSettings();
+  const onGlobal3DSettings=()=>sync3DSettings();
+  window.addEventListener("folk:spacemouse-settings",onGlobal3DSettings);
+  gain.addEventListener("input",()=>writeSpaceMouseSettings({sensitivity:Number(gain.value)}));
+  inverted.addEventListener("change",()=>writeSpaceMouseSettings({invertZoom:inverted.checked}));
   if(!globalThis.navigator?.hid){
     connectButton.disabled=true;
     connectionStatus.textContent="WebHID unavailable. Use desktop Chrome or Edge over HTTPS; ordinary mouse/touch controls remain supported.";
@@ -215,9 +249,7 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
         },
         onStatus:setConnectionStatus,
         onVector:sample=>{
-          const motion=spaceMouseMovement(sample,{
-            sensitivity:Number(gain.value),invertZoom:inverted.checked
-          });
+          const motion=spaceMouseMovement(sample,readSpaceMouseSettings());
           if(motion)scene.actions.navigate3D(motion);
         }
       });
@@ -231,7 +263,8 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
   const waveControls=mountWaveControls($("[data-model-waves]"),scene);
   return {...scene,info:scene.info+" · interactive 3D, hydro-waterline and wave collection",
     cleanup(){
-      disposed=true;assembly.dispose();waveControls.dispose();
+      disposed=true;window.removeEventListener("folk:spacemouse-settings",onGlobal3DSettings);
+      assembly.dispose();waveControls.dispose();
       void disconnect();scene.cleanup();
     }};
 }
