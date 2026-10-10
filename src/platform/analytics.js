@@ -22,9 +22,9 @@ export function analyticsMeasurementId(value=globalThis.__FOLK_ANALYTICS_ID__){
   const id=String(value||"").trim();
   return GA_ID.test(id)?id:"";
 }
-export function analyticsConsentChoice(storage=globalThis.localStorage){
+export function analyticsConsentChoice(storage){
   try{
-    const choice=storage?.getItem(CONSENT_KEY);
+    const choice=(storage===undefined?globalThis.localStorage:storage)?.getItem(CONSENT_KEY);
     if(choice==="granted"||choice==="denied")return choice;
   }catch{}
   return sessionChoice??"unset";
@@ -111,7 +111,9 @@ export function enableAnalytics(){
   globalThis.gtag("consent","update",{analytics_storage:"granted"});
   globalThis.gtag("config",id,{
     send_page_view:false,anonymize_ip:true,allow_google_signals:false,
-    allow_ad_personalization_signals:false
+    allow_ad_personalization_signals:false,
+    page_location:globalThis.location.origin+globalThis.location.pathname+"#/",
+    page_referrer:""
   });
   const script=document.createElement("script");
   script.async=true;
@@ -122,13 +124,13 @@ export function enableAnalytics(){
   trackPage();
   return true;
 }
-export function setAnalyticsConsent(value,storage=globalThis.localStorage){
+export function setAnalyticsConsent(value,storage){
   const choice=value?"granted":"denied";
   sessionChoice=choice;
-  try{storage?.setItem(CONSENT_KEY,choice)}catch{}
+  try{(storage===undefined?globalThis.localStorage:storage)?.setItem(CONSENT_KEY,choice)}catch{}
   if(!value){
     lastRawRoute="";
-    globalThis.gtag?.("consent","update",{analytics_storage:"denied"});
+    if(loaded)globalThis.gtag?.("consent","update",{analytics_storage:"denied"});
   }else enableAnalytics();
   if(typeof window!=="undefined"&&typeof CustomEvent!=="undefined")
     window.dispatchEvent(new CustomEvent("folk:analytics-consent",{detail:choice}));
