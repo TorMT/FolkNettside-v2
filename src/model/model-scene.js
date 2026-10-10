@@ -883,6 +883,11 @@ export async function mountModelScene(container,documentModel,options={}){
       swapAxes,
       setRotation,
       resetAttitude,
+      getAttitude:()=>({
+        heelDeg:THREE.MathUtils.radToDeg(attitudeGroup.rotation.x),
+        trimDeg:THREE.MathUtils.radToDeg(attitudeGroup.rotation.y),
+        yawDeg:THREE.MathUtils.radToDeg(attitudeGroup.rotation.z)
+      }),
       setAppearance,
       setAxes,
       setBoundingBox,
