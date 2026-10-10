@@ -19,3 +19,14 @@ test("invalid or excessive backups fail validation",()=>{
   assert.throws(()=>newMedisinBackup([entry("x","not a date")]));
   assert.throws(()=>newMedisinBackup([entry("x","2026-10-08T08:00:00Z",-2)]));
 });
+
+test("same-timestamp independent merges converge regardless of read order",()=>{
+  const at="2026-10-10T12:00:00Z";
+  const first=newMedisinBackup([entry("same",at,100)]);
+  const second=newMedisinBackup([entry("same",at,120)]);
+  assert.deepEqual(mergeMedisinBackups(first,second).entries,
+                   mergeMedisinBackups(second,first).entries);
+  const tombstone=newMedisinBackup([{...entry("same",at,100),deleted:true}]);
+  assert.equal(mergeMedisinBackups(first,tombstone).entries[0].deleted,true);
+  assert.equal(mergeMedisinBackups(tombstone,first).entries[0].deleted,true);
+});
