@@ -7,6 +7,7 @@ export function validateIngredient(value){
  if(!value||typeof value!=="object")throw Error("Ingredient must be an object");
  const name=String(value.name||"").trim(),unit=String(value.unit||"").trim();
  const quantity=Number(value.quantity);
+ if(value.quantity===null||value.quantity===undefined||value.quantity==="")throw Error("Quantity is required");
  if(!name||name.length>100)throw Error("Ingredient name is required (max 100 chars)");
  if(!["kg","g","L","mL","pcs"].includes(unit))throw Error("Choose a valid unit");
  if(!Number.isFinite(quantity)||quantity<0||quantity>1e8)throw Error("Quantity must be a nonnegative number");
@@ -67,9 +68,11 @@ export function mergeInventory(a,b){
  const map=new Map();
  for(const row of [...a.entries,...b.entries]){
   const old=map.get(row.id);
-  if(!old||Date.parse(row.updatedAt)>Date.parse(old.updatedAt)||
-    (row.updatedAt===old.updatedAt&&row.deleted&&!old.deleted))
-   map.set(row.id,row);
+  const cmp=old?Date.parse(row.updatedAt)-Date.parse(old.updatedAt):1;
+  if(!old||cmp>0||cmp===0&&(
+    (row.deleted&&!old.deleted)||
+    (row.deleted===old.deleted&&JSON.stringify(row)>JSON.stringify(old))
+  ))map.set(row.id,row);
  }
  return newInventory([...map.values()].sort((x,y)=>x.id.localeCompare(y.id)));
 }
