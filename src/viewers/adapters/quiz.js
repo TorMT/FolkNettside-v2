@@ -2,6 +2,7 @@ import {escapeHTML,fetchJSON} from "../utils.js";
 import {
   answerQuestion,createQuizAttempt,normalizeQuiz,quizScore,quizChapterView,quizChapterStorageKey,sanitizeQuizAttempt
 } from "../quiz-core.js";
+import {mistakeQuestions,recordQuizChoice,clearMistakeBank} from "../quiz-mistake-bank.js";
 
 function loadAttempt(key,quiz){
   try{
@@ -22,11 +23,13 @@ export async function render(container,resource){
   let storageKey=quizChapterStorageKey(resource);
   let attempt=loadAttempt(storageKey,quiz);
   let review=false;
+  let mistakeMode=false;
 
   const persist=()=>saveAttempt(storageKey,attempt);
   const score=()=>quizScore(quiz,attempt);
 
   function chaptersHTML(){
+    if(mistakeMode)return '<div class="quiz-chapter-picker"><button class="btn" id="quiz-mistake-exit" type="button">Back to full quiz</button></div>';
     if(!wholeQuiz.chapters?.length)return "";
     return `<div class="quiz-chapter-picker">
       <label for="quiz-chapter-select">Chapter</label>
@@ -36,7 +39,28 @@ export async function render(container,resource){
       </select>
     </div>`;
   }
+  function exitMistakes(){
+    mistakeMode=false;
+    selectedChapter="all";
+    quiz=wholeQuiz;
+    storageKey=quizChapterStorageKey(resource);
+    attempt=loadAttempt(storageKey,quiz);
+    review=false;
+    draw();
+  }
+  function startMistakes(){
+    const wrong=mistakeQuestions(wholeQuiz,resource);
+    if(!wrong.length)return;
+    persist();
+    mistakeMode=true;
+    quiz={...wholeQuiz,title:"Øv på feil-svar",questions:wrong,chapters:[]};
+    storageKey=quizChapterStorageKey(resource,"wrong-bank");
+    attempt=createQuizAttempt(quiz);
+    review=false;
+    draw();
+  }
   function bindChapters(){
+    container.querySelector("#quiz-mistake-exit")?.addEventListener("click",exitMistakes);
     container.querySelector("#quiz-chapter-select")?.addEventListener("change",event=>{
       const chapter=event.target.value;
       if(chapter===selectedChapter)return;
@@ -68,6 +92,8 @@ export async function render(container,resource){
       <div class="quiz-result-actions">
         <button class="btn primary" id="quiz-review">Review answers</button>
         <button class="btn" id="quiz-restart">Start new attempt</button>
+        ${!mistakeMode&&mistakeQuestions(wholeQuiz,resource).length?'<button class="btn" id="quiz-mistake-start" type="button">Øv på feil-svar ('+mistakeQuestions(wholeQuiz,resource).length+')</button>':""}
+        ${mistakeMode?'<button class="btn" id="quiz-mistake-clear" type="button">Tøm feil-svar-bank</button>':""}
       </div>
     </div>`;
   }
@@ -132,6 +158,11 @@ export async function render(container,resource){
         persist();
         draw();
       });
+      container.querySelector("#quiz-mistake-start")?.addEventListener("click",startMistakes);
+      container.querySelector("#quiz-mistake-clear")?.addEventListener("click",()=>{
+        clearMistakeBank(resource);
+        exitMistakes();
+      });
       return;
     }
 
@@ -142,7 +173,9 @@ export async function render(container,resource){
 
     container.querySelectorAll("[data-choice]").forEach(button=>button.addEventListener("click",()=>{
       if(review||attempt.answers[index]!==null)return;
-      attempt=answerQuestion(quiz,attempt,index,Number(button.dataset.choice));
+      const choice=Number(button.dataset.choice);
+      attempt=answerQuestion(quiz,attempt,index,choice);
+      recordQuizChoice(resource,quiz.questions[index],choice);
       persist();
       draw();
     }));
@@ -186,6 +219,7 @@ export async function render(container,resource){
       if(choice<quiz.questions[index].choices.length){
         event.preventDefault();
         attempt=answerQuestion(quiz,attempt,index,choice);
+        recordQuizChoice(resource,quiz.questions[index],choice);
         persist();
         draw();
       }
