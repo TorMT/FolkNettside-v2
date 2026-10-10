@@ -41,3 +41,19 @@ No production cutover is authorized by these documents.
 V1s PHP-login og scope-listen er begrenset til identitet og `drive.file`.
 Uttesting på ekte Google-kontoer og enheter gjenstår; automatiserte tester
 bekrefter bare frontend-logikken.
+
+
+### MedisinTimer sky-synk: samtykke før ukryptert opplasting (2026-10-10)
+
+Google-innlogging alene starter nå **ikke** automatisk Google Drive-lesing eller
+-opplasting av MedisinTimer-data. Brukeren må velge **Aktiver Drive-synk**
+og bekrefte en tydelig advarsel om at timer-/dosehistorikk synkroniseres
+som **ukryptert JSON**. Valget lagres lokalt per Google-konto (`sub`).
+Uten dette valget forblir historikken lokal selv om Google er tilkoblet.
+Det finnes også en **Slå av sky-synk**-knapp som stopper videre
+automatisk synkronisering. Den sletter *ikke* tidligere lagrede Drive-data.
+
+Dette er en **eksplisitt samtykkekontroll, ikke E2E-kryptering**.
+Reell ende-til-ende-kryptering, revisjon av gamle Drive-kopier,
+atomerisk fler-enhetssynk/konflikthåndtering og to-konto-/to-enhetstest
+må fortsatt løses før MedisinTimer kan klassifiseres som ferdig.

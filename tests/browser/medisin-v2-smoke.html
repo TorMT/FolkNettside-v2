@@ -3,6 +3,8 @@
 <body data-status="running"><div id="mount"></div><pre id="result">Running</pre>
 <script type="module">
 import {medisinPageHTML,mountMedisin} from "../../src/diverse/medisin-page.js";
+import {connectGoogleSession,disconnectGoogleSession} from "../../src/platform/google-session.js";
+import {medisinCloudConsentKey} from "../../src/platform/medisin-cloud-consent.js";
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 try{
   localStorage.removeItem("folk-medisin-v2:guest");
@@ -20,8 +22,81 @@ try{
   assert(localStorage.getItem("folk-medisin-v2:guest")?.includes("Browser smoke"),"Local backup missing");
   mounted.cleanup();
   localStorage.removeItem("folk-medisin-v2:guest");
+
+  // Separate integration regression: sign-in alone must not upload
+  // health information as unencrypted Drive JSON.
+  const cloudSub="medisin-browser-fixture";
+  const cloudKey="folk-medisin-v2:google:"+cloudSub;
+  localStorage.removeItem(cloudKey);
+  localStorage.removeItem(medisinCloudConsentKey(cloudSub));
+  let driveRequests=0,uploads=0;
+  const originalFetch=window.fetch.bind(window);
+  const originalConfirm=window.confirm;
+  window.__FOLK_GOOGLE_AUTH_CONFIG__={clientId:"12345-fixture.apps.googleusercontent.com"};
+  window.google={accounts:{oauth2:{
+    initTokenClient:()=>({
+      callback:null,
+      requestAccessToken(){queueMicrotask(()=>this.callback({access_token:"fixture-token",expires_in:3600}))}
+    }),
+    revoke:(token,done)=>done?.()
+  }}};
+  window.fetch=async(input,options)=>{
+    const url=String(typeof input==="string"?input:input?.url||"");
+    if(url.includes("openidconnect.googleapis.com/v1/userinfo"))
+      return new Response(JSON.stringify({sub:cloudSub,name:"Test",email:"test@example.invalid"}),{
+        status:200,headers:{"Content-Type":"application/json"}});
+    if(url.includes("www.googleapis.com/drive/v3/files")){
+      driveRequests++;
+      return new Response(JSON.stringify({files:[]}),{
+        status:200,headers:{"Content-Type":"application/json"}});
+    }
+    if(url.includes("www.googleapis.com/upload/drive/v3/files")){
+      uploads++;
+      return new Response(JSON.stringify({id:"test-file"}),{
+        status:200,headers:{"Content-Type":"application/json"}});
+    }
+    return originalFetch(input,options);
+  };
+  window.confirm=()=>true;
+  try{
+    await connectGoogleSession();
+    root.innerHTML=medisinPageHTML();
+    const cloudMount=mountMedisin(root);
+    await new Promise(resolve=>setTimeout(resolve,150));
+    assert(driveRequests===0&&uploads===0,"Sign-in must not automatically touch Drive");
+    assert(root.querySelector("#medisin-sync").textContent.includes("Aktiver"),
+      "Drive sync must require explicit enabling");
+    const cloudForm=root.querySelector("#medisin-add-form");
+    cloudForm.elements.name.value="Synthetic test timer";
+    cloudForm.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
+    await new Promise(resolve=>setTimeout(resolve,80));
+    assert(driveRequests===0&&uploads===0,"Local edits must stay local until opt-in");
+    root.querySelector("#medisin-sync").click();
+    for(let i=0;i<50&&!uploads;i++)await new Promise(resolve=>setTimeout(resolve,30));
+    assert(uploads===1,"After opt-in, a Drive backup must be written");
+    const disable=root.querySelector("#medisin-cloud-disable");
+    assert(disable.hidden===false,"Revocation control not visible");
+    for(let i=0;i<50&&disable.disabled;i++)await new Promise(resolve=>setTimeout(resolve,20));
+    assert(!disable.disabled,"Cloud sync never returned to idle");
+    disable.click();
+    assert(root.querySelector("#medisin-cloud-disable").hidden===true,"Revocation did not take effect");
+    const count=driveRequests;
+    cloudForm.elements.name.value="Another synthetic timer";
+    cloudForm.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
+    await new Promise(resolve=>setTimeout(resolve,1100));
+    assert(driveRequests===count,"Cloud sync must stop after revocation");
+    cloudMount.cleanup();
+  }finally{
+    disconnectGoogleSession();
+    window.fetch=originalFetch;
+    window.confirm=originalConfirm;
+    delete window.google;
+    delete window.__FOLK_GOOGLE_AUTH_CONFIG__;
+    localStorage.removeItem(cloudKey);
+    localStorage.removeItem(medisinCloudConsentKey(cloudSub));
+  }
   document.body.dataset.status="pass";
-  document.querySelector("#result").textContent="MedisinTimer native create/dose/local persistence: PASS";
+  document.querySelector("#result").textContent="MedisinTimer local history, no implicit Drive upload, explicit sync/revoke: PASS";
 }catch(error){
   document.body.dataset.status="fail";
   document.querySelector("#result").textContent=String(error?.stack||error);
