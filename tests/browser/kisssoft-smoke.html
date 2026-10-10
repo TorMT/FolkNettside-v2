@@ -80,9 +80,16 @@ try{
  settings.dispatchEvent(new Event("change",{bubbles:true}));
 
  // The built-in examples must remain loadable independently of the file picker.
+ const planetExampleButton=document.querySelector("[data-kisssoft-example]");
  const ringExampleButton=document.querySelector("[data-kisssoft-ring-example]");
  const externalExampleButton=document.querySelector("[data-kisssoft-external-example]");
- if(!ringExampleButton||!externalExampleButton)throw Error("KISSsoft examples were removed");
+ if(!planetExampleButton||!ringExampleButton||!externalExampleButton)throw Error("KISSsoft examples were removed");
+ planetExampleButton.click();
+ for(let tries=0;tries<80&&!document.querySelector(".kisssoft-summary h2")?.textContent.includes("PlanetaryExample");tries++)
+   await new Promise(resolve=>setTimeout(resolve,100));
+ if(!document.querySelector(".kisssoft-summary h2")?.textContent.includes("PlanetaryExample.Z14"))
+   throw Error("Bundled Z014 planetary example not loaded");
+ if(!document.querySelector(".kisssoft-summary svg"))throw Error("Planetary example preview missing");
  ringExampleButton.click();
  for(let tries=0;tries<80&&!document.querySelector(".kisssoft-summary h2")?.textContent.includes("InternalRingAndPinion");tries++)
    await new Promise(resolve=>setTimeout(resolve,100));
