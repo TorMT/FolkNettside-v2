@@ -1,7 +1,8 @@
-import {fetchText} from "../utils.js?v=9939f0369f61cd3277d2b6cb7480abd90d2520c0";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=9939f0369f61cd3277d2b6cb7480abd90d2520c0";
-import {createPythonSession} from "../python-session.js?v=9939f0369f61cd3277d2b6cb7480abd90d2520c0";
-import {createDomFinder} from "../dom-search.js?v=9939f0369f61cd3277d2b6cb7480abd90d2520c0";
+import {pythonSourceURL} from "../python-source.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
+import {fetchText} from "../utils.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
+import {createPythonSession} from "../python-session.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
+import {createDomFinder} from "../dom-search.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
 
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
   const source=resource.sourceText!==undefined?String(resource.sourceText):await fetchText(resource.path||resource.url);
@@ -32,8 +33,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
         const value=await session.run(api.getSource(),{
           status:message=>api.setStatus(message),
           stdin:container.querySelector("#python-stdin").value,
-          sourceURL:resource.sourceText===undefined&&resource.path?
-            new URL(resource.path,document.baseURI).href:"",
+          sourceURL:pythonSourceURL(resource,document.baseURI),
           onOutput:output=>api.pushOutput(output)
         });
         api.showOutput(value);

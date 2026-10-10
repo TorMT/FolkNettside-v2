@@ -1,7 +1,8 @@
-import {escapeHTML,extension} from "../utils.js?v=9939f0369f61cd3277d2b6cb7480abd90d2520c0";
-import {getJSZip} from "../../vendor/jszip.js?v=9939f0369f61cd3277d2b6cb7480abd90d2520c0";
-import {spreadsheetCellHTML} from "../xlsx-formulas.js?v=9939f0369f61cd3277d2b6cb7480abd90d2520c0";
-import {createDomFinder} from "../dom-search.js?v=9939f0369f61cd3277d2b6cb7480abd90d2520c0";
+import {escapeHTML,extension,fetchBoundedBuffer} from "../utils.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
+import {OFFICE_LIMITS,validateOfficeArchive,limitedOfficeXML,assertOfficeWorksheetBounds} from "../office-safety.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
+import {getJSZip} from "../../vendor/jszip.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
+import {spreadsheetCellHTML} from "../xlsx-formulas.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
+import {createDomFinder} from "../dom-search.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
 
 function parseXML(text){
   const doc=new DOMParser().parseFromString(text,"application/xml");
@@ -11,9 +12,7 @@ function parseXML(text){
 
 async function loadArchive(path){
   const JSZip=await getJSZip();
-  const response=await fetch(path);
-  if(!response.ok) throw new Error(`HTTP ${response.status}`);
-  return JSZip.loadAsync(await response.arrayBuffer());
+  return validateOfficeArchive(await JSZip.loadAsync(await fetchBoundedBuffer(path,{maxBytes:OFFICE_LIMITS.archiveBytes})));
 }
 
 function textContent(node){
@@ -23,8 +22,10 @@ function textContent(node){
 async function renderDocx(container,zip){
   const entry=zip.file("word/document.xml");
   if(!entry) throw new Error("DOCX document.xml missing");
-  const doc=parseXML(await entry.async("text"));
-  const paragraphs=[...doc.getElementsByTagNameNS("*","p")]
+  const doc=parseXML(await limitedOfficeXML(entry,"DOCX document.xml"));
+  const allParagraphs=[...doc.getElementsByTagNameNS("*","p")];
+  if(allParagraphs.length>OFFICE_LIMITS.paragraphs)throw Error("DOCX contains too many paragraphs for browser preview.");
+  const paragraphs=allParagraphs
     .map(p=>textContent(p).trim())
     .filter(Boolean);
 
@@ -51,7 +52,7 @@ function colIndex(reference){
 async function sharedStrings(zip){
   const entry=zip.file("xl/sharedStrings.xml");
   if(!entry)return[];
-  const doc=parseXML(await entry.async("text"));
+  const doc=parseXML(await limitedOfficeXML(entry,"XLSX shared strings"));
   return [...doc.getElementsByTagNameNS("*","si")].map(si=>textContent(si));
 }
 
@@ -78,20 +79,33 @@ async function renderXlsx(container,zip){
     .filter(name=>/^xl\/worksheets\/sheet\d+\.xml$/i.test(name))
     .sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
   if(!worksheetPaths.length)throw new Error("XLSX contains no worksheets");
+  if(worksheetPaths.length>OFFICE_LIMITS.worksheets)throw Error("XLSX contains too many sheets for browser preview.");
 
   const sheets=[];
   let formulaCount=0;
   for(const path of worksheetPaths){
-    const doc=parseXML(await zip.file(path).async("text"));
-    const rows=[...doc.getElementsByTagNameNS("*","row")].map(row=>{
+    const doc=parseXML(await limitedOfficeXML(zip.file(path),path));
+    const sourceRows=[...doc.getElementsByTagNameNS("*","row")];
+    if(sourceRows.length>OFFICE_LIMITS.worksheetRows)
+      throw Error("XLSX worksheet has too many rows for browser preview.");
+    let cells=0,maxColumns=0;
+    const rows=sourceRows.map(row=>{
       const values=[];
       for(const cell of row.getElementsByTagNameNS("*","c")){
+        cells++;
+        if(cells>OFFICE_LIMITS.worksheetCells)
+          throw Error("XLSX worksheet has too many cells for browser preview.");
+        const column=colIndex(cell.getAttribute("r")||"A1");
+        if(column>=OFFICE_LIMITS.worksheetColumns)
+          throw Error("XLSX worksheet has too many columns for browser preview.");
+        maxColumns=Math.max(maxColumns,column+1);
         const entry=sheetCell(cell,strings);
         if(entry.hasFormula)formulaCount++;
-        values[colIndex(cell.getAttribute("r")||"A1")]=entry;
+        values[column]=entry;
       }
       return values;
     });
+    assertOfficeWorksheetBounds({rows:rows.length,columns:maxColumns,cells});
     sheets.push({path,rows});
   }
 
@@ -126,11 +140,14 @@ async function renderPptx(container,zip){
     .filter(name=>/^ppt\/slides\/slide\d+\.xml$/i.test(name))
     .sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
   if(!slidePaths.length)throw new Error("PPTX contains no slides");
+  if(slidePaths.length>OFFICE_LIMITS.slides)throw Error("PPTX contains too many slides for browser preview.");
 
   const slides=[];
   for(const path of slidePaths){
-    const doc=parseXML(await zip.file(path).async("text"));
-    const text=[...doc.getElementsByTagNameNS("*","p")]
+    const doc=parseXML(await limitedOfficeXML(zip.file(path),path));
+    const paragraphs=[...doc.getElementsByTagNameNS("*","p")];
+    if(paragraphs.length>OFFICE_LIMITS.paragraphs)throw Error("PPTX slide contains too much text.");
+    const text=paragraphs
       .map(p=>textContent(p).trim())
       .filter(Boolean);
     slides.push(text);
@@ -145,8 +162,9 @@ async function renderPptx(container,zip){
 }
 
 export async function render(container,resource){
-  const zip=await loadArchive(resource.path);
-  const ext=extension(resource.path);
+  const path=resource.url||resource.path;
+  const zip=await loadArchive(path);
+  const ext=extension(resource.name||path);
   let result;
   if(ext==="docx")result=await renderDocx(container,zip);
   else if(ext==="xlsx")result=await renderXlsx(container,zip);

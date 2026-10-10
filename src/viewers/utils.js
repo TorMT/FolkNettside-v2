@@ -48,3 +48,35 @@ export async function fetchText(path,{maxBytes=DEFAULT_MAX_TEXT_BYTES}={}){
 export async function fetchJSON(path,{maxBytes=DEFAULT_MAX_JSON_BYTES}={}){
   return JSON.parse(await fetchText(path,{maxBytes}));
 }
+
+/** Stream binary course files under a strict byte budget, including unknown-length responses. */
+export async function fetchBoundedBuffer(path,{maxBytes=80_000_000}={}){
+  const label=sizeLimit(maxBytes);
+  const response=await fetch(path);
+  if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${path}`);
+  const declared=Number(response.headers.get("content-length")||0);
+  if(declared>maxBytes){
+    await response.body?.cancel?.();
+    throw new Error(`Archive exceeds ${label} preview limit; download the original.`);
+  }
+  if(!response.body?.getReader){
+    const buffer=await response.arrayBuffer();
+    if(buffer.byteLength>maxBytes)throw new Error(`Archive exceeds ${label} preview limit; download the original.`);
+    return buffer;
+  }
+  const reader=response.body.getReader();
+  const chunks=[];let used=0;
+  try{
+    while(true){
+      const {done,value}=await reader.read();
+      if(done)break;
+      used+=value.byteLength;
+      if(used>maxBytes)throw new Error(`Archive exceeds ${label} preview limit; download the original.`);
+      chunks.push(value);
+    }
+  }catch(error){await reader.cancel().catch(()=>{});throw error}
+  const output=new Uint8Array(used);
+  let offset=0;
+  for(const chunk of chunks){output.set(chunk,offset);offset+=chunk.length}
+  return output.buffer;
+}

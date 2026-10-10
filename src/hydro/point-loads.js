@@ -7,11 +7,13 @@
  * Coordinates x=longitudinal, y=transverse, z=above datum, all in metres.
  * Mass is tonnes; changing displacement is solved separately by Hydro.
  */
+const present=value=>value!==null&&value!==undefined&&
+  !(typeof value==="string"&&!value.trim());
 export function combinePointWeights({baselineMassTonnes,baselineCG,pointWeights=[]}={}){
   const base=Number(baselineMassTonnes);
   if(!(Number.isFinite(base)&&base>0))throw new Error("Baseline mass must be positive tonnes");
   if(!Array.isArray(baselineCG)||baselineCG.length!==3||
-     !baselineCG.every(x=>Number.isFinite(Number(x))))
+     !baselineCG.every(x=>present(x)&&Number.isFinite(Number(x))))
     throw new Error("Baseline CG must have 3 finite coordinates");
   if(!Array.isArray(pointWeights)||pointWeights.length>100)
     throw new Error("Maximum 100 point weights allowed");
@@ -19,13 +21,15 @@ export function combinePointWeights({baselineMassTonnes,baselineCG,pointWeights=
   let total=base;
   const items=pointWeights.map((load,index)=>{
     const mass=Number(load.massTonnes),x=Number(load.x),y=Number(load.y),z=Number(load.z);
-    if(![mass,x,y,z].every(Number.isFinite)||mass===0)
+    if(![load.massTonnes,load.x,load.y,load.z].every(present)||
+       ![mass,x,y,z].every(Number.isFinite)||mass===0)
       throw new Error("Point weight "+(index+1)+" requires finite nonzero mass and x/y/z");
     total+=mass;
     for(const [i,coord] of [x,y,z].entries())sums[i]+=mass*coord;
     return {massTonnes:mass,x,y,z,label:String(load.label||"Point weight "+(index+1))};
   });
-  if(!(total>0))throw new Error("Net displacement must be positive");
+  if(!(total>0)||!Number.isFinite(total)||!sums.every(Number.isFinite))
+    throw new Error("Net displacement and gravity moments must be finite and positive");
   return {
     baselineMassTonnes:base,addedMassTonnes:total-base,totalMassTonnes:total,
     centerOfGravity:sums.map(value=>value/total),
