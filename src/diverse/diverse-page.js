@@ -1,5 +1,5 @@
-import {accessState,getSession} from "../platform/session.js?v=e2b0753f00fbeca240493410ded24e84fbaca28c";
-import {DIVERSE_MODULES} from "./diverse-registry.js?v=e2b0753f00fbeca240493410ded24e84fbaca28c";
+import {accessState,getSession} from "../platform/session.js?v=50c68e9814ca75ca5044d7ab96c2b875b9e950a2";
+import {DIVERSE_MODULES} from "./diverse-registry.js?v=50c68e9814ca75ca5044d7ab96c2b875b9e950a2";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));

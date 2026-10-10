@@ -202,3 +202,33 @@
    padding:11px 12px;gap:10px}
  .analytics-consent-actions{width:100%}
 }
+
+/* Native lecture catalog: responsive V1 Forelesning.json/.txt parity. */
+.lecture-library{display:grid;gap:16px;padding:14px 16px;max-width:1100px;margin:auto;color:var(--ink)}
+.lecture-intro h2{margin:0 0 5px;font-size:1.45rem}
+.lecture-intro p{margin:0}
+.lecture-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.lecture-controls>input{flex:1 1 260px;min-width:0}
+.lecture-controls>select{flex:0 1 220px}
+.lecture-controls>input,.lecture-controls>select{padding:9px 11px;border:1px solid var(--line);border-radius:9px;color:var(--ink);background:var(--surface)}
+.lecture-only-unwatched{display:flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap}
+.lecture-count{font-size:12px}
+.lecture-groups{display:grid;gap:10px}
+.lecture-group{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.lecture-group>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;cursor:pointer}
+.lecture-group>summary strong{min-width:0;overflow-wrap:anywhere}
+.lecture-group-description{margin:0;padding:5px 14px 12px;line-height:1.5;font-size:13px}
+.lecture-group-complete{margin:0 14px 8px;font-size:12px}
+.lecture-list{display:grid;gap:2px;padding:0 9px 10px}
+.lecture-entry{display:flex;align-items:center;gap:10px;padding:8px 5px;border-top:1px solid var(--line)}
+.lecture-entry.is-active{outline:1px solid var(--accent);border-radius:8px}
+.lecture-open{flex:1 1 auto;min-width:0;display:grid;gap:4px;padding:5px 4px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
+.lecture-open strong{font-size:13px;overflow-wrap:anywhere}
+.lecture-open small{font-size:11px;overflow-wrap:anywhere}
+.lecture-watch{flex:0 0 auto;font-size:12px}
+.lecture-player{display:grid;gap:10px;min-width:0}
+.lecture-player:empty{display:none}
+.lecture-player h3,.lecture-player p{margin:0}
+.lecture-embed{width:100%;aspect-ratio:16/9;min-height:220px;border:0;border-radius:12px;background:#101827}
+.lecture-player .btn{justify-self:start}
+@media(max-width:600px){.lecture-library{padding:10px 8px;gap:12px}.lecture-controls>input,.lecture-controls>select{flex-basis:100%;width:100%}.lecture-entry{align-items:start}.lecture-watch{font-size:11px}}

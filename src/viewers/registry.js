@@ -1,4 +1,4 @@
-import {extension} from "./utils.js?v=e2b0753f00fbeca240493410ded24e84fbaca28c";
+import {extension} from "./utils.js?v=50c68e9814ca75ca5044d7ab96c2b875b9e950a2";
 
 /**
  * Single dispatch table for every file in the Courses library. Unknown
@@ -47,6 +47,10 @@ const moduleCache=new Map();
 export function viewerKind(resource={}){
   const kind=String(resource.kind||"").toUpperCase();
   if(kind==="YOUTUBE")return "youtube";
+  if(["PLAYLIST","LECTURE_LIST","LECTURES"].includes(kind))return "lecture-list";
+  const basename=String(resource.name||resource.path||resource.url||"")
+    .split(/[?#]/,1)[0].split(/[\\/]/).pop();
+  if(/^forelesning(?:er)?\.(?:json|txt)$/i.test(basename))return "lecture-list";
   if(kind==="QUIZ")return "quiz";
   if(kind==="VAULT"||String(resource.path||resource.url||resource.name||"").split(/[?#]/,1)[0].toLowerCase().endsWith(".vault.json"))return "vault";
   const input=String(resource.path||resource.url||resource.name||"");
