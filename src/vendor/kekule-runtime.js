@@ -37,7 +37,7 @@ function loadJs(){
 }
 
 export function getKekule(){
-  if(globalThis.Kekule?.Editor?.Composer)return Promise.resolve(globalThis.Kekule);
+  if(globalThis.Kekule?.Editor?.Composer)return loadCss().then(()=>globalThis.Kekule);
   if(!runtimePromise){
     let timeout;
     runtimePromise=Promise.race([
