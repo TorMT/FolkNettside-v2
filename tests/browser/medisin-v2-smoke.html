@@ -74,8 +74,11 @@ try{
     root.querySelector("#medisin-sync").click();
     for(let i=0;i<50&&!uploads;i++)await new Promise(resolve=>setTimeout(resolve,30));
     assert(uploads===1,"After opt-in, a Drive backup must be written");
-    assert(root.querySelector("#medisin-cloud-disable").hidden===false,"Revocation control not visible");
-    root.querySelector("#medisin-cloud-disable").click();
+    const disable=root.querySelector("#medisin-cloud-disable");
+    assert(disable.hidden===false,"Revocation control not visible");
+    for(let i=0;i<50&&disable.disabled;i++)await new Promise(resolve=>setTimeout(resolve,20));
+    assert(!disable.disabled,"Cloud sync never returned to idle");
+    disable.click();
     assert(root.querySelector("#medisin-cloud-disable").hidden===true,"Revocation did not take effect");
     const count=driveRequests;
     cloudForm.elements.name.value="Another synthetic timer";
