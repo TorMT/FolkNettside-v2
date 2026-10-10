@@ -495,8 +495,8 @@ function coursesPage(requestedSemester){
   document.documentElement.dataset.lens="study";
   const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;
   const semester=getSemester(semesterId)||semesters[0];
-  const semesterTabs=semesters.map(s=>`<button class="${Number(s.id)===Number(semester.id)?"active":""}" data-semester="${s.id}" aria-label="${s.label}" title="${s.label}">
-    <span class="semester-label-long">${s.label}</span>
+  const semesterTabs=semesters.map(s=>`<button class="${Number(s.id)===Number(semester.id)?"active":""}" data-semester="${s.id}" aria-label="${escCourse(s.label)}" title="${escCourse(s.label)}">
+    <span class="semester-label-long">${escCourse(s.label)}</span>
     <span class="semester-label-short">S${s.id}</span>
   </button>`).join("");
   const courseCards=semester.courses.map(course=>{
@@ -536,7 +536,7 @@ function coursesPage(requestedSemester){
       <div class="title-row courses-title-row">
         <div>
           <span class="project-kicker">Selected semester</span>
-          <h2>${semester.label}</h2>
+          <h2>${escCourse(semester.label)}</h2>
           <div class="muted">${semester.courses.length} fag · ${semester.courses.reduce((sum,course)=>sum+(course.resources?.length||0),0)} ressurser</div>
         </div>
       </div>
