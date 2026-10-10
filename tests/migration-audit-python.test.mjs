@@ -30,3 +30,12 @@ test("NTNU local staging packages only reviewed public files and keeps PHP opt-i
   if(run.error?.code==="ENOENT"&&!process.env.CI)return;
   assert.equal(run.status,0,[run.error?.message,run.stdout,run.stderr].filter(Boolean).join("\n"));
 });
+
+test("Local Codex NTNU staging SHA-256 parity regression checks",()=>{
+  const run=spawnSync("python3",[
+    "-m","unittest","discover","-s","tests",
+    "-p","test_verify_ntnu_public_assets.py","-v"
+  ],{encoding:"utf8",timeout:30000});
+  if(run.error?.code==="ENOENT"&&!process.env.CI)return;
+  assert.equal(run.status,0,[run.error?.message,run.stdout,run.stderr].filter(Boolean).join("\n"));
+});
