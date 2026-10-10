@@ -41,7 +41,13 @@ export function safeAnalyticsPage(url){
   try{parsed=new URL(String(url),"https://invalid.example")}catch{return null}
   // Decode once before checking private routes; encoded traversal/PII must
   // never leak, since we only output a canonical fixed set of page names.
-  let route=(parsed.hash.slice(1).split(/[?#]/,1)[0]||"/").replace(/\/+$/,"")||"/";
+  let route;
+  try{
+    // A raw hash may include query-like '&' parameters without '?'; treat
+    // those as private metadata too, not as part of a route identifier.
+    const raw=(parsed.hash.slice(1).split(/[?#&]/,1)[0]||"/");
+    route=(decodeURIComponent(raw).replace(/\/+$/,"")||"/");
+  }catch{return null}
   if(!route.startsWith("/")||route.length>512)return null;
   if(PRIVATE_PREFIXES.some(prefix=>route===prefix||route.startsWith(prefix+"/")))
     return null;
