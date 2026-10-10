@@ -78,3 +78,15 @@ unavailable notice while local raw-material inventory remains usable.
 This avoids cross-version data access and accidental reuse of V1's
 PHP/account storage. Test real log/recipe/telemetry functionality and secret
 management separately before enabling the adapter.
+
+### MedisinTimer-kryptering og Drive-mappe – 2026-10-10
+
+V2-kopien til Google Drive er nå ende-til-ende-kryptert i nettleseren med
+AES-256-GCM og en PBKDF2-avledet passfrasenøkkel. Brukeren kan velge en
+eksplisitt Google Drive-mappe-ID, inkludert en delt mappe ved riktige
+Google-tillatelser. Passfrasen lagres ikke; hver ny nettlesersesjon må
+låses opp. Den tidligere ukrypterte Drive-filen `folk-medisin-v2.json`
+forblir urørt. **Lokale nettleserdata og manuelle JSON-eksporter er fortsatt
+ukrypterte**, og fler-enhetskonflikter uten atomisk revisjonskontroll gjenstår.
+Alle begrensninger og manuelt migreringsløp er i
+[MEDISINTIMER_ENCRYPTED_DRIVE.md](MEDISINTIMER_ENCRYPTED_DRIVE.md).
