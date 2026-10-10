@@ -83,6 +83,48 @@ The native V2 Matpris page reads that configuration **before it ever requests an
 
 For all other Brewing/RAPT, leaderboard and APS PHP API paths: implement and test their **own** V2 adapters and contracts. **Never** blindly copy V1's 14 PHP files or credentials into the staging build and never make `/includes/` requests to the V1 origin by accident.
 
+## Simple shared password for a full course folder
+
+For the intended **low-friction V1-like password prompt**, the easiest
+reasonable solution on NTNU is Apache Basic authentication backed by an
+`htpasswd` credential file. This is simpler for visitors than Google OAuth
+or individual file encryption and — unlike the old V1 JavaScript prompt —
+**blocks direct URLs to PDFs, ZIPs and nested files too**.
+
+Use the uninstalled template
+[`deploy/ntnu/shared-password-folder.htaccess.example`](../deploy/ntnu/shared-password-folder.htaccess.example)
+for a single shared visitor account or a small set of approved accounts:
+
+```apache
+AuthName "FolkNettside protected folder"
+AuthType Basic
+AuthBasicProvider file
+AuthUserFile "/VERIFIED/NONPUBLIC/ABSOLUTE/PATH/folk-v2-users.htpasswd"
+Require valid-user
+```
+
+The `htpasswd` database contains **one-way password hashes, not plaintext**
+but must nevertheless remain outside any HTTP-served directory, outside
+GitHub, and readable by Apache. Verify whether NTNU permits a secure
+non-public directory and the `htpasswd` utility/approved hash format on
+the account before enabling it. Use a **new unique passphrase**; do not
+reuse a password previously written in a chat or used elsewhere.
+The owner supplies it directly to the local setup tool, not the agent,
+GitHub Actions or the V2 source. Never hardcode it in HTML or JavaScript.
+
+The protection is inherited by nested directories *unless overridden by
+other Apache rules*. Test a **non-sensitive** nested PDF/direct URL while
+logged out and while signed in before storing files. A single shared
+password has obvious limits: it can be forwarded, there is no per-person
+revocation or audit, and a browser may cache authenticated content.
+This is acceptable as a casual barrier for low-risk material, **not**
+a suitable authorization system for medical data, personal data,
+licensed materials requiring individual access or secrets.
+
+Apache/NTNU LDAP (the adjacent template) is still preferable when each
+reader should use their own NTNU credentials. The two templates are
+**alternatives**, not meant to be pasted together. None is auto-installed.
+
 ## Server-protected course folders: documented Apache method
 
 The repo includes [`deploy/ntnu/protected-folder.htaccess.example`](../deploy/ntnu/protected-folder.htaccess.example) as an **uninstalled template only**, based on the NTNU documentation. For a single approved NTNU account, the essential restrictions are:
