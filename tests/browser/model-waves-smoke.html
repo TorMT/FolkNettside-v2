@@ -169,6 +169,10 @@ try{
  scrub.value="0";scrub.dispatchEvent(new Event("input",{bubbles:true}));
  const raoPose=workbench.actions.getWaveMotionPose();
  assert(raoPose.mode==="rao","Scene should be in actual imported RAO mode");
+ assert(Math.abs(Number(stage.querySelector("canvas").dataset.waveHeightM)-2)<1e-9,
+   "Wave height input not applied: control="+field.value+", rendered="+
+   stage.querySelector("canvas").dataset.waveHeightM+", status="+
+   details.querySelector(".model-wave-status").textContent);
  near(raoPose.heaveM,.85*Math.cos(15*Math.PI/180),1e-5);
  near(raoPose.surgeM,.1*Math.cos(20*Math.PI/180),1e-5);
  assert(Number.isFinite(raoPose.pitchRad),"RAO pitch not applied");
