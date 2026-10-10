@@ -1,7 +1,6 @@
 const GOOGLE_GIS_SRC="https://accounts.google.com/gsi/client";
 const USERINFO_URL="https://openidconnect.googleapis.com/v1/userinfo";
 const STATIC_CONFIG="./data/google-auth.json";
-const LEGACY_CONFIG="/includes/brewing/api/storage.php";
 const DRIVE_SCOPE="https://www.googleapis.com/auth/drive.file";
 const IDENTITY_SCOPES=["openid","email","profile"];
 
@@ -9,6 +8,8 @@ const listeners=new Set();
 let tokenClient=null;
 let configPromise=null;
 let accessPromise=null;
+let sessionRevision=0;
+let rejectPendingToken=null;
 let state={
   status:"signed-out",
   configured:null,
@@ -50,11 +51,9 @@ function normalizedConfig(value){
   if(!value||typeof value!=="object")return null;
   const clientId=String(value.clientId||"").trim();
   if(!clientId)return null;
-  const scopes=new Set([
-    ...IDENTITY_SCOPES,
-    DRIVE_SCOPE,
-    ...String(value.scope||"").split(/\s+/).filter(Boolean)
-  ]);
+  // Only request the scopes V2 actually needs. A legacy backend or a
+  // accidentally broadened config must never expand browser permissions.
+  const scopes=new Set([...IDENTITY_SCOPES,DRIVE_SCOPE]);
   return {
     ...value,
     clientId,
@@ -92,11 +91,10 @@ export async function loadGoogleSessionConfig({force=false}={}){
     try{
       let raw=globalThis.__FOLK_GOOGLE_AUTH_CONFIG__||null;
       if(!raw){
-        // A Google OAuth browser client ID is public, unlike a client secret.
-        // Static GitHub Pages must not depend on a server-side PHP endpoint.
-        const paths=[STATIC_CONFIG];
-        if(!location.hostname.endsWith("github.io"))paths.push(LEGACY_CONFIG);
-        for(const path of paths){
+        // A public browser OAuth client ID must belong to this V2 deployment.
+        // Never auto-discover V1 /includes/ endpoints on NTNU staging: that
+        // would silently couple accounts, scopes and origins across versions.
+        for(const path of [STATIC_CONFIG]){
           try{
             const response=await fetch(path,{cache:"no-store",headers:{"Accept":"application/json"}});
             if(!response.ok)continue;
@@ -140,25 +138,42 @@ async function ensureGoogleIdentity(){
 }
 
 async function requestToken(prompt){
+  const revision=sessionRevision;
   if(accessPromise)return accessPromise;
   accessPromise=(async()=>{
     await ensureGoogleIdentity();
     return new Promise((resolve,reject)=>{
+      let settled=false;
+      const finish=(error,token)=>{
+        if(settled)return;
+        settled=true;
+        clearTimeout(timeout);
+        if(rejectPendingToken===cancel)rejectPendingToken=null;
+        if(error)reject(error);
+        else resolve(token);
+      };
+      const cancel=()=>finish(new Error("Google authentication was cancelled."));
+      rejectPendingToken=cancel;
+      const timeout=setTimeout(()=>finish(new Error("Google authentication timed out. Try signing in again.")),90000);
       tokenClient.callback=response=>{
-        accessPromise=null;
+        if(revision!==sessionRevision){
+          finish(new Error("Google account changed during authentication."));
+          return;
+        }
         if(response?.error){
-          reject(new Error(response.error_description||response.error));
+          finish(new Error(response.error_description||response.error));
           return;
         }
         if(!response?.access_token){
-          reject(new Error("Google returned no access token."));
+          finish(new Error("Google returned no access token."));
           return;
         }
         state.accessToken=response.access_token;
-        state.accessTokenExpiresAt=Date.now()+Number(response.expires_in||3600)*1000;
-        resolve(state.accessToken);
+        state.accessTokenExpiresAt=Date.now()+Math.max(1,Number(response.expires_in)||3600)*1000;
+        finish(null,state.accessToken);
       };
-      tokenClient.requestAccessToken({prompt});
+      try{tokenClient.requestAccessToken({prompt})}
+      catch(error){finish(error)}
     });
   })();
   try{return await accessPromise}
@@ -182,15 +197,18 @@ async function loadProfile(token){
 }
 
 export async function connectGoogleSession(){
+  const revision=sessionRevision;
   setState({status:"connecting",error:""});
   try{
     await loadGoogleSessionConfig({force:state.configured===false});
     const token=await requestToken("consent");
     const profile=await loadProfile(token);
+    if(revision!==sessionRevision)throw new Error("Google sign-in was cancelled.");
     setState({status:"signed-in",profile,error:"",configured:true});
     return cloneState();
   }catch(error){
-    setState({status:"signed-out",profile:null,accessToken:"",accessTokenExpiresAt:0,error:String(error?.message||error)});
+    if(revision===sessionRevision)
+      setState({status:"signed-out",profile:null,accessToken:"",accessTokenExpiresAt:0,error:String(error?.message||error)});
     throw error;
   }
 }
@@ -212,6 +230,9 @@ export async function getGoogleAccessToken({interactive=false}={}){
 }
 
 export function disconnectGoogleSession(){
+  sessionRevision++;
+  rejectPendingToken?.();
+  accessPromise=null;
   const token=state.accessToken;
   try{
     if(token&&globalThis.google?.accounts?.oauth2?.revoke)globalThis.google.accounts.oauth2.revoke(token,()=>{});
