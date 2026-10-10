@@ -37,9 +37,11 @@ export function mergeMedisinBackups(local,remote){
   const merged=new Map();
   for(const entry of [...remote.entries,...local.entries]){
     const previous=merged.get(entry.id);
-    if(!previous||Date.parse(entry.updatedAt)>Date.parse(previous.updatedAt)||
-      (Date.parse(entry.updatedAt)===Date.parse(previous.updatedAt)&&entry.deleted&&!previous.deleted))
-      merged.set(entry.id,entry);
+    const delta=previous?Date.parse(entry.updatedAt)-Date.parse(previous.updatedAt):1;
+    if(!previous||delta>0||delta===0&&(
+      (Boolean(entry.deleted)&&!Boolean(previous.deleted))||
+      (Boolean(entry.deleted)===Boolean(previous.deleted)&&JSON.stringify(entry)>JSON.stringify(previous))
+    ))merged.set(entry.id,entry);
   }
   return newMedisinBackup([...merged.values()].sort((a,b)=>a.id.localeCompare(b.id)));
 }
