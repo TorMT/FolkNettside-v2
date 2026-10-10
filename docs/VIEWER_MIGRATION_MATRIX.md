@@ -91,3 +91,17 @@ zero-level alignment until calibrated data is independently provided.
 Regression tests cover adapter routing, real browser previews, formula
 verification in both GM directions, beam point forces, static point weights,
 and CoolProp native-WASM table generation.
+
+## Import hardening before the full NTNU archive (2026-10-10)
+
+V2 now streams JSON/notebook source with a **32 MiB byte limit** before
+calling `JSON.parse`, including where servers report an inaccurate
+`Content-Length`. HTML/Text previews retain their independent **8 MiB**
+limit. Resource files exceeding the preview budget must be downloaded or
+preprocessed, not loaded into unlimited browser memory. This is deliberate
+risk containment, not a guarantee that enormous notebook outputs render.
+
+The lazy ChemDraw Kekule loader no longer permanently caches a rejected
+promise when the CDN's script or CSS fails or times out; a later attempt can
+retry loading the missing asset. Real offline fallback/vendor/SRI remains a
+separate dependency-quality task.

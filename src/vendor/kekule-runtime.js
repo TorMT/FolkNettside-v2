@@ -11,7 +11,7 @@ function loadCss(){
     link.href=CSS_URL;
     link.dataset.v2Kekule="";
     link.onload=()=>resolve();
-    link.onerror=()=>reject(new Error("Could not load Kekule stylesheet"));
+    link.onerror=()=>{link.remove();reject(new Error("Could not load Kekule stylesheet"))};
     document.head.append(link);
   });
 }
@@ -31,21 +31,34 @@ function loadJs(){
     script.defer=true;
     script.dataset.v2Kekule="";
     script.onload=()=>resolve(globalThis.Kekule);
-    script.onerror=()=>reject(new Error("Could not load Kekule runtime"));
+    script.onerror=()=>{script.remove();reject(new Error("Could not load Kekule runtime"))};
     document.head.append(script);
   });
 }
 
 export function getKekule(){
-  if(globalThis.Kekule?.Editor?.Composer)return Promise.resolve(globalThis.Kekule);
+  if(globalThis.Kekule?.Editor?.Composer)return loadCss().then(()=>globalThis.Kekule);
   if(!runtimePromise){
+    let timeout;
     runtimePromise=Promise.race([
       Promise.all([loadCss(),loadJs()]).then(([,Kekule])=>{
         if(!Kekule?.Editor?.Composer)throw new Error("Kekule loaded without Editor.Composer");
         return Kekule;
       }),
-      new Promise((_,reject)=>setTimeout(()=>reject(new Error("Kekule runtime timed out after 12 seconds")),12000))
-    ]);
+      new Promise((_,reject)=>{
+        timeout=setTimeout(()=>reject(new Error("Kekule runtime timed out after 12 seconds")),12000);
+      })
+    ]).catch(error=>{
+      // Do not poison the entire ChemDraw route after a temporary CDN error.
+      // A subsequent visit/retry may load successfully without reloading V2.
+      document.querySelector('script[data-v2-kekule]')?.remove();
+      if(!document.querySelector('link[data-v2-kekule]')?.sheet)
+        document.querySelector('link[data-v2-kekule]')?.remove();
+      throw error;
+    }).finally(()=>{
+      clearTimeout(timeout);
+      if(!globalThis.Kekule?.Editor?.Composer)runtimePromise=null;
+    });
   }
   return runtimePromise;
 }
