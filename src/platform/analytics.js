@@ -18,7 +18,7 @@ const LABELS=Object.freeze({
 });
 let loaded=false,configured=false,lastRawRoute="";
 let sessionChoice=null;
-let publicCourseCodes=new Map();
+let publicCourseCodes=new Map(),publicCourseCatalogReady=false;
 /**
  * Courses are reported only when confirmed in the public content manifest.
  * Never infer a value from an arbitrary hash, uploaded name or query string.
@@ -34,6 +34,10 @@ export function registerAnalyticsCourses(semesters=[]){
     }
   }
   publicCourseCodes=catalog;
+  publicCourseCatalogReady=true;
+  // The initial GA page_view can run before content-manifest.json loads.
+  // Defer course visits until the verified catalog is available.
+  trackPage();
   return catalog.size;
 }
 export function safeAnalyticsCourse(url){
@@ -114,6 +118,10 @@ export function analyticsStatus(){
 export function trackPage(){
   if(!loaded||!analyticsConsent())return false;
   const page=safeAnalyticsPage(globalThis.location?.href);
+  // Do not log a course route without its manifest-verified course_code.
+  const currentRoute=String(globalThis.location?.hash||"").split(/[?#&]/,1)[0];
+  if(!publicCourseCatalogReady&&/^#\/(?:courses|study|viewer)\/\d+\//.test(currentRoute))
+    return false;
   // A private or unknown route breaks the last-public-page sequence; when
   // visitors return to the same public page, count a new visit to that page.
   if(!page){lastRawRoute="";return false;}
