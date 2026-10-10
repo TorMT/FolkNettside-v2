@@ -148,6 +148,48 @@ try{
  assert(details.querySelector("[data-wave-show]").textContent==="Hide waves",
    "3D wave toggle did not reenable the sea surface");
  details.querySelector("[data-wave-show]").click();
+ // RAO CSV must be imported, never synthesized from CAD or inferred from
+ // illustrative surface tilt. Drive the actual Three.js rigid-body hierarchy.
+ const raoMode=details.querySelector('[data-wave-motion] option[value="rao"]');
+ assert(raoMode?.disabled,"RAO mode should be disabled before import");
+ const raw=await (await fetch("../../examples/rao/synthetic_six_dof_rao.csv")).text();
+ const raoFile=new File([raw],"synthetic_six_dof_rao.csv",{type:"text/csv"});
+ const raoInput=details.querySelector("[data-wave-rao-import]");
+ const raoTransfer=new DataTransfer();raoTransfer.items.add(raoFile);
+ raoInput.files=raoTransfer.files;raoInput.dispatchEvent(new Event("change",{bubbles:true}));
+ for(let i=0;i<50&&raoMode.disabled;i++)
+   await new Promise(resolve=>setTimeout(resolve,50));
+ assert(!raoMode.disabled,"Complete RAO CSV was not imported: "+
+   details.querySelector("[data-wave-rao-status]")?.textContent);
+ assert(details.querySelector("[data-wave-motion]").value==="rao",
+   "RAO import did not activate the 6-DOF mode");
+ const field=details.querySelector("[data-wave-height]");
+ field.value="2";
+ const scrub=details.querySelector("[data-wave-phase]");
+ scrub.value="0";scrub.dispatchEvent(new Event("input",{bubbles:true}));
+ const raoPose=workbench.actions.getWaveMotionPose();
+ assert(raoPose.mode==="rao","Scene should be in actual imported RAO mode");
+ near(raoPose.heaveM,.85*Math.cos(15*Math.PI/180),1e-5);
+ near(raoPose.surgeM,.1*Math.cos(20*Math.PI/180),1e-5);
+ assert(Number.isFinite(raoPose.pitchRad),"RAO pitch not applied");
+ near(Number(stage.querySelector("canvas").dataset.waveSurgeM),raoPose.surgeM,1e-9);
+ details.querySelector('[data-wave-heading-preset="90"]').click();
+ scrub.value="0";scrub.dispatchEvent(new Event("input",{bubbles:true}));
+ const beamPose=workbench.actions.getWaveMotionPose();
+ assert(Math.abs(beamPose.yawRad)>.001,"Beam-sea RAO yaw not displayed");
+ const heading=details.querySelector("[data-wave-heading]");
+ heading.value="45";heading.dispatchEvent(new Event("change",{bubbles:true}));
+ assert(details.querySelector(".model-wave-status").textContent.includes("No RAO data"),
+   "Missing RAO heading should fail closed");
+ heading.value="90";details.querySelector('[data-wave-heading-preset="90"]').click();
+ const period=details.querySelector("[data-wave-period]");
+ period.value="20";period.dispatchEvent(new Event("change",{bubbles:true}));
+ assert(details.querySelector(".model-wave-status").textContent.includes("outside RAO data"),
+   "RAO frequency extrapolation must be blocked");
+ details.querySelector("[data-wave-rao-remove]").click();
+ assert(raoMode.disabled,"Removing RAO must disable RAO mode");
+ assert(details.querySelector("[data-wave-motion]").value==="anchored",
+   "Removing RAO must switch to anchored mode");
  localStorage.removeItem("folknet-v2:wave-observations:v1");
  workbench.cleanup();workbench=null;
  document.body.dataset.status="pass";
