@@ -73,6 +73,15 @@ try{
   assert(icons.some(icon=>icon.html.includes("dive-map-marker--wreck")),"Wreck logos missing");
   assert(icons.some(icon=>icon.html.includes("dive-map-marker--nature")),"Nature dive logos missing");
   assert(document.querySelector(".dive-map-legend"),"Visible category legend missing");
+  assert(document.querySelector("#dive-log-form"),"Personal dive log form missing");
+  const logForm=document.querySelector("#dive-log-form");
+  logForm.elements.siteName.value="Synthetic dive";
+  logForm.elements.divedAt.value="2026-10-01T12:30";
+  logForm.elements.maxDepthM.value="12";
+  logForm.elements.durationMinutes.value="35";
+  logForm.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
+  assert(document.querySelectorAll("#dive-log-list [data-dive-log-delete]").length===1,"Personal dive log not saved");
+  assert(document.querySelector("#dive-log-sync")?.disabled,"Signed-out dive log must not access Drive");
   const list=()=>document.querySelectorAll(".dive-list-item").length;
   assert(list()===features.length,"Initial dive listing missing features");
   const dropdown=document.querySelector("#dive-wildlife");
