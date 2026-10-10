@@ -43,12 +43,11 @@ try{
  if(Number(explode.value)===0)throw Error("Planetary explode not restored");
 
  const boundaryOnLoad=document.querySelector("[data-gear-boundary]");
- if(boundaryOnLoad?.value!=="carrier-fixed")throw Error("Carrier fixed / sun drives is not default");
+ if(boundaryOnLoad?.value!=="ring-fixed")throw Error("Regression: ring-fixed / sun drives must be the default");
  if(document.querySelector("[data-gear-beta]"))throw Error("β must be read from source file, not adjustable");
  if(canvas.dataset.helixBeta!=="0")throw Error("Spur gear preview must use file β=0");
- // Existing speed-ratio checks below exercise the original ring-fixed mode.
- boundaryOnLoad.value="ring-fixed";
- boundaryOnLoad.dispatchEvent(new Event("change",{bubbles:true}));
+ // The original ring-fixed mode must already be active on first render.
+ if(Math.abs(Number(canvas.dataset.ringAngle||0))>1e-12)throw Error("Initial ring should be stationary");
  const pause=document.querySelector("[data-gear-play]");
  if(!pause)throw Error("Gear animation control missing");
  if(pause.textContent.includes("Play"))pause.click();
@@ -80,6 +79,22 @@ try{
  settings.value="ring-fixed";
  settings.dispatchEvent(new Event("change",{bubbles:true}));
 
+ // The built-in examples must remain loadable independently of the file picker.
+ const ringExampleButton=document.querySelector("[data-kisssoft-ring-example]");
+ const externalExampleButton=document.querySelector("[data-kisssoft-external-example]");
+ if(!ringExampleButton||!externalExampleButton)throw Error("KISSsoft examples were removed");
+ ringExampleButton.click();
+ for(let tries=0;tries<80&&!document.querySelector(".kisssoft-summary h2")?.textContent.includes("InternalRingAndPinion");tries++)
+   await new Promise(resolve=>setTimeout(resolve,100));
+ if(!document.querySelector(".kisssoft-summary h2")?.textContent.includes("InternalRingAndPinion.Z012RS"))
+   throw Error("Native Z012RS internal example not loaded");
+ if(!document.querySelector(".kisssoft-summary svg"))throw Error("Internal example 2D preview missing");
+ externalExampleButton.click();
+ for(let tries=0;tries<80&&!document.querySelector(".kisssoft-summary h2")?.textContent.includes("HelicalExternalPair");tries++)
+   await new Promise(resolve=>setTimeout(resolve,100));
+ if(!document.querySelector(".kisssoft-summary h2")?.textContent.includes("HelicalExternalPair.Z12"))
+   throw Error("External helical example not loaded");
+ if(!document.querySelector(".kisssoft-summary svg"))throw Error("External example 2D preview missing");
  cleanupEngineering();
  const courseResource={
    kind:"FILE",path:"./example-course/Stage3PlanetaryGear.Z14",name:"Stage3PlanetaryGear.Z14",
