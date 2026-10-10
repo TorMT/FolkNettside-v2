@@ -1,7 +1,7 @@
-import {fetchText} from "../utils.js?v=0f844debfa3e429b17d85efc8470bb32b5a6e51c";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=0f844debfa3e429b17d85efc8470bb32b5a6e51c";
-import {createPythonSession} from "../python-session.js?v=0f844debfa3e429b17d85efc8470bb32b5a6e51c";
-import {createDomFinder} from "../dom-search.js?v=0f844debfa3e429b17d85efc8470bb32b5a6e51c";
+import {fetchText} from "../utils.js?v=8a0c7a44c5550a3953bad9f92edbef66b5c57192";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=8a0c7a44c5550a3953bad9f92edbef66b5c57192";
+import {createPythonSession} from "../python-session.js?v=8a0c7a44c5550a3953bad9f92edbef66b5c57192";
+import {createDomFinder} from "../dom-search.js?v=8a0c7a44c5550a3953bad9f92edbef66b5c57192";
 
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
   const source=resource.sourceText!==undefined?String(resource.sourceText):await fetchText(resource.path||resource.url);
