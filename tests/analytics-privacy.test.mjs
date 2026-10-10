@@ -90,15 +90,20 @@ test("Google script loads before consent but no GA4 config or page views until o
     location.href=url(location.hash);
     assert.equal(trackPage(),false);
     assert.equal(views().length,1);
-    location.hash="#/engineering/cad?file=blueprint.step";
+    // Revisit the same public route after a private section: count a new view.
+    location.hash="#/courses/5/TMR4182";
     location.href=url(location.hash);
     assert.equal(trackPage(),true);
     assert.equal(views().length,2);
+    location.hash="#/engineering/cad?file=blueprint.step";
+    location.href=url(location.hash);
+    assert.equal(trackPage(),true);
+    assert.equal(views().length,3);
     assert.doesNotMatch(JSON.stringify(calls),/Patient|blueprint.step/);
     setAnalyticsConsent(false,storage);
     location.hash="#/cv";location.href=url(location.hash);
     assert.equal(trackPage(),false);
-    assert.equal(views().length,2,"must stop sending events after revocation");
+    assert.equal(views().length,3,"must stop sending events after revocation");
     assert.equal(analyticsStatus().active,false);
   }finally{
     for(const [key,value] of Object.entries(prev)){
