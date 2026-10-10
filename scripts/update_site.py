@@ -518,15 +518,19 @@ def main() -> int:
             print(f"Selection error: {error}. No files changed.", file=sys.stderr)
             return 2
 
-    if args.semester is None:
-        manifest = build_full_manifest(source)
-        scope = "all semesters"
-    else:
-        current = load_json(output) if output.exists() else {}
-        manifest = merge_scope(current, source, args.semester, args.course)
-        scope = f"semester {args.semester}"
-        if args.course:
-            scope += f" / {args.course}"
+    try:
+        if args.semester is None:
+            manifest = build_full_manifest(source)
+            scope = "all semesters"
+        else:
+            current = load_json(output) if output.exists() else {}
+            manifest = merge_scope(current, source, args.semester, args.course)
+            scope = f"semester {args.semester}"
+            if args.course:
+                scope += f" / {args.course}"
+    except (OSError, ValueError, TypeError) as error:
+        print(f"SiteUpdater scan cancelled: {error}. Manifest unchanged.", file=sys.stderr)
+        return 2
 
     violations = public_manifest_violations(manifest)
     if violations:
@@ -561,12 +565,14 @@ def main() -> int:
             print(f"Previous manifest snapshot: {snapshot}")
     write_manifest_atomic(output, manifest)
 
+    selected_code = (course_metadata_code(resolve_course_dir(source / str(args.semester), args.course))
+                     if args.course else None)
     target_courses = [
         course
         for semester in manifest.get("semesters", [])
         if args.semester is None or int(semester["id"]) == args.semester
         for course in semester.get("courses", [])
-        if not args.course or course["code"].casefold() == args.course.casefold()
+        if not selected_code or course["code"].casefold() == selected_code.casefold()
     ]
     total_files = sum(len(course["resources"]) for course in target_courses)
     video_files = sum(
