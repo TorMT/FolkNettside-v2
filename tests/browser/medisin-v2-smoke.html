@@ -80,7 +80,7 @@ try{
     root.querySelector("#medisin-vault-passphrase").value=testPassphrase;
     root.querySelector("#medisin-sync").click();
     for(let i=0;i<150&&!uploads;i++)await new Promise(resolve=>setTimeout(resolve,30));
-    assert(uploads===1,"After opt-in, one encrypted Drive backup must be written");
+    assert(uploads===1,"After opt-in, one encrypted Drive backup must be written. Debug "+JSON.stringify({uploads,driveRequests,feedback:root.querySelector("#medisin-feedback")?.textContent,status:root.querySelector("#medisin-sync-status")?.textContent,local:localStorage.getItem(cloudKey)?.slice(0,90)}));
     assert(!uploadBody.includes("Synthetic test timer"),
       "Sensitive timer data leaked into the Drive multipart body in plaintext");
     assert(uploadBody.includes("sampleSharedFolderId123456789"),"Shared folder was not used");
