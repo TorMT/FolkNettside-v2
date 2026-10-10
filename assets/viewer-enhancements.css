@@ -170,3 +170,17 @@
  .spacemouse-fields{grid-template-columns:minmax(0,1fr)}
  .spacemouse-pref input[type=range]{width:110px}
 }
+
+
+/* Imported linear RAO response controls: distinct from illustrative wave tilt. */
+.model-wave-rao{margin:12px 0;padding:13px 14px;border:1px solid var(--line);
+  border-radius:10px;background:var(--surface-sunk);display:grid;gap:9px}
+.model-wave-rao .model-wave-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.model-wave-rao .model-wave-actions strong{font-size:12px;color:var(--ink)}
+.model-wave-rao [data-wave-rao-status]{font-size:11px;line-height:1.6;margin:0;color:var(--ink-2);overflow-wrap:anywhere}
+.model-wave-rao code{font-size:10px;padding:2px 4px;border-radius:4px;
+  background:var(--surface);word-break:break-word}
+.model-wave-rao [data-wave-rao-example]{font-size:11px;color:var(--accent);
+  text-decoration:underline;text-underline-offset:2px}
+.model-wave-rao .model-wave-note{margin:0;font-size:11px;line-height:1.5}
+.model-wave-rao [data-wave-rao-remove]{min-height:32px;font-size:11px}
