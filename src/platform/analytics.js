@@ -18,6 +18,38 @@ const LABELS=Object.freeze({
 });
 let loaded=false,configured=false,lastRawRoute="";
 let sessionChoice=null;
+let publicCourseCodes=new Map();
+/**
+ * Courses are reported only when confirmed in the public content manifest.
+ * Never infer a value from an arbitrary hash, uploaded name or query string.
+ */
+export function registerAnalyticsCourses(semesters=[]){
+  const catalog=new Map();
+  for(const semester of Array.isArray(semesters)?semesters:[]){
+    const id=Number(semester?.id);
+    if(!Number.isInteger(id)||id<1||id>30)continue;
+    for(const course of Array.isArray(semester.courses)?semester.courses:[]){
+      const code=String(course?.code||"").trim().toUpperCase();
+      if(/^[A-Z]{2,5}[0-9]{4,5}[A-Z]?$/.test(code))catalog.set(id+":"+code,code);
+    }
+  }
+  publicCourseCodes=catalog;
+  return catalog.size;
+}
+export function safeAnalyticsCourse(url){
+  let parsed;
+  try{parsed=new URL(String(url),"https://invalid.example")}catch{return null}
+  let path;
+  try{
+    // Match only a course overview or viewer route, never filenames/sections.
+    path=decodeURIComponent(parsed.hash.slice(1).split(/[?#&]/,1)[0]||"");
+  }catch{return null}
+  const match=path.match(/^\/(?:courses|study|viewer)\/(\d{1,2})\/([A-Za-z]{2,5}\d{4,5}[A-Za-z]?)(?:\/\d{1,5})?\/?$/);
+  if(!match)return null;
+  const semester=Number(match[1]),code=match[2].toUpperCase();
+  const exactCourse=publicCourseCodes.get(semester+":"+code);
+  return exactCourse?{course_code:exactCourse,course_semester:String(semester)}:null;
+}
 
 export function analyticsMeasurementId(value=globalThis.__FOLK_ANALYTICS_ID__){
   const id=String(value||"").trim();
@@ -92,11 +124,13 @@ export function trackPage(){
   if(!id||typeof globalThis.gtag!=="function")return false;
   // Do not expose the original hash/path/query/search/file names to Google.
   const base=globalThis.location.origin+globalThis.location.pathname;
+  const course=safeAnalyticsCourse(globalThis.location.href);
   globalThis.gtag("event","page_view",{
     send_to:id,page_location:base+"#"+page.route,
     page_path:globalThis.location.pathname+"#"+page.route,
     page_title:page.title,page_referrer:"",
-    site_version:"v2",site_area:page.section
+    site_version:"v2",site_area:page.section,
+    ...(course||{})
   });
   return true;
 }
