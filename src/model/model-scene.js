@@ -493,6 +493,7 @@ export async function mountModelScene(container,documentModel,options={}){
       .applyQuaternion(parentQ.clone().invert());
     waveMotionGroup.position.copy(pivot)
       .sub(pivot.clone().applyQuaternion(localQ)).add(translation);
+    canvas.dataset.waveHeightM=String(wave.heightM);
     canvas.dataset.waveTimeS=String(timeS);
     canvas.dataset.waveHeaveM=String(pose.heaveM);
     canvas.dataset.waveSurgeM=String(pose.surgeM);
