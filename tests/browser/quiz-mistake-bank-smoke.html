@@ -1,0 +1,50 @@
+<!doctype html><html lang="nb"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/viewer-enhancements.css">
+<title>Wrong-answer bank smoke</title></head>
+<body data-status="running"><div id="app"></div><pre id="result">running</pre>
+<script type="module">
+import {mountViewer} from "../../src/viewers/viewer-shell.js";
+import {quizStorageKey} from "../../src/viewers/quiz-core.js";
+import {mistakeQuestions,clearMistakeBank} from "../../src/viewers/quiz-mistake-bank.js";
+const expect=(ok,message)=>{if(!ok)throw Error(message)};
+const resource={
+  kind:"QUIZ",path:"../../examples/semesters/5/TMR4182/Quiz/hydro-basics.quiz.json",
+  relativePath:"tests/quiz/hydro-basics.quiz.json",name:"hydro-basics.quiz.json",
+  label:"Hydro basics",semester:5,courseCode:"TMR4182",section:"Quiz"
+};
+try{
+  const key=quizStorageKey(resource);
+  localStorage.removeItem(key);
+  localStorage.removeItem(key+"::chapter:wrong-bank");
+  clearMistakeBank(resource);
+  const root=document.querySelector("#app");
+  await mountViewer(root,resource,()=>{});
+  expect(root.querySelector(".quiz-option"),"Quiz did not render");
+  root.querySelector('[data-choice="0"]').click(); // q1 correct = 2
+  root.querySelector("#quiz-next").click();
+  root.querySelector('[data-choice="0"]').click(); // q2 correct = 1
+  root.querySelector("#quiz-finish").click();
+  expect(root.querySelector("#quiz-mistake-start")?.textContent.includes("(2)"),
+    "Two wrong answers were not saved in mistake bank");
+  root.querySelector("#quiz-mistake-start").click();
+  expect(root.querySelector(".quiz-prompt"),"Wrong-only practice did not open");
+  expect(root.querySelector("#quiz-mistake-exit"),"No return to full quiz");
+  root.querySelector('[data-choice="2"]').click();
+  root.querySelector("#quiz-next").click();
+  root.querySelector('[data-choice="1"]').click();
+  root.querySelector("#quiz-finish").click();
+  expect(root.querySelector(".quiz-result"),"Wrong-only practice did not finish");
+  root.querySelector("#quiz-mistake-exit").click();
+  expect(!root.querySelector("#quiz-mistake-start"),
+    "Mastered questions must be removed from persistent mistake bank");
+  clearMistakeBank(resource);
+  localStorage.removeItem(key);
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent="Wrong-answer capture, targeted retries, mastery and full quiz return PASS";
+}catch(e){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(e?.stack||e);
+}
+</script></body></html>
