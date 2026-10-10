@@ -188,9 +188,19 @@ export function mountWaveControls(host,scene,{open=false}={}){
       const parsed=parseMotionRAOCSV(await file.text(),{name:file.name});
       if(disposed)return;
       raoTable=parsed;raoModeOption.disabled=false;raoRemove.disabled=false;
-      const first=parsed.rows[0];
-      $("[data-wave-heading]").value=String(first.headingDeg);
-      $("[data-wave-period]").value=String(2*Math.PI/first.omegaRadS);
+      // Keep the user's selected wave period and heading when the imported
+      // RAO covers them. Sort order of the RAO table must not silently change
+      // the current sea from T=6 s to T=10 s.
+      const requestedHeading=((val("heading")%360)+360)%360;
+      const heading=parsed.headings.includes(requestedHeading)?
+        requestedHeading:parsed.headings[0];
+      const frequencies=parsed.rows.filter(r=>r.headingDeg===heading)
+        .map(r=>r.omegaRadS);
+      const requestedOmega=2*Math.PI/val("period");
+      const nearestOmega=Math.min(Math.max(requestedOmega,
+        Math.min(...frequencies)),Math.max(...frequencies));
+      $("[data-wave-heading]").value=String(heading);
+      $("[data-wave-period]").value=String(2*Math.PI/nearestOmega);
       $("[data-wave-motion]").value="rao";
       raoStatus.textContent="Loaded "+file.name+" · "+parsed.rows.length+
         " complete six-DOF frequency/heading samples · propagation headings "+
