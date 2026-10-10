@@ -1,5 +1,5 @@
-import {parseKisssoftBuffer} from "./kisssoft-core.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c";
-import {externalGearPair,checkPlanetaryPitch} from "./gear-pitch-checks.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c";
+import {parseKisssoftBuffer} from "./kisssoft-core.js?v=9939f0369f61cd3277d2b6cb7480abd90d2520c0";
+import {externalGearPair,checkPlanetaryPitch} from "./gear-pitch-checks.js?v=9939f0369f61cd3277d2b6cb7480abd90d2520c0";
 const esc=x=>String(x??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const mm=n=>Number.isFinite(n)?n.toFixed(2)+" mm":"unknown";
 function gearShape(cx,cy,r,z,{internal=false,fill="#75b9e0",phase=0}={}){
@@ -85,7 +85,7 @@ export function kisssoftSummary(model,rotation=0){
  const status=model.planetary?(model.consistent?"Tooth-count geometry consistent":"Tooth-count mismatch; verify source values"):pair?(pair.internal?"Internal ring/pinion: nominal pitch geometry":"External gear pair: nominal pitch geometry"):"No validated gear geometry";
  return `<section class="kisssoft-summary"><h2>${esc(model.name)}</h2>
   <p><strong>${esc(model.moduleCode)}</strong> · KISSsoft ${esc(model.version)} · ${esc(status)}</p>
-  <div class="kisssoft-layout"><div><div class="kisssoft-3d-slot" data-kisssoft-3d aria-label="Interactive concept model"></div>${kisssoftDiagram(model,{rotation})}<p class="muted">Concept sketch using pitch proportions and schematic teeth; not a manufacturable tooth profile or validated CAD model. Three planets are shown illustratively: planet count is not inferred from this file.</p></div>
+  <div class="kisssoft-layout"><div><div class="kisssoft-3d-slot" data-kisssoft-3d aria-label="Interactive concept model"></div>${kisssoftDiagram(model,{rotation})}<p class="muted">Concept sketch using pitch proportions and schematic teeth; not a manufacturable tooth profile or validated CAD model. ${model.planetary?"Three planets are shown illustratively: planet count is not inferred from this file.":"The two gear shafts are a conceptual visualization of source parameters; no actual bearing or housing geometry is inferred."}</p></div>
   <div><h3>Imported parameters</h3><p>Normal module: ${mm(model.module)} · Helix β: ${Number.isFinite(model.beta)?model.beta.toFixed(3)+"°":"unknown"} ${Number.isFinite(model.betaRad)?`(file ${model.betaRad.toFixed(6)} rad)`:""}</p>
   ${Number.isFinite(model.pressureAngleNormalDeg)?`<p>Normal pressure angle αₙ: ${model.pressureAngleNormalDeg.toFixed(3)}°</p>`:""}
   ${Number.isFinite(pair?.a?.pressureAngleTransverseDeg??check?.sun?.pressureAngleTransverseDeg)?`<p>Transverse pressure angle αₜ: ${(pair?.a?.pressureAngleTransverseDeg??check?.sun?.pressureAngleTransverseDeg).toFixed(3)}°
@@ -108,11 +108,11 @@ export async function mountKisssoftVisual(target,model){
  try{
   let cleanup;
   if(model.planetary&&model.consistent){
-    const {mountKisssoft3D}=await import("./kisssoft-3d.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c");
+    const {mountKisssoft3D}=await import("./kisssoft-3d.js?v=9939f0369f61cd3277d2b6cb7480abd90d2520c0");
     if(!stage.isConnected)return ()=>{};
     cleanup=await mountKisssoft3D(stage,model);
   }else{
-    const {mountKisssoftPair3D}=await import("./kisssoft-pair-3d.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c");
+    const {mountKisssoftPair3D}=await import("./kisssoft-pair-3d.js?v=9939f0369f61cd3277d2b6cb7480abd90d2520c0");
     if(!stage.isConnected)return ()=>{};
     cleanup=await mountKisssoftPair3D(stage,model);
   }
@@ -126,7 +126,11 @@ export function kisssoftPageHTML(){
  return `<main class="section kisssoft-page"><p class="crumbs">Engineering / KISSsoft</p><h1>KISSsoft gear inspector</h1>
  <p>Open a local .Z14, .Z12, .Z012RS, .Z014RS, .W10 or .KSYS file. Z014 planetary datasets and compatible two-shaft external pairs support conceptual rotating 3D gears and approximate helix. Other formats show available parameter information.</p>
  <label class="form-field">KISSsoft file <input id="kisssoft-file" type="file" accept=".z12,.z14,.z012,.z014,.z012rs,.z014rs,.w10,.ksys"></label>
- <div class="kisssoft-example"><button class="btn" type="button" data-kisssoft-example>Open example planetary gearbox</button> <a href="./examples/kisssoft/PlanetaryExample.Z14" download="PlanetaryExample.Z14">Download example .Z14</a> <button class="btn" type="button" data-kisssoft-ring-example>Open internal ring + pinion</button> <a href="./examples/kisssoft/InternalRingAndPinion.Z12" download="InternalRingAndPinion.Z12">Download example .Z12</a><small>Synthetic Z014-compatible parameter fixture for learning; not an original KISSsoft calculation or validated design.</small></div>
+ <div class="kisssoft-example" aria-label="KISSsoft demonstration files">
+  <div><button class="btn" type="button" data-kisssoft-example>Open planetary · Z014</button> <a href="./examples/kisssoft/PlanetaryExample.Z14" download="PlanetaryExample.Z14">Download Z14</a></div>
+  <div><button class="btn" type="button" data-kisssoft-ring-example>Open internal ring + pinion · Z012RS</button> <a href="./examples/kisssoft/InternalRingAndPinion.Z012RS" download="InternalRingAndPinion.Z012RS">Download Z012RS</a></div>
+  <div><button class="btn" type="button" data-kisssoft-external-example>Open external helical pair · Z012</button> <a href="./examples/kisssoft/HelicalExternalPair.Z12" download="HelicalExternalPair.Z12">Download Z12</a></div>
+  <small>Three synthetic parameter files for testing the viewer, not manufacturer-generated KISSsoft calculations or certified designs. Original imported angles are displayed without modification.</small></div>
  <div id="kisssoft-output" role="status" aria-live="polite"><p>No file loaded. Your file stays in your browser.</p></div></main>`;
 }
 export function mountKisssoft(root){
@@ -172,26 +176,31 @@ export function mountKisssoft(root){
  };
  const onExample=()=>{
    void openBuffer(async()=>{
-     const response=await fetch("./examples/kisssoft/PlanetaryExample.Z14",{cache:"no-cache"});
+     const response=await fetch(new URL("../../examples/kisssoft/PlanetaryExample.Z14",import.meta.url),{cache:"no-cache"});
      if(!response.ok)throw Error("Example unavailable (HTTP "+response.status+")");
      return response.arrayBuffer();
    },"PlanetaryExample.Z14");
  };
  const ringExample=root.querySelector("[data-kisssoft-ring-example]");
- const onRingExample=()=>{
+ const externalExample=root.querySelector("[data-kisssoft-external-example]");
+ const openExample=(fileName)=>{
    void openBuffer(async()=>{
-     const response=await fetch("./examples/kisssoft/InternalRingAndPinion.Z12",{cache:"no-cache"});
-     if(!response.ok)throw Error("Ring example unavailable (HTTP "+response.status+")");
+     const response=await fetch(new URL("../../examples/kisssoft/"+fileName,import.meta.url),{cache:"no-cache"});
+     if(!response.ok)throw Error("Example unavailable (HTTP "+response.status+")");
      return response.arrayBuffer();
-   },"InternalRingAndPinion.Z12");
+   },fileName);
  };
+ const onRingExample=()=>openExample("InternalRingAndPinion.Z012RS");
+ const onExternalExample=()=>openExample("HelicalExternalPair.Z12");
  input.addEventListener("change",onFile);
  example?.addEventListener("click",onExample);
  ringExample?.addEventListener("click",onRingExample);
+ externalExample?.addEventListener("click",onExternalExample);
  return ()=>{
    disposed=true;generation++;dispose3D();
    input.removeEventListener("change",onFile);
    example?.removeEventListener("click",onExample);
    ringExample?.removeEventListener("click",onRingExample);
+   externalExample?.removeEventListener("click",onExternalExample);
  };
 }
