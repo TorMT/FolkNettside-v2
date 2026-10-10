@@ -25,3 +25,7 @@ secrets/
 *.sqlite3
 
 # Explicitly keep src/vendor/coolprop/coolprop.wasm versioned.
+
+# Offline-only NTNU preproduction bundles (never commit or push)
+.deploy-ntnu-staging/
+.deploy-ntnu-staging.*/
