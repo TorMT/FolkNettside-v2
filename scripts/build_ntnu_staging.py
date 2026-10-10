@@ -136,10 +136,14 @@ def build_ntnu_staging(
             json.dumps(services, indent=2) + "\n", encoding="utf-8")
 
         # Re-audit the actual staged files including any local course additions.
-        from audit_public_assets import validate_sources
-        problems = validate_sources([stage])
-        if problems:
-            raise ValueError("Staged public asset rejected: " + str(problems[0]))
+        for entry in stage.rglob("*"):
+            if entry.is_symlink():
+                raise ValueError("Staged symbolic link is forbidden")
+            if entry.is_file():
+                problems = resource_violations(entry.relative_to(stage).as_posix())
+                if problems:
+                    raise ValueError("Staged public asset rejected: " +
+                                     str(entry.relative_to(stage)) + " " + str(problems))
         for _,relative in files:
             if not (stage / relative).is_file():
                 raise ValueError("An approved resource is missing from the candidate")
