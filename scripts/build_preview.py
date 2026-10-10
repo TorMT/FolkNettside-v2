@@ -39,8 +39,10 @@ def stamp_index(text: str, version: str) -> str:
         lambda m: m.group(1) + with_version(m.group(2), version),
         text,
     )
+    # Version every locally served stylesheet, not only style.css. Otherwise
+    # updated CAD/viewer/mobile CSS can stay stale after a Pages deployment.
     text = re.sub(
-        r'(<link\s+rel="stylesheet"\s+href=")(\./assets/style\.css)(?=")',
+        r'(<link\s+rel="stylesheet"\s+href=")(\./assets/[^"?#]+\.css)(?=")',
         lambda m: m.group(1) + with_version(m.group(2), version),
         text,
     )
