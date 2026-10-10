@@ -170,14 +170,42 @@ def manifest_courses(v2_root: Path) -> tuple[dict, list[str]]:
     return courses, warnings
 
 
-def audit(legacy_repo: Path | None, legacy_site: Path | None, v2_root: Path) -> dict:
+def reviewed_course_mappings(v2_root: Path, mapping_path: Path | None = None) -> tuple[dict, list[str]]:
+    """A legacy slug is never silently equated to a V2 NTNU course code."""
+    candidate = mapping_path or (
+        v2_root / "data" / "migration-course-map.json"
+        if (v2_root / "data" / "migration-course-map.json").exists()
+        else v2_root / "data" / "migration-course-map.example.json"
+    )
+    if not candidate.exists():
+        return {}, ["No approved legacy-slug to V2 course mapping provided"]
+    raw = json.loads(candidate.read_text(encoding="utf-8"))
+    result, warnings = {}, []
+    for item in raw.get("mappings", []):
+        source = str(item.get("legacy") or "")
+        target = str(item.get("v2CourseCode") or "").upper()
+        if not item.get("reviewed") or not COURSE_RE.fullmatch(target):
+            continue
+        if source in result:
+            warnings.append(f"Duplicate reviewed course mapping: {source}")
+            continue
+        result[source] = target
+    return result, warnings
+
+
+def audit(legacy_repo: Path | None, legacy_site: Path | None, v2_root: Path,
+          mapping_path: Path | None = None) -> dict:
     previous, warnings, production_inventory_found = legacy_course_inventory(legacy_site)
     new, v2_warnings = manifest_courses(v2_root)
-    warnings.extend(v2_warnings)
+    mapped, map_warnings = reviewed_course_mappings(v2_root, mapping_path)
+    warnings.extend(v2_warnings + map_warnings)
     results = []
     for key in sorted(previous):
         source = previous[key]["public_files"]
-        target = new.get(key, [])
+        source_semester = previous[key]["semester"]
+        mapped_code = mapped.get(key) or previous[key]["code"]
+        v2_key = f"{source_semester}/{mapped_code}" if mapped_code else None
+        target = new.get(v2_key, []) if v2_key else []
         # Name + exact length detect missing/changed resources without reading
         # large files; a SHA-256 byte-for-byte comparison is a later release gate.
         lhs = collections.Counter((r["name"].casefold(), r["size_bytes"]) for r in source)
@@ -189,11 +217,13 @@ def audit(legacy_repo: Path | None, legacy_site: Path | None, v2_root: Path) -> 
         ]
         results.append({
             "course": key,
+            "mapped_v2_course": v2_key,
             "legacy_public_count": len(source),
             "v2_public_count": len(target),
             "excluded_legacy_protected_count": previous[key]["excluded_protected_files"],
             "missing_legacy_public_files": missing_summary,
-            "status": "covered-by-name-and-size" if key in new and not missing else "needs-migration"
+            "status": "needs-mapping" if not v2_key else (
+                "covered-by-name-and-size" if v2_key in new and not missing else "needs-migration")
         })
     blockers = []
     if not production_inventory_found:
@@ -234,11 +264,13 @@ def main(argv=None) -> int:
     parser.add_argument("--legacy-site", type=Path,
                         help="Verified read-only snapshot of actual NTNU folk/webedit root")
     parser.add_argument("--v2-root", type=Path, default=DEFAULT_ROOT)
+    parser.add_argument("--mapping", type=Path,
+                        help="Review-approved V1 slug to V2 course-code mapping JSON")
     parser.add_argument("--out", type=Path, help="Optional JSON audit report output")
     args = parser.parse_args(argv)
     if not args.v2_root.is_dir():
         parser.error("--v2-root must be a real directory")
-    report = audit(args.legacy_repo, args.legacy_site, args.v2_root)
+    report = audit(args.legacy_repo, args.legacy_site, args.v2_root, args.mapping)
     output = json.dumps(report, ensure_ascii=False, indent=2)
     if args.out:
         args.out.write_text(output + "\n", encoding="utf-8")
