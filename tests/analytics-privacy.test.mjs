@@ -87,7 +87,7 @@ test("Google script loads before consent but no GA4 config or page views until o
     assert.equal(views()[0][2].site_version,"v2");
     assert.equal(views()[0][2].course_code,"TMR4182");
     assert.equal(views()[0][2].course_semester,"5");
-    assert.doesNotMatch(JSON.stringify(calls),/student=Jane|TMR4182/);
+    assert.doesNotMatch(JSON.stringify(calls),/student=Jane|password=|course\/5\/TMR4182/);
     assert.equal(trackPage(),false,"must not duplicate a hash-only page_view");
     location.hash="#/diverse/medisin?name=Patient";
     location.href=url(location.hash);
