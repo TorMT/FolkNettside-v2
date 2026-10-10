@@ -502,15 +502,16 @@ function coursesPage(requestedSemester){
   const courseCards=semester.courses.map(course=>{
     const resourceCount=course.resources?.length||0;
     const sectionCount=course.sections?.length||0;
-    return `<article class="course-card" data-course="${course.code}" tabindex="0">
+    const newCount=courseNotices.count(semester.id,course.code);
+    return `<article class="course-card" data-course="${escCourse(course.code)}" tabindex="0">
       <div class="course-card-top">
-        <span class="course-code">${course.code}</span>
+        <span class="course-code">${escCourse(course.code)}</span>${newCount?`<span class="course-update-pill">${newCount} nye</span>`:""}
         <span class="course-count">${resourceCount} ressurs${resourceCount===1?"":"er"}</span>
       </div>
-      <h3>${course.title}</h3>
-      <p>${course.description}</p>
+      <h3>${escCourse(course.title)}</h3>
+      <p>${escCourse(course.description)}</p>
       <div class="course-card-bottom">
-        <div class="tags">${(course.tags||[]).slice(0,3).map(tag=>`<span class="tag">${tag}</span>`).join("")}</div>
+        <div class="tags">${(course.tags||[]).slice(0,3).map(tag=>`<span class="tag">${escCourse(tag)}</span>`).join("")}</div>
         <span class="course-sections">${sectionCount} seksjon${sectionCount===1?"":"er"} <span aria-hidden="true">→</span></span>
       </div>
     </article>`;
@@ -531,6 +532,7 @@ function coursesPage(requestedSemester){
     </div>
 
     <section class="study-main courses-main">
+      ${courseNotices.total?'<div class="course-updates-banner" role="status"><strong>'+courseNotices.total+' nye ressurser</strong><span>Filer lagt til siden du sist markerte kursoversikten som oppdatert.</span><button type="button" class="btn" id="course-updates-ack">Merk alle som sett</button></div>':""}
       <div class="title-row courses-title-row">
         <div>
           <span class="project-kicker">Selected semester</span>
@@ -545,6 +547,10 @@ function coursesPage(requestedSemester){
   </main><div class="preview-badge">Courses exposes Kok; Portfolio does not</div>`;
 
   bindNav();
+  app.querySelector("#course-updates-ack")?.addEventListener("click",()=>{
+    courseNotices.acknowledge();
+    coursesPage(semester.id);
+  });
   app.querySelectorAll("[data-semester]").forEach(button=>button.onclick=()=>go("/courses/"+button.dataset.semester));
   const activeSemester=app.querySelector(".semester-tabs .active");
   activeSemester?.scrollIntoView?.({behavior:"instant",block:"nearest",inline:"center"});
