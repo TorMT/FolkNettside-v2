@@ -1,5 +1,6 @@
 import {initSettings,getSettings,setSetting} from "./settings.js";
 import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js";
+import {writeSpaceMouseSettings,resetSpaceMouseSettings} from "./model/spacemouse-settings.js";
 import {mountViewer} from "./viewer.js";
 import {render as renderPythonWorkbench} from "./viewers/adapters/python.js";
 import {loadContent} from "./content.js";
@@ -928,6 +929,24 @@ function settingsPage(){
   });
   app.querySelector("[data-google-disconnect]")?.addEventListener("click",()=>{
     disconnectGoogleSession();
+    settingsPage();
+  });
+
+  app.querySelectorAll("[data-spacemouse-setting]").forEach(input=>{
+    const update=()=>{
+      const key=input.dataset.spacemouseSetting;
+      const value=input.type==="checkbox"?input.checked:input.type==="range"?
+        Number(input.value):input.value;
+      writeSpaceMouseSettings({[key]:value});
+      const output=app.querySelector('[data-spacemouse-output="'+key+'"]');
+      if(output)output.textContent=String(value);
+      const feedback=app.querySelector("[data-spacemouse-feedback]");
+      if(feedback)feedback.textContent="SpaceMouse preferences saved locally. Connected 3D views use these values immediately.";
+    };
+    input.addEventListener(input.type==="range"?"input":"change",update);
+  });
+  app.querySelector("[data-spacemouse-reset]")?.addEventListener("click",()=>{
+    resetSpaceMouseSettings();
     settingsPage();
   });
 
