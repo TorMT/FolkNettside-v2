@@ -1,5 +1,5 @@
-import {decryptVault,safeVaultMime,assertVaultEnvelope} from "../vault-core.js?v=9bf8435c998032db93e884790ca38463e6459db6";
-import {escapeHTML} from "../utils.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {decryptVault,safeVaultMime,assertVaultEnvelope} from "../vault-core.js?v=ec0cc84acd68ba97f43b0121860c7c4febea824d";
+import {escapeHTML} from "../utils.js?v=ec0cc84acd68ba97f43b0121860c7c4febea824d";
 
 /** Static host vault: even knowing this URL reveals ciphertext only. */
 export async function render(container,resource){

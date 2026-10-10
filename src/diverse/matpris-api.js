@@ -1,8 +1,17 @@
 export const MATPRIS_ENDPOINT="/includes/matpris/api.php";
-/** GitHub Pages serves static files and cannot execute PHP. */
-export function matprisBackendAvailable({hostname=globalThis.location?.hostname,endpoint}={}){
-  if(endpoint)return true; // Explicit external integration supplied by owner.
-  return !String(hostname||"").toLowerCase().endsWith(".github.io");
+/** Default deny: even folk.ntnu.no previews must not fall through to V1 PHP. */
+export function matprisBackendAvailable({endpoint}={}){
+  return typeof endpoint==="string" &&
+    (endpoint==="./includes/matpris/api.php" ||
+     /^https:\/\/[a-z0-9.-]+(?:\:[0-9]+)?\/[^?#]+$/i.test(endpoint));
+}
+
+/** Accept only a reviewed, explicitly enabled public same-origin PHP route. */
+export function configuredMatprisEndpoint(config){
+  const item=config?.matpris;
+  if(item?.enabled!==true)return null;
+  const endpoint=item.endpoint;
+  return typeof endpoint==="string"&&endpoint==="./includes/matpris/api.php"?endpoint:null;
 }
 
 
@@ -73,7 +82,10 @@ export function groupProductsByEan(products=[]){
 }
 
 export function matprisProxyUrl(action,params={},endpoint=MATPRIS_ENDPOINT){
-  const url=new URL(endpoint,globalThis.location?.origin||"https://example.invalid");
+  const base=String(endpoint).startsWith("./")
+    ?(globalThis.document?.baseURI||globalThis.location?.href||"https://example.invalid/")
+    :(globalThis.location?.origin||"https://example.invalid");
+  const url=new URL(endpoint,base);
   url.searchParams.set("action",action);
   for(const [key,value] of Object.entries(params)){
     if(value!==undefined&&value!==null&&value!=="")url.searchParams.set(key,String(value));
