@@ -569,12 +569,18 @@ function coursePage(semesterId,code){
   const grouped=course.resources.reduce((groups,resource)=>{
     (groups[resource.section]??=[]).push(resource);
     return groups;
-  },{});
+  },Object.create(null));
   const sections=course.sections
     .map((label,index)=>({label,index,items:grouped[label]||[]}))
     .filter(section=>section.items.length);
   const karakterwebHref=karakterwebUrl(course.code);
   const resourceCount=course.resources.length;
+  const newResources=courseNotices.newResources(semesterId,course.code);
+  const newResourcesHTML=newResources.length?`<aside class="course-updates-banner" role="status">
+    <strong>${newResources.length} nye ressurser i dette faget</strong>
+    <div class="course-updates-list">${newResources.slice(0,15).map(resource=>`<button class="btn" data-resource="${course.resources.indexOf(resource)}" type="button">${escCourse(resource.label||resource.name||"Ressurs")}</button>`).join("")}</div>
+    <button class="btn" type="button" id="course-updates-ack">Merk alle nye filer som sett</button>
+  </aside>`:"";
 
   app.innerHTML=top("courses")+`<main class="layout">
     <aside class="side course-side">
@@ -588,8 +594,9 @@ function coursePage(semesterId,code){
       <header class="course-header" id="course-overview">
         <div class="course-header-meta"><span class="course-code">${course.code}</span><span>${resourceCount} resources · ${sections.length} sections</span></div>
         <h1>${course.title}</h1>
-        <p>${course.description}</p>
+        <p>${escCourse(course.description)}</p>
       </header>
+      ${newResourcesHTML}
       ${sections.map(section=>`<section class="resource-section" id="course-section-${section.index}" data-course-section="section-${section.index}">
         <div class="resource-section-head"><h2>${section.label}</h2><span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
         <div class="resource-list">${renderResourceTree(section.items,item=>course.resources.indexOf(item))}</div>
@@ -611,6 +618,10 @@ function coursePage(semesterId,code){
   app.querySelectorAll("[data-resource]").forEach(element=>{
     element.onclick=()=>go(viewerRoute(semesterId,course.code,element.dataset.resource));
     element.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();element.click();}};
+  });
+  app.querySelector("#course-updates-ack")?.addEventListener("click",()=>{
+    courseNotices.acknowledge();
+    coursePage(semesterId,course.code);
   });
   app.querySelector("#karakterweb")?.addEventListener("click",()=>{
     window.open(karakterwebHref,"_blank","noopener");
