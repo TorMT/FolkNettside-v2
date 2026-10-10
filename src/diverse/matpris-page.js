@@ -1,4 +1,4 @@
-import {compareMatprisEan,groupProductsByEan,searchMatpris} from "./matpris-api.js?v=627ae2d7db15e18e7f95fa921d64287772170986";
+import {compareMatprisEan,groupProductsByEan,searchMatpris,matprisBackendAvailable} from "./matpris-api.js?v=e2b0753f00fbeca240493410ded24e84fbaca28c";
 
 const money=value=>Number.isFinite(Number(value))
   ?new Intl.NumberFormat("nb-NO",{style:"currency",currency:"NOK"}).format(Number(value))
@@ -78,9 +78,19 @@ export function mountMatpris(root,options={}){
   let activeController=null;
   let shortlist=loadList();
   renderList(root,shortlist);
+  const backendAvailable=matprisBackendAvailable({
+    hostname:globalThis.location?.hostname,endpoint:options.endpoint
+  });
+  if(!backendAvailable){
+    status.textContent="Prissøk er ikke tilgjengelig på GitHub Pages. Ingen API-nøkkel eksponeres; åpne den server-hostede versjonen når PHP-backenden er konfigurert.";
+    status.dataset.kind="error";
+    form.querySelector('button[type="submit"]').disabled=true;
+    form.querySelector('button[type="submit"]').title="Matpris krever serverproxy";
+  }
 
   const setStatus=(message,kind="")=>{status.textContent=message;status.dataset.kind=kind};
   async function runSearch(){
+    if(!backendAvailable)return;
     const q=query.value.trim();
     if(q.length<2){setStatus("Skriv minst to tegn.","error");return}
     activeController?.abort();
@@ -103,6 +113,10 @@ export function mountMatpris(root,options={}){
   }
 
   async function runCompare(ean){
+    if(!backendAvailable){
+      compare.textContent="Butikkpriser krever en aktiv serverproxy; handlelisten din beholdes lokalt.";
+      return;
+    }
     compare.innerHTML='<div class="matpris-empty"><span>Henter butikker…</span></div>';
     try{
       const response=await compareMatprisEan(ean,{fetchImpl:options.fetchImpl,endpoint:options.endpoint});
