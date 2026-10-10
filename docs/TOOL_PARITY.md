@@ -267,3 +267,14 @@ For each legacy tool or feature:
 9. only then change the registry parity to `full`.
 
 Do not port obsolete functionality merely for numerical parity with the old Tools directory.
+
+## Reliability hardening while parity is otherwise maintained (2026-10-10)
+
+The V2 native notebook/JSON viewer now enforces bounded streamed loading
+(32 MiB default) rather than unrestricted `response.json()`. The supported
+format set is unchanged. If a file is too large, users receive an explicit
+preview limit and can retain the original file.
+
+The existing ChemDraw Kekule `1.0.4` runtime now retries after transient
+CSS or script download failures. The tool still depends on its pinned external
+runtime; vendoring/SRI and offline operation remain future improvements.
