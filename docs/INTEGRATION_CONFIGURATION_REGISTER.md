@@ -74,3 +74,19 @@ begrenset til `openid email profile drive.file`. Utlogging under en pågående
 innloggingsforespørsel avbryter den, slik at et sent svar ikke kan logge inn
 brukeren etterpå. Produksjonsgodkjenning krever fortsatt reell test med to
 Google-kontoer og to enheter.
+
+
+### MedisinTimer sky-synk: samtykke før ukryptert opplasting (2026-10-10)
+
+Google-innlogging alene starter nå **ikke** automatisk Google Drive-lesing eller
+-opplasting av MedisinTimer-data. Brukeren må velge **Aktiver Drive-synk**
+og bekrefte en tydelig advarsel om at timer-/dosehistorikk synkroniseres
+som **ukryptert JSON**. Valget lagres lokalt per Google-konto (`sub`).
+Uten dette valget forblir historikken lokal selv om Google er tilkoblet.
+Det finnes også en **Slå av sky-synk**-knapp som stopper videre
+automatisk synkronisering. Den sletter *ikke* tidligere lagrede Drive-data.
+
+Dette er en **eksplisitt samtykkekontroll, ikke E2E-kryptering**.
+Reell ende-til-ende-kryptering, revisjon av gamle Drive-kopier,
+atomerisk fler-enhetssynk/konflikthåndtering og to-konto-/to-enhetstest
+må fortsatt løses før MedisinTimer kan klassifiseres som ferdig.
