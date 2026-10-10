@@ -12,7 +12,7 @@ const PRIVATE_PREFIXES=[
   "/diverse/brewing","/tools/vault","/settings/connections"
 ];
 const LABELS=Object.freeze({
-  "/":"Home","/about":"About","/cv":"CV","/contact":"Contact",
+  "/":"Home","/portfolio":"Portfolio","/about":"About","/cv":"CV","/contact":"Contact",
   "/courses":"Courses","/engineering":"Engineering","/tools":"Tools",
   "/diverse":"Diverse","/projects":"Projects","/settings":"Settings"
 });
