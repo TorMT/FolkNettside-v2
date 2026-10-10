@@ -75,7 +75,7 @@ export function diveDistanceKm(a,b){
   return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));
 }
 
-function featurePoint(feature){
+export function diveFeaturePoint(feature){
   if(feature?.geometry?.type!=="Point"||!Array.isArray(feature.geometry.coordinates))return null;
   const [lon,lat]=feature.geometry.coordinates;
   if([lat,lon].some(value=>value===null||value===undefined||value===""))return null;
@@ -118,8 +118,8 @@ export function sortDiveFeatures(features,mode="name",{origin=null}={}){
   }
   if(mode==="nearest"&&origin){
     return list.sort((a,b)=>{
-      const da=diveDistanceKm(origin,featurePoint(a));
-      const db=diveDistanceKm(origin,featurePoint(b));
+      const da=diveDistanceKm(origin,diveFeaturePoint(a));
+      const db=diveDistanceKm(origin,diveFeaturePoint(b));
       return (da??Infinity)-(db??Infinity)||String(a.properties?.Navn||"").localeCompare(String(b.properties?.Navn||""),"no");
     });
   }
