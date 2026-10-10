@@ -74,6 +74,25 @@ try{
  assert(details.querySelector("[data-wave-motion]"),"Anchored/follow UI selector missing");
  assert(details.querySelector('[data-wave-motion] option[value="follow-slope"]'),
    "Wave surface tilt preview option missing");
+ assert(details.querySelectorAll("[data-wave-heading-preset]").length===4,
+   "Side and head-sea controls missing");
+ details.querySelector("[data-wave-motion]").value="follow-slope";
+ details.querySelector("[data-wave-motion]").dispatchEvent(new Event("change",{bubbles:true}));
+ assert(details.querySelector("[data-wave-show]").textContent==="Hide waves",
+   "Selecting surface tilt must show the 3D wave");
+ details.querySelector('[data-wave-heading-preset="90"]').click();
+ assert(Number(details.querySelector("[data-wave-heading]").value)===90,
+   "Port beam button did not change wave heading");
+ details.querySelector('[data-wave-heading-preset="270"]').click();
+ assert(Number(details.querySelector("[data-wave-heading]").value)===270,
+   "Starboard beam button did not change wave heading");
+ details.querySelector('[data-wave-heading-preset="180"]').click();
+ assert(Number(details.querySelector("[data-wave-heading]").value)===180,
+   "Head seas button did not change wave heading");
+ details.querySelector('[data-wave-heading-preset="0"]').click();
+ assert(Number(details.querySelector("[data-wave-heading]").value)===0,
+   "Following seas button did not change wave heading");
+ details.querySelector("[data-wave-show]").click();
  const phase=details.querySelector("[data-wave-phase]");
  assert(phase,"Paused wave phase scrubber missing");
  details.querySelector("[data-wave-motion]").value="follow-slope";

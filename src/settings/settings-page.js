@@ -1,3 +1,4 @@
+import {readSpaceMouseSettings} from "../model/spacemouse-settings.js";
 const SECTIONS=[
   ["appearance","Appearance"],
   ["connections","Account & connections"],
@@ -79,6 +80,38 @@ function coursesHTML(stats){
     </div>`;
 }
 
+function spaceMousePreferencesHTML(){
+  const config=readSpaceMouseSettings();
+  const number=(key,label,min,max,step=.05)=>
+    '<label class="spacemouse-pref"><span>'+label+'</span><input type="range" data-spacemouse-setting="'+key+'" min="'+min+'" max="'+max+'" step="'+step+'" value="'+config[key]+'"><output data-spacemouse-output="'+key+'">'+config[key]+'</output></label>';
+  const check=(key,label)=>
+    '<label class="spacemouse-pref spacemouse-toggle"><input type="checkbox" data-spacemouse-setting="'+key+'" '+(config[key]?"checked":"")+'><span>'+label+'</span></label>';
+  return `<div class="settings-card spacemouse-settings-card">
+    <div class="spacemouse-settings-title"><div><strong>3Dconnexion SpaceMouse</strong>
+      <small>Shared by CAD, KISSsoft and the model viewer. Saved only in this browser.</small></div>
+      <button class="btn" type="button" data-spacemouse-reset>Reset to Fusion-like defaults</button></div>
+    <p class="muted">Fusion / 3Dconnexion-inspired object mode. This website uses WebHID and cannot read Fusion's driver profile; speeds and axis signs are local approximations. Device drivers can also invert an axis.</p>
+    <div class="spacemouse-fields">
+      <label class="spacemouse-pref"><span>Navigation</span>
+        <select data-spacemouse-setting="navigation"><option value="object" ${config.navigation==="object"?"selected":""}>Object (Fusion-like)</option><option value="camera" ${config.navigation==="camera"?"selected":""}>Camera (reversed)</option></select>
+      </label>
+      ${number("sensitivity","Overall sensitivity",.2,2,.1)}
+      ${number("panSpeed","Pan / zoom speed",.2,2,.1)}
+      ${number("rotationSpeed","Tilt / spin speed",.2,2,.1)}
+      ${number("deadzone","HID deadzone",0,.35,.01)}
+      ${check("panZoom","Enable pan / zoom")}
+      ${check("rotation","Enable tilt / spin")}
+      ${check("roll","Enable camera roll")}
+      ${check("invertPanX","Reverse left / right")}
+      ${check("invertPanY","Reverse up / down")}
+      ${check("invertZoom","Reverse push / pull zoom")}
+      ${check("invertTilt","Reverse tilt")}
+      ${check("invertSpin","Reverse spin")}
+      ${check("invertRoll","Reverse roll")}
+    </div>
+    <p class="settings-feedback" data-spacemouse-feedback role="status">Changes take effect immediately in connected viewers. HID access still requires your Connect click.</p>
+  </div>`;
+}
 function engineeringHTML(stats){
   return `
     <h1>Engineering</h1>
@@ -91,7 +124,8 @@ function engineeringHTML(stats){
     <div class="settings-card">
       <div class="setting-row"><div><strong>Provenance</strong><small>Engineering case exports retain model source, capability status, method, inputs, results and assumptions.</small></div><span class="settings-status ready">Enabled</span></div>
       <div class="setting-row"><div><strong>Unvalidated geometry</strong><small>Hydro/Structure/Resistance/Propulsion stay blocked until their declared requirements are met.</small></div><span class="settings-status ready">Fail closed</span></div>
-    </div>`;
+    </div>
+    ${spaceMousePreferencesHTML()}`;
 }
 
 function privacyHTML(){

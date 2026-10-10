@@ -5,13 +5,13 @@
  */
 export const SPACE_MOUSE_VENDORS=[0x256f,0x046d];
 export const SPACE_MOUSE_FILTERS=SPACE_MOUSE_VENDORS.map(vendorId=>({vendorId}));
-export function decodeSpaceMouseReport(reportId,data){
+export function decodeSpaceMouseReport(reportId,data,{deadzone=12/350}={}){
  if(reportId!==1&&reportId!==2)return null;
  if(!data||data.byteLength<6)return null;
  const values=[data.getInt16(0,true),data.getInt16(2,true),data.getInt16(4,true)];
  // Clamp hardware transients and software-neutral deadzone.
  return {kind:reportId===1?"translate":"rotate",
-   values:values.map(v=>Math.abs(v)<12?0:Math.max(-600,Math.min(600,v))/350)};
+   values:values.map(v=>Math.abs(v/350)<deadzone?0:Math.max(-600,Math.min(600,v))/350)};
 }
 export async function connectSpaceMouse({hid=globalThis.navigator?.hid,
  onVector=()=>{},onStatus=()=>{},isActive=()=>true}={}){
@@ -25,7 +25,7 @@ export async function connectSpaceMouse({hid=globalThis.navigator?.hid,
  let disposed=false;
  const onReport=event=>{
    if(disposed||!isActive()||(typeof document!=="undefined"&&document.visibilityState==="hidden"))return;
-   const value=decodeSpaceMouseReport(event.reportId,event.data);
+   const value=decodeSpaceMouseReport(event.reportId,event.data,{deadzone:0});
    if(value&&value.values.some(Math.abs))onVector(value);
  };
  const onDisconnect=event=>{

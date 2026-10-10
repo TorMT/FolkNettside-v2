@@ -44,6 +44,24 @@ try{
   frame.contentDocument.querySelector('[data-setting="density"][data-value="comfortable"]').click();
   await waitFor(()=>frame.contentDocument.documentElement.dataset.density==="comfortable","density restore");
 
+  frame.contentDocument.querySelector('[data-settings-section="engineering"]').click();
+  await waitFor(()=>frame.contentDocument?.querySelector('[data-settings-panel="engineering"]'),"Engineering settings");
+  const eng=frame.contentDocument;
+  assert(eng.querySelector('[data-spacemouse-setting="navigation"]').value==="object",
+    "SpaceMouse should default to Fusion-like object navigation");
+  const nav=eng.querySelector('[data-spacemouse-setting="navigation"]');
+  nav.value="camera";nav.dispatchEvent(new Event("change",{bubbles:true}));
+  const rev=eng.querySelector('[data-spacemouse-setting="invertTilt"]');
+  rev.checked=true;rev.dispatchEvent(new Event("change",{bubbles:true}));
+  const saved=JSON.parse(win.localStorage.getItem("folk-v2-spacemouse:v1"));
+  assert(saved.navigation==="camera"&&saved.invertTilt===true,
+    "Per-axis SpaceMouse settings not saved");
+  eng.querySelector("[data-spacemouse-reset]").click();
+  await waitFor(()=>frame.contentDocument.querySelector('[data-spacemouse-setting="navigation"]')?.value==="object",
+    "SpaceMouse reset");
+  assert(win.localStorage.getItem("folk-v2-spacemouse:v1")===null,
+    "Reset must restore defaults, not persist a second conflicting profile");
+
   document.body.dataset.status="pass";
   result.textContent="settings-app-smoke: pass";
 }catch(error){
