@@ -164,7 +164,7 @@ try{
  assert(details.querySelector("[data-wave-motion]").value==="rao",
    "RAO import did not activate the 6-DOF mode");
  const field=details.querySelector("[data-wave-height]");
- field.value="2";
+ field.value="2";field.dispatchEvent(new Event("change",{bubbles:true}));
  const scrub=details.querySelector("[data-wave-phase]");
  scrub.value="0";scrub.dispatchEvent(new Event("input",{bubbles:true}));
  const raoPose=workbench.actions.getWaveMotionPose();
