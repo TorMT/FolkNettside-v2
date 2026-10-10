@@ -38,6 +38,32 @@ class InteractiveUpdaterTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.choose(["5", "missing"])
 
+    def test_declared_course_code_resolves_folder_alias_without_rewriting_others(self):
+        course = self.source / "5" / "marin-intro"
+        course.mkdir()
+        (course / "course.json").write_text('{"code":"TMR4106","title":"Marin"}',
+                                           encoding="utf-8")
+        self.assertEqual(site.scan_semester(self.source, 5, "TMR4106")["courses"][0]["code"],
+                         "TMR4106")
+        self.assertEqual(self.choose(["5", "marin-intro"]), (5, "TMR4106"))
+        current = {"schemaVersion":2,"semesters":[
+            {"id":5,"courses":[{"code":"TMR4106","resources":[]},
+                               {"code":"OTHER","resources":[]}]}]}
+        merged = site.merge_scope(current, self.source, 5, "marin-intro")
+        codes = [course["code"] for course in merged["semesters"][0]["courses"]]
+        self.assertEqual(codes.count("TMR4106"), 1)
+        self.assertIn("OTHER", codes)
+
+    def test_duplicate_declared_codes_rejected(self):
+        first = self.source / "5" / "alias-one"
+        second = self.source / "5" / "alias-two"
+        first.mkdir()
+        second.mkdir()
+        for folder in (first,second):
+            (folder / "course.json").write_text('{"code":"TMR4000"}', encoding="utf-8")
+        with self.assertRaisesRegex(ValueError,"ambiguous"):
+            site.scan_semester(self.source, 5, "TMR4000")
+
     def test_nested_resource_metadata(self):
         result = site.scan_semester(self.source, 5)
         resources = result["courses"][0]["resources"]
