@@ -98,3 +98,14 @@ test("nearest sorting uses haversine distance only when an origin is available",
   assert.ok(distance(mapped[0])<=distance(mapped[Math.min(5,mapped.length-1)]));
   assert.ok(diveDistanceKm(origin,origin)<1e-9);
 });
+
+test("missing or invalid geocoordinates never produce phantom zero-coordinate distances",()=>{
+  const origin={lat:63.43,lon:10.39};
+  assert.equal(diveDistanceKm(origin,{lat:null,lon:10}),null);
+  assert.equal(diveDistanceKm(origin,{lat:63,lon:""}),null);
+  assert.equal(diveDistanceKm(origin,{lat:91,lon:10}),null);
+  assert.equal(diveDistanceKm(origin,{lat:63,lon:181}),null);
+  const unknown={properties:{Navn:"Ukjent"},geometry:{type:"Point",coordinates:[null,null]}};
+  const near={properties:{Navn:"Kjent"},geometry:{type:"Point",coordinates:[10.39,63.43]}};
+  assert.equal(sortDiveFeatures([unknown,near],"nearest",{origin})[0],near);
+});
