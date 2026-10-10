@@ -2,7 +2,7 @@ export const MATPRIS_ENDPOINT="/includes/matpris/api.php";
 /** Default deny: even folk.ntnu.no previews must not fall through to V1 PHP. */
 export function matprisBackendAvailable({endpoint}={}){
   return typeof endpoint==="string" &&
-    (endpoint.startsWith("./includes/matpris/") ||
+    (endpoint==="./includes/matpris/api.php" ||
      /^https:\/\/[a-z0-9.-]+(?:\:[0-9]+)?\/[^?#]+$/i.test(endpoint));
 }
 
@@ -11,8 +11,7 @@ export function configuredMatprisEndpoint(config){
   const item=config?.matpris;
   if(item?.enabled!==true)return null;
   const endpoint=item.endpoint;
-  return typeof endpoint==="string"&&/^\.\/includes\/matpris\/[a-z0-9._/-]+\.php$/i.test(endpoint)&&
-    !endpoint.split("/").includes("..")?endpoint:null;
+  return typeof endpoint==="string"&&endpoint==="./includes/matpris/api.php"?endpoint:null;
 }
 
 
