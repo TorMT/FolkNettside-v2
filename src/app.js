@@ -9,6 +9,8 @@ import {cadToolHTML,mountCADTool} from "./engineering/cad-tool.js";
 import {renderResourceTree} from "./components/resource-tree.js";
 import {karakterwebUrl} from "./courses/external-links.js";
 import {bindCourseNavigation} from "./courses/course-navigation.js";
+import {createResourceNotices} from "./courses/resource-updates.js";
+import {escapeHTML as escCourse} from "./viewers/utils.js";
 import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js";
 import {hydrostaticParticulars} from "./hydro/stability.js";
 import {createHydroInclude} from "./hydro/hydro-selection.js";
@@ -74,6 +76,7 @@ const app=document.querySelector("#app");
 mountAnalyticsNotice();
 const content=await loadContent();
 const {site,semesters,navLabels,projects}=content;
+const courseNotices=createResourceNotices(semesters);
 registerAnalyticsCourses(semesters);
 const engineeringModels=content.models?.length?content.models:[content.model];
 let engineeringModelId=engineeringModels[0]?.id||"fixture";
@@ -384,7 +387,7 @@ function viewerRoute(semester,code,index){return `/viewer/${semester}/${encodeUR
 function engineeringModeRoute(mode){return `/engineering/${String(mode).toLowerCase()}`}
 
 function top(active){
-  return renderTopShell(active,{coursesLabel:navLabels.courses,account:getGoogleSessionSnapshot()});
+  return renderTopShell(active,{coursesLabel:navLabels.courses,account:getGoogleSessionSnapshot(),courseUpdates:courseNotices.total});
 }
 
 function bindNav(){
