@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  safeAnalyticsCourse,registerAnalyticsCourses,
+  safeAnalyticsCourse,safeAnalyticsPage,registerAnalyticsCourses,
   analyticsMeasurementId
 } from "../src/platform/analytics.js";
 
@@ -34,6 +34,10 @@ test("course analytics are manifest allowlisted and limited to public course IDs
 test("no course codes can be inferred until trusted manifest is loaded",()=>{
   registerAnalyticsCourses([]);
   assert.equal(safeAnalyticsCourse(host+"#/viewer/5/TMR4182/0"),null);
+});
+test("landing page analytics use a stable Portfolio label",()=>{
+  assert.equal(safeAnalyticsPage(host+"#/portfolio")?.route,"/portfolio");
+  assert.equal(safeAnalyticsPage(host+"#/portfolio?utm=student-name")?.route,"/portfolio");
 });
 test("GA4 measurement identifier is a public property ID, not a credential",()=>{
   assert.equal(analyticsMeasurementId("G-BJ41MZJP0L"),"G-BJ41MZJP0L");
