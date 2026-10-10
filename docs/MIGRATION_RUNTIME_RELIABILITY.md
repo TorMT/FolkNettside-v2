@@ -40,3 +40,31 @@ The restore checks the snapshot's source and protected-resource paths and backs 
 Do not use the preview's HTTPS URLs to imply that PHP-backed features work. Before production cutover, decide whether V2 is served from the existing NTNU PHP-capable origin or uses an authorized remote API origin. Use server secret storage, not public HTML or JavaScript.
 
 A restored index is **not** a verified whole-site backup. It is safe to update V2 development without moving, deleting or rewriting the original NTNU course archive. 
+
+## V2 Brewing/RAPT endpoint isolation (2026-10-10)
+
+Brewing uses V2's own `data/service-endpoints.json`, with
+`brewing: {enabled:false, raptBase:null, brewingBase:null}` by default.
+RAPT telemetry, recipe search and log/storage PHP calls **must not** silently
+point to the old V1 `/includes/` root when V2 runs on `folk.ntnu.no`.
+Only when a separately deployed V2 backend exists and its same-origin
+subfolder was verified may the public configuration be set to:
+
+```json
+{
+  "brewing": {
+    "enabled": true,
+    "raptBase": "./includes/rapt/api/",
+    "brewingBase": "./includes/brewing/api/"
+  }
+}
+```
+
+These path values contain **no keys**. They resolve against V2's own
+`index.html` base directory. Merely enabling them does not create PHP
+endpoints; the NTNU candidate builder leaves them disabled by default.
+Until an authorized backend is deployed, the browser displays a visible
+unavailable notice while local raw-material inventory remains usable.
+This avoids cross-version data access and accidental reuse of V1's
+PHP/account storage. Test real log/recipe/telemetry functionality and secret
+management separately before enabling the adapter.

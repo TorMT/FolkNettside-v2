@@ -1,7 +1,7 @@
 (function (global) {
   'use strict';
 
-  const CACHE_KEY = 'brewingDashboardCache:v7';
+  const CACHE_KEY = 'folk-v2:brewing-dashboard-cache.v1';
   const CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000;
   const renderApi = global.BrewingHydrometerRender;
   const logApi = global.BrewingLogViewer;
@@ -332,7 +332,9 @@
     els.deviceList.innerHTML = '<div class="loading">Henter hydrometerdata...</div>';
 
     try {
-      const response = await fetch('/includes/rapt/api/dashboard.php?days=' + encodeURIComponent(state.maxDaysLoaded), { cache: 'no-store' });
+      const endpoint = global.FolkBrewingEndpoint && global.FolkBrewingEndpoint('rapt', 'dashboard.php');
+      if (!endpoint) throw new Error('RAPT backend is not configured for V2');
+      const response = await fetch(endpoint + '?days=' + encodeURIComponent(state.maxDaysLoaded), { cache: 'no-store' });
       const payload = await response.json();
       if (!response.ok) throw new Error((payload && payload.error) || ('HTTP ' + response.status));
       writeCache(payload);

@@ -1,7 +1,11 @@
 (function (global) {
   'use strict';
 
-  const API_BASE = '/includes/brewing/api';
+  function backend(file) {
+    const url = global.FolkBrewingEndpoint && global.FolkBrewingEndpoint('brewing', file);
+    if (!url) throw new Error('Brewing backend is not configured for V2');
+    return url;
+  }
 
   function monthYearLabel(dateLike) {
     const date = dateLike ? new Date(dateLike) : new Date();
@@ -34,7 +38,7 @@
   }
 
   async function fetchLogIndex() {
-    const response = await fetch(API_BASE + '/logs.php', { cache: 'no-store' });
+    const response = await fetch(backend('logs.php'), { cache: 'no-store' });
     const text = await response.text();
     const data = parseJsonSafe(text);
     if (!response.ok) {
@@ -59,7 +63,7 @@
   }
 
   async function exportLog(payload) {
-    const response = await fetch(API_BASE + '/export.php', {
+    const response = await fetch(backend('export.php'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -94,7 +98,7 @@
   }
 
   async function fetchStorageConfig() {
-    const response = await fetch(API_BASE + '/storage.php', { cache: 'no-store' });
+    const response = await fetch(backend('storage.php'), { cache: 'no-store' });
     const text = await response.text();
     const data = parseJsonSafe(text);
     if (!response.ok) {
@@ -104,7 +108,7 @@
   }
 
   async function saveStorageConfig(payload) {
-    const response = await fetch(API_BASE + '/storage.php', {
+    const response = await fetch(backend('storage.php'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -120,7 +124,7 @@
   }
 
   async function saveLogStorage(payload) {
-    const response = await fetch(API_BASE + '/storage.php', {
+    const response = await fetch(backend('storage.php'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -136,7 +140,7 @@
   }
 
   async function prepareDriveSyncPackage(slug) {
-    const response = await fetch(API_BASE + '/storage.php', {
+    const response = await fetch(backend('storage.php'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
