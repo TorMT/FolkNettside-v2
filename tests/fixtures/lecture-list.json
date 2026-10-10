@@ -1,0 +1,37 @@
+{
+  "videos": [
+    {
+      "title": "Forelesning 10 · Bernoulli",
+      "url": "https://www.youtube.com/watch?v=fkk7xVuNJ2Y",
+      "description": "Trykk og strømningshastighet",
+      "themes": [
+        "Bernoulli",
+        "Fluidmekanikk"
+      ],
+      "group": "Forelesning 10",
+      "part": "A",
+      "group_description": "Kapittel 3 – energi"
+    },
+    {
+      "title": "Forelesning 2 · Oppdrift A",
+      "url": "https://youtu.be/4fsvYAdbGes",
+      "themes": [
+        "oppdrift",
+        "hydrostatikk"
+      ],
+      "group": "Forelesning 2",
+      "part": "A",
+      "group_description": "Oppdrift og krefter"
+    },
+    {
+      "title": "Forelesning 2 · Oppdrift B",
+      "url": "https://www.youtube.com/watch?v=aGaS2E2iNh4",
+      "themes": [
+        "oppdrift",
+        "trykk"
+      ],
+      "group": "Forelesning 2",
+      "part": "B"
+    }
+  ]
+}
