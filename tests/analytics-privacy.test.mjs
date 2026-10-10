@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   analyticsConsentChoice,analyticsMeasurementId,safeAnalyticsPage,
-  enableAnalytics,setAnalyticsConsent,trackPage,analyticsStatus
+  loadAnalytics,enableAnalytics,setAnalyticsConsent,trackPage,analyticsStatus
 } from "../src/platform/analytics.js";
 
 function fakeStorage(){
@@ -45,7 +45,7 @@ test("private, health, storage and account routes are never tracked",()=>{
   }
   assert.equal(safeAnalyticsPage(url("#/?q=email")+"?tracking=abc")?.route,"/");
 });
-test("first visit sends no Google calls; explicit consent sends one safely categorized pageview",()=>{
+test("Google script loads before consent but no GA4 config or page views until opt-in",()=>{
   const prev={localStorage:globalThis.localStorage,document:globalThis.document,
     location:globalThis.location,gtag:globalThis.gtag,dataLayer:globalThis.dataLayer,
     __FOLK_ANALYTICS_ID__:globalThis.__FOLK_ANALYTICS_ID__};
@@ -62,15 +62,24 @@ test("first visit sends no Google calls; explicit consent sends one safely categ
       head:{append:item=>requests.push(item)}
     };
     assert.equal(analyticsConsentChoice(storage),"unset");
-    assert.equal(enableAnalytics(),false);
-    assert.equal(calls.length,0);
-    assert.equal(requests.length,0);
-    assert.equal(setAnalyticsConsent(false,storage),"denied");
-    assert.equal(enableAnalytics(),false);
-    assert.equal(requests.length,0);
-    assert.equal(setAnalyticsConsent(true,storage),"granted");
+    assert.equal(loadAnalytics(),true,"load tag immediately with denied consent");
     assert.equal(requests.length,1);
     assert.match(requests[0].src,/googletagmanager.com\/gtag\/js\?id=G-BJ41MZJP0L/);
+    assert.equal(calls[0][0],"consent");
+    assert.equal(calls[0][1],"default");
+    assert.equal(calls[0][2].analytics_storage,"denied");
+    assert.equal(calls.filter(x=>x[0]==="event"||x[0]==="config").length,0,
+      "Before opt-in GA4 must not configure measurement or send page views");
+    assert.equal(enableAnalytics(),false);
+    assert.equal(loadAnalytics(),true);
+    assert.equal(requests.length,1,"script only loads once");
+    assert.equal(setAnalyticsConsent(false,storage),"denied");
+    assert.equal(enableAnalytics(),false);
+    assert.equal(requests.length,1);
+    assert.equal(calls.filter(x=>x[0]==="event"||x[0]==="config").length,0);
+    assert.equal(setAnalyticsConsent(true,storage),"granted");
+    assert.equal(requests.length,1);
+    assert.equal(calls.filter(x=>x[0]==="config").length,1);
     const views=()=>calls.filter(x=>x[0]==="event"&&x[1]==="page_view");
     assert.equal(views().length,1);
     assert.equal(views()[0][2].page_path,path+"#/courses/course");
