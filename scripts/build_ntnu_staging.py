@@ -131,7 +131,8 @@ def build_ntnu_staging(
             (stage / "data" / "content-manifest.json").write_text(
                 json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-        services = {"matpris": {"enabled": False, "endpoint": None}}
+        services = {"matpris": {"enabled": False, "endpoint": None},
+                    "brewing": {"enabled": False, "raptBase": None, "brewingBase": None}}
         if enable_matpris:
             endpoint = stage / MATPRIS_TARGET
             endpoint.parent.mkdir(parents=True, exist_ok=True)
