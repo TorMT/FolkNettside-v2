@@ -35,6 +35,16 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_public_asset_audit.py' -v
           python3 scripts/audit_public_assets.py
 
+      - name: Courses new-file notices and XSS-safe routes browser regression
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4227 --bind 127.0.0.1 >/tmp/course-updates-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/course-updates-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4227/tests/browser/course-updates-smoke.html 35 1440,900
+
       - name: Mobile navigation About CV Contact and overflow browser regression
         run: |
           command -v chromedriver
