@@ -129,3 +129,14 @@
  .cad-import-bar>label{width:100%}
  .cad-geometry-stage{border-radius:10px}
 }
+
+
+/* Explore regular-wave phase without claiming a six-DOF seakeeping solution. */
+.model-wave-actions .wave-phase-scrub{
+  display:flex;align-items:center;flex-wrap:wrap;gap:7px;
+  min-width:190px;font-size:11px;color:var(--ink-2)
+}
+.model-wave-actions .wave-phase-scrub input{width:min(150px,32vw);accent-color:var(--accent)}
+.model-wave-actions .wave-phase-scrub output{min-width:34px;text-align:right;
+  font-variant-numeric:tabular-nums;color:var(--ink)}
+.model-wave-status{line-height:1.55}

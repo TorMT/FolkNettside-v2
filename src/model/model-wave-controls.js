@@ -44,9 +44,13 @@ export function mountWaveControls(host,scene,{open=false}={}){
         <select data-wave-motion aria-label="Wave model movement">
           <option value="anchored" selected>Anchored — model stays still</option>
           <option value="follow">Follow waves — illustrative heave</option>
+          <option value="follow-slope">Surface tilt — illustrative heave, roll &amp; pitch</option>
         </select>
       </label>
       <button type="button" data-wave-capture>Collect probe series</button>
+      <label class="wave-phase-scrub">Wave phase <input data-wave-phase type="range" min="0" max="360" step="5" value="0" aria-label="Wave animation phase in degrees">
+        <output data-wave-phase-value>0°</output>
+      </label>
     </div>
     <p class="model-wave-status" role="status">Linear regular-wave preview. Hydro remains a still-water calculation.</p>
     <div class="model-wave-library">
@@ -69,7 +73,7 @@ export function mountWaveControls(host,scene,{open=false}={}){
       <button type="button" data-wave-estimate>Calculate concept estimates</button>
       <pre data-wave-estimate-output role="status">No wave loads calculated.</pre>
     </details>
-    <p class="model-wave-note">In Follow mode only vertical elevation at the model origin is matched to the regular wave. Real heave, roll, pitch, mooring and RAO dynamics are not predicted. Hydro remains still-water.</p>
+    <p class="model-wave-note">Movement is relative to the model's geometric centre. Follow adds illustrative heave; Surface tilt also aligns the hull with the local wave tangent (limited to ±12°) so the effect is visible. Neither mode predicts physical heave, roll, pitch, mooring dynamics or RAOs. Hydro and still-water contours are unchanged.</p>
     <p class="model-wave-note">Synthetic series are explicitly labeled. CSV columns: time_s,eta_m. Imported measurements do not automatically become spatial waves or validated wave loads. Records stay in this browser until exported or cleared.</p>`;
   host.append(root);
   const $=query=>root.querySelector(query);
@@ -125,12 +129,16 @@ export function mountWaveControls(host,scene,{open=false}={}){
       actions.append(csv,remove);article.append(actions);listing.append(article);
     }
   }
+  const phaseInput=$("[data-wave-phase]");
+  const phaseValue=$("[data-wave-phase-value]");
+  const phaseTime=wave=>wave.periodS*Number(phaseInput.value)/360;
   function updateWave(){
     try{
       const wave=options();
       const motionMode=$("[data-wave-motion]").value;
-      scene.actions.setWave({enabled:active,...wave,animate,motionMode});
-      status.textContent=active?`Linear wave: λ=${wave.wavelengthM.toFixed(2)} m, c=${wave.phaseSpeedMs.toFixed(2)} m/s · ${motionMode==="anchored"?"anchored model":"illustrative heave-following model (not actual vessel response)"}`:
+      scene.actions.setWave({enabled:active,...wave,animate,motionMode,timeS:phaseTime(wave)});
+      const motionLabel=motionMode==="anchored"?"stationary vessel":motionMode==="follow"?"illustrative vertical following":"illustrative heave + wave slope (roll/pitch capped at 12°)";
+      status.textContent=active?`Airy wave: λ=${wave.wavelengthM.toFixed(2)} m, c=${wave.phaseSpeedMs.toFixed(2)} m/s · ${motionLabel}. Not a vessel motion/RAO prediction.`:
         "Wave surface hidden; still-water hydro and contour are unchanged.";
     }catch(error){active=false;scene.actions.setWave({enabled:false});status.textContent=String(error?.message||error)}
   }
@@ -139,7 +147,23 @@ export function mountWaveControls(host,scene,{open=false}={}){
   });
   $("[data-wave-motion]").addEventListener("change",()=>{if(active)updateWave()});
   $("[data-wave-play]").addEventListener("click",event=>{
-    animate=!animate;event.currentTarget.textContent=animate?"Pause":"Play";updateWave();
+    if(animate&&active){
+      const state=scene.actions.getWaveMotionPose?.();
+      const T=options().periodS;
+      if(state&&Number.isFinite(state.timeS))
+        phaseInput.value=String(Math.round((state.timeS%T)/T*360));
+    }
+    animate=!animate;event.currentTarget.textContent=animate?"Pause":"Play";
+    phaseValue.textContent=phaseInput.value+"°";
+    updateWave();
+  });
+  phaseInput.addEventListener("input",()=>{
+    if(animate){
+      animate=false;
+      $("[data-wave-play]").textContent="Play";
+    }
+    phaseValue.textContent=phaseInput.value+"°";
+    if(active)updateWave();
   });
   $("[data-wave-capture]").addEventListener("click",()=>{
     try{
