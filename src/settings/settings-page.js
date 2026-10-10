@@ -1,4 +1,4 @@
-import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=4dd774bc5c727b2eb66e9af101a8f7f5d47f7e8b";
+import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=06514953be30c8ec6b9539f28f9a4e3e637313e4";
 const SECTIONS=[
   ["appearance","Appearance"],
   ["connections","Account & connections"],
@@ -133,7 +133,7 @@ function privacyHTML(){
     <h1>Privacy & data</h1>
     <p class="muted">Study progress and UI preferences are stored locally in this browser. No course login is required.</p>
     <div class="settings-card">
-      <div class="setting-row"><div><strong>Anonymous analytics</strong><small>Opt in to Google Analytics page-view measurement. Reports remain private to the site owner. Disabled by default and unavailable without deployment configuration.</small></div><button class="btn" id="settings-analytics-toggle" type="button">Toggle analytics</button></div>
+      <div class="setting-row"><div><strong>Google Analytics (optional)</strong><small>Same GA4 property as the original website, with V2-only page categories. Google tag script loads with consent denied; GA4 page-view measurement starts only after opt-in. Statistics are visible only in the owner's Google account; personal and health-related tools are excluded from page tracking. You can revoke consent here at any time.</small><small data-analytics-status role="status">Off by default</small></div><button class="btn" id="settings-analytics-toggle" type="button">Enable analytics</button></div>
       <div class="setting-row"><div><strong>Study progress</strong><small>Quiz attempts and video resume/watched state.</small></div><button class="btn" id="settings-clear-study-progress">Clear progress</button></div>
       <div class="setting-row"><div><strong>Appearance preferences</strong><small>Stored locally so the interface remains consistent between visits.</small></div><span class="settings-status ready">Local</span></div>
     </div>

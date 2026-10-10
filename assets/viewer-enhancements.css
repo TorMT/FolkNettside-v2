@@ -184,3 +184,21 @@
   text-decoration:underline;text-underline-offset:2px}
 .model-wave-rao .model-wave-note{margin:0;font-size:11px;line-height:1.5}
 .model-wave-rao [data-wave-rao-remove]{min-height:32px;font-size:11px}
+
+
+/* Unobtrusive first-visit analytics opt-in: no dashboard or counters. */
+.analytics-consent-notice{position:fixed;z-index:1600;bottom:max(12px,env(safe-area-inset-bottom));
+  left:50%;transform:translateX(-50%);width:min(660px,calc(100vw - 24px));
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  padding:14px 16px;border:1px solid var(--line);border-radius:12px;
+  background:var(--surface);color:var(--ink);
+  box-shadow:0 12px 32px rgb(0 0 0 / .16)}
+.analytics-consent-notice p{flex:1 1 260px;margin:0;font-size:12px;line-height:1.55}
+.analytics-consent-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+.analytics-consent-actions .btn{min-height:34px;padding:7px 11px;font-size:12px}
+.analytics-consent-actions a{font-size:11px;text-decoration:underline;color:var(--accent)}
+@media(max-width:590px){
+ .analytics-consent-notice{bottom:max(6px,env(safe-area-inset-bottom));
+   padding:11px 12px;gap:10px}
+ .analytics-consent-actions{width:100%}
+}
