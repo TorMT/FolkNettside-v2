@@ -21,9 +21,24 @@ try{
   await waitFor(()=>frame.contentDocument?.querySelector('[data-settings-panel="appearance"]'),"Settings appearance panel");
   const doc=frame.contentDocument;
   const win=frame.contentWindow;
+  const consent=doc.querySelector(".analytics-consent-notice");
+  assert(consent,"New visits need an optional analytics consent choice");
+  assert(!doc.querySelector('script[data-folk-analytics]'),
+    "Google Analytics must not load before explicit consent");
+  assert(!doc.querySelector('iframe[src*="lookerstudio"]'),
+    "V2 must never expose the legacy public statistics dashboard");
+  consent.querySelector(".analytics-consent-actions button").click();
+  assert(win.localStorage.getItem("folk.analytics.consent.v1")==="denied",
+    "Reject choice must persist");
+  assert(!doc.querySelector('script[data-folk-analytics]'),
+    "Google Analytics must not load after visitor rejection");
 
   doc.querySelector('[data-settings-section="privacy"]').click();
   await waitFor(()=>frame.contentDocument?.querySelector('[data-settings-panel="privacy"]'),"Privacy panel");
+  assert(frame.contentDocument.querySelector("[data-analytics-status]")?.textContent.includes("Disabled"),
+    "Privacy Settings must clearly display the visitor's Google Analytics preference");
+  assert(frame.contentDocument.querySelector("#settings-analytics-toggle")?.textContent==="Enable analytics",
+    "Visitor must be able to opt in later from Settings");
 
   win.localStorage.setItem("folk-v2-video:smoke","{}");
   win.localStorage.setItem("folknet:quiz:smoke","{}");
