@@ -1,3 +1,4 @@
+import {mountDiveLog} from "./dive-log.js";
 import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js";
 import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js";
 import {diveMapLegendHTML,diveMarkerClass,diveMarkerHTML} from "./dive-marker-icons.js";
@@ -65,6 +66,7 @@ export function diveMapHTML(){
         <button class="btn" id="dive-export-geojson">Export filtered GeoJSON</button>
       </div>
     </section>
+    <details class="dive-log-panel"><summary>Min dykkelogg · lokal og kryptert Google Drive-synk</summary><div id="dive-log-root"></div></details>
     <section class="dive-workspace">
       <div class="dive-map-panel"><div id="dive-map-canvas" aria-label="Dive sites map"></div>${diveMapLegendHTML()}<div id="dive-map-note" class="dive-map-note">Map loading…</div></div>
       <aside class="dive-list-panel"><div id="dive-list" class="dive-list"></div></aside>
@@ -82,6 +84,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
   if(!response.ok)throw new Error(`Dive dataset HTTP ${response.status}`);
   const data=await response.json();
   const features=data.features||[];
+  const diveLog=mountDiveLog(root.querySelector("#dive-log-root"));
   let currentVisible=features;
   const elements={
     query:root.querySelector("#dive-query"),level:root.querySelector("#dive-level"),kind:root.querySelector("#dive-kind"),quality:root.querySelector("#dive-quality"),
@@ -94,6 +97,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
   const markers=new Map();
   const selectFeature=(feature,{zoom=true}={})=>{
     state.selected=feature?.properties?.ID==null?null:String(feature.properties.ID);
+    diveLog.selectSite(feature);
     elements.inspector.innerHTML=featureDetail(feature,{origin:state.origin});
     root.querySelectorAll("[data-dive-id]").forEach(node=>node.classList.toggle("selected",node.dataset.diveId===state.selected));
     const marker=markers.get(state.selected);
@@ -199,6 +203,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
 
   return ()=>{
     disposed=true;
+    diveLog.cleanup();
     map?.remove();
     map=null;
     layer=null;
