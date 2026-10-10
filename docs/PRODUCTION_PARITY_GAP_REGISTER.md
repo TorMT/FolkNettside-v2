@@ -4,6 +4,9 @@
 
 **Avgjørende funn:** `TorMT/FolkNettside` har ingen `semestre/`-mappe i GitHub-treet som ble undersøkt. V1 beskriver kursfiler på NTNU webedit/folk; dette produksjonsområdet er ikke omfattet av repository-inventaret. V2 har per nå `data/content-manifest.json` med **ett syntetisk/eksempelbasert kurs: semester 5 / TMR4182**. Ingen kursmigrering kan erklæres komplett før en faktisk, godkjent webedit-backup foreligger og er sammenlignet.
 
+**Ny offentlig V1-verifikasjon:** `https://tormt.folk.ntnu.no/includes/navbar.html` oppgir **24 kurslenker** fordelt på semester 1–5; den offentlige `/semestre/index.json` viser også enkelte mapper med navneledd `(beskyttet)`. Et NAVBAR-mappenavn er ikke nødvendigvis en faktisk NTNU-emnekode. Se [detaljert V1-kursinventar](PUBLIC_V1_COURSE_INVENTORY_2026-10-10.md) og [mapping-forslag](../data/migration-course-map.example.json). Ikke overfør slike beskyttede ressurser til offentlige V2.
+
+
 ## Betydning av kolonnene
 
 - **Dekning:** `CI-dekning` = implementasjon med automatiserte tester, men fortsatt krav om sammenligning med live V1; `delvis` = et kjent funksjonelt gap; `ikke bevist` = ikke nok evidens; `ekstern` = separat tjeneste/lenke beholdes; `mangler data` = live kilde ikke tilgjengelig.
