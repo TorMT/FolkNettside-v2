@@ -584,21 +584,21 @@ function coursePage(semesterId,code){
 
   app.innerHTML=top("courses")+`<main class="layout">
     <aside class="side course-side">
-      <div class="side-title">${course.code}</div>
+      <div class="side-title">${escCourse(course.code)}</div>
       <button class="active" data-course-nav="overview"><span>Overview</span><small>${resourceCount} resources</small></button>
-      ${sections.map(section=>`<button data-course-nav="section-${section.index}"><span>${section.label}</span><small>${section.items.length}</small></button>`).join("")}
+      ${sections.map(section=>`<button data-course-nav="section-${section.index}"><span>${escCourse(section.label)}</span><small>${section.items.length}</small></button>`).join("")}
       <button data-course-nav="karakterweb"><span>Karakterweb</span><small>external ↗</small></button>
     </aside>
     <section class="content">
-      <div class="crumbs">Courses / ${getSemester(semesterId).label} / ${course.code}</div>
+      <div class="crumbs">Courses / ${escCourse(getSemester(semesterId).label)} / ${escCourse(course.code)}</div>
       <header class="course-header" id="course-overview">
-        <div class="course-header-meta"><span class="course-code">${course.code}</span><span>${resourceCount} resources · ${sections.length} sections</span></div>
-        <h1>${course.title}</h1>
+        <div class="course-header-meta"><span class="course-code">${escCourse(course.code)}</span><span>${resourceCount} resources · ${sections.length} sections</span></div>
+        <h1>${escCourse(course.title)}</h1>
         <p>${escCourse(course.description)}</p>
       </header>
       ${newResourcesHTML}
       ${sections.map(section=>`<section class="resource-section" id="course-section-${section.index}" data-course-section="section-${section.index}">
-        <div class="resource-section-head"><h2>${section.label}</h2><span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
+        <div class="resource-section-head"><h2>${escCourse(section.label)}</h2><span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
         <div class="resource-list">${renderResourceTree(section.items,item=>course.resources.indexOf(item))}</div>
       </section>`).join("")}
       <section class="resource-section" id="course-karakterweb" data-course-section="karakterweb">
@@ -606,7 +606,7 @@ function coursePage(semesterId,code){
         <div class="resource-list">
           <button class="resource-row resource-row-button" id="karakterweb">
             <span class="file-icon">KW</span>
-            <div><strong>Open ${course.code} on Karakterweb</strong><div class="muted">karakterweb.no/ntnu/${course.code}</div></div>
+            <div><strong>Open ${escCourse(course.code)} on Karakterweb</strong><div class="muted">karakterweb.no/ntnu/${escCourse(course.code)}</div></div>
             <span class="muted">Open ↗</span>
           </button>
         </div>
