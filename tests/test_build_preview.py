@@ -27,9 +27,14 @@ class PagesBuildTests(unittest.TestCase):
 
     def test_index_versioning_is_idempotent(self):
         version = "test-commit-123"
-        source = '<link rel="stylesheet" href="./assets/style.css"><script type="module" src="./src/app.js"></script>'
+        source = ('<link rel="stylesheet" href="./assets/style.css">'
+                  '<link rel="stylesheet" href="./assets/engineering.css">'
+                  '<link rel="stylesheet" href="./assets/viewer-enhancements.css">'
+                  '<script type="module" src="./src/app.js"></script>')
         stamped = preview.stamp_index(source, version)
         self.assertIn('./assets/style.css?v=' + version, stamped)
+        self.assertIn('./assets/engineering.css?v=' + version, stamped)
+        self.assertIn('./assets/viewer-enhancements.css?v=' + version, stamped)
         self.assertIn('./src/app.js?v=' + version, stamped)
         self.assertEqual(preview.stamp_index(stamped, version), stamped)
 
