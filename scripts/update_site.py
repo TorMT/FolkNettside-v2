@@ -363,16 +363,106 @@ def write_manifest_atomic(output: Path, manifest: dict) -> None:
             temp_path.unlink(missing_ok=True)
 
 
+def backup_manifest(output: Path, backup_dir: Path) -> Path | None:
+    """Snapshot metadata only, atomically, before a substantive change."""
+    if not output.is_file():
+        return None
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    # Directory names remain sortable; two rapid writes never overwrite.
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    destination = backup_dir / f"{stamp}-{output.name}"
+    with tempfile.NamedTemporaryFile(mode="wb", dir=backup_dir, delete=False) as tmp:
+        temp = Path(tmp.name)
+        try:
+            with output.open("rb") as previous:
+                import shutil
+                shutil.copyfileobj(previous, tmp)
+            tmp.flush()
+            os.fsync(tmp.fileno())
+        except Exception:
+            temp.unlink(missing_ok=True)
+            raise
+    os.replace(temp, destination)
+    return destination
+
+
+def restore_manifest(snapshot: Path, output: Path, backup_dir: Path) -> Path | None:
+    """Restore explicitly selected metadata; never restore course files."""
+    if not snapshot.is_file() or snapshot.is_symlink():
+        raise ValueError("A readable, regular snapshot file is required")
+    restored = load_json(snapshot)
+    if not isinstance(restored.get("semesters"), list):
+        raise ValueError("Snapshot missing semesters array")
+    violations = public_manifest_violations(restored)
+    if violations:
+        raise ValueError("Snapshot includes protected paths")
+    # The snapshot source must still exist and be contained in the repository.
+    configured = restored.get("source")
+    if not isinstance(configured, str) or not configured:
+        raise ValueError("Snapshot has no semester source")
+    source_path = Path(configured)
+    if source_path.is_absolute() or ".." in source_path.parts:
+        raise ValueError("Unsafe snapshot course source")
+    if not (ROOT / source_path).resolve().is_relative_to(ROOT.resolve()):
+        raise ValueError("Snapshot source escapes repository")
+    if not (ROOT / source_path).is_dir():
+        raise ValueError("Snapshot course source directory is missing")
+    previous = backup_manifest(output, backup_dir)
+    write_manifest_atomic(output, restored)
+    return previous
+
+
+def manifest_source(output: Path) -> Path:
+    """Honor a reviewed course root recorded in the manifest during rebuild.
+
+    Never silently replace migrated courses with demo fixtures, and never
+    follow source pointers outside the repository.
+    """
+    if not output.is_file():
+        return DEFAULT_SOURCE
+    configured = load_json(output).get("source")
+    if not configured:
+        return DEFAULT_SOURCE
+    source_label = Path(str(configured))
+    if source_label.is_absolute() or ".." in source_label.parts:
+        raise ValueError("unsafe manifest source: outside repository")
+    source = (ROOT / source_label).resolve()
+    if not source.is_relative_to(ROOT.resolve()) or not source.is_dir():
+        raise ValueError("manifest course source is missing or outside repository")
+    return source
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
+    parser.add_argument("--source", type=Path, help="Semester root (defaults to current manifest source)")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--semester", type=int, help="Only update one semester")
     parser.add_argument("--course", help="Only update one course; requires --semester")
     parser.add_argument("--check", action="store_true", help="Fail if the full committed manifest is stale")
     parser.add_argument("--dry-run", action="store_true", help="Preview the manifest without writing it")
     parser.add_argument("--interactive", action="store_true", help="Choose the semester and course from discovered folders")
+    parser.add_argument("--backup-dir", type=Path, default=ROOT / ".siteupdater-backups" / "v2-manifests",
+                        help="Local manifest snapshots before substantive changes")
+    parser.add_argument("--restore-manifest", type=Path,
+                        help="Restore one explicit manifest snapshot; does not restore course file bytes")
     args = parser.parse_args()
+
+    if args.restore_manifest and (
+        args.interactive or args.check or args.dry_run or
+        args.semester is not None or args.course or args.source
+    ):
+        parser.error("--restore-manifest cannot be combined with scanning options")
+    if args.restore_manifest:
+        output = args.output if args.output.is_absolute() else ROOT / args.output
+        backup_dir = args.backup_dir if args.backup_dir.is_absolute() else ROOT / args.backup_dir
+        try:
+            previous = restore_manifest(args.restore_manifest, output, backup_dir)
+        except (ValueError, OSError) as error:
+            print(f"Restore cancelled: {error}; manifest unchanged.", file=sys.stderr)
+            return 2
+        print(f"Restored manifest from {args.restore_manifest}. Previous version: {previous or 'none'}")
+        print("Only manifest metadata was restored; original course files were not modified.")
+        return 0
 
     if args.interactive and (args.check or args.semester is not None or args.course):
         parser.error("--interactive cannot be combined with --check, --semester or --course")
@@ -383,8 +473,13 @@ def main() -> int:
     if args.check and (args.semester is not None or args.course):
         parser.error("--check validates the full manifest and cannot be combined with a scope")
 
-    source = args.source if args.source.is_absolute() else ROOT / args.source
     output = args.output if args.output.is_absolute() else ROOT / args.output
+    try:
+        chosen_source = args.source if args.source is not None else manifest_source(output)
+    except (ValueError, OSError) as error:
+        print(f"Content source error: {error}. No files changed.", file=sys.stderr)
+        return 2
+    source = chosen_source if chosen_source.is_absolute() else ROOT / chosen_source
     started = time.perf_counter()
     if args.interactive:
         try:
@@ -431,6 +526,12 @@ def main() -> int:
         print(f"DRY RUN: {scope}; manifest would be {state}. No files changed.")
         return 0
 
+    old = load_json(output) if output.exists() else {}
+    if stable_for_check(old) != stable_for_check(manifest):
+        backup_dir = args.backup_dir if args.backup_dir.is_absolute() else ROOT / args.backup_dir
+        snapshot = backup_manifest(output, backup_dir)
+        if snapshot:
+            print(f"Previous manifest snapshot: {snapshot}")
     write_manifest_atomic(output, manifest)
 
     target_courses = [

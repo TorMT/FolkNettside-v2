@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import {groupProductsByEan,matprisProxyUrl,normalizeProduct,unwrapProducts} from "../src/diverse/matpris-api.js";
+import {groupProductsByEan,matprisProxyUrl,matprisBackendAvailable,normalizeProduct,unwrapProducts} from "../src/diverse/matpris-api.js";
 import {matprisPageHTML} from "../src/diverse/matpris-page.js";
 
 test("Matpris normalizes current API price shapes",()=>{
@@ -39,4 +39,12 @@ test("Matpris server proxy reads the API key from the environment",()=>{
   assert.match(source,/getenv\('KASSALAPP_API_KEY'\)/);
   assert.match(source,/Authorization: Bearer/);
   assert.doesNotMatch(source,/KASSALAPP_API_KEY\s*=\s*['"][^'"]+['"]/);
+});
+
+test("Matpris fails closed on static GitHub Pages without probing missing PHP endpoints",()=>{
+  assert.equal(matprisBackendAvailable({hostname:"tormt.github.io"}),false);
+  assert.equal(matprisBackendAvailable({hostname:"user.github.io"}),false);
+  assert.equal(matprisBackendAvailable({hostname:"tormt.folk.ntnu.no"}),true);
+  assert.equal(matprisBackendAvailable({hostname:"localhost"}),true);
+  assert.equal(matprisBackendAvailable({hostname:"tormt.github.io",endpoint:"https://api.example.org/matpris"}),true);
 });
