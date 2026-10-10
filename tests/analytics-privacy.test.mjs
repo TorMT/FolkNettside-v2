@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   analyticsConsentChoice,analyticsMeasurementId,safeAnalyticsPage,
-  loadAnalytics,enableAnalytics,setAnalyticsConsent,trackPage,analyticsStatus
+  loadAnalytics,enableAnalytics,setAnalyticsConsent,trackPage,analyticsStatus,registerAnalyticsCourses
 } from "../src/platform/analytics.js";
 
 function fakeStorage(){
@@ -56,6 +56,7 @@ test("Google script loads before consent but no GA4 config or page views until o
     globalThis.localStorage=storage;
     globalThis.location=location;
     globalThis.__FOLK_ANALYTICS_ID__="G-BJ41MZJP0L";
+    registerAnalyticsCourses([{id:5,courses:[{code:"TMR4182"}]}]);
     globalThis.gtag=(...args)=>calls.push(args);
     globalThis.document={
       createElement:tag=>({tagName:tag,async:false,src:"",dataset:{}}),
@@ -84,7 +85,9 @@ test("Google script loads before consent but no GA4 config or page views until o
     assert.equal(views().length,1);
     assert.equal(views()[0][2].page_path,path+"#/courses/course");
     assert.equal(views()[0][2].site_version,"v2");
-    assert.doesNotMatch(JSON.stringify(calls),/student=Jane|TMR4182/);
+    assert.equal(views()[0][2].course_code,"TMR4182");
+    assert.equal(views()[0][2].course_semester,"5");
+    assert.doesNotMatch(JSON.stringify(calls),/student=Jane|password=|course\/5\/TMR4182/);
     assert.equal(trackPage(),false,"must not duplicate a hash-only page_view");
     location.hash="#/diverse/medisin?name=Patient";
     location.href=url(location.hash);
@@ -99,6 +102,8 @@ test("Google script loads before consent but no GA4 config or page views until o
     location.href=url(location.hash);
     assert.equal(trackPage(),true);
     assert.equal(views().length,3);
+    assert.equal(views()[2][2].course_code,undefined,
+      "Non-course pages must not carry a stale course dimension");
     assert.doesNotMatch(JSON.stringify(calls),/Patient|blueprint.step/);
     setAnalyticsConsent(false,storage);
     location.hash="#/cv";location.href=url(location.hash);

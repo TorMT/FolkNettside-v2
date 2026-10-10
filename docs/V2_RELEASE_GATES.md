@@ -2,6 +2,19 @@
 
 Production FolkNettside must remain unchanged. GitHub is the intended source of truth for the eventual deployment; do not set up reverse sync or delete/move legacy files before a separate, approved migration pass.
 
+**2026-10-10 migration evidence:** The public V1 navbar lists 24 legacy
+course paths across semesters 1–5, and some public indexes name
+`(beskyttet)` paths. The GitHub V1 repo does **not** contain this full
+`semestre/` tree. The V2 manifest is still primarily example content.
+Release requires a complete offline NTNU production backup, reviewed
+V1-slug → V2-code mapping, SHA-256 verified authorized public resources,
+and real-API parity; a UI card or green CI is insufficient.
+
+See [full production migration instructions](PRODUCTION_MIGRATION_PLAYBOOK.md),
+[parity blockers](PRODUCTION_PARITY_GAP_REGISTER.md) and
+[secrets/API checklist](INTEGRATION_CONFIGURATION_REGISTER.md).
+No production cutover is authorized by these documents.
+
 ## Required before public V2 release
 
 - [ ] Check each listed legacy feature against V2 in a real browser, including mobile and failure states; keep the old link while parity is incomplete.

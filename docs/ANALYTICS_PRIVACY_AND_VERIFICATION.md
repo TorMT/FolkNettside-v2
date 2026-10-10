@@ -20,6 +20,16 @@ statistics: results stay in the owner's existing Google Analytics account.
 - On acceptance, the already-loaded GA4 tag is configured and a manual page-view event is
   sent for each navigation to an approved V2 route. A repeated page-view
   at the same route is not sent twice.
+- On approved public course overview and viewer routes, V2 also sends
+  event parameters `course_code` (for example, `TMR4182`) and
+  `course_semester` (for example, `5`). These are added only when the code
+  and semester match an actual course in the loaded **public V2 manifest**.
+  Raw resource paths, filenames and search strings are not sent.
+- To report usage by subject, register GA4 **event-scoped custom dimensions**
+  named `course_code`, `course_semester` and `site_version`, then in Explore
+  filter `site_version=v2`, `event_name=page_view`, and set
+  Rows = `course_code`, Values = Event count. This measures consenting
+  traffic only; Realtime and live custom dimensions require owner verification.
 - V2's outbound **manual events** use coarse, canonical categories
   (`#/engineering/cad`, `#/courses/course`, `#/courses/viewer`, etc.).
   They omit search terms, source filenames, detailed course routes,

@@ -42,6 +42,28 @@ On Windows, run **Run SiteUpdater.cmd** to choose all semesters, a semester or a
 
 The default source is **example fixtures** under examples/semesters, not the full legacy course archive. Only stage approved public content. SiteUpdater writes manifests atomically and rejects protected paths; this is not a substitute for manual privacy review. Never publish plaintext private folders, passwords, OAuth client secrets or medical records to GitHub Pages.
 
+## Migration readiness and course analytics
+
+**V2 has not replaced V1.** The GitHub history of V1 is not a complete backup
+of the production NTNU course archive (`semestre/` was absent from the Git
+tree inspected on 2026-10-10). Use a verified offline NTNU webedit snapshot
+before staging public course resources. See the
+[full backup/cutover/rollback playbook](docs/PRODUCTION_MIGRATION_PLAYBOOK.md),
+[30-point parity gap register](docs/PRODUCTION_PARITY_GAP_REGISTER.md), and
+[API/secrets integration checklist](docs/INTEGRATION_CONFIGURATION_REGISTER.md).
+A read-only inventory comparison is available:
+
+    python scripts/audit_migration_readiness.py --legacy-repo ../FolkNettside --legacy-site /path/to/ntnu-snapshot --v2-root .
+
+It does not migrate files or certify service parity. GitHub Pages cannot run
+legacy PHP APIs or securely hold private credentials.
+
+Google Analytics uses the same GA4 property as V1. When a visitor consents,
+**public course visits** include `course_code` and `course_semester` from
+the validated course manifest. See
+[GA4 configuration and owner-only reports](docs/INTEGRATION_CONFIGURATION_REGISTER.md#analytics-per-fag--rapportoppsett).
+No individual file path or private data is sent in the manual event.
+
 ## Contributions and safe deployment
 
 Create a feature branch, add focused regression tests, and open a pull request against main. Require passing CI and document remaining limitations. Main deploys only to the separate V2 gh-pages preview. Do not modify the original repository, NTNU production tree, DNS or Engineering Portfolio URL. Use this repository's Issues and Pull Requests for tracked changes where access permits.

@@ -52,7 +52,7 @@ import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsio
 import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js";
 import {renderTopShell,bindShellNavigation} from "./shell/navigation.js";
 import {portfolioInfoPageHTML,loadCV} from "./portfolio/profile-pages.js";
-import {analyticsConsent,analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent} from "./platform/analytics.js";
+import {analyticsConsent,analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent,registerAnalyticsCourses} from "./platform/analytics.js";
 import {mountAnalyticsNotice} from "./platform/analytics-notice.js";
 import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js";
 import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js";
@@ -74,6 +74,7 @@ const app=document.querySelector("#app");
 mountAnalyticsNotice();
 const content=await loadContent();
 const {site,semesters,navLabels,projects}=content;
+registerAnalyticsCourses(semesters);
 const engineeringModels=content.models?.length?content.models:[content.model];
 let engineeringModelId=engineeringModels[0]?.id||"fixture";
 let model=engineeringModels.find(item=>item.id===engineeringModelId)||engineeringModels[0]||content.model;
