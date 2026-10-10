@@ -82,7 +82,9 @@ export function analyticsStatus(){
 export function trackPage(){
   if(!loaded||!analyticsConsent())return false;
   const page=safeAnalyticsPage(globalThis.location?.href);
-  if(!page)return false;
+  // A private or unknown route breaks the last-public-page sequence; when
+  // visitors return to the same public page, count a new visit to that page.
+  if(!page){lastRawRoute="";return false;}
   const rawRoute=String(globalThis.location?.hash||"");
   if(lastRawRoute===rawRoute)return false;
   lastRawRoute=rawRoute;
