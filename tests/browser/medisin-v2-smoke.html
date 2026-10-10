@@ -5,6 +5,7 @@
 import {medisinPageHTML,mountMedisin} from "../../src/diverse/medisin-page.js";
 import {connectGoogleSession,disconnectGoogleSession} from "../../src/platform/google-session.js";
 import {medisinCloudConsentKey} from "../../src/platform/medisin-cloud-consent.js";
+import {decryptMedisinVault} from "../../src/platform/medisin-vault.js";
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 try{
   localStorage.removeItem("folk-medisin-v2:guest");
@@ -29,7 +30,7 @@ try{
   const cloudKey="folk-medisin-v2:google:"+cloudSub;
   localStorage.removeItem(cloudKey);
   localStorage.removeItem(medisinCloudConsentKey(cloudSub));
-  let driveRequests=0,uploads=0;
+  let driveRequests=0,uploads=0,uploadBody="";
   const originalFetch=window.fetch.bind(window);
   const originalConfirm=window.confirm;
   window.__FOLK_GOOGLE_AUTH_CONFIG__={clientId:"12345-fixture.apps.googleusercontent.com"};
@@ -52,6 +53,7 @@ try{
     }
     if(url.includes("www.googleapis.com/upload/drive/v3/files")){
       uploads++;
+      uploadBody=String(options?.body||"");
       return new Response(JSON.stringify({id:"test-file"}),{
         status:200,headers:{"Content-Type":"application/json"}});
     }
@@ -71,9 +73,22 @@ try{
     cloudForm.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
     await new Promise(resolve=>setTimeout(resolve,80));
     assert(driveRequests===0&&uploads===0,"Local edits must stay local until opt-in");
+    const testPassphrase="private test passphrase for browser smoke";
+    const folder=root.querySelector("#medisin-drive-folder");
+    folder.value="sampleSharedFolderId123456789";
+    root.querySelector("#medisin-folder-save").click();
+    root.querySelector("#medisin-vault-passphrase").value=testPassphrase;
     root.querySelector("#medisin-sync").click();
-    for(let i=0;i<50&&!uploads;i++)await new Promise(resolve=>setTimeout(resolve,30));
-    assert(uploads===1,"After opt-in, a Drive backup must be written");
+    for(let i=0;i<150&&!uploads;i++)await new Promise(resolve=>setTimeout(resolve,30));
+    assert(uploads===1,"After opt-in, one encrypted Drive backup must be written");
+    assert(!uploadBody.includes("Synthetic test timer"),
+      "Sensitive timer data leaked into the Drive multipart body in plaintext");
+    assert(uploadBody.includes("sampleSharedFolderId123456789"),"Shared folder was not used");
+    const envelopeMatch=uploadBody.match(/(\\{"format":"folk-medisin-vault"[\\s\\S]*?\\})(?=\\r?\\n--folkMedisinEncrypted)/);
+    assert(envelopeMatch,"Encrypted vault envelope was not included in upload");
+    const decrypted=await decryptMedisinVault(JSON.parse(envelopeMatch[1]),testPassphrase);
+    assert(decrypted.entries.some(e=>e.name==="Synthetic test timer"),
+      "Drive ciphertext could not be decrypted back into the correct timer");
     const disable=root.querySelector("#medisin-cloud-disable");
     assert(disable.hidden===false,"Revocation control not visible");
     for(let i=0;i<50&&disable.disabled;i++)await new Promise(resolve=>setTimeout(resolve,20));
@@ -94,9 +109,10 @@ try{
     delete window.__FOLK_GOOGLE_AUTH_CONFIG__;
     localStorage.removeItem(cloudKey);
     localStorage.removeItem(medisinCloudConsentKey(cloudSub));
+    localStorage.removeItem("folk-medisin-v2:drive-folder:"+cloudSub);
   }
   document.body.dataset.status="pass";
-  document.querySelector("#result").textContent="MedisinTimer local history, no implicit Drive upload, explicit sync/revoke: PASS";
+  document.querySelector("#result").textContent="MedisinTimer E2EE AES-GCM Drive vault, shared folder, opt-in and revocation: PASS";
 }catch(error){
   document.body.dataset.status="fail";
   document.querySelector("#result").textContent=String(error?.stack||error);
