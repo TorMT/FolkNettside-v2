@@ -1,3 +1,4 @@
+import {pythonSourceURL} from "../python-source.js";
 import {fetchText} from "../utils.js";
 import {mountPythonCodeCell} from "../python-code-cell.js";
 import {createPythonSession} from "../python-session.js";
@@ -32,8 +33,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
         const value=await session.run(api.getSource(),{
           status:message=>api.setStatus(message),
           stdin:container.querySelector("#python-stdin").value,
-          sourceURL:resource.sourceText===undefined&&resource.path?
-            new URL(resource.path,document.baseURI).href:"",
+          sourceURL:pythonSourceURL(resource,document.baseURI),
           onOutput:output=>api.pushOutput(output)
         });
         api.showOutput(value);
