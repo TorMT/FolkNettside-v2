@@ -56,13 +56,34 @@ export async function readEncryptedMedisinDriveBackup(sub,passphrase,{folderId=n
   if(text.length>4_000_000)throw new Error("Encrypted vault is too large");
   const envelope=JSON.parse(text);
   const backup=validateMedisinBackup(await decryptMedisinVault(envelope,passphrase));
-  return {file,backup};
+  return {file,backup,revision:await vaultRevision(text)};
 }
-export async function writeEncryptedMedisinDriveBackup(sub,passphrase,backup,{folderId=null,allowReplace=false}={}){
+// SHA-256 fingerprint of the exact encrypted file; no plaintext or passphrase leaves this module.
+export async function vaultRevision(serialized){
+  const bytes=new TextEncoder().encode(serialized);
+  const digest=await crypto.subtle.digest("SHA-256",bytes);
+  return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+}
+export function assertVaultRevision(expected,actual){
+  if(typeof expected!=="string"||! /^[a-f0-9]{64}$/.test(expected)||expected!==actual)
+    throw new Error("Drive-backup ble endret av en annen enhet. Synkroniser på nytt før lagring.");
+}
+export async function writeEncryptedMedisinDriveBackup(sub,passphrase,backup,{folderId=null,allowReplace=false,expectedRevision=null}={}){
   validateMedisinBackup(backup);
   const folder=acceptFolder(folderId);
   const existing=await findEncryptedMedisinDriveBackup(sub,{folderId:folder});
   if(existing&&!allowReplace)throw new Error("Encrypted backup already exists; read/merge before replacing");
+  // A replacement requires the exact snapshot read and decrypted by this session.
+  // This detects intervening writes; Drive does not provide an atomic CAS here.
+  if(existing){
+    if(!allowReplace||!expectedRevision)throw new Error("Read and unlock the current Drive-backup before replacing it.");
+    const current=await request(sub,API+"/"+encodeURIComponent(existing.id)+"?alt=media&supportsAllDrives=true");
+    const currentText=await current.text();
+    if(currentText.length>4_000_000)throw new Error("Encrypted vault is too large");
+    assertVaultRevision(expectedRevision,await vaultRevision(currentText));
+  }else if(expectedRevision){
+    throw new Error("Drive-backup disappeared during synchronization. Retry without overwriting.");
+  }
   // The user-supplied key is only ever used by crypto.subtle, never sent to Drive.
   const envelope=await encryptMedisinVault(backup,passphrase);
   const serialized=JSON.stringify(envelope);
