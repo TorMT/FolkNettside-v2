@@ -7,9 +7,9 @@ export const DIVERSE_MODULES=[
     status:"native",
     access:"public",
     category:"Outdoor",
-    summary:"Kart, dykkesteder, vrak, dybde, fauna, adkomst, farer og kildeproveniens.",
+    summary:"Offentlig dykkekart med kilder, dybder og fauna. Personlig dykkelogg med lokal og kryptert Drive-synk.",
     legacyUrl:null,
-    storage:"local",
+    storage:"local+encrypted-google-drive",
     sync:"site-google-session"
   },
   {
@@ -20,7 +20,7 @@ export const DIVERSE_MODULES=[
     status:"native",
     access:"optional",
     category:"Data",
-    summary:"Native v2 Brewing UI for hydrometerdata, bryggelogger, oppskrifter og gjæringsanalyse. Google Drive reuses the site-level account session.",
+    summary:"Brygging med hydrometer, logger, oppskrifter og kryptert personlig råvarelager. Google Drive bruker sidens felles innlogging.",
     legacyUrl:"https://tormt.folk.ntnu.no/diverse/Brygging/",
     storage:"local+google-drive",
     sync:"site-google-session"
