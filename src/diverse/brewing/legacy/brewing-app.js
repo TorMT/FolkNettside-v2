@@ -1,7 +1,7 @@
 (function (global) {
   'use strict';
 
-  const CACHE_KEY = 'brewingDashboardCache:v7';
+  const CACHE_KEY = 'folk-v2:brewing-dashboard-cache.v1';
   const CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000;
   const renderApi = global.BrewingHydrometerRender;
   const logApi = global.BrewingLogViewer;
