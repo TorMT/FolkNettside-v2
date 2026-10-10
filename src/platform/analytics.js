@@ -1,6 +1,7 @@
 /**
  * GA4, shared with legacy FolkNettside but never with its public Looker embed.
- * No Google request is made until visitor opt-in; reporting access remains in
+ * The tag may load before opt-in, but no manual page-view is emitted until
+ * consent. Reporting access remains in
  * the owner's Google account. Page locations are deliberately coarse to avoid
  * disclosing course names, file paths, medical data or URL parameters.
  */
@@ -15,7 +16,7 @@ const LABELS=Object.freeze({
   "/courses":"Courses","/engineering":"Engineering","/tools":"Tools",
   "/diverse":"Diverse","/projects":"Projects","/settings":"Settings"
 });
-let loaded=false,lastRawRoute="";
+let loaded=false,configured=false,lastRawRoute="";
 let sessionChoice=null;
 
 export function analyticsMeasurementId(value=globalThis.__FOLK_ANALYTICS_ID__){
@@ -91,36 +92,43 @@ export function trackPage(){
   });
   return true;
 }
-export function enableAnalytics(){
+/** Preload the Google tag with analytics_storage denied, without measuring visits. */
+export function loadAnalytics(){
   const id=analyticsMeasurementId();
-  if(!id||!analyticsConsent()||typeof document==="undefined")return false;
-  if(loaded){
-    globalThis.gtag?.("consent","update",{analytics_storage:"granted"});
-    trackPage();
-    return true;
-  }
+  if(!id||typeof document==="undefined")return false;
+  if(loaded)return true;
   loaded=true;
   globalThis.dataLayer=globalThis.dataLayer||[];
   globalThis.gtag=globalThis.gtag||function(){globalThis.dataLayer.push(arguments)};
-  // Google Consent Mode v2: never grant advertising data or personalization.
+  // Set Consent Mode before the tag is loaded. Ads stay denied permanently.
   globalThis.gtag("consent","default",{
     analytics_storage:"denied",ad_storage:"denied",
     ad_user_data:"denied",ad_personalization:"denied"
   });
   globalThis.gtag("js",new Date());
-  globalThis.gtag("consent","update",{analytics_storage:"granted"});
-  globalThis.gtag("config",id,{
-    send_page_view:false,anonymize_ip:true,allow_google_signals:false,
-    allow_ad_personalization_signals:false,
-    page_location:globalThis.location.origin+globalThis.location.pathname+"#/",
-    page_referrer:""
-  });
+  // Delay GA4 *configuration* as well as page views until opt-in. Loading
+  // third-party JS itself still makes a Google network request.
   const script=document.createElement("script");
   script.async=true;
   script.src="https://www.googletagmanager.com/gtag/js?id="+encodeURIComponent(id);
   script.referrerPolicy="strict-origin-when-cross-origin";
   script.dataset.folkAnalytics="v2";
   document.head.append(script);
+  return true;
+}
+export function enableAnalytics(){
+  if(!analyticsConsent()||!loadAnalytics())return false;
+  const id=analyticsMeasurementId();
+  globalThis.gtag("consent","update",{analytics_storage:"granted"});
+  if(!configured){
+    configured=true;
+    globalThis.gtag("config",id,{
+      send_page_view:false,anonymize_ip:true,allow_google_signals:false,
+      allow_ad_personalization_signals:false,
+      page_location:globalThis.location.origin+globalThis.location.pathname+"#/",
+      page_referrer:""
+    });
+  }
   trackPage();
   return true;
 }
@@ -138,5 +146,5 @@ export function setAnalyticsConsent(value,storage){
 }
 if(typeof window!=="undefined"){
   window.addEventListener("hashchange",trackPage);
-  queueMicrotask(enableAnalytics);
+  queueMicrotask(()=>{loadAnalytics();enableAnalytics()});
 }
