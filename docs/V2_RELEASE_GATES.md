@@ -43,20 +43,9 @@ Uttesting på ekte Google-kontoer og enheter gjenstår; automatiserte tester
 bekrefter bare frontend-logikken.
 
 
-### MedisinTimer sky-synk: samtykke før ukryptert opplasting (2026-10-10)
+### Historisk samtykketrinn (erstattet 2026-10-10)
 
-Google-innlogging alene starter nå **ikke** automatisk Google Drive-lesing eller
--opplasting av MedisinTimer-data. Brukeren må velge **Aktiver Drive-synk**
-og bekrefte en tydelig advarsel om at timer-/dosehistorikk synkroniseres
-som **ukryptert JSON**. Valget lagres lokalt per Google-konto (`sub`).
-Uten dette valget forblir historikken lokal selv om Google er tilkoblet.
-Det finnes også en **Slå av sky-synk**-knapp som stopper videre
-automatisk synkronisering. Den sletter *ikke* tidligere lagrede Drive-data.
-
-Dette er en **eksplisitt samtykkekontroll, ikke E2E-kryptering**.
-Reell ende-til-ende-kryptering, revisjon av gamle Drive-kopier,
-atomerisk fler-enhetssynk/konflikthåndtering og to-konto-/to-enhetstest
-må fortsatt løses før MedisinTimer kan klassifiseres som ferdig.
+Den tidligere ukrypterte MedisinTimer-synken er deaktivert. Nåværende V2 benytter kun eksplisitt samtykke og AES-256-GCM-kryptert Drive-backup. Gamle ukrypterte filer slettes ikke automatisk. Se [PRIVATE_ACCOUNT_SYNC.md](PRIVATE_ACCOUNT_SYNC.md).
 
 ### MedisinTimer-kryptering og Drive-mappe – 2026-10-10
 
@@ -69,3 +58,6 @@ forblir urørt. **Lokale nettleserdata og manuelle JSON-eksporter er fortsatt
 ukrypterte**, og fler-enhetskonflikter uten atomisk revisjonskontroll gjenstår.
 Alle begrensninger og manuelt migreringsløp er i
 [MEDISINTIMER_ENCRYPTED_DRIVE.md](MEDISINTIMER_ENCRYPTED_DRIVE.md).
+
+
+**Videreføring:** Brygging råvarelager og personlig dykkelogg har nå separate konto- og formålsbundne krypterte Drive-kopier. Live OAuth/Drive, delt mappe og to-enhetskonflikter er fortsatt release gates. SiteUpdater-kode er videreutviklet uten å migrere faktiske kursfiler. Se [PRIVATE_ACCOUNT_SYNC.md](PRIVATE_ACCOUNT_SYNC.md).
