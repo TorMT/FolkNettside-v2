@@ -1,5 +1,5 @@
-import {getJSZip} from "../../vendor/jszip.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
-import {escapeHTML} from "../utils.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {getJSZip} from "../../vendor/jszip.js?v=4dd774bc5c727b2eb66e9af101a8f7f5d47f7e8b";
+import {escapeHTML} from "../utils.js?v=4dd774bc5c727b2eb66e9af101a8f7f5d47f7e8b";
 export async function render(container,resource){
  const path=resource.url||resource.path;
  const response=await fetch(path);

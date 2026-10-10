@@ -1,7 +1,8 @@
-import {normaliseWaveCase,waveObservationsCSV} from "./wave-core.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
-import {legacyAddedWaveResistance,legacyMorisonWaveForce} from "./wave-concept-estimates.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+import {normaliseWaveCase,waveObservationsCSV} from "./wave-core.js?v=4dd774bc5c727b2eb66e9af101a8f7f5d47f7e8b";
+import {parseMotionRAOCSV} from "./motion-rao.js?v=4dd774bc5c727b2eb66e9af101a8f7f5d47f7e8b";
+import {legacyAddedWaveResistance,legacyMorisonWaveForce} from "./wave-concept-estimates.js?v=4dd774bc5c727b2eb66e9af101a8f7f5d47f7e8b";
 import {appendWaveRecord,importWaveCSV,readWaveCollection,
-  sampleWaveRecord,writeWaveCollection,importWaveCollectionJSON} from "./wave-collection.js?v=bb72b900cc676bef8d25a864e4fa8ed36aecce2c";
+  sampleWaveRecord,writeWaveCollection,importWaveCollectionJSON} from "./wave-collection.js?v=4dd774bc5c727b2eb66e9af101a8f7f5d47f7e8b";
 
 export function waveTraceSVG(points){
   if(!Array.isArray(points)||!points.length)return "<span>No observations</span>";
@@ -25,7 +26,7 @@ function downloadText(text,name,mime){
   anchor.click();setTimeout(()=>URL.revokeObjectURL(url),8000);
 }
 export function mountWaveControls(host,scene,{open=false}={}){
-  let records=readWaveCollection(),disposed=false,animate=true,active=false;
+  let records=readWaveCollection(),disposed=false,animate=true,active=false,raoTable=null;
   const root=document.createElement("details");
   root.className="model-wave-controls";root.open=open;
   root.innerHTML=`<summary>Waves &amp; time-series library <span>visual / exploratory</span></summary>
@@ -51,12 +52,31 @@ export function mountWaveControls(host,scene,{open=false}={}){
           <option value="anchored" selected>Anchored — model stays still</option>
           <option value="follow">Follow waves — illustrative heave</option>
           <option value="follow-slope">Surface tilt — illustrative heave, roll &amp; pitch</option>
+          <option value="rao" disabled>Imported RAO — linear 6-DOF (requires file)</option>
         </select>
       </label>
       <button type="button" data-wave-capture>Collect probe series</button>
       <label class="wave-phase-scrub">Wave phase <input data-wave-phase type="range" min="0" max="360" step="5" value="0" aria-label="Wave animation phase in degrees">
         <output data-wave-phase-value>0°</output>
       </label>
+    </div>
+    <div class="model-wave-rao" data-wave-rao-panel>
+      <div class="model-wave-actions">
+        <strong>Motion RAO · import from seakeeping solver</strong>
+        <label class="model-wave-import">Import 6-DOF RAO CSV
+          <input data-wave-rao-import type="file" accept=".csv,.txt" hidden>
+        </label>
+        <a data-wave-rao-example href="${new URL("../../examples/rao/synthetic_six_dof_rao.csv",import.meta.url).href}" download="synthetic_six_dof_rao.csv">Download synthetic example</a>
+        <button type="button" data-wave-rao-remove disabled>Unload RAO</button>
+      </div>
+      <p data-wave-rao-status role="status">No RAO loaded. Strict CSV columns:
+        <code>heading_deg,omega_rad_s,dof,amplitude,phase_deg</code>.
+        One row per surge, sway, heave, roll, pitch and yaw at each heading and frequency.
+        Translations in m/m, rotations in rad/m incident wave <strong>amplitude</strong>.
+        Phase leads positive, using exp(−iωt). Headings are wave propagation.
+        Reference point must match the vessel's geometric centre in the preview.
+      </p>
+      <p class="model-wave-note">Only supplied headings are usable. Frequency is interpolated in complex RAO coordinates, never extrapolated. Imported files stay local to this tab; the synthetic example is not measured or validated response data.</p>
     </div>
     <p class="model-wave-status" role="status">Linear regular-wave preview. Hydro remains a still-water calculation.</p>
     <div class="model-wave-library">
@@ -80,7 +100,7 @@ export function mountWaveControls(host,scene,{open=false}={}){
       <pre data-wave-estimate-output role="status">No wave loads calculated.</pre>
     </details>
     <p class="model-wave-note">Wave heading is the direction of propagation (+X is following seas); Head seas = 180°, port beam = 90° and starboard beam = 270°. The labels refer to a vessel with forward along +X and port along +Y.</p>
-    <p class="model-wave-note">Movement is relative to the model's geometric centre. Follow adds illustrative heave; Surface tilt also aligns the hull with the local wave tangent (limited to ±12°) so the effect is visible. Neither mode predicts physical heave, roll, pitch, mooring dynamics or RAOs. Hydro and still-water contours are unchanged.</p>
+    <p class="model-wave-note">Movement is relative to the model's geometric centre. Follow adds illustrative heave; Surface tilt aligns with the local wave tangent (limited to ±12°). Neither is a vessel response calculation. Imported RAO mode instead animates the 6-DOF complex linear response supplied by an external solver, with no artificial scaling or damping. RAO accuracy and phase conventions depend entirely on the imported data, its reference point, and its heading/frequency coverage. Hydro remains still-water.</p>
     <p class="model-wave-note">Synthetic series are explicitly labeled. CSV columns: time_s,eta_m. Imported measurements do not automatically become spatial waves or validated wave loads. Records stay in this browser until exported or cleared.</p>`;
   host.append(root);
   const $=query=>root.querySelector(query);
@@ -143,12 +163,64 @@ export function mountWaveControls(host,scene,{open=false}={}){
     try{
       const wave=options();
       const motionMode=$("[data-wave-motion]").value;
-      scene.actions.setWave({enabled:active,...wave,animate,motionMode,timeS:phaseTime(wave)});
-      const motionLabel=motionMode==="anchored"?"stationary vessel":motionMode==="follow"?"illustrative vertical following":"illustrative heave + wave slope (roll/pitch capped at 12°)";
-      status.textContent=active?`Airy wave: λ=${wave.wavelengthM.toFixed(2)} m, c=${wave.phaseSpeedMs.toFixed(2)} m/s · ${motionLabel}. Not a vessel motion/RAO prediction.`:
+      const result=scene.actions.setWave({enabled:active,...wave,animate,motionMode,
+        timeS:phaseTime(wave),raoTable});
+      const motionLabel=motionMode==="anchored"?"stationary vessel":
+        motionMode==="follow"?"illustrative vertical following":
+        motionMode==="follow-slope"?"illustrative heave + wave slope (tilt capped at 12°)":
+        "imported linear 6-DOF RAO ("+result?.raoSource+"), not a numerical solver";
+      status.textContent=active?`Airy wave: λ=${wave.wavelengthM.toFixed(2)} m, c=${wave.phaseSpeedMs.toFixed(2)} m/s · ${motionLabel}.`:
         "Wave surface hidden; still-water hydro and contour are unchanged.";
-    }catch(error){active=false;scene.actions.setWave({enabled:false});status.textContent=String(error?.message||error)}
+    }catch(error){
+      active=false;scene.actions.setWave({enabled:false});
+      $("[data-wave-show]").textContent="Show waves in 3D";
+      status.textContent="No wave motion: "+String(error?.message||error);
+    }
   }
+  const raoStatus=$("[data-wave-rao-status]");
+  const raoModeOption=$('[data-wave-motion] option[value="rao"]');
+  const raoRemove=$("[data-wave-rao-remove]");
+  $("[data-wave-rao-import]").addEventListener("change",async event=>{
+    const file=event.target.files?.[0];
+    if(!file)return;
+    try{
+      if(file.size>1600000)throw Error("RAO file is larger than the 1.6 MB limit");
+      const parsed=parseMotionRAOCSV(await file.text(),{name:file.name});
+      if(disposed)return;
+      raoTable=parsed;raoModeOption.disabled=false;raoRemove.disabled=false;
+      // Keep the user's selected wave period and heading when the imported
+      // RAO covers them. Sort order of the RAO table must not silently change
+      // the current sea from T=6 s to T=10 s.
+      const requestedHeading=((val("heading")%360)+360)%360;
+      const heading=parsed.headings.includes(requestedHeading)?
+        requestedHeading:parsed.headings[0];
+      const frequencies=parsed.rows.filter(r=>r.headingDeg===heading)
+        .map(r=>r.omegaRadS);
+      const requestedOmega=2*Math.PI/val("period");
+      const nearestOmega=Math.min(Math.max(requestedOmega,
+        Math.min(...frequencies)),Math.max(...frequencies));
+      $("[data-wave-heading]").value=String(heading);
+      $("[data-wave-period]").value=String(2*Math.PI/nearestOmega);
+      $("[data-wave-motion]").value="rao";
+      raoStatus.textContent="Loaded "+file.name+" · "+parsed.rows.length+
+        " complete six-DOF frequency/heading samples · propagation headings "+
+        parsed.headings.join(", ")+"°. Extrapolation disabled; solver provenance must be verified.";
+      active=true;$("[data-wave-show]").textContent="Hide waves";
+      updateWave();
+    }catch(error){
+      if(!disposed)raoStatus.textContent="RAO import rejected: "+String(error?.message||error);
+    }
+    event.target.value="";
+  });
+  raoRemove.addEventListener("click",()=>{
+    raoTable=null;raoModeOption.disabled=true;raoRemove.disabled=true;
+    if($("[data-wave-motion]").value==="rao"){
+      $("[data-wave-motion]").value="anchored";active=false;
+      $("[data-wave-show]").textContent="Show waves in 3D";
+      updateWave();
+    }
+    raoStatus.textContent="RAO unloaded. Import a solver export or use the synthetic teaching sample.";
+  });
   $("[data-wave-show]").addEventListener("click",event=>{
     active=!active;event.currentTarget.textContent=active?"Hide waves":"Show waves in 3D";updateWave();
   });
