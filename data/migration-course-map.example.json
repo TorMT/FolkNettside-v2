@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "source": "https://tormt.folk.ntnu.no/includes/navbar.html",
+  "fetched": "2026-10-10",
+  "notes": "Public navigation inventory only. Do not infer course codes or copy protected files. Set v2CourseCode and reviewed=true only after checking legacy course metadata. The real production file inventory requires a verified NTNU webedit snapshot.",
+  "mappings": [
+    {
+      "legacy": "1/exphil",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "1/genkjemi",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "1/itgk",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "2/mekanikk2",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "2/prosessteknikk",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "2/statistikk",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "2/fysikk",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "2/UorgKjemi",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "3/mekanikk1",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "3/marine-konstruksjoner",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "3/marin-intro",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "3/Fluid",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "3/organisk-kjemi",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "3/Matte3",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "4/marin-Hydro",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "4/MaterialTeknikk",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "4/FysikalskKjemi",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "4/TermoDynamikk",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "4/Strømming",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "5/marin-maskineri",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "5/teknologiledelse",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "5/marin-teknikk-4-propulsjon",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "5/Marin-Dynamikk",
+      "v2CourseCode": null,
+      "reviewed": false
+    },
+    {
+      "legacy": "5/marin-machinery-design-and-condition-monitoring",
+      "v2CourseCode": null,
+      "reviewed": false
+    }
+  ]
+}
