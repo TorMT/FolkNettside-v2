@@ -73,6 +73,34 @@ try{
  check(JSON.stringify(moved.target)!==JSON.stringify(fitted.target),"Six-axis camera translation did not pan");
  const link=$("[data-model-spacemouse]");
  check(link,"SpaceMouse Connect button not visible");
+ $("[data-model-side='port']").click();
+ const port=view.actions.cameraState();
+ check(Math.abs(port.position[0]-port.target[0])>Math.abs(port.position[1]-port.target[1]),
+   "Port camera button did not select X-axis side");
+ $("[data-model-side='starboard']").click();
+ const starboard=view.actions.cameraState();
+ check(Math.sign(starboard.position[0]-starboard.target[0])!==Math.sign(port.position[0]-port.target[0]),
+   "Port/Starboard controls mapped to the same view");
+ $("[data-model-top]").click();
+ const top=view.actions.cameraState();
+ check(top.up[1]===1&&top.up[2]===0,"Top camera has invalid up vector");
+ $("[data-model-side='front']").click();
+ const front=view.actions.cameraState();
+ check(front.up[2]===1,"Front camera failed to restore Z-up after top view");
+ const tilt=$('[data-model-tilt="roll:5"]');
+ check(tilt,"Heel tilt button missing");
+ tilt.click();tilt.click();
+ check(Math.abs(view.actions.getAttitude().heelDeg-10)<1e-9,
+   "Heel +5 button did not apply rotation twice");
+ const trim=$('[data-model-tilt="trim:-5"]');
+ trim.click();
+ check(Math.abs(view.actions.getAttitude().trimDeg+5)<1e-9,
+   "Trim -5 button did not change vessel pitch");
+ check(JSON.stringify(view.actions.cameraState().position)===JSON.stringify(front.position),
+   "Tilt unexpectedly changed camera view");
+ $("[data-model-reset-rotation]").click();
+ check(Math.abs(view.actions.getAttitude().heelDeg)<1e-9,
+   "Reset attitude failed");
  check(JSON.stringify(doc.components.map(c=>c.geometry.positions))===originalGeometry,
    "Exploding or isolating parts changed original CAD mesh data");
  check($("[data-model-spacemouse-status]")?.textContent.includes("WebHID")||
