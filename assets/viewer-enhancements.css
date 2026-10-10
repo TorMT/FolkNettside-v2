@@ -140,3 +140,33 @@
 .model-wave-actions .wave-phase-scrub output{min-width:34px;text-align:right;
   font-variant-numeric:tabular-nums;color:var(--ink)}
 .model-wave-status{line-height:1.55}
+
+
+/* One site-level SpaceMouse profile: settings view and shared CAD controls. */
+.spacemouse-settings-card{display:grid;gap:12px}
+.spacemouse-settings-title{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.spacemouse-settings-title>div{display:grid;gap:5px}
+.spacemouse-settings-title strong{font-size:15px}
+.spacemouse-settings-title small{font-size:11px;color:var(--ink-2)}
+.spacemouse-settings-card>.muted{font-size:11px;line-height:1.55;max-width:820px;margin:0}
+.spacemouse-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px}
+.spacemouse-pref{display:flex;align-items:center;justify-content:space-between;gap:9px;
+  min-height:42px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+  background:var(--surface-sunk);font-size:11px;color:var(--ink);min-width:0}
+.spacemouse-pref>span{flex:1;min-width:0}
+.spacemouse-pref input[type=range]{width:90px;min-width:65px;accent-color:var(--accent)}
+.spacemouse-pref output{min-width:28px;text-align:right;font-variant-numeric:tabular-nums}
+.spacemouse-pref select{max-width:180px;border-radius:6px;padding:6px;
+  border:1px solid var(--line);color:var(--ink);background:var(--surface)}
+.spacemouse-toggle{justify-content:flex-start}
+.spacemouse-toggle input{accent-color:var(--accent)}
+.spacemouse-settings-card .settings-feedback{font-size:11px;color:var(--ink-2);min-height:0}
+.cad-view-presets{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.cad-view-presets .btn{font-size:11px;min-height:32px;padding:6px 10px}
+[data-model-attitude-actions]{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+[data-model-attitude-actions] button{min-height:34px;padding:6px 9px;font-size:11px}
+.model-spacemouse-settings a{color:var(--accent);text-decoration:underline;font-size:11px}
+@media(max-width:660px){
+ .spacemouse-fields{grid-template-columns:minmax(0,1fr)}
+ .spacemouse-pref input[type=range]{width:110px}
+}
