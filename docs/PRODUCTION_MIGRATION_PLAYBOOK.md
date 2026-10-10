@@ -120,6 +120,8 @@ FolkNettside-v2/
 
 Dette er en **forslått** organisering, ikke en ordre om å omdøpe alle gamle filer. Behold opprinnelige filnavn/relative baner der det er viktig for interne lenker, videoer eller formler. Semester og fagkode må verifiseres mot V1, ikke gjettes ut fra navn. Bruk helst den faktiske, eksisterende studieplanen for periodisering og kategorisering.
 
+Kildekartleggingen har allerede funnet [24 offentlige V1-faglenker](PUBLIC_V1_COURSE_INVENTORY_2026-10-10.md). De originale mappene har navn som `marin-intro`, `Fluid` og `Marin-Dynamikk`, ikke nødvendigvis en offisiell fagkode. Start med `data/migration-course-map.example.json`: fyll ut `v2CourseCode` og sett `reviewed: true` kun etter at hver kode og semester er kontrollert mot V1. Lag eventuelt en egen gjennomgått `data/migration-course-map.json` (uten private data), og kjør inventarskriptet med `--mapping`. `needs-mapping` er en stopper, ikke et tomt fag som kan hoppes over.
+
 En minimal `course.json` i hvert offentlig fag kan være:
 
 ```json
@@ -163,7 +165,7 @@ Gjenta for hvert fag i backupens verifiserte liste, og vis at `resources[]` peke
 Med en lokal backup og side-ved-side V2-klone:
 
 ```bash
-python scripts/audit_migration_readiness.py --legacy-repo ../FolkNettside --legacy-site /path/to/ntnu-webedit-v1 --v2-root . --out migration-audit.json
+python scripts/audit_migration_readiness.py --legacy-repo ../FolkNettside --legacy-site /path/to/ntnu-webedit-v1 --v2-root . --mapping data/migration-course-map.json --out migration-audit.json
 ```
 
 For Windows PowerShell kan du bruke fullstendige, siterte Windows-stier:
