@@ -149,3 +149,28 @@
 .dive-map-legend .dive-map-pin{width:20px;height:20px;min-width:20px;border-width:1px;box-shadow:none}
 .dive-map-legend .dive-map-pin svg{width:13px;height:13px}
 @media(max-width:760px){.dive-map-legend{top:auto;bottom:47px;left:9px;right:auto;font-size:9px}}
+
+/* V2 private data vaults (diving and brewing); shared controls stay responsive. */
+.dive-log-panel{margin:0 max(20px,calc((100vw - 1380px)/2)) 15px;border:1px solid var(--line);border-radius:13px;background:var(--surface);overflow:hidden}
+.dive-log-panel>summary{cursor:pointer;padding:14px 17px;font-size:13px;font-weight:650;color:var(--ink)}
+.dive-log-panel[open]>summary{border-bottom:1px solid var(--line)}
+#dive-log-root{padding:15px 18px}
+#dive-log-root>p{font-size:12px;line-height:1.6;color:var(--ink-2)}
+#dive-log-root .medisin-form{max-width:100%}
+#dive-log-root .medisin-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px}
+#dive-log-root .medisin-history{max-height:340px;overflow:auto;margin:15px 0}
+#dive-log-root .medisin-sync-panel,
+#brew-local-inventory .medisin-sync-panel{margin:14px 0 0;max-width:none;flex-wrap:wrap;align-items:flex-start}
+#dive-log-root .medisin-buttons,
+#brew-local-inventory .medisin-buttons{flex-wrap:wrap;gap:8px}
+#dive-log-root .medisin-buttons label,
+#brew-local-inventory .medisin-buttons label{min-width:min(230px,100%);max-width:100%}
+#dive-log-root input,#brew-local-inventory input{max-width:100%}
+#dive-log-root .medisin-history-item{overflow-wrap:anywhere;gap:10px}
+@media(max-width:760px){
+ .dive-log-panel{margin:0 12px 12px}
+ #dive-log-root{padding:12px}
+ #dive-log-root .medisin-sync-panel,
+ #brew-local-inventory .medisin-sync-panel{padding:12px}
+ #dive-log-root .medisin-buttons>*,#brew-local-inventory .medisin-buttons>*{max-width:100%}
+}
