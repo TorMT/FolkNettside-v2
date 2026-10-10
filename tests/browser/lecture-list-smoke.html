@@ -1,0 +1,49 @@
+<!doctype html><html lang="nb"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/viewer-enhancements.css">
+<title>Native V2 lecture catalog browser smoke</title>
+</head><body data-status="running"><div id="app"></div><pre id="result">running</pre>
+<script type="module">
+import {mountViewer} from "../../src/viewers/viewer-shell.js";
+import {localVideoProgress} from "../../src/video/progress-store.js";
+const expect=(value,message)=>{if(!value)throw Error(message)};
+const video={url:"https://www.youtube.com/watch?v=fkk7xVuNJ2Y"};
+try{
+  localVideoProgress.clear(video);
+  const root=document.querySelector("#app");
+  await mountViewer(root,{
+    kind:"JSON",path:"../../tests/fixtures/lecture-list.json",
+    name:"Forelesning.json",label:"Forelesninger",
+    semester:3,courseCode:"TEP4100",section:"Forelesninger"
+  },()=>{});
+  expect(root.querySelectorAll(".lecture-entry").length===3,
+    "Expected three lectures, grouped from actual legacy schema");
+  expect(root.querySelectorAll(".lecture-group").length===2,
+    "Expected two grouped lecture headings");
+  expect(root.querySelector(".lecture-group summary strong")?.textContent==="Forelesning 2",
+    "Groups must sort numerically");
+  const search=root.querySelector(".lecture-controls input[type=search]");
+  search.value="Bernoulli";search.dispatchEvent(new Event("input"));
+  expect(root.querySelectorAll(".lecture-entry").length===1,"Topic search must filter videos");
+  search.value="";search.dispatchEvent(new Event("input"));
+  const mark=[...root.querySelectorAll(".lecture-entry")].find(x=>x.textContent.includes("Bernoulli"))
+    ?.querySelector(".lecture-watch");
+  expect(mark,"Mark watched button missing");
+  mark.click();
+  expect(localVideoProgress.read(video).watched===true,"Watched state not persisted");
+  const only=root.querySelector(".lecture-only-unwatched input");
+  only.checked=true;only.dispatchEvent(new Event("change"));
+  expect(root.querySelectorAll(".lecture-entry").length===2,"Unwatched filter failed");
+  root.querySelector('[data-action="resetProgress"]').click();
+  expect(localVideoProgress.read(video).watched!==true,"Reset progress failed");
+  only.checked=false;only.dispatchEvent(new Event("change"));
+  expect(root.querySelectorAll(".lecture-entry").length===3,"Reset did not restore full list");
+  localVideoProgress.clear(video);
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent="Native lecture catalog, sorting, search, watched state, filter and reset PASS";
+}catch(error){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>
