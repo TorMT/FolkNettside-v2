@@ -1,7 +1,7 @@
 let runtimePromise;
 
-const CSS_URL="https://unpkg.com/kekule/dist/themes/default/kekule.css";
-const JS_URL="https://unpkg.com/kekule/dist/kekule.min.js";
+const CSS_URL="https://unpkg.com/kekule@1.0.4/dist/themes/default/kekule.css";
+const JS_URL="https://unpkg.com/kekule@1.0.4/dist/kekule.min.js";
 
 function loadCss(){
   if(document.querySelector('link[data-v2-kekule]'))return Promise.resolve();
