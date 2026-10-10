@@ -2,5 +2,10 @@
   "matpris": {
     "enabled": false,
     "endpoint": null
+  },
+  "brewing": {
+    "enabled": false,
+    "raptBase": null,
+    "brewingBase": null
   }
 }
