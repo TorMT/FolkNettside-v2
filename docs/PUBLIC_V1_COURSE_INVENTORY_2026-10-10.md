@@ -35,6 +35,28 @@ The navigation's labels are public study descriptions, **not verified NTNU cours
 
 The preliminary mapping fixture is [`data/migration-course-map.example.json`](../data/migration-course-map.example.json): all 24 public slugs are listed, all `v2CourseCode` values remain `null`, and `reviewed` remains `false`. A verified migration uses a separate reviewed `data/migration-course-map.json` (or `--mapping`) and the read-only audit reports `needs-mapping` until the correct code is documented.
 
+## Preliminary public-index counts (not a full backup)
+
+The same public `/semestre/index.json` exposes the following **path-list
+counts**. These are not verified files; they are not necessarily complete or
+authorized to redistribute.
+
+| Semester | Indexed paths | Containing a protected label |
+|---:|---:|---:|
+| 1 | 59 | 0 |
+| 2 | 49 | 1 |
+| 3 | 207 | 10 |
+| 4 | 133 | 25 |
+| 5 | 3 | 0 |
+| **Total** | **451** | **36** |
+
+The apparent mismatch is itself a **serious stale-index warning**:
+semester 5 has five navigation entries yet only **three** paths in the
+top-level public index. Do not use these figures as release inventory or as
+proof that files are absent. The read-only NTNU webedit snapshot, per-course
+index inspection and an authorized byte-by-byte file inventory are necessary
+before parity can be measured.
+
 ## Protected / rights-restricted content
 
 The public `/semestre/index.json` text includes paths with directory labels such as `Ekstra(beskyttet)`, and the V1 homepage notes password-protected folders. This is a **clear stop sign** for blind file copying: even a public index listing does not confer redistribution rights or show actual authorization boundaries. `scripts/audit_migration_readiness.py` excludes files whose directory components contain `beskyttet` or similar keywords, but this is only a filename heuristic. Review file contents, copyright, sharing permissions and ownership before publishing the rest.
