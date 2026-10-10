@@ -71,7 +71,8 @@ def file_inventory(directory: Path) -> list[Path]:
 
 def protected(file: Path, root: Path) -> bool:
     rel = file.relative_to(root)
-    segments = {part.casefold() for part in rel.parts}
+    segments = {word for part in rel.parts for word in
+                re.split(r"[^a-z0-9åøæ]+", part.casefold())}
     name = file.name.casefold()
     return bool(segments & SECRET_SEGMENTS or
                 file.suffix.casefold() in PRIVATE_SUFFIX or
