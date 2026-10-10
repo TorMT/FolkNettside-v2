@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
-import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "../src/diverse/dive-core.js";
+import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "../src/diverse/dive-core.js";
 
 const dataset=JSON.parse(await readFile(new URL("../data/diving/trondheim-sites.geojson",import.meta.url),"utf8"));
 const features=dataset.features;
@@ -108,4 +108,12 @@ test("missing or invalid geocoordinates never produce phantom zero-coordinate di
   const unknown={properties:{Navn:"Ukjent"},geometry:{type:"Point",coordinates:[null,null]}};
   const near={properties:{Navn:"Kjent"},geometry:{type:"Point",coordinates:[10.39,63.43]}};
   assert.equal(sortDiveFeatures([unknown,near],"nearest",{origin})[0],near);
+});
+
+test("map coordinate validation refuses missing, null or out-of-range locations",()=>{
+  assert.equal(diveFeaturePoint({geometry:{type:"Point",coordinates:[null,null]}}),null);
+  assert.equal(diveFeaturePoint({geometry:{type:"Point",coordinates:[10,95]}}),null);
+  assert.equal(diveFeaturePoint({geometry:{type:"LineString",coordinates:[10,60]}}),null);
+  assert.deepEqual(diveFeaturePoint({geometry:{type:"Point",coordinates:[10.39,63.43]}}),
+    {lat:63.43,lon:10.39});
 });
