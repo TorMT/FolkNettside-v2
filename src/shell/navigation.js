@@ -1,3 +1,4 @@
+import {escapeHTML} from "../viewers/utils.js";
 export const PRIMARY_NAV=[
   {id:"portfolio",label:"Projects",route:"/portfolio"},
   {id:"engineering",label:"Engineering",route:"/engineering"},
@@ -6,6 +7,11 @@ export const PRIMARY_NAV=[
   {id:"cv",label:"CV",route:"/cv"},
   {id:"contact",label:"Contact",route:"/contact"}
 ];
+
+function courseUpdateCounter(value){
+  const count=Math.max(0,Math.min(999,Math.floor(Number(value)||0)));
+  return count?'<span class="course-update-count" aria-label="'+count+' nye filer">'+count+'</span>':"";
+}
 
 export const MOBILE_NAV=[
   {id:"portfolio",label:"Projects",route:"/portfolio",icon:"◇"},
@@ -16,8 +22,9 @@ export const MOBILE_NAV=[
   {id:"more",label:"More",action:"more",icon:"☰"}
 ];
 
-function navButton(item,active,{mobile=false,coursesLabel="Courses"}={}){
-  const label=item.id==="courses"?coursesLabel:item.label;
+function navButton(item,active,{mobile=false,coursesLabel="Courses",courseUpdates=0}={}){
+  const label=escapeHTML(item.id==="courses"?coursesLabel:item.label);
+  const news=item.id==="courses"?courseUpdateCounter(courseUpdates):"";
   const activeClass=active===item.id?"active":"";
   if(item.action==="more"){
     return `<button data-mobile-more-toggle type="button" aria-controls="mobile-more-menu" aria-expanded="false" class="${activeClass}"><span>${item.icon||""}</span>${label}</button>`;
@@ -26,23 +33,23 @@ function navButton(item,active,{mobile=false,coursesLabel="Courses"}={}){
     return `<button data-search-open class="${activeClass}"><span>${item.icon||""}</span>${label}</button>`;
   }
   if(mobile){
-    return `<button data-go="${item.route}" aria-label="${item.id==="engineering"?"Engineering":label}" class="${activeClass}"><span>${item.icon||""}</span>${label}</button>`;
+    return `<button data-go="${item.route}" aria-label="${item.id==="engineering"?"Engineering":label}" class="${activeClass}"><span>${item.icon||""}</span>${label}${news}</button>`;
   }
-  return `<button data-go="${item.route}" class="${activeClass}">${label}</button>`;
+  return `<button data-go="${item.route}" class="${activeClass}">${label}${news}</button>`;
 }
 
-export function renderTopShell(active,{coursesLabel="Courses",account={}}={}){
+export function renderTopShell(active,{coursesLabel="Courses",account={},courseUpdates=0}={}){
   const desktopPrimary=PRIMARY_NAV.map(item=>navButton(item,active,{coursesLabel})).join("");
-  const mobile=MOBILE_NAV.map(item=>navButton(item,active,{mobile:true,coursesLabel})).join("");
+  const mobile=MOBILE_NAV.map(item=>navButton(item,active,{mobile:true,coursesLabel,courseUpdates})).join("");
   const signedIn=account?.status==="signed-in";
-  const accountName=signedIn?(account?.profile?.name||account?.profile?.email||"Google"):"Sign in";
+  const accountName=escapeHTML(signedIn?(account?.profile?.name||account?.profile?.email||"Google"):"Sign in");
   const accountInitial=signedIn?String(accountName).trim().slice(0,1).toUpperCase():"○";
 
   return `<header class="topbar">
     <div class="brand" id="home"><span class="brand-mark"></span>FolkNettside</div>
     <nav class="nav">${desktopPrimary}</nav>
     <span class="top-spacer"></span>
-    <nav class="nav"><button data-go="/courses" class="${active==="courses"?"active":""}">${coursesLabel}</button></nav>
+    <nav class="nav"><button data-go="/courses" class="${active==="courses"?"active":""}">${escapeHTML(coursesLabel)}${courseUpdateCounter(courseUpdates)}</button></nav>
     <div class="top-actions">
       <button class="icon-btn" data-search-open aria-label="Search">⌕</button>
       <button class="account-chip ${signedIn?"signed-in":""}" data-go="/settings/connections" aria-label="${signedIn?`Account: ${accountName}`:"Sign in"}"><span>${accountInitial}</span><em>${accountName}</em></button>

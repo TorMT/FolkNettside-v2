@@ -9,6 +9,8 @@ import {cadToolHTML,mountCADTool} from "./engineering/cad-tool.js";
 import {renderResourceTree} from "./components/resource-tree.js";
 import {karakterwebUrl} from "./courses/external-links.js";
 import {bindCourseNavigation} from "./courses/course-navigation.js";
+import {createResourceNotices} from "./courses/resource-updates.js";
+import {escapeHTML as escCourse} from "./viewers/utils.js";
 import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js";
 import {hydrostaticParticulars} from "./hydro/stability.js";
 import {createHydroInclude} from "./hydro/hydro-selection.js";
@@ -74,6 +76,7 @@ const app=document.querySelector("#app");
 mountAnalyticsNotice();
 const content=await loadContent();
 const {site,semesters,navLabels,projects}=content;
+const courseNotices=createResourceNotices(semesters);
 registerAnalyticsCourses(semesters);
 const engineeringModels=content.models?.length?content.models:[content.model];
 let engineeringModelId=engineeringModels[0]?.id||"fixture";
@@ -384,7 +387,7 @@ function viewerRoute(semester,code,index){return `/viewer/${semester}/${encodeUR
 function engineeringModeRoute(mode){return `/engineering/${String(mode).toLowerCase()}`}
 
 function top(active){
-  return renderTopShell(active,{coursesLabel:navLabels.courses,account:getGoogleSessionSnapshot()});
+  return renderTopShell(active,{coursesLabel:navLabels.courses,account:getGoogleSessionSnapshot(),courseUpdates:courseNotices.total});
 }
 
 function bindNav(){
@@ -492,22 +495,23 @@ function coursesPage(requestedSemester){
   document.documentElement.dataset.lens="study";
   const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;
   const semester=getSemester(semesterId)||semesters[0];
-  const semesterTabs=semesters.map(s=>`<button class="${Number(s.id)===Number(semester.id)?"active":""}" data-semester="${s.id}" aria-label="${s.label}" title="${s.label}">
-    <span class="semester-label-long">${s.label}</span>
+  const semesterTabs=semesters.map(s=>`<button class="${Number(s.id)===Number(semester.id)?"active":""}" data-semester="${s.id}" aria-label="${escCourse(s.label)}" title="${escCourse(s.label)}">
+    <span class="semester-label-long">${escCourse(s.label)}</span>
     <span class="semester-label-short">S${s.id}</span>
   </button>`).join("");
   const courseCards=semester.courses.map(course=>{
     const resourceCount=course.resources?.length||0;
     const sectionCount=course.sections?.length||0;
-    return `<article class="course-card" data-course="${course.code}" tabindex="0">
+    const newCount=courseNotices.count(semester.id,course.code);
+    return `<article class="course-card" data-course="${escCourse(course.code)}" tabindex="0">
       <div class="course-card-top">
-        <span class="course-code">${course.code}</span>
+        <span class="course-code">${escCourse(course.code)}</span>${newCount?`<span class="course-update-pill">${newCount} nye</span>`:""}
         <span class="course-count">${resourceCount} ressurs${resourceCount===1?"":"er"}</span>
       </div>
-      <h3>${course.title}</h3>
-      <p>${course.description}</p>
+      <h3>${escCourse(course.title)}</h3>
+      <p>${escCourse(course.description)}</p>
       <div class="course-card-bottom">
-        <div class="tags">${(course.tags||[]).slice(0,3).map(tag=>`<span class="tag">${tag}</span>`).join("")}</div>
+        <div class="tags">${(course.tags||[]).slice(0,3).map(tag=>`<span class="tag">${escCourse(tag)}</span>`).join("")}</div>
         <span class="course-sections">${sectionCount} seksjon${sectionCount===1?"":"er"} <span aria-hidden="true">→</span></span>
       </div>
     </article>`;
@@ -528,10 +532,11 @@ function coursesPage(requestedSemester){
     </div>
 
     <section class="study-main courses-main">
+      ${courseNotices.total?'<div class="course-updates-banner" role="status"><strong>'+courseNotices.total+' nye ressurser</strong><span>Filer lagt til siden du sist markerte kursoversikten som oppdatert.</span><button type="button" class="btn" id="course-updates-ack">Merk alle som sett</button></div>':""}
       <div class="title-row courses-title-row">
         <div>
           <span class="project-kicker">Selected semester</span>
-          <h2>${semester.label}</h2>
+          <h2>${escCourse(semester.label)}</h2>
           <div class="muted">${semester.courses.length} fag · ${semester.courses.reduce((sum,course)=>sum+(course.resources?.length||0),0)} ressurser</div>
         </div>
       </div>
@@ -542,6 +547,10 @@ function coursesPage(requestedSemester){
   </main><div class="preview-badge">Courses exposes Kok; Portfolio does not</div>`;
 
   bindNav();
+  app.querySelector("#course-updates-ack")?.addEventListener("click",()=>{
+    courseNotices.acknowledge();
+    coursesPage(semester.id);
+  });
   app.querySelectorAll("[data-semester]").forEach(button=>button.onclick=()=>go("/courses/"+button.dataset.semester));
   const activeSemester=app.querySelector(".semester-tabs .active");
   activeSemester?.scrollIntoView?.({behavior:"instant",block:"nearest",inline:"center"});
@@ -560,29 +569,36 @@ function coursePage(semesterId,code){
   const grouped=course.resources.reduce((groups,resource)=>{
     (groups[resource.section]??=[]).push(resource);
     return groups;
-  },{});
+  },Object.create(null));
   const sections=course.sections
     .map((label,index)=>({label,index,items:grouped[label]||[]}))
     .filter(section=>section.items.length);
   const karakterwebHref=karakterwebUrl(course.code);
   const resourceCount=course.resources.length;
+  const newResources=courseNotices.newResources(semesterId,course.code);
+  const newResourcesHTML=newResources.length?`<aside class="course-updates-banner" role="status">
+    <strong>${newResources.length} nye ressurser i dette faget</strong>
+    <div class="course-updates-list">${newResources.slice(0,15).map(resource=>`<button class="btn" data-resource="${course.resources.indexOf(resource)}" type="button">${escCourse(resource.label||resource.name||"Ressurs")}</button>`).join("")}</div>
+    <button class="btn" type="button" id="course-updates-ack">Merk alle nye filer som sett</button>
+  </aside>`:"";
 
   app.innerHTML=top("courses")+`<main class="layout">
     <aside class="side course-side">
-      <div class="side-title">${course.code}</div>
+      <div class="side-title">${escCourse(course.code)}</div>
       <button class="active" data-course-nav="overview"><span>Overview</span><small>${resourceCount} resources</small></button>
-      ${sections.map(section=>`<button data-course-nav="section-${section.index}"><span>${section.label}</span><small>${section.items.length}</small></button>`).join("")}
+      ${sections.map(section=>`<button data-course-nav="section-${section.index}"><span>${escCourse(section.label)}</span><small>${section.items.length}</small></button>`).join("")}
       <button data-course-nav="karakterweb"><span>Karakterweb</span><small>external ↗</small></button>
     </aside>
     <section class="content">
-      <div class="crumbs">Courses / ${getSemester(semesterId).label} / ${course.code}</div>
+      <div class="crumbs">Courses / ${escCourse(getSemester(semesterId).label)} / ${escCourse(course.code)}</div>
       <header class="course-header" id="course-overview">
-        <div class="course-header-meta"><span class="course-code">${course.code}</span><span>${resourceCount} resources · ${sections.length} sections</span></div>
-        <h1>${course.title}</h1>
-        <p>${course.description}</p>
+        <div class="course-header-meta"><span class="course-code">${escCourse(course.code)}</span><span>${resourceCount} resources · ${sections.length} sections</span></div>
+        <h1>${escCourse(course.title)}</h1>
+        <p>${escCourse(course.description)}</p>
       </header>
+      ${newResourcesHTML}
       ${sections.map(section=>`<section class="resource-section" id="course-section-${section.index}" data-course-section="section-${section.index}">
-        <div class="resource-section-head"><h2>${section.label}</h2><span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
+        <div class="resource-section-head"><h2>${escCourse(section.label)}</h2><span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
         <div class="resource-list">${renderResourceTree(section.items,item=>course.resources.indexOf(item))}</div>
       </section>`).join("")}
       <section class="resource-section" id="course-karakterweb" data-course-section="karakterweb">
@@ -590,7 +606,7 @@ function coursePage(semesterId,code){
         <div class="resource-list">
           <button class="resource-row resource-row-button" id="karakterweb">
             <span class="file-icon">KW</span>
-            <div><strong>Open ${course.code} on Karakterweb</strong><div class="muted">karakterweb.no/ntnu/${course.code}</div></div>
+            <div><strong>Open ${escCourse(course.code)} on Karakterweb</strong><div class="muted">karakterweb.no/ntnu/${escCourse(course.code)}</div></div>
             <span class="muted">Open ↗</span>
           </button>
         </div>
@@ -602,6 +618,10 @@ function coursePage(semesterId,code){
   app.querySelectorAll("[data-resource]").forEach(element=>{
     element.onclick=()=>go(viewerRoute(semesterId,course.code,element.dataset.resource));
     element.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();element.click();}};
+  });
+  app.querySelector("#course-updates-ack")?.addEventListener("click",()=>{
+    courseNotices.acknowledge();
+    coursePage(semesterId,course.code);
   });
   app.querySelector("#karakterweb")?.addEventListener("click",()=>{
     window.open(karakterwebHref,"_blank","noopener");
@@ -2102,7 +2122,7 @@ async function engineeringPage(){
     if(gzCurve.length)downloadTextFile(gzCurveCSV(gzCurve),"gz-curve.csv");
   });
 }
-function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
+function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+escCourse(message)+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
 
 async function render(){const currentPath=route();if(currentPath!=="/tools/python"){pythonToolCleanup?.();pythonToolCleanup=null;}if(currentPath!=="/tools/vault"){vaultToolCleanup?.();vaultToolCleanup=null;}app.__courseObserver?.disconnect();app.__courseObserver=null;const path=route();

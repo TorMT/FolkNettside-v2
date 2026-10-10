@@ -1134,3 +1134,18 @@
    background:var(--accent-soft);color:var(--accent-ink)
  }
 }
+
+/* V2 course manifest update notifications; local, opt-out via acknowledgement. */
+.course-update-count{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;
+  border-radius:99px;background:var(--accent);color:#fff;font-size:11px;font-weight:750;
+  margin-inline-start:7px;padding:0 5px;line-height:1}
+.course-update-pill{display:inline-flex;align-items:center;padding:3px 7px;border:1px solid var(--accent);
+  border-radius:99px;font-size:11px;font-weight:700;color:var(--accent)}
+.course-updates-banner{display:grid;align-items:center;gap:10px;padding:13px 16px;
+  margin-block:10px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.course-updates-banner strong{font-size:14px}
+.course-updates-banner>span{font-size:12px}
+.course-updates-banner>.btn{justify-self:start}
+.course-updates-list{display:flex;flex-wrap:wrap;gap:7px}
+.course-updates-list>.btn{max-width:100%;overflow-wrap:anywhere;white-space:normal;font-size:12px;text-align:start}
+@media(max-width:600px){.course-updates-banner{padding:11px 12px}.course-update-count{min-width:18px;height:18px}}
