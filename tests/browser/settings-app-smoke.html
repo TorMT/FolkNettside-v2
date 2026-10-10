@@ -23,15 +23,20 @@ try{
   const win=frame.contentWindow;
   const consent=doc.querySelector(".analytics-consent-notice");
   assert(consent,"New visits need an optional analytics consent choice");
-  assert(!doc.querySelector('script[data-folk-analytics]'),
-    "Google Analytics must not load before explicit consent");
+  await waitFor(()=>doc.querySelector('script[data-folk-analytics]'),
+    "Preloaded GA script in denied consent mode");
+  const gtagBefore=win.dataLayer||[];
+  assert(!gtagBefore.some(args=>args[0]==="config"||args[0]==="event"),
+    "GA4 config or page views must not run before consent");
   assert(!doc.querySelector('iframe[src*="lookerstudio"]'),
     "V2 must never expose the legacy public statistics dashboard");
   consent.querySelector(".analytics-consent-actions button").click();
   assert(win.localStorage.getItem("folk.analytics.consent.v1")==="denied",
     "Reject choice must persist");
-  assert(!doc.querySelector('script[data-folk-analytics]'),
-    "Google Analytics must not load after visitor rejection");
+  assert(doc.querySelectorAll('script[data-folk-analytics]').length===1,
+    "Google tag stays preloaded after rejection, without being reinserted");
+  assert(!(win.dataLayer||[]).some(args=>args[0]==="config"||args[0]==="event"),
+    "Rejecting must not configure GA measurement or emit page views");
 
   doc.querySelector('[data-settings-section="privacy"]').click();
   await waitFor(()=>frame.contentDocument?.querySelector('[data-settings-panel="privacy"]'),"Privacy panel");
