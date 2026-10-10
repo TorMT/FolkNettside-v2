@@ -1,7 +1,7 @@
-import {validateHydroModel} from "../model/hull-surface-validator.js?v=50c68e9814ca75ca5044d7ab96c2b875b9e950a2";
-import {analyzeModelDocument} from "../hydro/hydrostatics.js?v=50c68e9814ca75ca5044d7ab96c2b875b9e950a2";
-import {componentGroupTree} from "../model/component-groups.js?v=50c68e9814ca75ca5044d7ab96c2b875b9e950a2";
-import {identifiedThrusterIntakes,manualThrusterAtComponent,modelThrusterCandidates} from "../model/thruster-intake.js?v=50c68e9814ca75ca5044d7ab96c2b875b9e950a2";
+import {validateHydroModel} from "../model/hull-surface-validator.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
+import {analyzeModelDocument} from "../hydro/hydrostatics.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
+import {componentGroupTree} from "../model/component-groups.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
+import {identifiedThrusterIntakes,manualThrusterAtComponent,modelThrusterCandidates} from "../model/thruster-intake.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
 
 const AXES=[
  ["1,0,0","+X"],["-1,0,0","−X"],["0,1,0","+Y"],["0,-1,0","−Y"],["0,0,1","+Z"],["0,0,-1","−Z"]

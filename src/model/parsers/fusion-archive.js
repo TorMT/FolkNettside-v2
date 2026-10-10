@@ -1,7 +1,7 @@
-import {getJSZip} from "../../vendor/jszip.js?v=50c68e9814ca75ca5044d7ab96c2b875b9e950a2";
-import {parse3MF} from "./three-mf.js?v=50c68e9814ca75ca5044d7ab96c2b875b9e950a2";
-import {parseSTL} from "./stl.js?v=50c68e9814ca75ca5044d7ab96c2b875b9e950a2";
-import {parseCADBuffer} from "./cad-runtime.js?v=50c68e9814ca75ca5044d7ab96c2b875b9e950a2";
+import {getJSZip} from "../../vendor/jszip.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
+import {parse3MF} from "./three-mf.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
+import {parseSTL} from "./stl.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
+import {parseCADBuffer} from "./cad-runtime.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
 
 export class FusionConversionRequiredError extends Error{
   constructor(message="Native Fusion geometry requires Autodesk APS conversion"){
