@@ -64,6 +64,14 @@ try{
   assert(document.getElementById("brewing-backend-note")?.textContent.includes("not configured"),
     "Missing live backend must show a clear fallback message");
   assert(document.querySelectorAll("#viewTabs .view-tab").length===5,"Brewing tabs incomplete");
+  assert(document.getElementById("brew-inventory-cloud")?.disabled,"Guest inventory must not sync to Drive");
+  const ingredientForm=document.getElementById("brew-ingredient-form");
+  assert(ingredientForm,"Native inventory editor missing");
+  ingredientForm.elements.name.value="Synthetic malt";
+  ingredientForm.elements.quantity.value="2.5";
+  ingredientForm.elements.unit.value="kg";
+  ingredientForm.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
+  assert(document.getElementById("brew-inventory-list")?.textContent.includes("Synthetic malt"),"Raw-material save failed");
   const logs=document.querySelector('#viewTabs [data-view="logs"]');
   logs.click();
   assert(document.querySelector('.view-panel[data-view="logs"]').classList.contains("active"),"logs tab did not activate");
