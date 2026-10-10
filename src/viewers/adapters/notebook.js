@@ -1,3 +1,4 @@
+import {pythonSourceURL} from "../python-source.js";
 import {escapeHTML,fetchJSON} from "../utils.js";
 import {createDomFinder} from "../dom-search.js";
 import {mountPythonCodeCell} from "../python-code-cell.js";
@@ -57,7 +58,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
       const result=await session.run(entry.cell.getSource(),{
         status:s=>entry.cell.setStatus(s),
         stdin:container.querySelector("[data-nb-stdin]")?.value||"",
-        sourceURL:resource.path?new URL(resource.path,document.baseURI).href:"",
+        sourceURL:pythonSourceURL(resource,document.baseURI),
         onOutput:output=>entry.cell.pushOutput(output)
       });
       if(!disposed&&!stopped)entry.cell.showOutput(result);
