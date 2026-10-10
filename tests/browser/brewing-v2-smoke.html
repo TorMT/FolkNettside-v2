@@ -15,6 +15,7 @@
 import {brewingPageHTML,mountBrewing} from "./src/diverse/brewing-page.js";
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 const realFetch=window.fetch.bind(window);
+let legacyBackendRequests=0;
 const jsonResponse=value=>new Response(JSON.stringify(value),{status:200,headers:{"Content-Type":"application/json"}});
 window.FolkGoogleSession={
   isSignedIn:()=>false,
@@ -23,6 +24,8 @@ window.FolkGoogleSession={
 };
 window.fetch=async(input,init)=>{
   const url=String(typeof input==="string"?input:input?.url||"");
+  if(url.startsWith("/includes/")||url.includes("/v2-staging/includes/")||url.includes("/FolkNettside-v2/includes/"))
+    legacyBackendRequests++;
   if(url.includes("/includes/rapt/api/dashboard.php")){
     return jsonResponse({devices:[],username:"browser-fixture",generatedAt:"2026-10-07T18:00:00Z"});
   }
@@ -56,6 +59,10 @@ try{
   const cleanup=await mountBrewing(root,{account:{status:"signed-out"}});
   await new Promise(resolve=>setTimeout(resolve,350));
   assert(window.BrewingApp,"Brewing runtime did not initialise");
+  assert(legacyBackendRequests===0,
+    "Without explicit V2 service config, Brewing must not make legacy PHP requests");
+  assert(document.getElementById("brewing-backend-note")?.textContent.includes("not configured"),
+    "Missing live backend must show a clear fallback message");
   assert(document.querySelectorAll("#viewTabs .view-tab").length===5,"Brewing tabs incomplete");
   const logs=document.querySelector('#viewTabs [data-view="logs"]');
   logs.click();
