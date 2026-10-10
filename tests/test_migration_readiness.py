@@ -81,6 +81,35 @@ class MigrationReadinessTests(unittest.TestCase):
         self.assertEqual(found["5/TMR4182"]["excluded_protected_files"], 1)
         self.assertEqual(len(found["5/TMR4182"]["public_files"]), 1)
 
+    def test_legacy_slug_needs_explicit_reviewed_course_mapping(self):
+        source = self.site / "semestre" / "3" / "marin-intro" / "filer"
+        source.mkdir(parents=True)
+        (source / "Model.stl").write_bytes(b"public-geometry")
+        report = audit(self.legacy, self.site, self.v2)
+        legacy = next(x for x in report["courses"] if x["course"] == "3/marin-intro")
+        self.assertEqual(legacy["status"], "needs-mapping")
+        self.assertIsNone(legacy["mapped_v2_course"])
+
+        (self.v2 / "data" / "migration-course-map.json").write_text(
+            json.dumps({"mappings": [{
+                "legacy": "3/marin-intro",
+                "v2CourseCode": "TMR4106",
+                "reviewed": True
+            }]}), encoding="utf-8"
+        )
+        report = audit(self.legacy, self.site, self.v2)
+        legacy = next(x for x in report["courses"] if x["course"] == "3/marin-intro")
+        self.assertEqual(legacy["mapped_v2_course"], "3/TMR4106")
+        self.assertEqual(legacy["status"], "needs-migration")
+
+    def test_nested_legacy_beskyttet_label_is_excluded(self):
+        restricted = (self.site / "semestre" / "5" / "TMR4182" /
+                      "filer" / "Ekstra(beskyttet)")
+        restricted.mkdir()
+        (restricted / "not-for-public.pdf").write_bytes(b"private")
+        found, _, _ = legacy_course_inventory(self.site)
+        self.assertEqual(found["5/TMR4182"]["excluded_protected_files"], 2)
+
     def test_missing_source_file_in_manifest_is_detected(self):
         courses, warnings = manifest_courses(self.v2)
         self.assertEqual(len(courses["5/TMR4182"]), 0)
