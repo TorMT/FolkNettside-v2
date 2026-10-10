@@ -42,6 +42,18 @@ On Windows, run **Run SiteUpdater.cmd** to choose all semesters, a semester or a
 
 The default source is **example fixtures** under examples/semesters, not the full legacy course archive. Only stage approved public content. SiteUpdater writes manifests atomically and rejects protected paths; this is not a substitute for manual privacy review. Never publish plaintext private folders, passwords, OAuth client secrets or medical records to GitHub Pages.
 
+## Local Codex on your own PC
+
+The real NTNU `webedit` archive is intentionally **not** in Git. For the
+actual filesystem inspection, backup and later V2 course migration, start
+local Codex from this repository and hand it the
+[dedicated read-only-first operator prompt and runbook](docs/LOCAL_CODEX_FOLK_MIGRATION.md).
+The repository's [`AGENTS.md`](AGENTS.md) records immutable V1 freeze,
+private-content handling and go/no-go rules. Before any NTNU staging upload,
+verify explicitly approved public course copies with
+`scripts/verify_ntnu_public_assets.py` (streaming SHA-256 check).
+Keep local reports, original archive and secrets out of Git and Pages.
+
 ## Separate NTNU staging build (no changes to V1)
 
 NTNU's [own folk hosting docs](docs/NTNU_FOLK_HOSTING.md) confirm webedit

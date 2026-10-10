@@ -61,6 +61,12 @@ python scripts/build_ntnu_staging.py --version "$(git rev-parse HEAD)" \
 
 The builder copies exactly the allowed local files, preserves the original relative paths, rejects private/protected/secret-like names, unsupported assets, path escapes, symlinks, missing files, and unmarked output folders, and writes a complete matched manifest into the candidate. All other local files are ignored; the original NTNU production tree is never read or modified.
 
+**Additional local Codex gate:** Run `scripts/verify_ntnu_public_assets.py`
+with the reviewed manifest, approved local root and staged build root.
+Save its SHA-256 report **outside Git** and refuse to deploy while it reports
+missing/modified files. Read the [local Codex handoff](LOCAL_CODEX_FOLK_MIGRATION.md)
+for the complete safe discovery, backup, source-mapping and acceptance flow.
+
 **Important:** File-name/extension checks are not proof of ownership or permission, nor do they scan document contents for secrets. Review every source file and externally linked URL before approving. At production cutover remove temporary `examples/` fixtures from the final public webroot after confirming no code depends on them; the preview builder currently includes public examples for browser tests.
 
 ## Optional PHP adapter – Matpris
