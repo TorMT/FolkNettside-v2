@@ -11,13 +11,13 @@ statistics: results stay in the owner's existing Google Analytics account.
 
 ## Consent and data collection
 
-- Google Analytics is **off by default**. The site displays an optional,
+- GA4 **measurement is off by default**. The external Google tag library loads on entry with analytics consent denied. The site displays an optional,
   compact **Allow analytics / No thanks** choice on first visit.
-- Before explicit opt-in, no `gtag.js` tag is requested or page_view emitted.
+- **Before opt-in, `gtag.js` is requested from Google.** Analytics consent is defaulted to `denied` before the request; GA4 configuration and manual page views do not occur until opt-in. Loading a third-party script itself discloses connection metadata, potentially including an IP address.
 - Choices are saved in the browser at `folk.analytics.consent.v1`.
   The current preference and toggle are in **Settings → Privacy & data**;
   consent may be revoked at any time. The website works without analytics.
-- On acceptance, the GA4 script loads once and a manual page-view event is
+- On acceptance, the already-loaded GA4 tag is configured and a manual page-view event is
   sent for each navigation to an approved V2 route. A repeated page-view
   at the same route is not sent twice.
 - V2's outbound **manual events** use coarse, canonical categories
@@ -48,9 +48,8 @@ manual page views with `page_referrer` blank.
 ## Check the connection (owner)
 
 1. Open the V2 preview in a fresh browser/private window.
-2. **Decline**: confirm there are no requests to
-   `googletagmanager.com/gtag/js` or GA collect endpoints.
-3. **Accept**: confirm one `gtag.js` request, then navigate between
+2. **Before choosing or on Decline**: confirm that `gtag.js` may load, but no consented GA4 `config` or manual `page_view` events are generated. Google Consent Mode might send cookieless signals depending on Google's implementation.
+3. **Accept**: confirm one preloaded `gtag.js` request and a GA4 configuration, then navigate between
    Courses, Engineering, Tools and CV. Inspect that outbound manual
    `page_view` events contain only category-like page paths.
 4. In the owner's [Google Analytics](https://analytics.google.com/analytics/web/)
@@ -66,3 +65,5 @@ This repository can verify the tracking code, consent gating and static
 deployment. **Live GA4 receipt is not confirmed by CI**: that requires access
 to the owner's GA account and a consented, real browser session. Do not
 claim the dashboard is receiving measurements until confirmed there.
+
+**Compliance note:** A third-party tag loaded before consent is not network-silent. Check the use of advanced Consent Mode against Norwegian/EU ePrivacy and GDPR obligations, including notice and processor documentation. A stricter configuration would defer loading Google code until a visitor opts in.
