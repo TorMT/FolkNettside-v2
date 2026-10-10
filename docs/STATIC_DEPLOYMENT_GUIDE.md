@@ -5,6 +5,13 @@ NTNU production site or the existing Engineering Portfolio URL used in job
 applications. Do not merge, redirect or deploy to the FolkNettside domain as
 part of this work.
 
+**NTNU difference:** GitHub Pages restrictions are not folk.ntnu.no
+restrictions. Official NTNU documentation describes server-side Apache
+`.htaccess` authentication through NTNU LDAP or `htpasswd` for individual
+directories. See [NTNU hosting and staged build](NTNU_FOLK_HOSTING.md)
+for the independently deployed and access-controlled future alternative.
+No protected resources are ever copied to this GitHub Pages build.
+
 ## 1. Public vs encrypted vs private content
 
 GitHub Pages is static. Files present in the public repository and built
