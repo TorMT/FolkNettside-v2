@@ -1,7 +1,7 @@
-import {escapeHTML,extension} from "../utils.js?v=8b92531d6c727bcd20457bb92f32ffbd2772ec7e";
-import {getJSZip} from "../../vendor/jszip.js?v=8b92531d6c727bcd20457bb92f32ffbd2772ec7e";
-import {spreadsheetCellHTML} from "../xlsx-formulas.js?v=8b92531d6c727bcd20457bb92f32ffbd2772ec7e";
-import {createDomFinder} from "../dom-search.js?v=8b92531d6c727bcd20457bb92f32ffbd2772ec7e";
+import {escapeHTML,extension} from "../utils.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
+import {getJSZip} from "../../vendor/jszip.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
+import {spreadsheetCellHTML} from "../xlsx-formulas.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
+import {createDomFinder} from "../dom-search.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
 
 function parseXML(text){
   const doc=new DOMParser().parseFromString(text,"application/xml");

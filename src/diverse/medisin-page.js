@@ -1,7 +1,8 @@
-import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=8b92531d6c727bcd20457bb92f32ffbd2772ec7e";
-import {mergeMedisinBackups,newMedisinBackup,readMedisinDriveBackup,writeMedisinDriveBackup,validateMedisinBackup} from "../platform/medisin-drive.js?v=8b92531d6c727bcd20457bb92f32ffbd2772ec7e";
-import {CONCENTRATION_UNITS,medisinConcentrations,medisinSolutionVolume} from "./medisin-concentration.js?v=8b92531d6c727bcd20457bb92f32ffbd2772ec7e";
-import {medisinStorageKey,medisinTimers,medisinDoses,medisinNextAt,medisinRemainingLevel,medisinChart,medisinApply,medisinCreateTimer,medisinCreateDose,medisinDelete} from "./medisin-model.js?v=8b92531d6c727bcd20457bb92f32ffbd2772ec7e";
+import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
+import {mergeMedisinBackups,newMedisinBackup,readMedisinDriveBackup,writeMedisinDriveBackup,validateMedisinBackup} from "../platform/medisin-drive.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
+import {medisinCloudSyncAllowed,setMedisinCloudSyncAllowed} from "../platform/medisin-cloud-consent.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
+import {CONCENTRATION_UNITS,medisinConcentrations,medisinSolutionVolume} from "./medisin-concentration.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
+import {medisinStorageKey,medisinTimers,medisinDoses,medisinNextAt,medisinRemainingLevel,medisinChart,medisinApply,medisinCreateTimer,medisinCreateDose,medisinDelete} from "./medisin-model.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
 
 const LEGACY_URL="https://tormt.folk.ntnu.no/diverse/MedisinTimer/";
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -22,9 +23,10 @@ export function medisinPageHTML(){
     </header>
     <div class="medisin-sync-panel" aria-live="polite"><div>
       <strong>Lagring</strong><p id="medisin-sync-status">Laster lokal historikk …</p>
-      <small>Private opplysninger lagres lokalt i nettleseren og, ved Google-innlogging, i din Google Drive som vanlig JSON (ikke ende-til-ende-kryptert).</small>
+      <small>Lokale data blir på denne enheten. Google-innlogging starter <strong>ikke</strong> sky-synk uten at du selv aktiverer den. Valgfri Drive-backup er vanlig JSON, ikke ende-til-ende-kryptert.</small>
     </div><div class="medisin-buttons">
-      <button class="btn" type="button" id="medisin-sync">Synk nå</button>
+      <button class="btn" type="button" id="medisin-sync">Aktiver Drive-synk</button>
+      <button class="btn" type="button" id="medisin-cloud-disable" hidden>Slå av sky-synk</button>
       <button class="btn" type="button" id="medisin-export">Eksporter</button>
       <button class="btn" type="button" id="medisin-import">Importer v2 JSON</button>
       <input type="file" accept=".json,application/json" id="medisin-import-file" hidden>
@@ -124,20 +126,28 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
   function updateStatus(label=""){
     const a=getGoogleSessionSnapshot();
     const connected=a.status==="signed-in"&&Boolean(a.profile?.sub);
-    root.querySelector("#medisin-sync").disabled=!connected||!!syncPromise;
+    const allowed=connected&&medisinCloudSyncAllowed(a.profile.sub);
+    const trigger=root.querySelector("#medisin-sync");
+    trigger.disabled=!connected||!!syncPromise;
+    trigger.textContent=allowed?"Synk nå":"Aktiver Drive-synk";
+    const disable=root.querySelector("#medisin-cloud-disable");
+    disable.hidden=!allowed;
+    disable.disabled=!!syncPromise;
     status.textContent=label||(connected
-      ?"Google: "+(a.profile?.email||"tilkoblet")+" · egen Drive-fil. Siste endringer synkroniseres automatisk."
+      ?allowed
+        ?"Google: "+(a.profile?.email||"tilkoblet")+" · Drive-synk aktivert (JSON er ikke E2E-kryptert)."
+        :"Google: "+(a.profile?.email||"tilkoblet")+" · kun lokal lagring. Sky-synk må aktiveres eksplisitt."
       :a.status==="signed-in"?"Google-profilen kunne ikke bekreftes. Lokal lagring brukes."
-      :"Lokal lagring · logg inn under Innstillinger → Connections for synk på tvers av enheter.");
+      :"Lokal lagring · logg inn under Innstillinger → Connections for valgfri synk.");
   }
   async function syncCloud(){
-    if(disposed||!signedIn())return;
+    if(disposed||!signedIn()||!medisinCloudSyncAllowed(profile))return;
     if(syncPromise){pendingSync=true;return syncPromise;}
     const syncProfile=profile;
     syncPromise=(async()=>{
       updateStatus("Synkroniserer mot Google Drive …");
       const remote=await readMedisinDriveBackup();
-      if(disposed||accountId()!==syncProfile)return;
+      if(disposed||accountId()!==syncProfile||!medisinCloudSyncAllowed(syncProfile))return;
       // Merge against the latest local snapshot to retain writes made during download.
       const local=readLocal();
       const merged=remote?mergeMedisinBackups(local,remote.backup):local;
@@ -155,7 +165,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     }
   }
   function scheduleSync(){
-    if(!signedIn())return;
+    if(!signedIn()||!medisinCloudSyncAllowed(profile))return;
     clearTimeout(syncTimer);
     syncTimer=setTimeout(()=>{if(!disposed)syncCloud();},900);
   }
@@ -206,7 +216,27 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
       output.innerHTML=`<div class="medisin-calc-grid">${rows}</div>${detail}`;
     }catch(error){output.textContent="Kan ikke beregne: "+String(error.message||error);}
   });
-  root.querySelector("#medisin-sync")?.addEventListener("click",()=>syncCloud());
+  root.querySelector("#medisin-sync")?.addEventListener("click",()=>{
+    if(!signedIn())return;
+    if(!medisinCloudSyncAllowed(profile)){
+      const accepted=globalThis.confirm?.(
+        "Aktivere MedisinTimer-synk mot Google Drive? Navn, dosehistorikk og andre opplysninger lagres som ukryptert JSON i din Drive. Dette er ikke ende-til-ende-kryptert. Velg Avbryt for kun lokal lagring."
+      );
+      if(accepted!==true){message("Ingen data ble lastet opp. Lokal lagring fortsetter.");return}
+      try{setMedisinCloudSyncAllowed(profile,true)}
+      catch(error){message(error.message);return}
+    }
+    updateStatus();
+    syncCloud();
+  });
+  root.querySelector("#medisin-cloud-disable")?.addEventListener("click",()=>{
+    if(!profile)return;
+    try{setMedisinCloudSyncAllowed(profile,false)}
+    catch(error){message(error.message);return}
+    clearTimeout(syncTimer);pendingSync=false;
+    updateStatus();
+    message("Automatisk sky-synk er av. Eksisterende filer i Google Drive slettes ikke.");
+  });
   root.querySelector("#medisin-export")?.addEventListener("click",()=>{
     const file=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
     const href=URL.createObjectURL(file),link=document.createElement("a");
@@ -231,12 +261,12 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     if(newProfile!==profile){
       clearTimeout(syncTimer);profile=newProfile;key=medisinStorageKey(profile);
       backup=readLocal();renderCards();message("Byttet lagringsprofil.");
-      if(profile)syncCloud();
+      if(profile&&medisinCloudSyncAllowed(profile))syncCloud();
     }
     updateStatus();
   });
   const clock=setInterval(()=>{if(!disposed)renderCards();},60000);
   backup=readLocal();renderCards();updateStatus();
-  if(profile)syncCloud();
+  if(profile&&medisinCloudSyncAllowed(profile))syncCloud();
   return {cleanup(){disposed=true;clearTimeout(syncTimer);clearInterval(clock);unsubscribe();}};
 }
