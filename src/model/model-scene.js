@@ -1,12 +1,12 @@
-import {getThreeRuntime} from "./three-runtime.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
-import {modelWaterlineContours} from "./waterline-preview.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
-import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
-import {waveModelHeave} from "./wave-model-motion.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
-import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
-import {createThrusterFlowRings} from "./thruster-flow-rings.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
-import {explodeOffsets} from "./explode-layout.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
-import {connectCADKeyboard} from "./cad-navigation.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
-import {fitDistanceForBox} from "./cad-camera-fit.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {getThreeRuntime} from "./three-runtime.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {modelWaterlineContours} from "./waterline-preview.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {waveModelPose} from "./wave-model-motion.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {createThrusterFlowRings} from "./thruster-flow-rings.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {explodeOffsets} from "./explode-layout.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {connectCADKeyboard} from "./cad-navigation.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {fitDistanceForBox} from "./cad-camera-fit.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;
@@ -126,7 +126,7 @@ export async function mountModelScene(container,documentModel,options={}){
       waterlineInfo={status:"visual-only",loops:[],segments:0,
         reason:"Exploded/isolated view is visual only. Reset assembly for original-hull Hydro."};
     }else{
-      contourGroup.visible=true;
+      contourGroup.visible=!waveMesh.visible;
       waterlineMesh.visible=waterlineState.visible&&!waveMesh.visible;
       refreshWaterlineContours();
     }
@@ -444,53 +444,110 @@ export async function mountModelScene(container,documentModel,options={}){
   });
   const waveMesh=new THREE.Mesh(waveGeometry,waveMaterial);
   waveMesh.visible=false;waveMesh.renderOrder=3;scene.add(waveMesh);
-  let wave=null,waveAnimated=false,waveFrame=null,waveClock=0;
+  let wave=null,waveAnimated=false,waveFrame=null,waveTimeS=0,lastWaveFrameMs=null;
   let waveMotionMode="anchored";
+  let waveReference={world:new THREE.Vector3(),local:new THREE.Vector3()};
+  let lastWavePose={heaveM:0,rollRad:0,pitchRad:0};
   const waveBaseXY=Float32Array.from(waveGeometry.getAttribute("position").array);
+  function referenceForWave(){
+    // The wave passes through the model centroid, not an arbitrary global origin.
+    waveMotionGroup.position.set(0,0,0);
+    waveMotionGroup.quaternion.identity();
+    alignmentGroup.updateMatrixWorld(true);
+    root.updateMatrixWorld(true);
+    const world=new THREE.Box3().setFromObject(root).getCenter(new THREE.Vector3());
+    return {world,local:alignmentGroup.worldToLocal(world.clone())};
+  }
   function drawWave(timeS=0){
     if(!wave||!waveMesh.visible)return;
     const attribute=waveGeometry.getAttribute("position");
     const span=waveMesh.scale.x;
-    for(let i=0;i<attribute.count;i++){
-      const x=waveBaseXY[i*3]*span,y=waveBaseXY[i*3+1]*span;
-      attribute.setZ(i,waveElevation(wave,x,y,timeS));
+    for(let n=0;n<attribute.count;n++){
+      const x=waveReference.world.x+waveBaseXY[n*3]*span;
+      const y=waveReference.world.y+waveBaseXY[n*3+1]*span;
+      attribute.setZ(n,waveElevation(wave,x,y,timeS));
     }
-    attribute.needsUpdate=true;waveGeometry.computeVertexNormals();
-    waveMotionGroup.position.z=waveModelHeave(wave,timeS,waveMotionMode);
-    // Only the display transform moves: still-water hydro/contour data and
-    // vessel attitude inputs are not recomputed as wave-response results.
+    attribute.needsUpdate=true;
+    waveGeometry.computeVertexNormals();
+    const pose=waveModelPose(wave,timeS,waveMotionMode,
+      waveReference.world.x,waveReference.world.y);
+    lastWavePose=pose;
+    // Prescribe illustrative attitude in world coordinates, transformed back
+    // through optional CAD-axis alignment without altering mesh data.
+    const parentQ=alignmentGroup.getWorldQuaternion(new THREE.Quaternion());
+    const localQ=parentQ.clone().invert()
+      .multiply(new THREE.Quaternion().setFromEuler(
+        new THREE.Euler(pose.rollRad,pose.pitchRad,0,"XYZ")))
+      .multiply(parentQ);
+    waveMotionGroup.quaternion.copy(localQ);
+    const pivot=waveReference.local;
+    const heave=new THREE.Vector3(0,0,pose.heaveM)
+      .applyQuaternion(parentQ.clone().invert());
+    waveMotionGroup.position.copy(pivot).sub(pivot.clone().applyQuaternion(localQ)).add(heave);
+    canvas.dataset.waveTimeS=String(timeS);
+    canvas.dataset.waveHeaveM=String(pose.heaveM);
+    canvas.dataset.waveRollDeg=String(pose.rollRad*180/Math.PI);
+    canvas.dataset.wavePitchDeg=String(pose.pitchRad*180/Math.PI);
     draw();
   }
-  function animateWave(ms){
-    if(!waveAnimated||!waveMesh.visible)return;
-    drawWave((ms-waveClock)/1000);
-    waveFrame=requestAnimationFrame(animateWave);
+  function stopWaveLoop(){
+    if(waveFrame!==null)cancelAnimationFrame(waveFrame);
+    waveFrame=null;lastWaveFrameMs=null;
   }
+  function startWaveLoop(){
+    if(wave&&waveAnimated&&waveMesh.visible&&!document.hidden&&waveFrame===null)
+      waveFrame=requestAnimationFrame(animateWave);
+  }
+  function animateWave(ms){
+    waveFrame=null;
+    if(!wave||!waveAnimated||!waveMesh.visible||document.hidden)return;
+    if(lastWaveFrameMs===null)lastWaveFrameMs=ms;
+    const dt=Math.max(0,(ms-lastWaveFrameMs)/1000);
+    // At most ~30 mesh updates per second; pause cleanly in background tabs.
+    if(dt>=1/30){
+      waveTimeS=(waveTimeS+dt)%wave.periodS;
+      lastWaveFrameMs=ms;
+      drawWave(waveTimeS);
+    }
+    startWaveLoop();
+  }
+  function onWaveVisibility(){
+    if(document.hidden)stopWaveLoop();else startWaveLoop();
+  }
+  document.addEventListener("visibilitychange",onWaveVisibility);
   function setWave({enabled=false,heightM=1,periodS=6,headingDeg=0,
     waterDepthM=Infinity,phaseDeg=0,animate=true,timeS=0,motionMode="anchored"}={}){
-    if(waveFrame!==null){cancelAnimationFrame(waveFrame);waveFrame=null}
-    waveAnimated=false;
+    stopWaveLoop();waveAnimated=false;
     if(!enabled){
       wave=null;waveMesh.visible=false;
-      waveMotionGroup.position.z=0;
+      waveMotionGroup.position.set(0,0,0);
+      waveMotionGroup.quaternion.identity();
+      lastWavePose={heaveM:0,rollRad:0,pitchRad:0};
       waterlineMesh.visible=waterlineState.visible;
+      contourGroup.visible=waterlineState.visible&&
+        explodedFactor===0&&scopedExplodeFactor===0&&isolatedIds===null;
       draw();return null;
     }
-    if(!["anchored","follow"].includes(motionMode))throw new Error("Invalid wave motion mode");
+    if(!["anchored","follow","follow-slope"].includes(motionMode))
+      throw new Error("Invalid wave motion mode");
+    if(!Number.isFinite(timeS)||timeS<0)throw Error("Wave time must be nonnegative and finite");
     waveMotionMode=motionMode;
     wave=normaliseWaveCase({heightM,periodS,headingDeg,waterDepthM,phaseDeg});
+    waveReference=referenceForWave();
     updateWaterlineSize();
     const span=Math.max(currentBounds.size.x,currentBounds.size.y,currentBounds.radius*2,1)*1.35;
-    waveMesh.scale.set(span,span,1);waveMesh.position.set(0,0,waterlineState.z);
+    waveMesh.scale.set(span,span,1);
+    waveMesh.position.set(waveReference.world.x,waveReference.world.y,waterlineState.z);
     waveMesh.visible=true;
-    waterlineMesh.visible=false; // No coincident transparent planes.
-    drawWave(timeS);
+    waterlineMesh.visible=false;
+    contourGroup.visible=false; // Fixed contours are not moving-wave intersections.
+    waveTimeS=timeS%wave.periodS;
+    drawWave(waveTimeS);
     waveAnimated=Boolean(animate);
-    waveClock=performance.now()-Number(timeS)*1000;
-    if(waveAnimated)waveFrame=requestAnimationFrame(animateWave);
+    startWaveLoop();
     return {...wave,motionMode:waveMotionMode};
-
   }
+
   function setWaterline({visible=true,z=0}={}){
     if(!Number.isFinite(Number(z)))throw new Error("Waterline elevation must be finite");
     waterlineState={visible:Boolean(visible),z:Number(z)};
@@ -505,6 +562,7 @@ export async function mountModelScene(container,documentModel,options={}){
         reason:"Reset assembly explode/isolation before viewing waterline contours."};
     }
     const info=refreshWaterlineContours();
+    if(waveMesh.visible)contourGroup.visible=false;
     draw();
     return info;
   }
@@ -785,7 +843,8 @@ export async function mountModelScene(container,documentModel,options={}){
     scene.remove(boxHelper);boxHelper.geometry.dispose();boxHelper.material.dispose();
     for(const marker of markerGroup.children){marker.geometry.dispose();marker.material.dispose()}
     scene.remove(markerGroup);
-    if(waveFrame!==null)cancelAnimationFrame(waveFrame);
+    stopWaveLoop();
+    document.removeEventListener("visibilitychange",onWaveVisibility);
     clearContours();scene.remove(contourGroup);contourMaterial.dispose();
     thrusterFlows.dispose();
     scene.remove(waveMesh);waveGeometry.dispose();waveMaterial.dispose();
@@ -841,7 +900,8 @@ export async function mountModelScene(container,documentModel,options={}){
       setHullGirderContour,
       getWaterlineInfo:()=>waterlineInfo,
       setWave,
-      getWaveMotionOffset:()=>waveMotionGroup.position.z,
+      getWaveMotionOffset:()=>lastWavePose.heaveM,
+      getWaveMotionPose:()=>({...lastWavePose,timeS:waveTimeS,mode:waveMotionMode}),
       screenshot,
       getBounds(){
         const value=bounds();

@@ -1,7 +1,7 @@
-import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
-import {mergeMedisinBackups,newMedisinBackup,readMedisinDriveBackup,writeMedisinDriveBackup,validateMedisinBackup} from "../platform/medisin-drive.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
-import {CONCENTRATION_UNITS,medisinConcentrations,medisinSolutionVolume} from "./medisin-concentration.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
-import {medisinStorageKey,medisinTimers,medisinDoses,medisinNextAt,medisinRemainingLevel,medisinChart,medisinApply,medisinCreateTimer,medisinCreateDose,medisinDelete} from "./medisin-model.js?v=fe44a8109849da7e0a1ca20e2c80b3e4154d4193";
+import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {mergeMedisinBackups,newMedisinBackup,readMedisinDriveBackup,writeMedisinDriveBackup,validateMedisinBackup} from "../platform/medisin-drive.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {CONCENTRATION_UNITS,medisinConcentrations,medisinSolutionVolume} from "./medisin-concentration.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
+import {medisinStorageKey,medisinTimers,medisinDoses,medisinNextAt,medisinRemainingLevel,medisinChart,medisinApply,medisinCreateTimer,medisinCreateDose,medisinDelete} from "./medisin-model.js?v=6ec34516dd4fe9de4daef86e595944b88991d94f";
 
 const LEGACY_URL="https://tormt.folk.ntnu.no/diverse/MedisinTimer/";
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
