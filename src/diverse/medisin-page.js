@@ -1,8 +1,10 @@
-import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
-import {mergeMedisinBackups,newMedisinBackup,readMedisinDriveBackup,writeMedisinDriveBackup,validateMedisinBackup} from "../platform/medisin-drive.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
-import {medisinCloudSyncAllowed,setMedisinCloudSyncAllowed} from "../platform/medisin-cloud-consent.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
-import {CONCENTRATION_UNITS,medisinConcentrations,medisinSolutionVolume} from "./medisin-concentration.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
-import {medisinStorageKey,medisinTimers,medisinDoses,medisinNextAt,medisinRemainingLevel,medisinChart,medisinApply,medisinCreateTimer,medisinCreateDose,medisinDelete} from "./medisin-model.js?v=5fecac20c2ffd2b957604291819d35ca18740743";
+import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=136e46e89466b46cf387cad36514eede66aa59c7";
+import {mergeMedisinBackups,newMedisinBackup,validateMedisinBackup} from "../platform/medisin-drive.js?v=136e46e89466b46cf387cad36514eede66aa59c7";
+import {readEncryptedMedisinDriveBackup,writeEncryptedMedisinDriveBackup} from "../platform/medisin-encrypted-drive.js?v=136e46e89466b46cf387cad36514eede66aa59c7";
+import {medisinDriveFolder,setMedisinDriveFolder} from "../platform/medisin-folder.js?v=136e46e89466b46cf387cad36514eede66aa59c7";
+import {medisinCloudSyncAllowed,setMedisinCloudSyncAllowed} from "../platform/medisin-cloud-consent.js?v=136e46e89466b46cf387cad36514eede66aa59c7";
+import {CONCENTRATION_UNITS,medisinConcentrations,medisinSolutionVolume} from "./medisin-concentration.js?v=136e46e89466b46cf387cad36514eede66aa59c7";
+import {medisinStorageKey,medisinTimers,medisinDoses,medisinNextAt,medisinRemainingLevel,medisinChart,medisinApply,medisinCreateTimer,medisinCreateDose,medisinDelete} from "./medisin-model.js?v=136e46e89466b46cf387cad36514eede66aa59c7";
 
 const LEGACY_URL="https://tormt.folk.ntnu.no/diverse/MedisinTimer/";
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -23,9 +25,12 @@ export function medisinPageHTML(){
     </header>
     <div class="medisin-sync-panel" aria-live="polite"><div>
       <strong>Lagring</strong><p id="medisin-sync-status">Laster lokal historikk …</p>
-      <small>Lokale data blir på denne enheten. Google-innlogging starter <strong>ikke</strong> sky-synk uten at du selv aktiverer den. Valgfri Drive-backup er vanlig JSON, ikke ende-til-ende-kryptert.</small>
+      <small>Lokale oppføringer ligger på denne enheten. Drive-backuper krypteres i nettleseren (AES-256-GCM) før opplasting. Passfrasen lagres ikke. Delte Drive-brukere kan se den krypterte filen og metadata, men ikke åpne innholdet uten passfrasen. Gamle ukrypterte Drive-filer slettes ikke automatisk.</small>
     </div><div class="medisin-buttons">
-      <button class="btn" type="button" id="medisin-sync">Aktiver Drive-synk</button>
+      <label>Passfrase for kryptert backup<input type="password" id="medisin-vault-passphrase" minlength="12" maxlength="1024" autocomplete="new-password" placeholder="Minst 12 tegn, oppbevares av deg"></label>
+      <label>Google Drive-mappe-ID (valgfritt, også delt mappe)<input type="text" id="medisin-drive-folder" autocomplete="off" spellcheck="false" placeholder="Tomt = Min disk"></label>
+      <button class="btn" type="button" id="medisin-folder-save">Bruk valgt mappe</button>
+      <button class="btn" type="button" id="medisin-sync">Aktiver kryptert Drive-synk</button>
       <button class="btn" type="button" id="medisin-cloud-disable" hidden>Slå av sky-synk</button>
       <button class="btn" type="button" id="medisin-export">Eksporter</button>
       <button class="btn" type="button" id="medisin-import">Importer v2 JSON</button>
@@ -106,6 +111,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
   const feedback=root.querySelector("#medisin-feedback");
   let profile=accountId(),key=medisinStorageKey(profile),backup=newMedisinBackup();
   let syncPromise=null,pendingSync=false,disposed=false,syncTimer=null;
+  let vaultPassphrase=null;
   const signedIn=()=>Boolean(accountId());
   function readLocal(){
     try{const value=localStorage.getItem(key);return value?validateMedisinBackup(JSON.parse(value)):newMedisinBackup();}
@@ -127,37 +133,58 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     const a=getGoogleSessionSnapshot();
     const connected=a.status==="signed-in"&&Boolean(a.profile?.sub);
     const allowed=connected&&medisinCloudSyncAllowed(a.profile.sub);
+    const unlocked=allowed&&Boolean(vaultPassphrase);
+    const passInput=root.querySelector("#medisin-vault-passphrase");
+    const folderInput=root.querySelector("#medisin-drive-folder");
+    if(folderInput&&!folderInput.matches(":focus"))folderInput.value=connected?(medisinDriveFolder(a.profile.sub)||""):"";
+    if(passInput)passInput.disabled=!connected;
     const trigger=root.querySelector("#medisin-sync");
     trigger.disabled=!connected||!!syncPromise;
-    trigger.textContent=allowed?"Synk nå":"Aktiver Drive-synk";
+    trigger.textContent=unlocked?"Synk nå":allowed?"Lås opp kryptert backup":"Aktiver kryptert Drive-synk";
     const disable=root.querySelector("#medisin-cloud-disable");
     disable.hidden=!allowed;
     disable.disabled=!!syncPromise;
     status.textContent=label||(connected
-      ?allowed
-        ?"Google: "+(a.profile?.email||"tilkoblet")+" · Drive-synk aktivert (JSON er ikke E2E-kryptert)."
-        :"Google: "+(a.profile?.email||"tilkoblet")+" · kun lokal lagring. Sky-synk må aktiveres eksplisitt."
+      ?unlocked
+        ?"Google: "+(a.profile?.email||"tilkoblet")+" · kryptert Drive-synk er låst opp for denne fanen."
+        :allowed
+        ?"Google: "+(a.profile?.email||"tilkoblet")+" · kryptert Drive-synk er låst. Oppgi passfrasen for å synkronisere."
+        :"Google: "+(a.profile?.email||"tilkoblet")+" · kun lokal lagring. Kryptert sky-synk krever aktivt valg."
       :a.status==="signed-in"?"Google-profilen kunne ikke bekreftes. Lokal lagring brukes."
       :"Lokal lagring · logg inn under Innstillinger → Connections for valgfri synk.");
   }
   async function syncCloud(){
-    if(disposed||!signedIn()||!medisinCloudSyncAllowed(profile))return;
+    if(disposed||!signedIn()||!vaultPassphrase||!medisinCloudSyncAllowed(profile))return;
     if(syncPromise){pendingSync=true;return syncPromise;}
     const syncProfile=profile;
+    const passphrase=vaultPassphrase;
+    const folderId=medisinDriveFolder(syncProfile);
     syncPromise=(async()=>{
-      updateStatus("Synkroniserer mot Google Drive …");
-      const remote=await readMedisinDriveBackup();
-      if(disposed||accountId()!==syncProfile||!medisinCloudSyncAllowed(syncProfile))return;
-      // Merge against the latest local snapshot to retain writes made during download.
+      updateStatus("Dekrypterer og synkroniserer kryptert Google Drive-backup …");
+      const remote=await readEncryptedMedisinDriveBackup(syncProfile,passphrase,{folderId});
+      if(disposed||accountId()!==syncProfile||vaultPassphrase!==passphrase||
+        !medisinCloudSyncAllowed(syncProfile))return;
+      // Decryption failure always stops here. No legacy plaintext fallback, and
+      // no overwrite of a locked or incompatible encrypted remote backup.
       const local=readLocal();
       const merged=remote?mergeMedisinBackups(local,remote.backup):local;
       saveLocal(merged);
       if(merged.entries.length&&(!remote||JSON.stringify(merged.entries)!==JSON.stringify(remote.backup.entries))){
-        await writeMedisinDriveBackup(merged,{allowReplace:Boolean(remote)});
+        if(disposed||accountId()!==syncProfile||vaultPassphrase!==passphrase||
+          !medisinCloudSyncAllowed(syncProfile))return;
+        await writeEncryptedMedisinDriveBackup(syncProfile,passphrase,merged,{
+          folderId,allowReplace:Boolean(remote)});
       }
-      message("Google Drive er synkronisert · "+date(Date.now()));
+      message("Kryptert Google Drive-backup synkronisert · "+date(Date.now()));
     })();
-    try{await syncPromise;}catch(error){message("Synk feilet: "+String(error?.message||error)+". Data er lagret lokalt.");}
+    try{await syncPromise;}catch(error){
+      const detail=String(error?.message||error);
+      if(/Vault could not be unlocked|Unsupported or incomplete encrypted MedisinTimer vault|Invalid encrypted MedisinTimer vault/i.test(detail)){
+        vaultPassphrase=null;
+        root.querySelector("#medisin-vault-passphrase").value="";
+      }
+      message("Kryptert synk feilet: "+detail+". Lokale data er ikke tapt; ingen gammel Drive-backup ble overskrevet.");
+    }
     finally{
       syncPromise=null;
       updateStatus();
@@ -165,7 +192,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     }
   }
   function scheduleSync(){
-    if(!signedIn()||!medisinCloudSyncAllowed(profile))return;
+    if(!signedIn()||!vaultPassphrase||!medisinCloudSyncAllowed(profile))return;
     clearTimeout(syncTimer);
     syncTimer=setTimeout(()=>{if(!disposed)syncCloud();},900);
   }
@@ -216,15 +243,34 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
       output.innerHTML=`<div class="medisin-calc-grid">${rows}</div>${detail}`;
     }catch(error){output.textContent="Kan ikke beregne: "+String(error.message||error);}
   });
+  root.querySelector("#medisin-folder-save")?.addEventListener("click",()=>{
+    if(!signedIn())return;
+    if(syncPromise){message("Vent til gjeldende synk er ferdig før du bytter Drive-mappe.");return}
+    try{
+      setMedisinDriveFolder(profile,root.querySelector("#medisin-drive-folder").value.trim());
+      message("Valgt Drive-mappe er lagret på denne enheten. Tom mappe-ID betyr din private Min disk. Bytt mappe kun hvis du vet hvor eksisterende kryptert backup ligger.");
+      updateStatus();
+    }catch(error){message(error.message)}
+  });
   root.querySelector("#medisin-sync")?.addEventListener("click",()=>{
     if(!signedIn())return;
-    if(!medisinCloudSyncAllowed(profile)){
-      const accepted=globalThis.confirm?.(
-        "Aktivere MedisinTimer-synk mot Google Drive? Navn, dosehistorikk og andre opplysninger lagres som ukryptert JSON i din Drive. Dette er ikke ende-til-ende-kryptert. Velg Avbryt for kun lokal lagring."
-      );
-      if(accepted!==true){message("Ingen data ble lastet opp. Lokal lagring fortsetter.");return}
-      try{setMedisinCloudSyncAllowed(profile,true)}
-      catch(error){message(error.message);return}
+    const input=root.querySelector("#medisin-vault-passphrase");
+    const entered=input.value;
+    if(!vaultPassphrase){
+      if(entered.length<12||entered.length>1024){
+        message("Oppgi en passfrase på minst 12 tegn. Den må brukes på alle enheter; mister du den kan ikke backupen dekrypteres.");
+        return;
+      }
+      if(!medisinCloudSyncAllowed(profile)){
+        const accepted=globalThis.confirm?.(
+          "Aktivere ende-til-ende-kryptert MedisinTimer-synk? Data krypteres med passfrasen før Drive-opplasting. Passfrasen kan ikke gjenopprettes; lokale oppføringer lagres fortsatt i nettleseren. Tidligere ukrypterte Drive-filer slettes IKKE automatisk."
+        );
+        if(accepted!==true){message("Ingen data ble lastet opp. Lokal lagring fortsetter.");return}
+        try{setMedisinCloudSyncAllowed(profile,true)}
+        catch(error){message(error.message);return}
+      }
+      vaultPassphrase=entered;
+      input.value="";
     }
     updateStatus();
     syncCloud();
@@ -234,8 +280,10 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     try{setMedisinCloudSyncAllowed(profile,false)}
     catch(error){message(error.message);return}
     clearTimeout(syncTimer);pendingSync=false;
+    vaultPassphrase=null;
+    root.querySelector("#medisin-vault-passphrase").value="";
     updateStatus();
-    message("Automatisk sky-synk er av. Eksisterende filer i Google Drive slettes ikke.");
+    message("Kryptert sky-synk er av og passfrasen er tømt fra denne fanen. Gamle Drive-filer slettes ikke.");
   });
   root.querySelector("#medisin-export")?.addEventListener("click",()=>{
     const file=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
@@ -259,14 +307,16 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
   const unsubscribe=subscribeGoogleSession(()=>{
     const newProfile=accountId();
     if(newProfile!==profile){
-      clearTimeout(syncTimer);profile=newProfile;key=medisinStorageKey(profile);
+      clearTimeout(syncTimer);vaultPassphrase=null;pendingSync=false;
+      root.querySelector("#medisin-vault-passphrase").value="";
+      profile=newProfile;key=medisinStorageKey(profile);
       backup=readLocal();renderCards();message("Byttet lagringsprofil.");
-      if(profile&&medisinCloudSyncAllowed(profile))syncCloud();
+      // A new Google account must explicitly unlock its own encrypted vault.
     }
     updateStatus();
   });
   const clock=setInterval(()=>{if(!disposed)renderCards();},60000);
   backup=readLocal();renderCards();updateStatus();
-  if(profile&&medisinCloudSyncAllowed(profile))syncCloud();
-  return {cleanup(){disposed=true;clearTimeout(syncTimer);clearInterval(clock);unsubscribe();}};
+  // Never request Drive data until the user unlocks this browser session.
+  return {cleanup(){disposed=true;vaultPassphrase=null;clearTimeout(syncTimer);clearInterval(clock);unsubscribe();}};
 }
