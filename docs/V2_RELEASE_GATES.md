@@ -36,3 +36,8 @@ No production cutover is authorized by these documents.
 4. Make GitHub -> deployment the only supported direction and preview on a staging target.
 5. Compare new and old outputs and run automated smoke tests.
 6. Switch production only after explicit go/no-go review; retain rollback.
+
+**Google-sesjon (2026-10-10):** V2s browser-konfigurasjon er nå isolert fra
+V1s PHP-login og scope-listen er begrenset til identitet og `drive.file`.
+Uttesting på ekte Google-kontoer og enheter gjenstår; automatiserte tester
+bekrefter bare frontend-logikken.
