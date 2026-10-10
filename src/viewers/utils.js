@@ -12,14 +12,21 @@ export function extension(path){
 }
 
 const DEFAULT_MAX_TEXT_BYTES=8*1024*1024;
+const DEFAULT_MAX_JSON_BYTES=32*1024*1024;
+function sizeLimit(maxBytes){
+  if(!Number.isSafeInteger(maxBytes)||maxBytes<1||maxBytes>128*1024*1024)
+    throw new RangeError("Invalid preview size limit.");
+  return (maxBytes/(1024*1024)).toLocaleString("en-US",{maximumFractionDigits:2})+" MiB";
+}
 export async function fetchText(path,{maxBytes=DEFAULT_MAX_TEXT_BYTES}={}){
+  const label=sizeLimit(maxBytes);
   const response=await fetch(path);
   if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${path}`);
   const size=Number(response.headers.get("content-length")||0);
-  if(size>maxBytes){await response.body?.cancel?.();throw new Error("Text preview exceeds the 8 MiB limit; download the original instead.");}
+  if(size>maxBytes){await response.body?.cancel?.();throw new Error(`Preview exceeds the ${label} limit; download the original instead.`);}
   if(!response.body?.getReader){
     const text=await response.text();
-    if(new TextEncoder().encode(text).byteLength>maxBytes)throw new Error("Text preview exceeds the 8 MiB limit.");
+    if(new TextEncoder().encode(text).byteLength>maxBytes)throw new Error(`Preview exceeds the ${label} limit.`);
     return text;
   }
   const reader=response.body.getReader(),chunks=[];
@@ -29,7 +36,7 @@ export async function fetchText(path,{maxBytes=DEFAULT_MAX_TEXT_BYTES}={}){
       const {done,value}=await reader.read();
       if(done)break;
       used+=value.byteLength;
-      if(used>maxBytes)throw new Error("Text preview exceeds the 8 MiB limit; download the original instead.");
+      if(used>maxBytes)throw new Error(`Preview exceeds the ${label} limit; download the original instead.`);
       chunks.push(value);
     }
   }catch(error){await reader.cancel().catch(()=>{});throw error}
@@ -37,8 +44,7 @@ export async function fetchText(path,{maxBytes=DEFAULT_MAX_TEXT_BYTES}={}){
   return chunks.map((chunk,index)=>decoder.decode(chunk,{stream:index<chunks.length-1})).join("")+decoder.decode();
 }
 
-export async function fetchJSON(path){
-  const response=await fetch(path);
-  if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${path}`);
-  return response.json();
+/** Bounded parsing for untrusted course JSON and notebook archives. */
+export async function fetchJSON(path,{maxBytes=DEFAULT_MAX_JSON_BYTES}={}){
+  return JSON.parse(await fetchText(path,{maxBytes}));
 }
