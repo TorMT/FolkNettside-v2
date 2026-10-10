@@ -1,6 +1,7 @@
 import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js";
 import {mergeMedisinBackups,newMedisinBackup,validateMedisinBackup} from "../platform/medisin-drive.js";
 import {readEncryptedMedisinDriveBackup,writeEncryptedMedisinDriveBackup} from "../platform/medisin-encrypted-drive.js";
+import {encryptMedisinVault,decryptMedisinVault,isEncryptedMedisinVault} from "../platform/medisin-vault.js";
 import {medisinDriveFolder,setMedisinDriveFolder} from "../platform/medisin-folder.js";
 import {medisinCloudSyncAllowed,setMedisinCloudSyncAllowed} from "../platform/medisin-cloud-consent.js";
 import {CONCENTRATION_UNITS,medisinConcentrations,medisinSolutionVolume} from "./medisin-concentration.js";
@@ -32,8 +33,9 @@ export function medisinPageHTML(){
       <button class="btn" type="button" id="medisin-folder-save">Bruk valgt mappe</button>
       <button class="btn" type="button" id="medisin-sync">Aktiver kryptert Drive-synk</button>
       <button class="btn" type="button" id="medisin-cloud-disable" hidden>Slå av sky-synk</button>
-      <button class="btn" type="button" id="medisin-export">Eksporter</button>
-      <button class="btn" type="button" id="medisin-import">Importer v2 JSON</button>
+      <button class="btn" type="button" id="medisin-export">Eksporter JSON (ukryptert)</button>
+      <button class="btn" type="button" id="medisin-export-encrypted">Eksporter kryptert sikkerhetskopi</button>
+      <button class="btn" type="button" id="medisin-import">Importer JSON eller kryptert backup</button>
       <input type="file" accept=".json,application/json" id="medisin-import-file" hidden>
     </div></div>
     <div class="medisin-layout">
@@ -285,11 +287,22 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     updateStatus();
     message("Kryptert sky-synk er av og passfrasen er tømt fra denne fanen. Gamle Drive-filer slettes ikke.");
   });
-  root.querySelector("#medisin-export")?.addEventListener("click",()=>{
-    const file=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+  function downloadBackup(payload,filename){
+    const file=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
     const href=URL.createObjectURL(file),link=document.createElement("a");
-    link.href=href;link.download="medisintimer-v2-backup.json";link.click();
+    link.href=href;link.download=filename;link.click();
     setTimeout(()=>URL.revokeObjectURL(href),1000);
+  }
+  root.querySelector("#medisin-export-encrypted")?.addEventListener("click",async()=>{
+    const passphrase=vaultPassphrase||root.querySelector("#medisin-vault-passphrase").value;
+    if(!passphrase||passphrase.length<12){message("Lås opp med passfrasen eller skriv en ny passfrase på minst 12 tegn før kryptert eksport.");return}
+    try{downloadBackup(await encryptMedisinVault(backup,passphrase),"medisintimer-v2-kryptert.enc.json");
+      message("Kryptert lokal sikkerhetskopi eksportert. Oppbevar passfrasen separat; den kan ikke gjenopprettes.");}
+    catch(error){message("Kryptert eksport feilet: "+error.message)}
+  });
+  root.querySelector("#medisin-export")?.addEventListener("click",()=>{
+    downloadBackup(backup,"medisintimer-v2-backup.json");
+    message("Ukryptert JSON eksportert. Filen kan inneholde sensitive opplysninger.");
   });
   const fileInput=root.querySelector("#medisin-import-file");
   root.querySelector("#medisin-import")?.addEventListener("click",()=>fileInput.click());
@@ -298,7 +311,10 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     if(!file)return;
     try{
       if(file.size>2_000_000)throw new Error("Filen er for stor.");
-      const imported=validateMedisinBackup(JSON.parse(await file.text()));
+      const parsed=JSON.parse(await file.text());
+      const passphrase=vaultPassphrase||root.querySelector("#medisin-vault-passphrase").value;
+      if(isEncryptedMedisinVault(parsed)&&!passphrase)throw new Error("Oppgi passfrasen til den krypterte filen først.");
+      const imported=validateMedisinBackup(isEncryptedMedisinVault(parsed)?await decryptMedisinVault(parsed,passphrase):parsed);
       const merged=mergeMedisinBackups(backup,imported);
       saveLocal(merged);scheduleSync();message("Importert "+imported.entries.length+" oppføringer (sammenslått uten å slette eksisterende).");
     }catch(error){message("Import mislyktes: "+error.message);}
