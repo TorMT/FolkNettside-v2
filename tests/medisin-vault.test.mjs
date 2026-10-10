@@ -5,6 +5,7 @@ import {
   medisinVaultFileName
 } from "../src/platform/medisin-vault.js";
 import {newMedisinBackup} from "../src/platform/medisin-drive.js";
+import {vaultRevision,assertVaultRevision} from "../src/platform/medisin-encrypted-drive.js";
 
 const backup=newMedisinBackup([{
   id:"private-entry-01",type:"timer",name:"Sensitive synthetic timer",
@@ -39,4 +40,17 @@ test("same account produces a deterministic pseudonymous file name, others diffe
   assert.match(a,/^folk-medisin-v2-[0-9a-f]{24}\.enc\.json$/);
   assert.doesNotMatch(a,/google-sub-A/);
   await assert.rejects(medisinVaultFileName(""),/account/);
+});
+
+test("encrypted Drive revision detects stale snapshots without exposing contents",async()=>{
+  const passphrase="Another synthetic safe passphrase 2026";
+  const first=JSON.stringify(await encryptMedisinVault(backup,passphrase));
+  const second=JSON.stringify(await encryptMedisinVault(backup,passphrase));
+  const expected=await vaultRevision(first);
+  assert.match(expected,/^[a-f0-9]{64}$/);
+  assert.equal(expected,await vaultRevision(first));
+  assert.doesNotThrow(()=>assertVaultRevision(expected,expected));
+  assert.throws(()=>assertVaultRevision(expected,await vaultRevision(second)),/annen enhet/);
+  assert.throws(()=>assertVaultRevision("",expected),/annen enhet/);
+  assert.doesNotMatch(expected,/private-entry|Sensitive/);
 });
