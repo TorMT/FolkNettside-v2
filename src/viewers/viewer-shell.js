@@ -2,6 +2,10 @@ import {loadAdapter,viewerKind} from "./registry.js";
 import {escapeHTML} from "./utils.js";
 
 export async function mountViewer(root,resource,onBack){
+  // A previous asynchronous adapter may finish after navigation. Only the
+  // newest mount may claim the shared root, status, toolbar or cleanup hook.
+  const ticket=(root.__viewerTicket||0)+1;
+  root.__viewerTicket=ticket;
   root.__viewerCleanup?.();
   root.__viewerCleanup=null;
 
@@ -60,6 +64,7 @@ export async function mountViewer(root,resource,onBack){
   </main>`;
 
   const canvas=root.querySelector("#viewer-canvas");
+  const active=()=>root.__viewerTicket===ticket&&canvas?.isConnected&&root.contains(canvas);
   const status=root.querySelector("#viewer-info");
   canvas.addEventListener("viewer-info-update",event=>{if(event.detail)status.textContent=String(event.detail)});
   const toolbar=root.querySelector(".viewer-toolbar");
@@ -96,6 +101,7 @@ export async function mountViewer(root,resource,onBack){
   });
 
   root.querySelector("#viewer-back").onclick=()=>{
+    root.__viewerTicket++;
     root.__viewerCleanup?.();
     root.__viewerCleanup=null;
     onBack();
@@ -105,8 +111,10 @@ export async function mountViewer(root,resource,onBack){
 
   try{
     const adapter=await loadAdapter(resource);
+    if(!active())return;
     const result=await adapter.render(canvas,resource);
     const adapterCleanup=result?.cleanup || null;
+    if(!active()){adapterCleanup?.();return}
     root.__viewerCleanup=adapterCleanup;
     status.textContent=result?.info || "."+adapter.extension;
 
@@ -164,6 +172,7 @@ export async function mountViewer(root,resource,onBack){
       resetProgressButton.onclick=()=>actions.resetProgress();
     }
   }catch(error){
+    if(!active())return;
     const message=escapeHTML(error?.message||error);
     canvas.innerHTML=`<div class="viewer-error">
       <span class="project-kicker">Viewer error</span>
