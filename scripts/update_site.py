@@ -202,20 +202,41 @@ def scan_course(semester_id: int, course_dir: Path) -> dict:
         "resources": deduped,
     }
 
+def course_metadata_code(course_dir: Path) -> str:
+    """Resolve the actual course code without scanning files or resource bytes."""
+    meta = course_dir / "course.json"
+    if not meta.is_file():
+        meta = course_dir / "index.json"
+    data = load_json(meta)
+    return str(data.get("code") or data.get("courseCode") or course_dir.name)
+
+
+def resolve_course_dir(semester_dir: Path, course_name: str) -> Path:
+    """Accept folder or declared course code; reject ambiguous matches."""
+    candidates = sorted(
+        (p for p in semester_dir.iterdir() if p.is_dir() and not p.is_symlink()),
+        key=lambda p: p.name.casefold(),
+    )
+    matches = [p for p in candidates
+               if course_name.casefold() in (p.name.casefold(), course_metadata_code(p).casefold())]
+    if not matches:
+        raise FileNotFoundError(f"course not found: {semester_dir / course_name}")
+    if len(matches) > 1:
+        raise ValueError(f"ambiguous course name/code: {course_name}")
+    return matches[0]
+
+
 def scan_semester(source: Path, semester_id: int, course_code: str | None = None) -> dict:
     semester_dir = source / str(semester_id)
     if not semester_dir.is_dir():
         raise FileNotFoundError(f"semester not found: {semester_dir}")
 
     course_dirs = sorted(
-        (p for p in semester_dir.iterdir() if p.is_dir()),
+        (p for p in semester_dir.iterdir() if p.is_dir() and not p.is_symlink()),
         key=lambda p: p.name.casefold(),
     )
     if course_code:
-        wanted = course_code.casefold()
-        course_dirs = [p for p in course_dirs if p.name.casefold() == wanted]
-        if not course_dirs:
-            raise FileNotFoundError(f"course not found: {semester_dir / course_code}")
+        course_dirs = [resolve_course_dir(semester_dir, course_code)]
 
     courses = [scan_course(semester_id, course_dir) for course_dir in course_dirs]
     return {"id": semester_id, "label": f"Semester {semester_id}", "courses": courses}
@@ -226,7 +247,7 @@ def build_full_manifest(source: Path) -> dict:
 
     semester_ids = []
     for path in source.iterdir():
-        if not path.is_dir():
+        if not path.is_dir() or path.is_symlink():
             continue
         try:
             semester_ids.append(int(path.name))
@@ -279,7 +300,7 @@ def merge_scope(
             courses = list(semester.get("courses") or [])
             course_index = next(
                 (i for i, item in enumerate(courses)
-                 if str(item.get("code", "")).casefold() == course_code.casefold()),
+                 if str(item.get("code", "")).casefold() == scanned_course["code"].casefold()),
                 None,
             )
             if course_index is None:
@@ -321,19 +342,25 @@ def choose_scope(source: Path) -> tuple[int | None, str | None]:
         raise ValueError(f"Unknown semester: {raw}")
     semester = int(raw)
     courses = sorted(
-        (path.name for path in (source / str(semester)).iterdir() if path.is_dir()),
-        key=str.casefold,
+        (path for path in (source / str(semester)).iterdir()
+         if path.is_dir() and not path.is_symlink()),
+        key=lambda path: path.name.casefold(),
     )
-    print("Available courses:", ", ".join(courses) or "(none)")
-    raw = input("Course code (Enter = whole semester, q = cancel): ").strip()
+    print("Available courses:", ", ".join(
+        path.name + (" [" + course_metadata_code(path) + "]"
+                     if course_metadata_code(path).casefold() != path.name.casefold() else "")
+        for path in courses
+    ) or "(none)")
+    raw = input("Course folder or code (Enter = whole semester, q = cancel): ").strip()
     if raw.lower() in {"q", "quit"}:
         raise KeyboardInterrupt
     if not raw:
         return semester, None
-    matches = [course for course in courses if course.casefold() == raw.casefold()]
-    if not matches:
-        raise ValueError(f"Unknown course: {raw}")
-    return semester, matches[0]
+    try:
+        selected = resolve_course_dir(source / str(semester), raw)
+    except FileNotFoundError:
+        raise ValueError(f"Unknown course: {raw}") from None
+    return semester, course_metadata_code(selected)
 
 
 def public_manifest_violations(manifest: dict) -> list[tuple[str, str]]:
