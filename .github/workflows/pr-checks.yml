@@ -168,6 +168,16 @@ jobs:
             exit 1
           }
 
+      - name: Quiz wrong-answer bank and targeted retry browser regression
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4226 --bind 127.0.0.1 >/tmp/quiz-mistakes-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/quiz-mistakes-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4226/tests/browser/quiz-mistake-bank-smoke.html 35 1440,900
+
       - name: Quiz chapter and Excel formula browser regression
         run: |
           command -v chromedriver
