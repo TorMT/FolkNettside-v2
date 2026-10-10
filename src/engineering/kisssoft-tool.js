@@ -126,7 +126,11 @@ export function kisssoftPageHTML(){
  return `<main class="section kisssoft-page"><p class="crumbs">Engineering / KISSsoft</p><h1>KISSsoft gear inspector</h1>
  <p>Open a local .Z14, .Z12, .Z012RS, .Z014RS, .W10 or .KSYS file. Z014 planetary datasets and compatible two-shaft external pairs support conceptual rotating 3D gears and approximate helix. Other formats show available parameter information.</p>
  <label class="form-field">KISSsoft file <input id="kisssoft-file" type="file" accept=".z12,.z14,.z012,.z014,.z012rs,.z014rs,.w10,.ksys"></label>
- <div class="kisssoft-example"><button class="btn" type="button" data-kisssoft-example>Open example planetary gearbox</button> <a href="./examples/kisssoft/PlanetaryExample.Z14" download="PlanetaryExample.Z14">Download example .Z14</a> <button class="btn" type="button" data-kisssoft-ring-example>Open internal ring + pinion</button> <a href="./examples/kisssoft/InternalRingAndPinion.Z12" download="InternalRingAndPinion.Z12">Download example .Z12</a><small>Synthetic Z014-compatible parameter fixture for learning; not an original KISSsoft calculation or validated design.</small></div>
+ <div class="kisssoft-example" aria-label="KISSsoft demonstration files">
+  <div><button class="btn" type="button" data-kisssoft-example>Open planetary · Z014</button> <a href="./examples/kisssoft/PlanetaryExample.Z14" download="PlanetaryExample.Z14">Download Z14</a></div>
+  <div><button class="btn" type="button" data-kisssoft-ring-example>Open internal ring + pinion · Z012RS</button> <a href="./examples/kisssoft/InternalRingAndPinion.Z012RS" download="InternalRingAndPinion.Z012RS">Download Z012RS</a></div>
+  <div><button class="btn" type="button" data-kisssoft-external-example>Open external helical pair · Z012</button> <a href="./examples/kisssoft/HelicalExternalPair.Z12" download="HelicalExternalPair.Z12">Download Z12</a></div>
+  <small>Three synthetic parameter files for testing the viewer, not manufacturer-generated KISSsoft calculations or certified designs. Original imported angles are displayed without modification.</small></div>
  <div id="kisssoft-output" role="status" aria-live="polite"><p>No file loaded. Your file stays in your browser.</p></div></main>`;
 }
 export function mountKisssoft(root){
@@ -178,20 +182,25 @@ export function mountKisssoft(root){
    },"PlanetaryExample.Z14");
  };
  const ringExample=root.querySelector("[data-kisssoft-ring-example]");
- const onRingExample=()=>{
+ const externalExample=root.querySelector("[data-kisssoft-external-example]");
+ const openExample=(fileName)=>{
    void openBuffer(async()=>{
-     const response=await fetch("./examples/kisssoft/InternalRingAndPinion.Z12",{cache:"no-cache"});
-     if(!response.ok)throw Error("Ring example unavailable (HTTP "+response.status+")");
+     const response=await fetch("./examples/kisssoft/"+fileName,{cache:"no-cache"});
+     if(!response.ok)throw Error("Example unavailable (HTTP "+response.status+")");
      return response.arrayBuffer();
-   },"InternalRingAndPinion.Z12");
+   },fileName);
  };
+ const onRingExample=()=>openExample("InternalRingAndPinion.Z012RS");
+ const onExternalExample=()=>openExample("HelicalExternalPair.Z12");
  input.addEventListener("change",onFile);
  example?.addEventListener("click",onExample);
  ringExample?.addEventListener("click",onRingExample);
+ externalExample?.addEventListener("click",onExternalExample);
  return ()=>{
    disposed=true;generation++;dispose3D();
    input.removeEventListener("change",onFile);
    example?.removeEventListener("click",onExample);
    ringExample?.removeEventListener("click",onRingExample);
+   externalExample?.removeEventListener("click",onExternalExample);
  };
 }
