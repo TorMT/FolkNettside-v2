@@ -40,3 +40,19 @@ Status values: `fixture`, `prototype`, `rewrite-next`, `planned`, `full`.
 | Sectional Area Curve (SAC) | Mesh-sliced area A(x) and CSV in Hydro | Analytic submerged box (A=3 m2, V=30 m3) + UI audit | prototype | Validated-mesh and station limits; still requires independent real-hull reference data, multi-body/holes and performance qualification. |\n| Wave vessel motion mode | Anchored vs illustrative follow-surface heave | Unit + Chrome model wave smoke | prototype | Follow mode does not solve RAOs, mooring dynamics, roll/pitch or wave loads. |\n| Autodesk login | Settings connection service | n/a | planned | Optional auth only |
 
 Every row gets a deterministic fixture before being considered migrated.
+
+
+### MedisinTimer sky-synk: samtykke før ukryptert opplasting (2026-10-10)
+
+Google-innlogging alene starter nå **ikke** automatisk Google Drive-lesing eller
+-opplasting av MedisinTimer-data. Brukeren må velge **Aktiver Drive-synk**
+og bekrefte en tydelig advarsel om at timer-/dosehistorikk synkroniseres
+som **ukryptert JSON**. Valget lagres lokalt per Google-konto (`sub`).
+Uten dette valget forblir historikken lokal selv om Google er tilkoblet.
+Det finnes også en **Slå av sky-synk**-knapp som stopper videre
+automatisk synkronisering. Den sletter *ikke* tidligere lagrede Drive-data.
+
+Dette er en **eksplisitt samtykkekontroll, ikke E2E-kryptering**.
+Reell ende-til-ende-kryptering, revisjon av gamle Drive-kopier,
+atomerisk fler-enhetssynk/konflikthåndtering og to-konto-/to-enhetstest
+må fortsatt løses før MedisinTimer kan klassifiseres som ferdig.
