@@ -1,9 +1,28 @@
 # KISSsoft browser support
 
+## Regression recovery — 2026-10-10
+
+Commit [fe44a810](https://github.com/TorMT/FolkNettside-v2/commit/fe44a8109849da7e0a1ca20e2c80b3e4154d4193) (merged 2026-10-09) unintentionally changed the **default** planetary boundary from `ring-fixed` to `carrier-fixed`. The original fixed-ring/sun-drive educational behavior is now restored on initial load, while the explicitly selectable fixed-sun and fixed-carrier alternatives remain available. This is a targeted rollback, **not** a revert of the other bug fixes or file-format support.
+
+### Built-in examples
+
+| Filename | Purpose | Geometric constraints |
+|---|---|---|
+| `examples/kisssoft/PlanetaryExample.Z14` | Sun 25, planet 35, internal ring −95, normal module 2 mm | Planetary closure 25+2×35=95, nominal sun–planet center 60 mm |
+| `examples/kisssoft/InternalRingAndPinion.Z012RS` | Internal ring −225 with 20-tooth pinion, normal module 20 mm, β=15° | Nominal center distance **2122.31617 mm** with zero profile shift, ratio +20/225 |
+| `examples/kisssoft/HelicalExternalPair.Z12` | External 20/40 teeth, normal module 3 mm, β=20° | Nominal center distance **95.77600 mm**, ratio −1/2 |
+
+The original internal-ring `InternalRingAndPinion.Z12` path is preserved for old links. The synthetic `.Z012RS` duplicate demonstrates native suffix handling in the browser, **not** that this short fixture is a complete native KISSsoft project file. All three are synthetic samples, not exported engineering verification or actual KISSsoft strength/contact solutions.
+
+Each sample has a one-click loader and a download link from Engineering → KISSsoft. The loader resolves example URLs relative to the module path, so it works even if the page is embedded elsewhere. Invalid source parameters are never auto-corrected without notice.
+
+Regression coverage: `tests/kisssoft-examples.test.mjs` validates file geometry, angle interpretation and expected links; `tests/browser/kisssoft-smoke.html` verifies the initial fixed-ring boundary and example loading. Real customer files and full contact geometry still require direct validation.
+
 ## Imported formats
 
-- `.Z14`: parameter-based planetary visualizer, if a compatible `MODULE=Z014` record has sun/planet/internal-ring tooth counts and a positive normal module
-- `.Z12`, `.W10`, `.KSYS`: bounded generic parameter inspection; do not infer an assembly from unmatched fields
+- `.Z14`, `.Z014RS`: parameter-based planetary visualizer, if a compatible `MODULE=Z014` record has sun/planet/internal-ring tooth counts and a positive normal module
+- `.Z12`, `.Z012RS`: parameter inspection and approximate 3D pair visualizations when signed tooth counts and module support a valid external or internal mesh
+- `.W10`, `.KSYS`: bounded generic parameter inspection; do not infer an assembly from unmatched fields
 - UTF-16LE, UTF-16BE BOM and UTF-8 sources accepted, with a 12 MB limit
 - Inputs are read locally; no script commands in the file are evaluated
 
@@ -11,7 +30,7 @@ The shared Courses ViewerShell registers these formats. Engineering has a dedica
 
 ## Interpretation and limits
 
-The test fixture `Stage3PlanetaryGear.Z14` from KISSsoft 2026 SP1 has `ZR[0].z=25`, `ZR[1].z=35`, `ZR[2].z=-95`, `ZS.Geo.mn=2`, `ZS.Geo.beta=0`, and face widths of 35 mm. A nominal sun-to-planet center distance of 60 mm and nominal pitch diameters of 50/70/190 mm follow geometrically.
+The parameter example `Stage3PlanetaryGear.Z14` used for tests has `ZR[0].z=25`, `ZR[1].z=35`, `ZR[2].z=-95`, `ZS.Geo.mn=2`, `ZS.Geo.beta=0`, and face widths of 35 mm. A nominal sun-to-planet center distance of 60 mm and nominal pitch diameters of 50/70/190 mm follow geometrically.
 
 **The optional orbitable Three.js 3D scene and the 2D SVG diagram are both schematic** of the gear layout and pitch proportions. 3D tooth blocks and 2D teeth are stylized, not true involute profiles; ring tooth spacing, phases, profile shifts, helix, fillets, backlash, axes/bearings, clearance, and 3D CAD are not solved here. Three planets are displayed illustratively, not read as an asserted planet count.
 
