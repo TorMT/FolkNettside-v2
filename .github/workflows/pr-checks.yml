@@ -220,27 +220,15 @@ jobs:
 
       - name: MedisinTimer browser smoke
         run: |
-          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
-          test -n "$browser"
+          command -v chromedriver
           python3 -m http.server 4190 --bind 127.0.0.1 >/tmp/medisin-test-server.log 2>&1 &
           server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          python3 - <<'PY'
-          import time, urllib.request
-          for _ in range(60):
-              try:
-                  urllib.request.urlopen('http://127.0.0.1:4190/tests/browser/medisin-v2-smoke.html',timeout=1)
-                  break
-              except Exception: time.sleep(.1)
-          else: raise SystemExit('Medisin browser test server did not start')
-          PY
-          "$browser" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=24000 \
-            --dump-dom http://127.0.0.1:4190/tests/browser/medisin-v2-smoke.html \
-            >/tmp/medisin-v2-smoke-dom.html
-          grep -q 'data-status="pass"' /tmp/medisin-v2-smoke-dom.html || {
-            cat /tmp/medisin-v2-smoke-dom.html
-            exit 1
-          }
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/medisin-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          # The PBKDF2 WebCrypto calculation runs asynchronously outside the
+          # headless Chrome virtual timer. Use real-time WebDriver polling.
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4190/tests/browser/medisin-v2-smoke.html 55 1440,900
 
       - name: Native LAOS and student sites browser smoke
         run: |
