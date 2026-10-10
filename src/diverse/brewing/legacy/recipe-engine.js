@@ -7,6 +7,11 @@
     return renderApi.escapeHtml(value);
   }
 
+  function backend(file) {
+    const url = global.FolkBrewingEndpoint && global.FolkBrewingEndpoint('brewing', file);
+    if (!url) throw new Error('Brewing backend is not configured for V2');
+    return url;
+  }
   function fetchJson(url) {
     return fetch(url, { cache: 'no-store' }).then(async function (response) {
       const data = await response.json();
@@ -1158,7 +1163,7 @@
       els.recipeList.innerHTML = '<div class="loading">Laster oppskrifter...</div>';
 
       try {
-        const payload = await fetchJson('/includes/brewing/api/recipes.php?ingredients=' + encodeURIComponent(query));
+        const payload = await fetchJson(backend('recipes.php') + '?ingredients=' + encodeURIComponent(query));
         state.recipeProviders = Array.isArray(payload.providers) ? payload.providers : [];
         state.recipes = Array.isArray(payload.recipes) ? payload.recipes : [];
         state.recipeCatalogs = payload.catalogs || null;
@@ -1223,7 +1228,7 @@
 
       const query = (recipe.style || recipe.name || '').trim();
       try {
-        const referencePayload = await fetchJson('/includes/brewing/api/reference.php?q=' + encodeURIComponent(query));
+        const referencePayload = await fetchJson(backend('reference.php') + '?q=' + encodeURIComponent(query));
         renderReferences(els, referencePayload.references || []);
         renderProviderPills(els.recipeProviderPills, referencePayload.providers || state.recipeProviders, state);
         if (Array.isArray(referencePayload.storageOptions) && referencePayload.storageOptions.length) {

@@ -1,4 +1,5 @@
-import {mountBrewingIngredients} from "./brewing/inventory.js?v=a49ec3fcd716b34053983faf366cd66ce526df47";
+import {mountBrewingIngredients} from "./brewing/inventory.js?v=aea0dc54b4840d4b95c890f209b51965789e75ca";
+import {brewingEndpoint,loadBrewingServiceConfig} from "./brewing/backend-config.js?v=aea0dc54b4840d4b95c890f209b51965789e75ca";
 const LEGACY_BREWING_URL="https://tormt.folk.ntnu.no/diverse/Brygging/";
 const MODULES=[
   "./src/diverse/brewing/legacy/hydrometer-filter.js",
@@ -197,12 +198,18 @@ export async function mountBrewing(root,{account={},onBack=()=>{}}={}){
   const cleanupInventory=mountBrewingIngredients(root.querySelector("#brew-local-inventory"));
   root.querySelector("[data-brewing-back]")?.addEventListener("click",onBack);
   const note=root.querySelector("#brewing-backend-note");
-  const githubPreview=location.hostname.endsWith("github.io");
+  const settings=await loadBrewingServiceConfig();
+  if(disposed)return()=>{};
+  // Legacy module adapters now resolve services only within the actual V2
+  // deployment base. Never discover root-relative PHP on the V1 NTNU site.
+  const endpoint=(service,file)=>brewingEndpoint(settings,service,file);
+  globalThis.FolkBrewingEndpoint=endpoint;
+  const raptEndpoint=endpoint("rapt","dashboard.php");
   if(note){
-    note.textContent=githubPreview
-      ?"Native v2 UI is loaded. Live RAPT/log/recipe APIs require the NTNU server deployment; use Legacy fallback for live data in this Pages preview."
-      :"Connecting to the Brewing backend…";
-    note.dataset.kind=githubPreview?"preview":"loading";
+    note.textContent=raptEndpoint
+      ?"Brewing modules loaded; verifying this V2 deployment's RAPT backend…"
+      :"V2 server APIs are not configured. Local inventory works; live RAPT, recipes and logs are unavailable here. Legacy fallback is preserved.";
+    note.dataset.kind=raptEndpoint?"loading":"preview";
   }
 
   try{
@@ -211,11 +218,11 @@ export async function mountBrewing(root,{account={},onBack=()=>{}}={}){
       scripts.push(await loadScript(src));
     }
     if(disposed)return()=>{};
-    if(note&&!githubPreview){
-      note.textContent="Brewing modules loaded. Checking backend availability separately; loading scripts does not confirm server access.";
+    if(note&&raptEndpoint){
+      note.textContent="Checking the V2 RAPT backend; module loading does not prove API availability.";
       note.dataset.kind="preview";
       try{
-        const response=await fetch("/includes/rapt/api/dashboard.php?days=1",{method:"GET",cache:"no-store",signal:AbortSignal.timeout(7000)});
+        const response=await fetch(raptEndpoint+"?days=1",{method:"GET",cache:"no-store",signal:AbortSignal.timeout(7000)});
         const type=response.headers.get("content-type")||"";
         if(!response.ok||!type.includes("json"))throw new Error("Unexpected API status or response format");
         const payload=await response.json();
@@ -236,6 +243,7 @@ export async function mountBrewing(root,{account={},onBack=()=>{}}={}){
     disposed=true;
     cleanupInventory?.();
     scripts.forEach(script=>script.remove());
+    if(globalThis.FolkBrewingEndpoint===endpoint)delete globalThis.FolkBrewingEndpoint;
     for(const key of ["BrewingApp","BrewingHydrometerFilter","HydrometerIntelligence","BrewingHydrometerRender","BrewingGoogleDrive","BrewingLogTools","BrewingLogViewer","BrewingRecipeEngine","BrewingSandalenTools"]){
       try{delete window[key]}catch{}
     }
