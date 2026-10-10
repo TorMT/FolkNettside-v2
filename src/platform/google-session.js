@@ -142,6 +142,7 @@ async function requestToken(prompt){
   if(accessPromise)return accessPromise;
   accessPromise=(async()=>{
     await ensureGoogleIdentity();
+    if(revision!==sessionRevision)throw new Error("Google authentication was cancelled.");
     return new Promise((resolve,reject)=>{
       let settled=false;
       const finish=(error,token)=>{
