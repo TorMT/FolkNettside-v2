@@ -363,9 +363,29 @@ def write_manifest_atomic(output: Path, manifest: dict) -> None:
             temp_path.unlink(missing_ok=True)
 
 
+def manifest_source(output: Path) -> Path:
+    """Honor a reviewed course root recorded in the manifest during rebuild.
+
+    Never silently replace migrated courses with demo fixtures, and never
+    follow source pointers outside the repository.
+    """
+    if not output.is_file():
+        return DEFAULT_SOURCE
+    configured = load_json(output).get("source")
+    if not configured:
+        return DEFAULT_SOURCE
+    source_label = Path(str(configured))
+    if source_label.is_absolute() or ".." in source_label.parts:
+        raise ValueError("unsafe manifest source: outside repository")
+    source = (ROOT / source_label).resolve()
+    if not source.is_relative_to(ROOT.resolve()) or not source.is_dir():
+        raise ValueError("manifest course source is missing or outside repository")
+    return source
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
+    parser.add_argument("--source", type=Path, help="Semester root (defaults to current manifest source)")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--semester", type=int, help="Only update one semester")
     parser.add_argument("--course", help="Only update one course; requires --semester")
@@ -383,8 +403,13 @@ def main() -> int:
     if args.check and (args.semester is not None or args.course):
         parser.error("--check validates the full manifest and cannot be combined with a scope")
 
-    source = args.source if args.source.is_absolute() else ROOT / args.source
     output = args.output if args.output.is_absolute() else ROOT / args.output
+    try:
+        chosen_source = args.source if args.source is not None else manifest_source(output)
+    except (ValueError, OSError) as error:
+        print(f"Content source error: {error}. No files changed.", file=sys.stderr)
+        return 2
+    source = chosen_source if chosen_source.is_absolute() else ROOT / chosen_source
     started = time.perf_counter()
     if args.interactive:
         try:
