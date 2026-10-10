@@ -310,7 +310,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     const file=fileInput.files?.[0];
     if(!file)return;
     try{
-      if(file.size>2_000_000)throw new Error("Filen er for stor.");
+      if(file.size>4_000_000)throw new Error("Filen er for stor.");
       const parsed=JSON.parse(await file.text());
       const passphrase=vaultPassphrase||root.querySelector("#medisin-vault-passphrase").value;
       if(isEncryptedMedisinVault(parsed)&&!passphrase)throw new Error("Oppgi passfrasen til den krypterte filen først.");
