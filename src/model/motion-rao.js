@@ -28,7 +28,7 @@ export function parseMotionRAOCSV(input,{name="Imported RAO CSV"}={}){
  if(typeof input!=="string"||input.length>1600000)throw Error("RAO CSV exceeds 1.6 MB");
  const lines=input.replace(/^\uFEFF/,"").split(/\r?\n/)
    .map(line=>line.trim()).filter(line=>line&&!line.startsWith("#"));
- if(lines.length<7||lines.length>MAX_ROWS+1)throw Error("RAO CSV needs six DOFs per frequency and <=12000 data rows");
+ if(lines.length<2||lines.length>MAX_ROWS+1)throw Error("RAO CSV needs a header and <=12000 data rows");
  const headers=lines.shift().split(",").map(x=>x.trim().toLowerCase());
  if(headers.join(",")!==required)
    throw Error("RAO CSV columns must be: "+required);
