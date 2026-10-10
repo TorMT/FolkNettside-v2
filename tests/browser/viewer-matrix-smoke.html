@@ -6,6 +6,7 @@
 <pre id="result">running</pre>
 <script type="module">
 import {loadAdapter} from "../../src/viewers/registry.js";
+import {mountViewer} from "../../src/viewers/viewer-shell.js";
 
 const host=document.querySelector("#host");
 const result=document.querySelector("#result");
@@ -50,7 +51,7 @@ const cases=[
   },
   {
     id:"docx",kind:"FILE",
-    path:"../../examples/semesters/5/TMR4182/Filer%20og%20ressurser/Office/hydro-notes.docx",
+    url:"../../examples/semesters/5/TMR4182/Filer%20og%20ressurser/Office/hydro-notes.docx",
     name:"hydro-notes.docx",label:"Hydro notes",
     selector:".office-doc",find:"hydro"
   },
@@ -139,8 +140,40 @@ try{
     rendered?.cleanup?.();
     report.push(spec.id);
   }
+  // An old asynchronous adapter must never claim the new page after navigation.
+  const raceRoot=document.createElement("div");
+  document.body.append(raceRoot);
+  const beforeFetch=window.fetch;
+  let releaseOld=null;
+  window.fetch=(input,options)=>{
+    const path=String(typeof input==="string"?input:input?.url||input);
+    if(path.includes("__viewer_slow.txt"))
+      return new Promise(resolve=>{releaseOld=()=>resolve(new Response("OLD STALE CONTENT",{status:200}))});
+    if(path.includes("__viewer_fast.txt"))
+      return Promise.resolve(new Response("NEW ACTIVE CONTENT",{status:200}));
+    return beforeFetch(input,options);
+  };
+  try{
+    const details={kind:"FILE",semester:5,courseCode:"TEST",section:"Demo"};
+    const oldRender=mountViewer(raceRoot,{...details,path:"__viewer_slow.txt",name:"slow.txt",label:"Older viewer"},()=>{});
+    for(let i=0;i<50&&!releaseOld;i++)await new Promise(resolve=>setTimeout(resolve,20));
+    assert(releaseOld,"Slow viewer request did not start");
+    const newRender=mountViewer(raceRoot,{...details,path:"__viewer_fast.txt",name:"fast.txt",label:"Current viewer"},()=>{});
+    await newRender;
+    assert(raceRoot.querySelector(".viewer-head strong")?.textContent==="Current viewer","New viewer failed to mount");
+    assert(raceRoot.querySelector("#viewer-canvas")?.textContent.includes("NEW ACTIVE CONTENT"),"New resource contents missing");
+    releaseOld();
+    await oldRender;
+    assert(raceRoot.querySelector(".viewer-head strong")?.textContent==="Current viewer","Old viewer took over after navigation");
+    assert(raceRoot.querySelector("#viewer-canvas")?.textContent.includes("NEW ACTIVE CONTENT"),"Stale adapter erased new resource");
+    assert(!raceRoot.querySelector("#viewer-canvas")?.textContent.includes("OLD STALE CONTENT"),"Stale content rendered");
+  }finally{
+    window.fetch=beforeFetch;
+    raceRoot.__viewerCleanup?.();
+    raceRoot.remove();
+  }
   document.body.dataset.status="pass";
-  result.textContent="viewer-matrix-smoke: "+report.join(", ");
+  result.textContent="viewer-matrix-smoke: "+report.join(", ")+"; URL-only DOCX and stale-viewer navigation";
 }catch(error){
   document.body.dataset.status="fail";
   result.textContent=String(error?.stack||error);
