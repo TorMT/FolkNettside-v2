@@ -1,4 +1,10 @@
 export const MATPRIS_ENDPOINT="/includes/matpris/api.php";
+/** GitHub Pages serves static files and cannot execute PHP. */
+export function matprisBackendAvailable({hostname=globalThis.location?.hostname,endpoint}={}){
+  if(endpoint)return true; // Explicit external integration supplied by owner.
+  return !String(hostname||"").toLowerCase().endsWith(".github.io");
+}
+
 
 const finite=value=>{
   const n=Number(value);
