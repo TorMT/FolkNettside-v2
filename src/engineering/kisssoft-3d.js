@@ -1,8 +1,8 @@
-import {getThreeRuntime} from "../model/three-runtime.js?v=d86376fc586a93008f11020d8ea835b5296dce7b";
-import {mountStandaloneCADNavigation} from "../model/standalone-cad-navigation.js?v=d86376fc586a93008f11020d8ea835b5296dce7b";
-import {conceptualHelicalToothGeometry} from "./gear-visual-shape.js?v=d86376fc586a93008f11020d8ea835b5296dce7b";
-import {checkPlanetaryPitch} from "./gear-pitch-checks.js?v=d86376fc586a93008f11020d8ea835b5296dce7b";
-import {planetaryRates} from "./kisssoft-motion.js?v=d86376fc586a93008f11020d8ea835b5296dce7b";
+import {getThreeRuntime} from "../model/three-runtime.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c";
+import {mountStandaloneCADNavigation} from "../model/standalone-cad-navigation.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c";
+import {conceptualHelicalToothGeometry} from "./gear-visual-shape.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c";
+import {checkPlanetaryPitch} from "./gear-pitch-checks.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c";
+import {planetaryRates} from "./kisssoft-motion.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c";
 /** Concept-only mesh. Tooth blocks are schematic, not involute teeth. */
 export async function mountKisssoft3D(target,model){
  if(!model.planetary||!model.consistent)return ()=>{};

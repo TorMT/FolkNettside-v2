@@ -1,7 +1,7 @@
-import {mountDiveLog} from "./dive-log.js?v=d86376fc586a93008f11020d8ea835b5296dce7b";
-import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js?v=d86376fc586a93008f11020d8ea835b5296dce7b";
-import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js?v=d86376fc586a93008f11020d8ea835b5296dce7b";
-import {diveMapLegendHTML,diveMarkerClass,diveMarkerHTML} from "./dive-marker-icons.js?v=d86376fc586a93008f11020d8ea835b5296dce7b";
+import {mountDiveLog} from "./dive-log.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c";
+import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c";
+import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c";
+import {diveMapLegendHTML,diveMarkerClass,diveMarkerHTML} from "./dive-marker-icons.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -19,11 +19,11 @@ function sourceLinks(properties){
 }
 function featureDetail(feature,{origin=null}={}){
   const p=feature.properties||{};
-  const depthMin=Number.isFinite(Number(p.Dybde_min_m))?Number(p.Dybde_min_m):null;
+  const depthMin=p.Dybde_min_m!==null&&p.Dybde_min_m!==undefined&&p.Dybde_min_m!==""&&Number.isFinite(Number(p.Dybde_min_m))?Number(p.Dybde_min_m):null;
   const depthMax=diveFeatureMaxDepth(feature);
   const depth=depthMin===null&&depthMax===null?"Not documented":depthMin===depthMax?`${depthMax} m`:`${depthMin??0}–${depthMax??"?"} m`;
-  const [lon,lat]=feature.geometry?.coordinates||[];
-  const distance=origin&&Number.isFinite(Number(lat))&&Number.isFinite(Number(lon))?diveDistanceKm(origin,{lat:Number(lat),lon:Number(lon)}):null;
+  const point=diveFeaturePoint(feature);
+  const distance=origin&&point?diveDistanceKm(origin,point):null;
   const wildlife=diveFeatureWildlife(feature);
   return `<div class="dive-detail">
     <div class="dive-detail-head"><strong>${esc(p.Navn||"Unnamed site")}</strong><span>${diveFeatureLevel(feature)}</span></div>
@@ -117,8 +117,8 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
     elements.list.innerHTML=visible.map(feature=>{
       const p=feature.properties||{};
       const max=diveFeatureMaxDepth(feature);
-      const [lon,lat]=feature.geometry?.coordinates||[];
-      const distance=state.origin&&Number.isFinite(Number(lat))&&Number.isFinite(Number(lon))?diveDistanceKm(state.origin,{lat:Number(lat),lon:Number(lon)}):null;
+      const point=diveFeaturePoint(feature);
+      const distance=state.origin&&point?diveDistanceKm(state.origin,point):null;
       return `<button class="dive-list-item ${state.selected===p.ID?"selected":""}" data-dive-id="${esc(p.ID)}">
         <span class="dive-list-title"><strong>${esc(p.Navn)}</strong><em>${diveFeatureLevel(feature)}</em></span>
         <span>${esc(p.Område||"")}</span>
@@ -133,8 +133,9 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
       layer.clearLayers();markers.clear();
       const bounds=[];
       visible.forEach(feature=>{
-        const [lon,lat]=feature.geometry?.coordinates||[];
-        if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
+        const point=diveFeaturePoint(feature);
+        if(!point)return;
+        const {lat,lon}=point;
         const marker=window.L.marker([lat,lon],{
           icon:window.L.divIcon({
             className:`dive-leaflet-marker ${diveMarkerClass(feature)}`,

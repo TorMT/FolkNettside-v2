@@ -1,6 +1,6 @@
 // Private, explicit Google Drive backups for the native MedisinTimer migration.
 // The legacy cross-origin iframe is deliberately NOT read or modified here.
-import {getGoogleAccessToken,getGoogleSessionSnapshot} from "./google-session.js?v=d86376fc586a93008f11020d8ea835b5296dce7b";
+import {getGoogleAccessToken,getGoogleSessionSnapshot} from "./google-session.js?v=3d565bdfb8b32273c94de93df5ad784fd8378f5c";
 const FILE="folk-medisin-v2.json";
 const API="https://www.googleapis.com/drive/v3/files";
 const UPLOAD="https://www.googleapis.com/upload/drive/v3/files";
@@ -37,9 +37,11 @@ export function mergeMedisinBackups(local,remote){
   const merged=new Map();
   for(const entry of [...remote.entries,...local.entries]){
     const previous=merged.get(entry.id);
-    if(!previous||Date.parse(entry.updatedAt)>Date.parse(previous.updatedAt)||
-      (Date.parse(entry.updatedAt)===Date.parse(previous.updatedAt)&&entry.deleted&&!previous.deleted))
-      merged.set(entry.id,entry);
+    const delta=previous?Date.parse(entry.updatedAt)-Date.parse(previous.updatedAt):1;
+    if(!previous||delta>0||delta===0&&(
+      (Boolean(entry.deleted)&&!Boolean(previous.deleted))||
+      (Boolean(entry.deleted)===Boolean(previous.deleted)&&JSON.stringify(entry)>JSON.stringify(previous))
+    ))merged.set(entry.id,entry);
   }
   return newMedisinBackup([...merged.values()].sort((a,b)=>a.id.localeCompare(b.id)));
 }
