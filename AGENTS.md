@@ -23,6 +23,12 @@ local Codex on a workstation with the NTNU `webedit` share mounted.
   etc. as private pending explicit access-control verification.
 - The previous client-side V1 password prompt/hash is **not** an access
   control mechanism. Never replicate it in V2.
+- For casual password barriers to a **whole folder**, use Apache Basic
+  authentication with a non-public `htpasswd` database (or NTNU LDAP)
+  on the server, **not** a client-side JavaScript password check.
+  `deploy/ntnu/shared-password-folder.htaccess.example` is uninstalled;
+  verify non-public credential storage, NTNU Apache support and unauthenticated
+  direct-URL denial first. Do not put any password/hash in source code.
 - Never print or commit credentials, OAuth refresh tokens, `.env` content,
   private medical data, or server debugging output containing such data.
 - Server-side LDAP/htpasswd protection needs a dedicated NTNU test directory
