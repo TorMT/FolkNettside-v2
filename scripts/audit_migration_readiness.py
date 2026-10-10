@@ -99,10 +99,9 @@ def legacy_course_inventory(site_root: Path | None) -> tuple[dict, list[str], bo
         for course in sorted(semester.iterdir()):
             if not course.is_dir() or course.is_symlink():
                 continue
-            code = course.name.upper()
-            if not COURSE_RE.fullmatch(code):
-                warnings.append(f"Unrecognized course folder (manual review): semester {sid} / {course.name}")
-                continue
+            code = course.name.upper() if COURSE_RE.fullmatch(course.name.upper()) else None
+            if code is None:
+                warnings.append(f"Semester {sid} / {course.name}: requires reviewed slug-to-course-code mapping")
             public_files, excluded, symlinks = [], 0, 0
             for file in file_inventory(course):
                 rel = file.relative_to(course)
@@ -122,8 +121,9 @@ def legacy_course_inventory(site_root: Path | None) -> tuple[dict, list[str], bo
                     symlinks += 1
             if symlinks:
                 warnings.append(f"{sid}/{code}: {symlinks} symlink(s) require manual classification")
-            result[f"{sid}/{code}"] = {
-                "semester": sid, "code": code,
+            key = f"{sid}/{code or course.name}"
+            result[key] = {
+                "semester": sid, "code": code, "slug": course.name,
                 "public_files": public_files,
                 "excluded_protected_files": excluded,
                 "symlinks_for_review": symlinks
