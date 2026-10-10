@@ -2,6 +2,7 @@ import {getThreeRuntime} from "./three-runtime.js";
 import {modelWaterlineContours} from "./waterline-preview.js";
 import {normaliseWaveCase,waveElevation} from "./wave-core.js";
 import {waveModelPose} from "./wave-model-motion.js";
+import {interpolateMotionRAO,motionFromRAO} from "./motion-rao.js";
 import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js";
 import {createThrusterFlowRings} from "./thruster-flow-rings.js";
 import {explodeOffsets} from "./explode-layout.js";
@@ -450,9 +451,9 @@ export async function mountModelScene(container,documentModel,options={}){
   const waveMesh=new THREE.Mesh(waveGeometry,waveMaterial);
   waveMesh.visible=false;waveMesh.renderOrder=3;scene.add(waveMesh);
   let wave=null,waveAnimated=false,waveFrame=null,waveTimeS=0,lastWaveFrameMs=null;
-  let waveMotionMode="anchored";
+  let waveMotionMode="anchored",activeRAO=null;
   let waveReference={world:new THREE.Vector3(),local:new THREE.Vector3()};
-  let lastWavePose={heaveM:0,rollRad:0,pitchRad:0};
+  let lastWavePose={surgeM:0,swayM:0,heaveM:0,rollRad:0,pitchRad:0,yawRad:0};
   const waveBaseXY=Float32Array.from(waveGeometry.getAttribute("position").array);
   function referenceForWave(){
     // The wave passes through the model centroid, not an arbitrary global origin.
@@ -474,23 +475,30 @@ export async function mountModelScene(container,documentModel,options={}){
     }
     attribute.needsUpdate=true;
     waveGeometry.computeVertexNormals();
-    const pose=waveModelPose(wave,timeS,waveMotionMode,
-      waveReference.world.x,waveReference.world.y);
+    const pose=waveMotionMode==="rao"?
+      motionFromRAO(activeRAO,wave,timeS,waveReference.world.x,waveReference.world.y):
+      {surgeM:0,swayM:0,yawRad:0,...waveModelPose(wave,timeS,waveMotionMode,
+        waveReference.world.x,waveReference.world.y)};
     lastWavePose=pose;
     // Prescribe illustrative attitude in world coordinates, transformed back
     // through optional CAD-axis alignment without altering mesh data.
     const parentQ=alignmentGroup.getWorldQuaternion(new THREE.Quaternion());
     const localQ=parentQ.clone().invert()
       .multiply(new THREE.Quaternion().setFromEuler(
-        new THREE.Euler(pose.rollRad,pose.pitchRad,0,"XYZ")))
+        new THREE.Euler(pose.rollRad,pose.pitchRad,pose.yawRad,"XYZ")))
       .multiply(parentQ);
     waveMotionGroup.quaternion.copy(localQ);
     const pivot=waveReference.local;
-    const heave=new THREE.Vector3(0,0,pose.heaveM)
+    const translation=new THREE.Vector3(pose.surgeM,pose.swayM,pose.heaveM)
       .applyQuaternion(parentQ.clone().invert());
-    waveMotionGroup.position.copy(pivot).sub(pivot.clone().applyQuaternion(localQ)).add(heave);
+    waveMotionGroup.position.copy(pivot)
+      .sub(pivot.clone().applyQuaternion(localQ)).add(translation);
+    canvas.dataset.waveHeightM=String(wave.heightM);
     canvas.dataset.waveTimeS=String(timeS);
     canvas.dataset.waveHeaveM=String(pose.heaveM);
+    canvas.dataset.waveSurgeM=String(pose.surgeM);
+    canvas.dataset.waveSwayM=String(pose.swayM);
+    canvas.dataset.waveYawDeg=String(pose.yawRad*180/Math.PI);
     canvas.dataset.waveRollDeg=String(pose.rollRad*180/Math.PI);
     canvas.dataset.wavePitchDeg=String(pose.pitchRad*180/Math.PI);
     draw();
@@ -521,23 +529,29 @@ export async function mountModelScene(container,documentModel,options={}){
   }
   document.addEventListener("visibilitychange",onWaveVisibility);
   function setWave({enabled=false,heightM=1,periodS=6,headingDeg=0,
-    waterDepthM=Infinity,phaseDeg=0,animate=true,timeS=0,motionMode="anchored"}={}){
+    waterDepthM=Infinity,phaseDeg=0,animate=true,timeS=0,
+    motionMode="anchored",raoTable=null}={}){
     stopWaveLoop();waveAnimated=false;
     if(!enabled){
-      wave=null;waveMesh.visible=false;
+      wave=null;activeRAO=null;waveMesh.visible=false;
       waveMotionGroup.position.set(0,0,0);
       waveMotionGroup.quaternion.identity();
-      lastWavePose={heaveM:0,rollRad:0,pitchRad:0};
+      lastWavePose={surgeM:0,swayM:0,heaveM:0,rollRad:0,pitchRad:0,yawRad:0};
       waterlineMesh.visible=waterlineState.visible;
       contourGroup.visible=waterlineState.visible&&
         explodedFactor===0&&scopedExplodeFactor===0&&isolatedIds===null;
       draw();return null;
     }
-    if(!["anchored","follow","follow-slope"].includes(motionMode))
+    if(!["anchored","follow","follow-slope","rao"].includes(motionMode))
       throw new Error("Invalid wave motion mode");
     if(!Number.isFinite(timeS)||timeS<0)throw Error("Wave time must be nonnegative and finite");
+    const pendingWave=normaliseWaveCase({heightM,periodS,headingDeg,waterDepthM,phaseDeg});
+    // Validate imported frequency/heading coverage before altering the scene.
+    const pendingRAO=motionMode==="rao"?
+      interpolateMotionRAO(raoTable,pendingWave.omega,pendingWave.headingDeg):null;
     waveMotionMode=motionMode;
-    wave=normaliseWaveCase({heightM,periodS,headingDeg,waterDepthM,phaseDeg});
+    wave=pendingWave;
+    activeRAO=pendingRAO;
     waveReference=referenceForWave();
     updateWaterlineSize();
     const span=Math.max(currentBounds.size.x,currentBounds.size.y,currentBounds.radius*2,1)*1.35;
@@ -550,7 +564,7 @@ export async function mountModelScene(container,documentModel,options={}){
     drawWave(waveTimeS);
     waveAnimated=Boolean(animate);
     startWaveLoop();
-    return {...wave,motionMode:waveMotionMode};
+    return {...wave,motionMode:waveMotionMode,raoSource:activeRAO?.sourceName||null};
   }
 
   function setWaterline({visible=true,z=0}={}){
