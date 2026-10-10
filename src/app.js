@@ -52,7 +52,8 @@ import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsio
 import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js";
 import {renderTopShell,bindShellNavigation} from "./shell/navigation.js";
 import {portfolioInfoPageHTML,loadCV} from "./portfolio/profile-pages.js";
-import {analyticsConsent,setAnalyticsConsent} from "./platform/analytics.js";
+import {analyticsConsent,analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent} from "./platform/analytics.js";
+import {mountAnalyticsNotice} from "./platform/analytics-notice.js";
 import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js";
 import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js";
 import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js";
@@ -70,6 +71,7 @@ initSettings();
 initGoogleSession();
 
 const app=document.querySelector("#app");
+mountAnalyticsNotice();
 const content=await loadContent();
 const {site,semesters,navLabels,projects}=content;
 const engineeringModels=content.models?.length?content.models:[content.model];
@@ -952,7 +954,15 @@ function settingsPage(){
 
   const analyticsToggle=app.querySelector("#settings-analytics-toggle");
   if(analyticsToggle){
-    const label=()=>{analyticsToggle.textContent=analyticsConsent()?"Disable analytics":"Enable analytics";};
+    const label=()=>{
+      const consent=analyticsConsentChoice();
+      analyticsToggle.disabled=!analyticsConfigured();
+      analyticsToggle.textContent=consent==="granted"?"Disable analytics":"Enable analytics";
+      const state=app.querySelector("[data-analytics-status]");
+      if(state)state.textContent=!analyticsConfigured()?"Not configured":
+        consent==="granted"?"Enabled by your choice":
+        consent==="denied"?"Disabled by your choice":"Off — no choice made yet";
+    };
     label();
     analyticsToggle.addEventListener("click",()=>{setAnalyticsConsent(!analyticsConsent());label();});
   }
