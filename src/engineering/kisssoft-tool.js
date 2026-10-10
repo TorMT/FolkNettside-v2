@@ -176,7 +176,7 @@ export function mountKisssoft(root){
  };
  const onExample=()=>{
    void openBuffer(async()=>{
-     const response=await fetch("./examples/kisssoft/PlanetaryExample.Z14",{cache:"no-cache"});
+     const response=await fetch(new URL("../../examples/kisssoft/PlanetaryExample.Z14",import.meta.url),{cache:"no-cache"});
      if(!response.ok)throw Error("Example unavailable (HTTP "+response.status+")");
      return response.arrayBuffer();
    },"PlanetaryExample.Z14");
@@ -185,7 +185,7 @@ export function mountKisssoft(root){
  const externalExample=root.querySelector("[data-kisssoft-external-example]");
  const openExample=(fileName)=>{
    void openBuffer(async()=>{
-     const response=await fetch("./examples/kisssoft/"+fileName,{cache:"no-cache"});
+     const response=await fetch(new URL("../../examples/kisssoft/"+fileName,import.meta.url),{cache:"no-cache"});
      if(!response.ok)throw Error("Example unavailable (HTTP "+response.status+")");
      return response.arrayBuffer();
    },fileName);
