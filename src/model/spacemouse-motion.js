@@ -29,9 +29,10 @@ export function spaceMouseMovement({kind,values}={},options={}){
  if(!config.rotation)return null;
  const [tilt,spin,roll]=filtered;
  const rotate=config.rotationSpeed*sensitivity*sign;
- return {orbit:[
+ const orbit=[
    -tilt*(config.invertTilt?-1:1)*.016*rotate,
    spin*(config.invertSpin?-1:1)*.016*rotate,
    config.roll?roll*(config.invertRoll?-1:1)*.012*rotate:0
- ]};
+ ];
+ return {orbit:orbit.map(v=>Math.abs(v)<1e-14?0:v)};
 }
