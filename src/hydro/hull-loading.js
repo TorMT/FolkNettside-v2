@@ -7,6 +7,8 @@
  * This is a MASS model for displacement/CG, not a structural stress solver.
  */
 const finite=(value,name)=>{
+  if(value===null||value===undefined||(typeof value==="string"&&!value.trim()))
+    throw new Error(name+" is required");
   const n=Number(value);
   if(!Number.isFinite(n))throw new Error(name+" must be finite");
   return n;
@@ -29,10 +31,12 @@ export function normaliseAreaLoad(area,index=0){
   const z=finite(area.z,"Area z");
   if(!(rho>0)||!(x1>x0)||!(y1>y0))
     throw new Error("Area "+(index+1)+": density, x width and y width must be positive");
-  const areaM2=(x1-x0)*(y1-y0);
+  const areaM2=(x1-x0)*(y1-y0),massTonnes=rho*areaM2;
+  const x=x0+(x1-x0)/2,y=y0+(y1-y0)/2;
+  if(![areaM2,massTonnes,x,y].every(Number.isFinite))
+    throw new Error("Area "+(index+1)+": area, mass or centroid exceeds numeric limits");
   return {label:String(area.label||"Area "+(index+1)),densityTonnesPerM2:rho,
-    x0,x1,y0,y1,z,areaM2,massTonnes:rho*areaM2,
-    x:(x0+x1)/2,y:(y0+y1)/2};
+    x0,x1,y0,y1,z,areaM2,massTonnes,x,y};
 }
 export function combineHullLoading({
   hullMassTonnes, hullCG, pointWeights=[],areaLoads=[]
@@ -60,7 +64,10 @@ export function combineHullLoading({
     moments[1]+=item.massTonnes*item.y;
     moments[2]+=item.massTonnes*item.z;
   }
-  if(!(total>0))throw new Error("Total mass must be positive");
+  if(!(total>0)||!Number.isFinite(total)||!moments.every(Number.isFinite))
+    throw new Error("Total mass and gravity moments must be finite and positive");
+  if(!moments.map(v=>v/total).every(Number.isFinite))
+    throw new Error("Hull centre of gravity could not be represented");
   return {
     hullMassTonnes:mass,hullCG:cg,
     baselineMassTonnes:mass,addedMassTonnes:total-mass,
