@@ -111,6 +111,20 @@ python scripts/build_ntnu_staging.py --version (git rev-parse HEAD) --output '<L
 
 The staging builder fails if a source file is absent, protected by filename, symlinked or outside its approved root. Without `--enable-matpris`, PHP Matpris remains disabled. **Do not** turn on PHP until the actual NTNU account's capability and secret setup have been tested. The staging output is **a public webroot candidate**, not a backup.
 
+**Mandatory direct byte-parity gate** (large files are hashed in 1 MiB
+chunks; this may take time):
+
+```powershell
+python scripts/verify_ntnu_public_assets.py --manifest '<REVIEWED_CONTENT_MANIFEST.json>' --approved-root '<REVIEWED_PUBLIC_ROOT>' --build-root '<LOCAL_BUILD_DIR>' --out '<PRIVATE_REPORTS_DIR>/v2-file-hashes.json'
+```
+
+A successful run requires the staged manifest to **exactly match** the
+approved manifest, and the source/staged SHA-256 digest and byte count to
+match for every approved file. A missing, changed or symlinked file is STOP.
+The JSON report must remain *outside Git*. This proves byte equality **only
+for explicitly approved public files**; it does not prove every original V1
+file was classified, mapped or permitted to publish.
+
 Run the read-only course comparison against both the *full* V1 backup and the local staged V2 tree. It can be used as a preliminary name/size check; it is NOT evidence of exact byte equality, so compare approved input and staged output SHA-256 files from the mapping ledger as well.
 
 ```powershell
