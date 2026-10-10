@@ -1,71 +1,73 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {writeSpaceMouseSettings,resetSpaceMouseSettings} from "./model/spacemouse-settings.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {mountViewer} from "./viewer.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {render as renderPythonWorkbench} from "./viewers/adapters/python.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {loadContent} from "./content.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {kisssoftPageHTML,mountKisssoft} from "./engineering/kisssoft-tool.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {cadToolHTML,mountCADTool} from "./engineering/cad-tool.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {renderResourceTree} from "./components/resource-tree.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {karakterwebUrl} from "./courses/external-links.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {bindCourseNavigation} from "./courses/course-navigation.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {hydrostaticParticulars} from "./hydro/stability.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {createHydroInclude} from "./hydro/hydro-selection.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {prepareHydroModel} from "./hydro/hydrostatics.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {sectionalAreaCurve,sacCSV} from "./hydro/sac-curve.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {sacCurvePanelHTML} from "./engineering/sac-panel.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {buildSearchIndex} from "./search/search-index.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {createSearchController} from "./components/search-dialog.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {staticVaultPageHTML,bindStaticVaultPage} from "./tools/static-vault-page.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {activeTools} from "./tools/tool-registry.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {loadModelDocument} from "./model/load-model.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {parseModelBuffer} from "./tools/model-inspector-core.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {UNIT_SCALE_TO_METERS} from "./model/model-document.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {validateHydroModel} from "./model/hull-surface-validator.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {mountModelScene} from "./model/model-scene.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {mountWaveControls} from "./model/model-wave-controls.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {mountFrame3D} from "./engineering/frame-3d.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {solveHullGirder} from "./structure/hull-girder.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {portfolioInfoPageHTML,loadCV} from "./portfolio/profile-pages.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {analyticsConsent,analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent,registerAnalyticsCourses} from "./platform/analytics.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {mountAnalyticsNotice} from "./platform/analytics-notice.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {diversePageHTML} from "./diverse/diverse-page.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {DIVERSE_MODULES} from "./diverse/diverse-registry.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {diveMapHTML,mountDiveMap} from "./diverse/dive-map.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {sandalenPageHTML} from "./diverse/sandalen-page.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {studyCatalogPageHTML,mountStudyCatalog} from "./diverse/study-catalog-pages.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {matprisPageHTML,mountMatpris} from "./diverse/matpris-page.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {writeSpaceMouseSettings,resetSpaceMouseSettings} from "./model/spacemouse-settings.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {mountViewer} from "./viewer.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {render as renderPythonWorkbench} from "./viewers/adapters/python.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {loadContent} from "./content.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {kisssoftPageHTML,mountKisssoft} from "./engineering/kisssoft-tool.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {cadToolHTML,mountCADTool} from "./engineering/cad-tool.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {renderResourceTree} from "./components/resource-tree.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {karakterwebUrl} from "./courses/external-links.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {bindCourseNavigation} from "./courses/course-navigation.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {createResourceNotices} from "./courses/resource-updates.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {escapeHTML as escCourse} from "./viewers/utils.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {hydrostaticParticulars} from "./hydro/stability.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {createHydroInclude} from "./hydro/hydro-selection.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {prepareHydroModel} from "./hydro/hydrostatics.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {sectionalAreaCurve,sacCSV} from "./hydro/sac-curve.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {sacCurvePanelHTML} from "./engineering/sac-panel.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {buildSearchIndex} from "./search/search-index.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {createSearchController} from "./components/search-dialog.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {staticVaultPageHTML,bindStaticVaultPage} from "./tools/static-vault-page.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {activeTools} from "./tools/tool-registry.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {loadModelDocument} from "./model/load-model.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {parseModelBuffer} from "./tools/model-inspector-core.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {UNIT_SCALE_TO_METERS} from "./model/model-document.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {validateHydroModel} from "./model/hull-surface-validator.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {mountModelScene} from "./model/model-scene.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {mountWaveControls} from "./model/model-wave-controls.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {mountFrame3D} from "./engineering/frame-3d.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {solveHullGirder} from "./structure/hull-girder.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {portfolioInfoPageHTML,loadCV} from "./portfolio/profile-pages.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {analyticsConsent,analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent,registerAnalyticsCourses} from "./platform/analytics.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {mountAnalyticsNotice} from "./platform/analytics-notice.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {diversePageHTML} from "./diverse/diverse-page.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {DIVERSE_MODULES} from "./diverse/diverse-registry.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {diveMapHTML,mountDiveMap} from "./diverse/dive-map.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {sandalenPageHTML} from "./diverse/sandalen-page.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {studyCatalogPageHTML,mountStudyCatalog} from "./diverse/study-catalog-pages.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {matprisPageHTML,mountMatpris} from "./diverse/matpris-page.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js?v=9bf8435c998032db93e884790ca38463e6459db6";
 
 initSettings();
 initGoogleSession();
@@ -74,6 +76,7 @@ const app=document.querySelector("#app");
 mountAnalyticsNotice();
 const content=await loadContent();
 const {site,semesters,navLabels,projects}=content;
+const courseNotices=createResourceNotices(semesters);
 registerAnalyticsCourses(semesters);
 const engineeringModels=content.models?.length?content.models:[content.model];
 let engineeringModelId=engineeringModels[0]?.id||"fixture";
@@ -384,7 +387,7 @@ function viewerRoute(semester,code,index){return `/viewer/${semester}/${encodeUR
 function engineeringModeRoute(mode){return `/engineering/${String(mode).toLowerCase()}`}
 
 function top(active){
-  return renderTopShell(active,{coursesLabel:navLabels.courses,account:getGoogleSessionSnapshot()});
+  return renderTopShell(active,{coursesLabel:navLabels.courses,account:getGoogleSessionSnapshot(),courseUpdates:courseNotices.total});
 }
 
 function bindNav(){
@@ -492,22 +495,23 @@ function coursesPage(requestedSemester){
   document.documentElement.dataset.lens="study";
   const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;
   const semester=getSemester(semesterId)||semesters[0];
-  const semesterTabs=semesters.map(s=>`<button class="${Number(s.id)===Number(semester.id)?"active":""}" data-semester="${s.id}" aria-label="${s.label}" title="${s.label}">
-    <span class="semester-label-long">${s.label}</span>
+  const semesterTabs=semesters.map(s=>`<button class="${Number(s.id)===Number(semester.id)?"active":""}" data-semester="${s.id}" aria-label="${escCourse(s.label)}" title="${escCourse(s.label)}">
+    <span class="semester-label-long">${escCourse(s.label)}</span>
     <span class="semester-label-short">S${s.id}</span>
   </button>`).join("");
   const courseCards=semester.courses.map(course=>{
     const resourceCount=course.resources?.length||0;
     const sectionCount=course.sections?.length||0;
-    return `<article class="course-card" data-course="${course.code}" tabindex="0">
+    const newCount=courseNotices.count(semester.id,course.code);
+    return `<article class="course-card" data-course="${escCourse(course.code)}" tabindex="0">
       <div class="course-card-top">
-        <span class="course-code">${course.code}</span>
+        <span class="course-code">${escCourse(course.code)}</span>${newCount?`<span class="course-update-pill">${newCount} nye</span>`:""}
         <span class="course-count">${resourceCount} ressurs${resourceCount===1?"":"er"}</span>
       </div>
-      <h3>${course.title}</h3>
-      <p>${course.description}</p>
+      <h3>${escCourse(course.title)}</h3>
+      <p>${escCourse(course.description)}</p>
       <div class="course-card-bottom">
-        <div class="tags">${(course.tags||[]).slice(0,3).map(tag=>`<span class="tag">${tag}</span>`).join("")}</div>
+        <div class="tags">${(course.tags||[]).slice(0,3).map(tag=>`<span class="tag">${escCourse(tag)}</span>`).join("")}</div>
         <span class="course-sections">${sectionCount} seksjon${sectionCount===1?"":"er"} <span aria-hidden="true">→</span></span>
       </div>
     </article>`;
@@ -528,10 +532,11 @@ function coursesPage(requestedSemester){
     </div>
 
     <section class="study-main courses-main">
+      ${courseNotices.total?'<div class="course-updates-banner" role="status"><strong>'+courseNotices.total+' nye ressurser</strong><span>Filer lagt til siden du sist markerte kursoversikten som oppdatert.</span><button type="button" class="btn" id="course-updates-ack">Merk alle som sett</button></div>':""}
       <div class="title-row courses-title-row">
         <div>
           <span class="project-kicker">Selected semester</span>
-          <h2>${semester.label}</h2>
+          <h2>${escCourse(semester.label)}</h2>
           <div class="muted">${semester.courses.length} fag · ${semester.courses.reduce((sum,course)=>sum+(course.resources?.length||0),0)} ressurser</div>
         </div>
       </div>
@@ -542,6 +547,10 @@ function coursesPage(requestedSemester){
   </main><div class="preview-badge">Courses exposes Kok; Portfolio does not</div>`;
 
   bindNav();
+  app.querySelector("#course-updates-ack")?.addEventListener("click",()=>{
+    courseNotices.acknowledge();
+    coursesPage(semester.id);
+  });
   app.querySelectorAll("[data-semester]").forEach(button=>button.onclick=()=>go("/courses/"+button.dataset.semester));
   const activeSemester=app.querySelector(".semester-tabs .active");
   activeSemester?.scrollIntoView?.({behavior:"instant",block:"nearest",inline:"center"});
@@ -560,29 +569,36 @@ function coursePage(semesterId,code){
   const grouped=course.resources.reduce((groups,resource)=>{
     (groups[resource.section]??=[]).push(resource);
     return groups;
-  },{});
+  },Object.create(null));
   const sections=course.sections
     .map((label,index)=>({label,index,items:grouped[label]||[]}))
     .filter(section=>section.items.length);
   const karakterwebHref=karakterwebUrl(course.code);
   const resourceCount=course.resources.length;
+  const newResources=courseNotices.newResources(semesterId,course.code);
+  const newResourcesHTML=newResources.length?`<aside class="course-updates-banner" role="status">
+    <strong>${newResources.length} nye ressurser i dette faget</strong>
+    <div class="course-updates-list">${newResources.slice(0,15).map(resource=>`<button class="btn" data-resource="${course.resources.indexOf(resource)}" type="button">${escCourse(resource.label||resource.name||"Ressurs")}</button>`).join("")}</div>
+    <button class="btn" type="button" id="course-updates-ack">Merk alle nye filer som sett</button>
+  </aside>`:"";
 
   app.innerHTML=top("courses")+`<main class="layout">
     <aside class="side course-side">
-      <div class="side-title">${course.code}</div>
+      <div class="side-title">${escCourse(course.code)}</div>
       <button class="active" data-course-nav="overview"><span>Overview</span><small>${resourceCount} resources</small></button>
-      ${sections.map(section=>`<button data-course-nav="section-${section.index}"><span>${section.label}</span><small>${section.items.length}</small></button>`).join("")}
+      ${sections.map(section=>`<button data-course-nav="section-${section.index}"><span>${escCourse(section.label)}</span><small>${section.items.length}</small></button>`).join("")}
       <button data-course-nav="karakterweb"><span>Karakterweb</span><small>external ↗</small></button>
     </aside>
     <section class="content">
-      <div class="crumbs">Courses / ${getSemester(semesterId).label} / ${course.code}</div>
+      <div class="crumbs">Courses / ${escCourse(getSemester(semesterId).label)} / ${escCourse(course.code)}</div>
       <header class="course-header" id="course-overview">
-        <div class="course-header-meta"><span class="course-code">${course.code}</span><span>${resourceCount} resources · ${sections.length} sections</span></div>
-        <h1>${course.title}</h1>
-        <p>${course.description}</p>
+        <div class="course-header-meta"><span class="course-code">${escCourse(course.code)}</span><span>${resourceCount} resources · ${sections.length} sections</span></div>
+        <h1>${escCourse(course.title)}</h1>
+        <p>${escCourse(course.description)}</p>
       </header>
+      ${newResourcesHTML}
       ${sections.map(section=>`<section class="resource-section" id="course-section-${section.index}" data-course-section="section-${section.index}">
-        <div class="resource-section-head"><h2>${section.label}</h2><span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
+        <div class="resource-section-head"><h2>${escCourse(section.label)}</h2><span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
         <div class="resource-list">${renderResourceTree(section.items,item=>course.resources.indexOf(item))}</div>
       </section>`).join("")}
       <section class="resource-section" id="course-karakterweb" data-course-section="karakterweb">
@@ -590,7 +606,7 @@ function coursePage(semesterId,code){
         <div class="resource-list">
           <button class="resource-row resource-row-button" id="karakterweb">
             <span class="file-icon">KW</span>
-            <div><strong>Open ${course.code} on Karakterweb</strong><div class="muted">karakterweb.no/ntnu/${course.code}</div></div>
+            <div><strong>Open ${escCourse(course.code)} on Karakterweb</strong><div class="muted">karakterweb.no/ntnu/${escCourse(course.code)}</div></div>
             <span class="muted">Open ↗</span>
           </button>
         </div>
@@ -602,6 +618,10 @@ function coursePage(semesterId,code){
   app.querySelectorAll("[data-resource]").forEach(element=>{
     element.onclick=()=>go(viewerRoute(semesterId,course.code,element.dataset.resource));
     element.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();element.click();}};
+  });
+  app.querySelector("#course-updates-ack")?.addEventListener("click",()=>{
+    courseNotices.acknowledge();
+    coursePage(semesterId,course.code);
   });
   app.querySelector("#karakterweb")?.addEventListener("click",()=>{
     window.open(karakterwebHref,"_blank","noopener");
@@ -2102,7 +2122,7 @@ async function engineeringPage(){
     if(gzCurve.length)downloadTextFile(gzCurveCSV(gzCurve),"gz-curve.csv");
   });
 }
-function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+message+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
+function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+escCourse(message)+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
 async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
 
 async function render(){const currentPath=route();if(currentPath!=="/tools/python"){pythonToolCleanup?.();pythonToolCleanup=null;}if(currentPath!=="/tools/vault"){vaultToolCleanup?.();vaultToolCleanup=null;}app.__courseObserver?.disconnect();app.__courseObserver=null;const path=route();

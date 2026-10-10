@@ -1,10 +1,10 @@
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {parseSTL} from "../model/parsers/stl.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {parse3MF} from "../model/parsers/three-mf.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {createModelDocument} from "../model/model-document.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
-import {boxMesh} from "../hydro/fixtures.js?v=92f0f46d1bbd07b7e15687457f3de0dd24173dd2";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {parseSTL} from "../model/parsers/stl.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {parse3MF} from "../model/parsers/three-mf.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {createModelDocument} from "../model/model-document.js?v=9bf8435c998032db93e884790ca38463e6459db6";
+import {boxMesh} from "../hydro/fixtures.js?v=9bf8435c998032db93e884790ca38463e6459db6";
 
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
