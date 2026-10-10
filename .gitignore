@@ -1,0 +1,27 @@
+# Build and local development
+.deploy/
+node_modules/
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db
+*.log
+tmp/
+
+# SiteUpdater local manifest snapshots (not a complete V1 backup)
+.siteupdater-backups/
+
+# Never publish backend credentials or private user material
+.env
+.env.*
+!.env.example
+!.env.*.example
+secrets/
+*.pem
+*.p12
+*.pfx
+*.key
+*.sqlite
+*.sqlite3
+
+# Explicitly keep src/vendor/coolprop/coolprop.wasm versioned.
