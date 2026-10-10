@@ -57,7 +57,12 @@ def approved_files(manifest: dict, approved_root: Path) -> list[tuple[Path, Path
     issues = validate_manifest(manifest)
     if issues:
         raise ValueError("Protected resources present in approved public manifest")
-    root = approved_root.resolve(strict=True)
+    try:
+        root = approved_root.resolve(strict=True)
+    except (FileNotFoundError, NotADirectoryError) as error:
+        raise ValueError("Approved public-course root is missing") from error
+    if not root.is_dir():
+        raise ValueError("Approved public-course root is not a directory")
     pairs, seen = [], set()
     for semester in manifest["semesters"]:
         for course in semester.get("courses", []):
