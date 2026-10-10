@@ -33,8 +33,8 @@
 | 14 | `Tools/stlview1.html` og `includes/three/*` | V2 model inspector/CAD, alignment, måling og clipping | CI-dekning | Sammenlign alle legacy knapper med egne modeller; spesialfunksjoner må dokumenteres |
 | 15 | Brewing, RAPT, hydrometre, oppskrifter, historiske logger | Native Brewing + enkelte legacy JS-moduler | **delvis** | PHP API-backend, autorisasjon, datamigrering, live hydrometre og konfliktkontroll |
 | 16 | Google Drive-synk, innlogging | Felles Google-session og `drive.file` | delvis | Public OAuth-klient-ID, origins, refresh, signed-in/signed-out, to kontoer/to enheter |
-| 17 | MedisinTimer (separat datakilde) | V2 native timer, lokalhistorikk/Drive | delvis | Sammenlign alle gamle skjermbilder, historikk og data, personvern/E2E-kryptering, varsler |
-| 18 | Dykkerkart/dykkelogg | V2 dykkerkart og loggdata | delvis | Original stedsliste, bilder/dybder, live konto-/Drive-synk og eksport/backup |
+| 17 | MedisinTimer (separat datakilde) | V2 native timer, lokalhistorikk/kryptert Drive | delvis | AES-GCM-Drive og offline-kryptert eksport er implementert; test ekte konto, samtidige oppdateringer, lokal databeskyttelse og gamle skjermer/varsler |
+| 18 | Dykkerkart/dykkelogg | V2 dykkerkart + ny personlig logg | delvis | Lokal, kryptert konto-Drive-synk og eksport er implementert; eldre loggimport og ekte konto-/Drive-verifisering gjenstår |
 | 19 | LAOS og AndreKokSider | Native LAOS + lenkekatalog | CI-dekning | Drift av eksterne lenker, arkivkildefiler og fremtidige oppdateringer |
 | 20 | LeseRavnen | Ekstern GitHub Pages-lenke | ekstern | Sikre at eksisterende demo og datainnsamling forblir uendret |
 | 21 | Prosjektportefølje/CV/LinkedIn | V2 dynamisk CV og profil | CI-dekning | Manuell korrektur, faktasjekk, lenker, SEO og låst Engineering Portfolio-URL |
