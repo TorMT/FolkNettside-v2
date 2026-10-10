@@ -14,7 +14,7 @@ test("Brewing and RAPT endpoints remain within the V2 staged subdirectory",()=>{
 });
 
 test("No backend configured means no root-relative V1 access even on NTNU",()=>{
-  for(const cfg of [null,{}, {brewing:{enabled:false,...config.brewing}},
+  for(const cfg of [null,{}, {brewing:{...config.brewing,enabled:false}},
     {brewing:{enabled:true,raptBase:"/includes/rapt/api/",brewingBase:"/includes/brewing/api/"}},
     {brewing:{enabled:true,raptBase:"https://evil.test/",brewingBase:"./includes/brewing/api/"}},
     {brewing:{enabled:true,raptBase:"../includes/rapt/api/",brewingBase:"../../includes/brewing/api/"}}]){
