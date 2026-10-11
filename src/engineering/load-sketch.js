@@ -1,7 +1,7 @@
-import {areaLoadsFromLines} from "../hydro/hull-loading.js?v=5a496961006738533ec7704bd3407d5fe3a43506";
-import {pointWeightsFromLines} from "../hydro/point-loads.js?v=5a496961006738533ec7704bd3407d5fe3a43506";
+import {areaLoadsFromLines} from "../hydro/hull-loading.js?v=8e0c15571814ec770413057e733c1fddcf4e4d02";
+import {pointWeightsFromLines} from "../hydro/point-loads.js?v=8e0c15571814ec770413057e733c1fddcf4e4d02";
 import {planBounds,planMetersToPixel,sketchAreaLoad,sketchPointMass,
-  areaLoadLine,pointMassLine,appendSketchLine} from "./load-sketch-core.js?v=5a496961006738533ec7704bd3407d5fe3a43506";
+  areaLoadLine,pointMassLine,appendSketchLine} from "./load-sketch-core.js?v=8e0c15571814ec770413057e733c1fddcf4e4d02";
 
 /** The validated text fields remain authoritative; drawing only adds input rows. */
 export function mountLoadSketch(host,{bounds,areaInput,pointInput}={}){
