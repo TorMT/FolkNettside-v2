@@ -17,12 +17,12 @@ const check=(pass,message)=>{if(!pass)throw Error(message)};
 const area=document.querySelector("#area"),point=document.querySelector("#point"),host=document.querySelector("#host");
 const end=mountLoadSketch(host,{bounds:{min:[-5,-2,0],max:[5,2,3]},areaInput:area,pointInput:point});
 const svg=host.querySelector("svg");
-function draw(from,to){
+function draw(from,to,selector=null){
  const rect=svg.getBoundingClientRect();
  const loc=xy=>({clientX:rect.left+xy.x/600*rect.width,
    clientY:rect.top+xy.y/300*rect.height});
  svg.setPointerCapture=()=>{};
- svg.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,button:0,pointerId:1,...loc(from)}));
+ (selector?svg.querySelector(selector):svg).dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,button:0,pointerId:1,...loc(from)}));
  svg.dispatchEvent(new PointerEvent("pointermove",{bubbles:true,button:0,pointerId:1,...loc(to)}));
  svg.dispatchEvent(new PointerEvent("pointerup",{bubbles:true,button:0,pointerId:1,...loc(to)}));
 }
@@ -52,7 +52,7 @@ try{
    combined.centerOfGravity.every(Number.isFinite),"Combined load failed physics validation");
  const beforeEdit=area.value;
  host.querySelector('[data-sketch-mode="edit"]').click();
- draw({x:300,y:150},{x:300,y:150});
+ draw({x:300,y:150},{x:300,y:150},'[data-sketch-area="1"]');
  check(host.querySelector("[data-sketch-selection]").hidden===false,"Load selection did not open");
  check(host.querySelector("[data-sketch-selection-label]").textContent==="Area load 2","Selected wrong load");
  check(host.querySelector("[data-sketch-z]").value==="1.5","Selected load Z not populated");
@@ -63,7 +63,7 @@ try{
  check(edited.length===2&&edited[1].densityTonnesPerM2===.5&&edited[1].z===2.75,
    "Selected mass and Z were not updated");
  check(edited[0].densityTonnesPerM2===.05,"Editing selected load changed original load");
- draw({x:300,y:150},{x:360,y:120});
+ draw({x:300,y:150},{x:360,y:120},'[data-sketch-area="1"]');
  edited=areaLoadsFromLines(area.value);
  check(edited[1].x0>-2.5&&edited[1].y0>-1,"Area did not move in X/Y");
  check(edited[1].densityTonnesPerM2===.5&&edited[1].z===2.75,
@@ -80,7 +80,7 @@ try{
  const selectedPoint=svg.querySelector('[data-sketch-point="1"]');
  const selectedPointX=Number(selectedPoint.getAttribute("cx"));
  const selectedPointY=Number(selectedPoint.getAttribute("cy"));
- draw({x:selectedPointX,y:selectedPointY},{x:selectedPointX,y:selectedPointY});
+ draw({x:selectedPointX,y:selectedPointY},{x:selectedPointX,y:selectedPointY},'[data-sketch-point="1"]');
  check(host.querySelector("[data-sketch-selection-label]").textContent==="Point mass 2","Point selection failed");
  host.querySelector("[data-sketch-mass]").value="-1.25";
  host.querySelector("[data-sketch-z]").value="4";
