@@ -1,4 +1,4 @@
-import {fitDistanceForBox} from "../model/cad-camera-fit.js?v=132013825d145c941b3130fd96ad64721ba11663";
+import {fitDistanceForBox} from "../model/cad-camera-fit.js?v=4a530622b0d7917db6334fb59707dd53283b4fa1";
 
 /** Conservative perspective framing for schematic Z012 gears in millimetres.
  * Internal rings are centered on the ring, with the pinion inside the hole.

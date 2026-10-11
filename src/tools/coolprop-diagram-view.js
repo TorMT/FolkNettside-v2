@@ -1,5 +1,5 @@
-import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js?v=132013825d145c941b3130fd96ad64721ba11663";
-import {zoomDiagramViewport} from "./coolprop-diagram-viewport.js?v=132013825d145c941b3130fd96ad64721ba11663";
+import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js?v=4a530622b0d7917db6334fb59707dd53283b4fa1";
+import {zoomDiagramViewport} from "./coolprop-diagram-viewport.js?v=4a530622b0d7917db6334fb59707dd53283b4fa1";
 
 function css(name,fallback){
   const value=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -311,6 +311,7 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
     datasets,
     reset,
     zoom,
+    getView:()=>({...view}),
     downloadPNG(filename="coolprop-diagram.png"){
       canvas.toBlob(blob=>{
         if(!blob)return;
