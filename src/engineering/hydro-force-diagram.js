@@ -1,5 +1,5 @@
-import {hydroForceBalance,hydroForceInputs} from "./hydro-force-balance.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
-import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
+import {hydroForceBalance,hydroForceInputs} from "./hydro-force-balance.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
+import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({
   "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
 }[c]));
@@ -96,6 +96,6 @@ export function hydroForcesHTML({
     '</tr></thead><tbody>'+details+'</tbody></table></div>':
     '<p>No additional masses applied. Pending editor rows are excluded until Apply is used.</p>')+
     '</details><small>Arrow positions use computed CB and entered combined CG. Arrow lengths are schematic. '+
-    'A spatial buoyancy pressure distribution would require wetted-surface pressure integration; '+
-    'this diagram shows the hydrostatic resultant only.</small></section>';
+    'The separate pressure audit can integrate wetted mesh faces on request; '+
+    'this CB/CG diagram shows only global resultant forces.</small></section>';
 }

@@ -1,4 +1,4 @@
-import {executeHydroRequest} from "./hydro-service.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
+import {executeHydroRequest} from "./hydro-service.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
 
 let worker=null;
 let currentModel=null;
@@ -7,7 +7,7 @@ const pending=new Map();
 
 function ensureWorker(){
   if(worker||typeof Worker==="undefined")return worker;
-  worker=new Worker(new URL("./hydro-worker.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59",import.meta.url),{type:"module"});
+  worker=new Worker(new URL("./hydro-worker.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609",import.meta.url),{type:"module"});
   worker.onmessage=event=>{
     const {id,ok,result,error}=event.data||{};
     const entry=pending.get(id);
@@ -48,6 +48,13 @@ export async function analyzeHydroAsync(modelDocument,waterline){
   const queued=request("analyze",{waterline});
   if(queued)return queued;
   return executeHydroRequest(modelDocument,"analyze",{waterline});
+}
+
+export async function integrateHullPressureAsync(modelDocument,options){
+  await ensureModel(modelDocument);
+  const queued=request("pressure",options);
+  if(queued)return queued;
+  return executeHydroRequest(modelDocument,"pressure",options);
 }
 
 export async function hydroCurveAsync(modelDocument,options){

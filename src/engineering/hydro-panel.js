@@ -1,7 +1,7 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
-import {gzMetrics} from "../hydro/gz.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
-import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
-import {hydroForcesHTML} from "./hydro-force-diagram.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
+import {gzMetrics} from "../hydro/gz.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
+import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
+import {hydroForcesHTML} from "./hydro-force-diagram.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -257,6 +257,12 @@ export function hydroPanelHTML({
         ${numericalSummary}
         ${hydroForcesHTML({modelDocument,result,densityKgM3:density,draft:clamped,
           pointWeightSummary,hullMassText,kg,lcg,tcg})}
+        <section class="hydro-pressure-workspace" aria-label="Wetted-surface hydrostatic pressure">
+          <h3>Wetted-surface pressure integration</h3>
+          <p class="muted">Integrate p = ρg(T − z) over clipped submerged hull faces; verify total force and moments independently against displaced volume and CB. Only preflight-qualified hull geometry is eligible. The plotted longitudinal contribution is not a beam stress or structural-FEM load case.</p>
+          <button type="button" class="btn" id="hydro-pressure-run">Integrate and cross-check hull pressure</button>
+          <div id="hydro-pressure-result" role="status" aria-live="polite"></div>
+        </section>
         ${pointWeightSummary&&loadedGM?`<section class="hydro-loaded-gm" aria-label="Recalculated loading condition">
           <strong>With combined loads · recalculated loaded draft</strong>
           <div class="hydro-loaded-gm-grid">

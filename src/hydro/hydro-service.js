@@ -1,9 +1,10 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
-import {createHydroInclude} from "./hydro-selection.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
-import {validateHydroModel} from "../model/hull-surface-validator.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
-import {auditHydroCurve} from "./numerical-audit.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
-import {gzCurve} from "./gz.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
-import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js?v=3c10f5129a02a9c4c488ae499bcc7672dab50d59";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
+import {createHydroInclude} from "./hydro-selection.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
+import {validateHydroModel} from "../model/hull-surface-validator.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
+import {auditHydroCurve} from "./numerical-audit.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
+import {gzCurve} from "./gz.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
+import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
+import {integrateModelHullPressure} from "./pressure-integration.js?v=224fc828bc29832a8d2b6b78fb53b91766b61609";
 
 export function executeHydroRequest(modelDocument,type,payload={}){
   if(!modelDocument)throw new Error("Hydro service has no model loaded");
@@ -17,6 +18,12 @@ export function executeHydroRequest(modelDocument,type,payload={}){
 
   if(type==="analyze"){
     return analyzeModelDocument(modelDocument,payload.waterline,{include});
+  }
+  if(type==="pressure"){
+    return integrateModelHullPressure(modelDocument,{
+      waterline:payload.waterline,densityKgM3:payload.densityKgM3,
+      sections:payload.sections??24,maxTriangles:payload.maxTriangles??160000,include
+    });
   }
   if(type==="curve"){
     const curve=hydroCurve(modelDocument,{
