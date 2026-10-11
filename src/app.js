@@ -12,6 +12,7 @@ import {bindCourseNavigation} from "./courses/course-navigation.js";
 import {createResourceNotices} from "./courses/resource-updates.js";
 import {escapeHTML as escCourse} from "./viewers/utils.js";
 import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js";
+import {hydroPressureResultHTML} from "./engineering/hydro-pressure-panel.js";
 import {hydrostaticParticulars} from "./hydro/stability.js";
 import {createHydroInclude} from "./hydro/hydro-selection.js";
 import {prepareHydroModel} from "./hydro/hydrostatics.js";
@@ -41,7 +42,7 @@ import {mountModelScene} from "./model/model-scene.js";
 import {mountWaveControls} from "./model/model-wave-controls.js";
 import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js";
 import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js";
-import {analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js";
+import {integrateHullPressureAsync,analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js";
 import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js";
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 import {mountFrame3D} from "./engineering/frame-3d.js";
@@ -1909,6 +1910,28 @@ async function engineeringPage(){
   mountWorkspaceResultsResize(app.querySelector(".workspace"));
   bindEngineeringModelSelector();
   bindEngineeringCaseExport(engineeringReport);
+  app.querySelector("#hydro-pressure-run")?.addEventListener("click",async event=>{
+    const button=event.currentTarget;
+    const target=app.querySelector("#hydro-pressure-result");
+    if(!target)return;
+    button.disabled=true;
+    target.textContent="Integrating wetted-surface pressure and checking moments…";
+    try{
+      const integration=await integrateHullPressureAsync(documentModel,{
+        waterline:Number(hydro.draft),densityKgM3:Number(hydro.density),
+        maxTriangles:160000,sections:24
+      });
+      if(renderId!==engineeringRenderId||!button.isConnected||!target.isConnected)return;
+      target.innerHTML=hydroPressureResultHTML(integration);
+    }catch(error){
+      if(renderId===engineeringRenderId&&target.isConnected){
+        target.textContent="Pressure integration unavailable: "+String(error?.message||error);
+      }
+    }finally{
+      if(button.isConnected)button.disabled=false;
+    }
+  });
+
   app.querySelector("#engineering-sac-run")?.addEventListener("click",async event=>{
     const button=event.currentTarget;
     const result=app.querySelector("#engineering-sac-result");
