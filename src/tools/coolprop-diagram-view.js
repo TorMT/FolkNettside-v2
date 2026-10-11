@@ -1,4 +1,5 @@
 import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js";
+import {zoomDiagramViewport} from "./coolprop-diagram-viewport.js";
 
 function css(name,fallback){
   const value=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -30,6 +31,9 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
   container.replaceChildren();
   const canvas=document.createElement("canvas");
   canvas.className="coolprop-diagram-canvas";
+  canvas.tabIndex=0;
+  canvas.setAttribute("role","img");
+  canvas.setAttribute("aria-label",`${fluid} ${diagramType(type).label} diagram; drag to pan, wheel or plus/minus to zoom, 0 to reset`);
   const overlay=document.createElement("div");
   overlay.className="coolprop-diagram-overlay";
   const legend=document.createElement("div");
@@ -223,20 +227,23 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
 
   function reset(){view={...initial};draw()}
 
+  function zoom(factor,focus=null){
+    const target=focus||{x:(view.xmin+view.xmax)/2,y:(view.ymin+view.ymax)/2};
+    const next=zoomDiagramViewport(view,target,factor,initial);
+    if(next){view=next;draw()}
+  }
   function onWheel(event){
     event.preventDefault();
     const rect=canvas.getBoundingClientRect();
     const px=event.clientX-rect.left,py=event.clientY-rect.top;
     const {width,height}=dims();
     const cx=invX(px,width),cy=invY(py,height);
-    const factor=Math.exp(event.deltaY*.001);
-    view={
-      xmin:cx+(view.xmin-cx)*factor,
-      xmax:cx+(view.xmax-cx)*factor,
-      ymin:cy+(view.ymin-cy)*factor,
-      ymax:cy+(view.ymax-cy)*factor
-    };
-    draw();
+    zoom(Math.exp(Math.max(-600,Math.min(600,event.deltaY))*.001),{x:cx,y:cy});
+  }
+  function onKeyDown(event){
+    if(event.key==="+"||event.key==="="){event.preventDefault();zoom(.8)}
+    else if(event.key==="-"){event.preventDefault();zoom(1.25)}
+    else if(event.key==="0"){event.preventDefault();reset()}
   }
 
   function onPointerDown(event){
@@ -258,6 +265,7 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
   function onPointerUp(){drag=null}
 
   canvas.addEventListener("wheel",onWheel,{passive:false});
+  canvas.addEventListener("keydown",onKeyDown);
   canvas.addEventListener("pointerdown",onPointerDown);
   canvas.addEventListener("pointermove",onPointerMove);
   canvas.addEventListener("pointerup",onPointerUp);
@@ -302,6 +310,7 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
   return {
     datasets,
     reset,
+    zoom,
     downloadPNG(filename="coolprop-diagram.png"){
       canvas.toBlob(blob=>{
         if(!blob)return;
