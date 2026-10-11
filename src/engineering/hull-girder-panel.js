@@ -110,6 +110,24 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
     <label class="field"><span>Uniform deck mass loads · t/m², x0, x1, y0, y1, z</span>
       <textarea id="girder-areas" rows="3" spellcheck="false" placeholder="0.25, 2, 5, -1, 1, 2">${esc(values.areaText)}</textarea></label>
     <details class="load-sketch-panel"><summary>Draw area and point mass loads · hull plan</summary><div id="girder-load-sketch"></div></details>
+    <section class="hull-fem-hydro-controls" aria-label="Hydro to beam structural load model">
+      <h4>Structural loading and constraints</h4>
+      <label class="field"><span>Applied load case</span><select id="girder-loading-mode">
+        <option value="gravity-only" ${values.loadingMode==="gravity-only"?"selected":""}>Gravity only · supported test fixture</option>
+        <option value="pressure-gravity" ${values.loadingMode==="pressure-gravity"?"selected":""}>Mass + actual wetted-surface pressure strips</option>
+      </select></label>
+      <label class="field"><span>End restraint / floating equilibrium assumption</span><select id="girder-support-model">
+        <option value="pinned-roller" ${values.supportModel==="pinned-roller"?"selected":""}>Pin and roller fixture · nonzero reactions allowed</option>
+        <option value="floating-equilibrium" ${values.supportModel==="floating-equilibrium"?"selected":""}>Balanced floating mode · zero fictitious reaction required</option>
+      </select></label>
+      <div class="hydro-cg-grid">
+        <label><span>Still-waterline Z · m</span><input id="girder-pressure-draft" type="number" step="any" value="${esc(values.pressureDraft)}"></label>
+        <label><span>Water density · kg/m³</span><input id="girder-pressure-density" type="number" min="1" step="any" value="${esc(values.pressureDensity)}"></label>
+        <label><span>Longitudinal stations · 2–24</span><input id="girder-pressure-sections" type="number" min="2" max="24" step="1" value="${esc(values.pressureSections)}"></label>
+      </div>
+      <p class="muted">Only validated outward hull triangles are pressure-integrated. The same vertical force and its X first moment are transferred to the beam; pressure strips are exact X slices with additional moment-preserving nodal force pairs. Structural E/I and baseline uniform hull mass remain assumptions.</p>
+      <p class="muted">Floating mode uses pin/roller constraints to eliminate rigid-body modes ONLY after force and longitudinal moment balance are checked. An unbalanced case is rejected rather than disguised as free-floating stress. Neither option models shell stresses or arbitrary support conditions.</p>
+    </section>
     <div class="hydro-cg-grid">
       <label><span>E · GPa</span><input id="girder-e" type="number" min=".001" step="1" value="${esc(values.eGpa)}"></label>
       <label><span>I (longitudinal vertical bending), m⁴</span><input id="girder-i" type="number" min=".000001" step=".01" placeholder="required" value="${esc(values.iM4)}"></label>
