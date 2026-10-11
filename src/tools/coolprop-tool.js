@@ -277,6 +277,8 @@ export function coolPropToolHTML(state={}){
           <label><input id="cp-diagram-isotherms" type="checkbox" ${s.diagram.isotherms?"checked":""}> Isotherms</label>
           <label><input id="cp-diagram-isobars" type="checkbox" ${s.diagram.isobars?"checked":""}> Isobars</label>
           <label><input id="cp-diagram-quality" type="checkbox" ${s.diagram.quality?"checked":""}> Quality</label>
+          <button class="btn" id="cp-diagram-zoom-in" type="button" aria-label="Zoom into diagram" title="Zoom in (+)">+</button>
+          <button class="btn" id="cp-diagram-zoom-out" type="button" aria-label="Zoom out of diagram" title="Zoom out (-)">−</button>
           <button class="btn" id="cp-diagram-reset">Reset</button>
           <button class="btn" id="cp-diagram-png">PNG</button>
           <button class="btn" id="cp-diagram-close">Close</button>
@@ -800,6 +802,8 @@ export function bindCoolPropTool(root,state,onState){
       await mountDiagram(s.diagram);
     });
   }
+  root.querySelector("#cp-diagram-zoom-in")?.addEventListener("click",()=>diagramHandle?.zoom?.(.8));
+  root.querySelector("#cp-diagram-zoom-out")?.addEventListener("click",()=>diagramHandle?.zoom?.(1.25));
   root.querySelector("#cp-diagram-reset")?.addEventListener("click",()=>diagramHandle?.reset?.());
   root.querySelector("#cp-diagram-png")?.addEventListener("click",()=>diagramHandle?.downloadPNG?.("coolprop-"+(s.diagram.type||"diagram")+".png"));
   root.querySelector("#cp-diagram-close")?.addEventListener("click",()=>{
