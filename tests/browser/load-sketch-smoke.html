@@ -50,9 +50,48 @@ try{
  const combined=combineHullLoading({hullMassTonnes:20,hullCG:[0,0,1],pointWeights:points,areaLoads:areas});
  check(Number.isFinite(combined.totalMassTonnes)&&
    combined.centerOfGravity.every(Number.isFinite),"Combined load failed physics validation");
+ const beforeEdit=area.value;
+ host.querySelector('[data-sketch-mode="edit"]').click();
+ draw({x:300,y:150},{x:300,y:150});
+ check(host.querySelector("[data-sketch-selection]").hidden===false,"Load selection did not open");
+ check(host.querySelector("[data-sketch-selection-label]").textContent==="Area load 2","Selected wrong load");
+ check(host.querySelector("[data-sketch-z]").value==="1.5","Selected load Z not populated");
+ host.querySelector("[data-sketch-density]").value=".5";
+ host.querySelector("[data-sketch-z]").value="2.75";
+ host.querySelector("[data-sketch-save]").click();
+ let edited=areaLoadsFromLines(area.value);
+ check(edited.length===2&&edited[1].densityTonnesPerM2===.5&&edited[1].z===2.75,
+   "Selected mass and Z were not updated");
+ check(edited[0].densityTonnesPerM2===.05,"Editing selected load changed original load");
+ draw({x:300,y:150},{x:360,y:120});
+ edited=areaLoadsFromLines(area.value);
+ check(edited[1].x0>-2.5&&edited[1].y0>-1,"Area did not move in X/Y");
+ check(edited[1].densityTonnesPerM2===.5&&edited[1].z===2.75,
+   "Moving rectangle corrupted its mass density or height");
+ check(host.querySelectorAll("[data-sketch-area]").length===2,"Area disappeared after movement");
+ host.querySelector("[data-sketch-delete]").click();
+ check(areaLoadsFromLines(area.value).length===1,"Selected area was not removed");
+ check(area.value.startsWith("# original area load"),"Remove deleted comments or first area");
+ host.querySelector("[data-sketch-undo]").click();
+ check(areaLoadsFromLines(area.value).length===2,"Undo did not restore removed load");
+ check(area.value!==beforeEdit,"Editing and dragging did not persist the selected mass");
+ // Point mass: select from SVG, move and remove without affecting other rows.
+ const pointBefore=point.value;
+ const selectedPoint=svg.querySelector('[data-sketch-point="1"]');
+ const selectedPointX=Number(selectedPoint.getAttribute("cx"));
+ const selectedPointY=Number(selectedPoint.getAttribute("cy"));
+ draw({x:selectedPointX,y:selectedPointY},{x:selectedPointX,y:selectedPointY});
+ check(host.querySelector("[data-sketch-selection-label]").textContent==="Point mass 2","Point selection failed");
+ host.querySelector("[data-sketch-mass]").value="-1.25";
+ host.querySelector("[data-sketch-z]").value="4";
+ host.querySelector("[data-sketch-save]").click();
+ check(pointWeightsFromLines(point.value)[1].massTonnes===-1.25,"Point mass edit failed");
+ check(pointWeightsFromLines(point.value)[1].z===4,"Point elevation edit failed");
+ host.querySelector("[data-sketch-undo]").click();
+ check(point.value===pointBefore,"Point mass undo did not restore original rows");
  end();
  document.body.dataset.status="pass";
- document.querySelector("#result").textContent="PASS: drawing -> mass/area text inputs -> Hydro mass+CG and on-screen preview";
+ document.querySelector("#result").textContent="PASS: drawing, selection, editing, moving, deleting, undo and Hydro mass/CG";
 }catch(error){
  end();document.body.dataset.status="fail";
  document.querySelector("#result").textContent=String(error?.stack||error);
