@@ -50,6 +50,13 @@ export async function analyzeHydroAsync(modelDocument,waterline){
   return executeHydroRequest(modelDocument,"analyze",{waterline});
 }
 
+export async function integrateHullPressureAsync(modelDocument,options){
+  await ensureModel(modelDocument);
+  const queued=request("pressure",options);
+  if(queued)return queued;
+  return executeHydroRequest(modelDocument,"pressure",options);
+}
+
 export async function hydroCurveAsync(modelDocument,options){
   await ensureModel(modelDocument);
   const queued=request("curve",options);
