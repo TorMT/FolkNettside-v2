@@ -136,7 +136,7 @@ export function integratePreparedHullPressure(prepared,{
         addTo(forceN,surface.forceN);addTo(momentNm,surface.momentNm);
         // Independent unbinned X moment of the VERTICAL pressure traction.
         // The 3D pitch moment additionally includes horizontal pressure.
-        exactVerticalFirstMomentXN+=(surface.centerOfPressure?.[0]||
+        exactVerticalFirstMomentXN+=(surface.centerOfPressure?.[0]??
           (poly[0][0]+poly[i][0]+poly[i+1][0])/3)*surface.forceN[2];
         // Exact X-strip clipping, independent of how original mesh faces
         // cross station boundaries. Each vertical force's first X moment is
