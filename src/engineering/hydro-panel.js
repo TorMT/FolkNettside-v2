@@ -205,6 +205,7 @@ export function hydroPanelHTML({
             <textarea id="hydro-area-loads" rows="3" spellcheck="false"
               placeholder="0.25, -2, 2, -1, 1, 2">${esc(areaLoadsText)}</textarea>
           </label>
+          <details class="load-sketch-panel"><summary>Draw area and point mass loads · hull plan</summary><div id="hydro-load-sketch"></div></details>
           <button type="button" class="btn" id="hydro-point-apply" ${kg===""?"disabled":""}>Apply all loads and recalculate</button>
           <button type="button" class="btn" id="hydro-point-reset" ${pointWeightSummary?"":"disabled"}>Restore baseline loading</button>
           ${pointWeightError?`<p class="hydro-solve-error">${esc(pointWeightError)}</p>`:""}
