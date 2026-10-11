@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {solveHullGirder} from "../src/structure/hull-girder.js";
-import {girderResponseCSV,girderLoadsCSV,girderReactionsCSV}
+import {girderResponseCSV,girderLoadsCSV,girderReactionsCSV,girderSectionsCSV}
   from "../src/structure/girder-export.js";
 import {hullGirderActionDiagram,hullGirderPanelHTML}
   from "../src/engineering/hull-girder-panel.js";
@@ -58,4 +58,27 @@ test("load and reaction CSV totals close the independent force and moment audit"
    "x_m,vertical_support_reaction_N");
  assert.throws(()=>girderResponseCSV({field:[]}),/Calculate/);
  assert.throws(()=>girderReactionsCSV({equilibriumAudit:{passed:false},reactions:[]}),/Validated/);
+});
+
+test("section CSV lists actual local EI and baseline tonnes/metre used by the FEM",()=>{
+ const g=solveHullGirder({
+   xMin:0,xMax:10,hullMassTonnes:50,hullCG:[6.5,0,1],
+   E:210e9,I:.1,extremeFiberM:1,segments:6,
+   stiffnessStations:[
+     {x0:0,x1:5,E:200e9,I:.05},
+     {x0:5,x1:10,E:210e9,I:.1}
+   ],
+   massStations:[
+     {x0:0,x1:5,tonnesPerM:2},
+     {x0:5,x1:10,tonnesPerM:8}
+   ]
+ });
+ const lines=girderSectionsCSV(g).trim().split("\n");
+ assert.equal(lines.length,g.frame.elements.length+1);
+ assert.equal(lines[0],"x_from_m,x_to_m,young_modulus_Pa,section_inertia_m4,bending_rigidity_N_m2,baseline_mass_t_per_m");
+ const rows=lines.slice(1).map(line=>line.split(",").map(Number));
+ assert.ok(rows.some(r=>r[2]===200e9&&r[3]===.05&&r[5]===2));
+ assert.ok(rows.some(r=>r[2]===210e9&&r[3]===.1&&r[5]===8));
+ assert.ok(rows.every(r=>Math.abs(r[4]-r[2]*r[3])<1e-3));
+ assert.throws(()=>girderSectionsCSV({}),/Calculate/);
 });
