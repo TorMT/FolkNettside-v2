@@ -1,6 +1,6 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=46bddceaaf4ff12ec3dcab93f4def90ebf58e582";
-import {gzMetrics} from "../hydro/gz.js?v=46bddceaaf4ff12ec3dcab93f4def90ebf58e582";
-import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=46bddceaaf4ff12ec3dcab93f4def90ebf58e582";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=5a496961006738533ec7704bd3407d5fe3a43506";
+import {gzMetrics} from "../hydro/gz.js?v=5a496961006738533ec7704bd3407d5fe3a43506";
+import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=5a496961006738533ec7704bd3407d5fe3a43506";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -205,6 +205,7 @@ export function hydroPanelHTML({
             <textarea id="hydro-area-loads" rows="3" spellcheck="false"
               placeholder="0.25, -2, 2, -1, 1, 2">${esc(areaLoadsText)}</textarea>
           </label>
+          <details class="load-sketch-panel"><summary>Draw area and point mass loads · hull plan</summary><div id="hydro-load-sketch"></div></details>
           <button type="button" class="btn" id="hydro-point-apply" ${kg===""?"disabled":""}>Apply all loads and recalculate</button>
           <button type="button" class="btn" id="hydro-point-reset" ${pointWeightSummary?"":"disabled"}>Restore baseline loading</button>
           ${pointWeightError?`<p class="hydro-solve-error">${esc(pointWeightError)}</p>`:""}

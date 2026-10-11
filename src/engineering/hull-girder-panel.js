@@ -1,4 +1,4 @@
-import {stressRGB,interpolateGirderAt} from "../structure/hull-contours.js?v=46bddceaaf4ff12ec3dcab93f4def90ebf58e582";
+import {stressRGB,interpolateGirderAt} from "../structure/hull-contours.js?v=5a496961006738533ec7704bd3407d5fe3a43506";
 
 const esc=v=>String(v??"").replace(/[&<>"']/g,ch=>({
   "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
@@ -65,6 +65,7 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
       <textarea id="girder-points" rows="3" spellcheck="false" placeholder="1, 2, 0, 1">${esc(values.pointText)}</textarea></label>
     <label class="field"><span>Uniform deck mass loads · t/m², x0, x1, y0, y1, z</span>
       <textarea id="girder-areas" rows="3" spellcheck="false" placeholder="0.25, 2, 5, -1, 1, 2">${esc(values.areaText)}</textarea></label>
+    <details class="load-sketch-panel"><summary>Draw area and point mass loads · hull plan</summary><div id="girder-load-sketch"></div></details>
     <div class="hydro-cg-grid">
       <label><span>E · GPa</span><input id="girder-e" type="number" min=".001" step="1" value="${esc(values.eGpa)}"></label>
       <label><span>I (longitudinal vertical bending), m⁴</span><input id="girder-i" type="number" min=".000001" step=".01" placeholder="required" value="${esc(values.iM4)}"></label>
