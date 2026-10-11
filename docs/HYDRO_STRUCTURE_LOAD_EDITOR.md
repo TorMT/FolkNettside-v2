@@ -153,8 +153,27 @@ moments, a single **equivalent bending couple** at the beam midpoint restores
 the full integrated global pitching moment `-M_y`. This couple's location
 is a modeling decision: it is not an exact mapping of local shell traction,
 and the resulting bending distribution will depend on that idealisation.
-The system audits total transferred force, X first moment and global beam
-pitch moment before performing the FE solve.
+The system independently checks each X-strip's **vertical force and
+vertical-force X first moment** against the unbinned wetted triangles. It
+then audits total transferred force, X first moment and the complete global
+beam pitch moment before performing the FE solve. The numerical structural
+reactions are separately checked against *both* force equilibrium and
+pitch-moment equilibrium about the beam's initial X station. A result with
+an unexplained moment residual is rejected rather than silently displayed.
+
+The maximum vertical beam deflection is extracted from the stationary
+points of each **cubic Hermite finite-element interpolation**, including
+locations between mesh nodes. This is an exact extremum of the FE interpolant,
+not an exact continuum Euler–Bernoulli solution at a coarse discretization.
+
+The Structure results now display separate shear-force and bending-moment
+diagrams with element-side discontinuities, plus reaction and equilibrium
+residual readouts. Use **Export response CSV** for all FE field samples,
+**Export load strips CSV** for gravity and buoyancy line load components,
+and **Export reactions CSV** for constrained support forces. These
+machine-readable outputs use SI units in column names and intentionally
+preserve duplicate X positions on opposite sides of load jumps. The source
+engineering-case report continues to store the assumptions and scenario.
 
 ### Boundary condition selection
 
@@ -187,6 +206,10 @@ New automated coverage:
   unbalanced fixture reactions and explicit rejection cases.
 - `tests/browser/hull-girder-hydro-coupled-smoke.html`: coupled beam
   rendering, mass/buoyancy chart and floating-equilibrium guard.
+- `tests/girder-equilibrium.test.mjs`: independent pin/roller reaction
+  and pitch-moment balance, with sub-element deflection maxima.
+- `tests/girder-reporting.test.mjs`: side-limit shear/moment SVGs and
+  auditable SI CSV exports.
 
 ## Regression and CI
 
