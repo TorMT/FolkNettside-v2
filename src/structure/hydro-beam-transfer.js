@@ -26,7 +26,7 @@ export function projectPressureToBeam(pressure,{xMin,xMax}={}){
     const {x0,x1,forceZKN,firstMomentXN}=s;
     if(![x0,x1,forceZKN,firstMomentXN].every(finite)||!(x1>x0)||
       x0<xMin-tol||x1>xMax+tol)
-      throw Error("Pressure station "+(i+1)+" has invalid coordinates or force moments");
+      throw Error("Pressure station "+(i+1)+" has invalid coordinates, force moments, or extends outside structural beam");
     const L=x1-x0,forceN=forceZKN*1000,mid=(x0+x1)/2;
     const uniformMomentXN=forceN*mid;
     const deltaMomentXN=firstMomentXN-uniformMomentXN;
