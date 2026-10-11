@@ -47,6 +47,7 @@ import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js"
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 import {mountFrame3D} from "./engineering/frame-3d.js";
 import {solveHullGirder} from "./structure/hull-girder.js";
+import {girderResponseCSV,girderLoadsCSV,girderReactionsCSV} from "./structure/girder-export.js";
 import {projectPressureToBeam} from "./structure/hydro-beam-transfer.js";
 import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js";
 import {mountLoadSketch} from "./engineering/load-sketch.js";
@@ -1155,6 +1156,16 @@ async function engineeringPage(){
           "manual E/I/neutral axis","uniform hull mass per beam length"]
       }):null;
       bindEngineeringCaseExport(report);
+      if(girder){
+        for(const [id,filename,makeCSV] of [
+          ["girder-export-response","hull-girder-response.csv",girderResponseCSV],
+          ["girder-export-loads","hull-girder-loads.csv",girderLoadsCSV],
+          ["girder-export-reactions","hull-girder-reactions.csv",girderReactionsCSV]
+        ]){
+          app.querySelector("#"+id)?.addEventListener("click",()=>
+            downloadTextFile(makeCSV(girder),filename));
+        }
+      }
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>
         button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       mountLoadSketch(app.querySelector("#girder-load-sketch"),{
