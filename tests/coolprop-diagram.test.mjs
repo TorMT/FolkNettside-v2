@@ -122,3 +122,33 @@ test("diagram datasets expose a critical-point marker from the saturation dome",
   assert.ok(Number.isFinite(critical.points[0].x));
   assert.ok(Number.isFinite(critical.points[0].y));
 });
+
+test("diagram rejects absent/null/empty/nonphysical values instead of plotting fake zero states",()=>{
+  for(const missing of [null,undefined,"", "  ",true]){
+    assert.equal(stateToDiagramPoint({P:1e5,H:missing},"ph"),null);
+    assert.equal(stateToDiagramPoint({S:missing,T:300},"ts"),null);
+    assert.equal(stateToDiagramPoint({P:1e5,D:missing},"pv"),null);
+  }
+  assert.equal(stateToDiagramPoint({P:1e5,H:0},"ph").x,0,
+    "A real zero-enthalpy reference is permitted");
+  assert.equal(stateToDiagramPoint({S:0,T:273.15},"ts").y,0,
+    "A real 0 Celsius temperature and 0 entropy reference are permitted");
+  assert.equal(stateToDiagramPoint({S:1000,T:0},"ts"),null,
+    "Zero kelvin is not a physical plotted temperature");
+});
+
+test("unsupported saturation parameters do not erase measured single-phase diagram points",()=>{
+  const noSaturation={
+    props1SI(){throw Error("Saturation unavailable for this state model")},
+    propsSI(){throw Error("Saturation unavailable")}
+  };
+  const states=[{valuesSI:{P:250000,H:320000,T:325,S:1750,D:4}}];
+  const datasets=diagramDatasets(noSaturation,"Air","log-ph",states);
+  assert.equal(datasets.some(set=>set.kind==="saturation"),false);
+  assert.equal(datasets.some(set=>set.kind==="quality"),false);
+  const measured=datasets.find(set=>set.kind==="states");
+  assert.deepEqual(measured.points,[{x:320,y:2.5,label:"1"}]);
+  const bounds=dataBounds(datasets,{logY:true});
+  assert.ok(bounds.xmin<320&&bounds.xmax>320);
+  assert.ok(bounds.ymin<2.5&&bounds.ymax>2.5);
+});
