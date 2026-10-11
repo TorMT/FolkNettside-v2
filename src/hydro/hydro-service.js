@@ -4,6 +4,7 @@ import {validateHydroModel} from "../model/hull-surface-validator.js";
 import {auditHydroCurve} from "./numerical-audit.js";
 import {gzCurve} from "./gz.js";
 import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js";
+import {integrateModelHullPressure} from "./pressure-integration.js";
 
 export function executeHydroRequest(modelDocument,type,payload={}){
   if(!modelDocument)throw new Error("Hydro service has no model loaded");
@@ -17,6 +18,12 @@ export function executeHydroRequest(modelDocument,type,payload={}){
 
   if(type==="analyze"){
     return analyzeModelDocument(modelDocument,payload.waterline,{include});
+  }
+  if(type==="pressure"){
+    return integrateModelHullPressure(modelDocument,{
+      waterline:payload.waterline,densityKgM3:payload.densityKgM3,
+      sections:payload.sections??24,maxTriangles:payload.maxTriangles??160000,include
+    });
   }
   if(type==="curve"){
     const curve=hydroCurve(modelDocument,{
