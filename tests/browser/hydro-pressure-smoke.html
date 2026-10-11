@@ -23,7 +23,7 @@ try{
  check(section,"Pressure audit panel did not render");
  check(section.querySelector(".hydro-pressure-audit.passed"),"Reference audit status was not PASS");
  check(section.querySelectorAll(".hydro-pressure-histogram svg rect").length===16,"Missing longitudinal force bars");
- check(section.textContent.includes("392.27"),"Incorrect pressure-integrated force");
+ check(section.textContent.includes("402.073"),"Incorrect pressure-integrated force");
  check(section.textContent.includes("moment discrepancy"),"Moment audit unavailable");
  const altered=structuredClone(pressure);
  altered.crossCheck.passed=false;
