@@ -92,6 +92,55 @@ a separately declared hull-girder or shell FEM support model. Do not use a
 visual rectangle or a uniform upward line load as a replacement for this
 calculation.
 
+## Exact wetted-surface pressure integration (new)
+
+Hydro now has an optional **Integrate and cross-check hull pressure** button.
+It runs on the existing Hydro Web Worker, after the same geometry preflight
+gate used by the volume, draft and GZ solvers. The independent implementation
+in `src/hydro/pressure-integration.js` transforms each included hull mesh
+to world metres and clips each triangular facet below the upright reference
+waterline. It integrates gauge pressure analytically within every submerged
+triangle (linear pressure, exactly integrated force and first moments):
+
+```text
+p = water_density * gravity * (waterline_z - surface_z) [Pa]
+dF = -p * outward_normal * dA [N]
+dM = position_vector cross dF [N*m]
+```
+
+The integrated force vector and moment vector about the model origin are
+compared with the independent hydrostatic reference
+`F_ref=[0,0,density*g*displaced_volume]` and
+`M_ref=CB cross F_ref`. A numerical pass/fail audit reports **both**
+errors and their tolerances, rather than assuming the pressure integral
+matches by construction. Horizontal pressure cancellation is checked too.
+
+For readability, the X-directed chart bins each triangle's already
+integrated vertical resultant by its pressure-centroid X into longitudinal
+strips. **This is not exact triangle clipping by station boundaries**, and
+it is not automatically suitable as FEM nodal loading. The pressure force
+and moment totals, however, are computed from the unbinned triangles.
+
+The reported peak gauge pressure depends on the selected reference
+waterline. The wetted surface area and per-component force breakdown come
+from the *included selected hydro hull meshes*. Extra models of machinery,
+internal tanks and superstructures must be excluded by hydro selection.
+Mesh preflight is necessary but not enough to certify external-hull
+isolation, pressure boundaries, an actual loading condition or ship
+structures.
+
+The calculation is upright and still-water only. Pressures under arbitrary
+heel/trim, wave-induced loading, free-surface effects, local shell strength
+and hydro-elastic support conditions are **not** represented. In
+particular, the **Structure** workspace continues to use its explicitly
+simply-supported beam proxy, and is **not automatically loaded** with these
+distributed hydro forces.
+
+Regression qualification covers rectangular blocks at different drafts,
+translated and unit-scaled hulls, sloping wedge geometry, component selection,
+model preflight rejection and force/moment numerical equality. A dedicated
+browser smoke test checks rendering and the numerical review/failure state.
+
 ## Regression and CI
 
 - `tests/deck-surface-projection.test.mjs`: geometry transforms,
