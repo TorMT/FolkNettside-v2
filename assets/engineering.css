@@ -317,3 +317,21 @@
  .hydro-pressure-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
  .hydro-pressure-workspace>.btn{width:100%}
 }
+
+/* Physical Hydro -> Structure beam case with explicit idealisation controls. */
+.hull-fem-hydro-controls{padding:12px 10px;margin:12px 0;border:1px solid var(--line);
+  border-radius:10px;display:grid;gap:9px;background:var(--surface-sunk);min-width:0}
+.hull-fem-hydro-controls h4{font-size:12px;margin:0;color:var(--ink)}
+.hull-fem-hydro-controls .field{margin:0}
+.hull-fem-hydro-controls select{width:100%;min-width:0;max-width:100%;box-sizing:border-box;
+  background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:6px;
+  padding:8px;white-space:normal}
+.hull-fem-hydro-controls .hydro-cg-grid{gap:7px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.hull-fem-hydro-controls .hydro-cg-grid input{min-width:0;width:100%;box-sizing:border-box}
+.hull-fem-hydro-controls .muted{font-size:10px;line-height:1.5;margin:0}
+.hull-fem-load-chart{display:block;width:100%;height:auto;max-height:265px;background:var(--surface-sunk);
+  border:1px solid var(--line);border-radius:8px}
+@media(max-width:760px){
+ .hull-fem-hydro-controls .hydro-cg-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .hull-fem-hydro-controls{padding:10px 9px}
+}

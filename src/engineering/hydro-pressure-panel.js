@@ -58,7 +58,7 @@ export function hydroPressureResultHTML(pressure){
     '</div>'+
     '<div class="hydro-pressure-histogram">'+svg+'</div>'+
     '<p class="muted">Forces are integrated analytically on every submerged planar mesh triangle. '+
-    'Bars group triangle contributions by the pressure centroid X; their widths do not represent exact station-wise clipping. '+
+    'Bars integrate wetted faces clipped at their exact longitudinal station boundaries; each shows a signed vertical force per section, not a continuous pressure law. '+
     'This is NOT a longitudinal hull-girder FEM, structural stress result or surface certification.</p>'+
     '<details><summary>Numerical audit and component contributions</summary>'+
     '<p>Force tolerance ±'+format(check.forceToleranceN,4)+' N; moment tolerance ±'+

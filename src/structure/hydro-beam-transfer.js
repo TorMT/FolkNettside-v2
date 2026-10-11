@@ -46,12 +46,24 @@ export function projectPressureToBeam(pressure,{xMin,xMax}={}){
     projectedMomentXN+=uniformMomentXN+endCorrectionN*L;
     audited.push({x0,x1,forceN,firstMomentXN,qy,endCorrectionN});
   }
+  // Beam vertical (+Y) represents global +Z; its out-of-plane (+Mz)
+  // represents minus the hydrostatic global Y moment. Sloping hull plates can
+  // create nonzero z*Fx pressure couples even when global Fx sums to zero.
+  // Transfer that pressure couple explicitly instead of silently losing it.
+  if(!finite(pressure.momentNm?.[1]))
+    throw Error("Full hydrostatic pitch moment is required for beam transfer");
+  const targetBeamMomentNm=-pressure.momentNm[1];
+  const equivalentPitchCoupleNm=targetBeamMomentNm-totalFirstMomentXN;
+  if(!finite(equivalentPitchCoupleNm))
+    throw Error("Equivalent hydrostatic pitching couple overflow");
   const forceErrorN=projectedForceN-totalForceN;
   const firstMomentErrorNm=projectedMomentXN-totalFirstMomentXN;
   const forceToleranceN=Math.max(.01,Math.abs(totalForceN)*1e-8);
   const momentToleranceNm=Math.max(.01,Math.abs(totalForceN)*span*1e-8);
-  if(Math.abs(forceErrorN)>forceToleranceN||Math.abs(firstMomentErrorNm)>momentToleranceNm)
-    throw Error("Pressure-to-beam force/first-moment conservation failed");
+  const beamMomentErrorNm=projectedMomentXN+equivalentPitchCoupleNm-targetBeamMomentNm;
+  if(Math.abs(forceErrorN)>forceToleranceN||Math.abs(firstMomentErrorNm)>momentToleranceNm||
+    Math.abs(beamMomentErrorNm)>momentToleranceNm)
+    throw Error("Pressure-to-beam force/first-moment/pitch-couple conservation failed");
   // The original global pressure integration may contain horizontal forces,
   // which a scalar vertical Euler-Bernoulli beam cannot represent.
   const hmax=Math.max(Math.abs(pressure.forceN?.[0]??Infinity),
@@ -59,12 +71,13 @@ export function projectPressureToBeam(pressure,{xMin,xMax}={}){
   if(hmax>Math.max(1,Math.abs(totalForceN)*1e-6))
     throw Error("Non-negligible horizontal pressure force requires a 3D structural idealisation");
   return {
-    model:"exact X-clipped pressure strips; piecewise-constant qz plus moment-preserving end-node force pairs",
+    model:"exact X-clipped pressure strips; piecewise-constant qz, nodal force pairs, and global pitch-couple correction",
     sourceWaterlineM:pressure.waterline,
     sourceDensityKgM3:pressure.densityKgM3,
     lineLoads,nodalCorrections,stations:audited,
-    totalForceN,totalFirstMomentXN,
-    conservation:{passed:true,forceErrorN,firstMomentErrorNm,forceToleranceN,momentToleranceNm},
-    disclaimer:"Station-integrated external hydrostatic pressure, mapped to a longitudinal vertical beam. Not shell stress, torsion, horizontal pressure, hydrodynamic waves or certified deck/longitudinal structure."
+    totalForceN,totalFirstMomentXN,targetBeamMomentNm,equivalentPitchCoupleNm,
+    conservation:{passed:true,forceErrorN,firstMomentErrorNm,beamMomentErrorNm,
+      forceToleranceN,momentToleranceNm},
+    disclaimer:"Station-integrated hydrostatic pressure projected onto a vertical longitudinal beam. The equivalent pitch couple conserves the moment contribution from omitted horizontal pressure tractions; its placement is an idealisation. Not shell stress, torsion, hydrodynamic waves or certified structure."
   };
 }
