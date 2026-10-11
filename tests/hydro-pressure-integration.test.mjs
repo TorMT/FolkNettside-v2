@@ -70,7 +70,7 @@ test("wedge prism pressure integrates force and moment against independent clipp
  const m=model(wedgePrismMesh({L:8,B:2,H0:.5,H1:2}));
  const hydro=analyzeModelDocument(m,.9,{include:createHydroInclude(m)});
  const p=integrateModelHullPressure(m,{waterline:.9,densityKgM3:1025});
- assert.ok(hydro.centerOfBuoyancy[0]<0);
+ assert.ok(hydro.centerOfBuoyancy[0]>0); // deeper on positive X
  near(p.forceN[2],hydro.volume*1025*9.80665,1e-6);
  near(p.momentNm[1],-hydro.centerOfBuoyancy[0]*p.forceN[2],1e-6);
  assert.equal(p.crossCheck.passed,true,JSON.stringify(p.crossCheck));
