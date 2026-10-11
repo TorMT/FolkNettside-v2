@@ -1,5 +1,6 @@
-import {solveFrame2D} from "./frame2d.js?v=fff57a90002fdfc1dbd9487a4c3adf2d886a238e";
-import {combineHullLoading} from "../hydro/hull-loading.js?v=fff57a90002fdfc1dbd9487a4c3adf2d886a238e";
+import {solveFrame2D} from "./frame2d.js?v=c7d3fea039731151b509ab0835d2f32708518698";
+import {combineHullLoading} from "../hydro/hull-loading.js?v=c7d3fea039731151b509ab0835d2f32708518698";
+import {auditGirderReactions,hermiteDeflectionExtrema} from "./girder-equilibrium.js?v=c7d3fea039731151b509ab0835d2f32708518698";
 
 const G=9.80665;
 const number=(value,name)=>{
@@ -136,7 +137,7 @@ export function solveHullGirder({
     loads:[...pointLoads,...equivalentBuoyancyLoads,...pitchMomentLoads],distributedLoads};
   const analysis=solveFrame2D(frame);
   const moments=[],shears=[],fem=analysis.elements;
-  const sampleResults=[];
+  const sampleResults=[],deflectionCandidates=[];
   for(let i=0;i<fem.length;i++){
     const actions=fem[i].localEndForces,L=xs[i+1]-xs[i],q=distributedLoads[i].qy;
     const moment=s=>-actions[2]+actions[1]*s+q*s*s/2;
@@ -151,6 +152,9 @@ export function solveHullGirder({
       fem[i].localDisplacements[1],fem[i].localDisplacements[2],0,
       fem[i].localDisplacements[4],fem[i].localDisplacements[5]
     ];
+    deflectionCandidates.push(...hermiteDeflectionExtrema({
+      x0:xs[i],length:L,v1,theta1:t1,v2,theta2:t2
+    }));
     // Cubic Hermite interpolation for the FE deflection field.
     for(let j=0;j<=16;j++){
       const tau=j/16,t2x=tau*tau,t3x=t2x*tau;
@@ -167,22 +171,35 @@ export function solveHullGirder({
     !top||Math.abs(entry.value)>Math.abs(top.value)?entry:top,null);
   const peakDeflection=analysis.nodes.reduce((top,node)=>
     !top||Math.abs(node.uy)>Math.abs(top.uy)?node:top,null);
+  const peakDeflectionExact=deflectionCandidates.reduce((top,entry)=>
+    !top||Math.abs(entry.deflectionM)>Math.abs(top.deflectionM)?entry:top,null);
   const reactions=analysis.nodes.map((node,i)=>({x:xs[i],verticalN:node.ry}))
     .filter(r=>Math.abs(r.verticalN)>1e-5);
   const verticalLoadN=netForceN;
   const reactionN=reactions.reduce((sum,r)=>sum+r.verticalN,0);
+  const equilibriumAudit=auditGirderReactions({
+    externalForceN:netForceN,externalMomentNm:netBeamMomentNm,
+    reactions,referenceX:a,spanM:span
+  });
+  if(!equilibriumAudit.passed)
+    throw new Error("Beam FEM equilibrium failed: force error "+
+      equilibriumAudit.forceResidualN.toExponential(3)+" N; pitch moment error "+
+      equilibriumAudit.momentResidualNm.toExponential(3)+" N·m");
   if(supportModel==="floating-equilibrium"&&Math.abs(reactionN)>
     Math.max(.01,Math.abs(qBuoyancy)*.001))
     throw new Error("Floating equilibrium failed: residual artificial support reactions exceed tolerance");
   return {method:buoyancyTransfer?"Euler-Bernoulli beam with integrated hydrostatic station forces":"Euler-Bernoulli simply-supported hull girder (global beam proxy)",
     loading,frame,analysis,reactions,lineLoads,moments,shears,field:sampleResults,
+    equilibriumAudit,
     buoyancyTransfer,supportModel,gravityForceN:gravityN,buoyancyForceN:qBuoyancy+nodeBuoyancy,
     netFirstMomentXN,netBeamMomentNm,pitchCoupleNm,projectedForceErrorN:buoyancyTransfer?
       qBuoyancy+nodeBuoyancy-buoyancyTransfer.totalForceN:null,
     maxMomentNm:Math.abs(peak.value),
     momentAtMax:peak.x,
     maxStressPa:Math.abs(peak.value)*c/inertia,
-    maxDeflectionM:Math.abs(peakDeflection.uy),
+    maxDeflectionM:Math.abs(peakDeflectionExact.deflectionM),
+    peakDeflectionX:peakDeflectionExact.x,
+    peakDeflectionSignedM:peakDeflectionExact.deflectionM,
     peakDeflectionNode:peakDeflection.id,
     verticalLoadN,reactionN,
     equilibriumResidualN:reactionN+verticalLoadN,

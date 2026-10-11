@@ -9,7 +9,7 @@
  * Only use on models that passed validateHydroModel preflight. The result is
  * a pressure resultant, NOT a structural FEM or a certified external hull.
  */
-import {analyzePreparedHydro,prepareHydroModel} from "./hydrostatics.js?v=fff57a90002fdfc1dbd9487a4c3adf2d886a238e";
+import {analyzePreparedHydro,prepareHydroModel} from "./hydrostatics.js?v=c7d3fea039731151b509ab0835d2f32708518698";
 const G=9.80665,EPS=1e-12;
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
 const subtract=(a,b)=>a.map((x,i)=>x-b[i]);
@@ -114,6 +114,7 @@ export function integratePreparedHullPressure(prepared,{
   }));
   const totalForceN=[0,0,0],totalMomentNm=[0,0,0],perComponent=[];
   let wetAreaM2=0,wetTriangles=0,peakGaugePressurePa=0;
+  let exactVerticalFirstMomentXN=0;
   for(const component of components){
     const pos=component.geometry?.positions,idx=component.geometry?.indices;
     if(!pos?.length||pos.length%3!==0)throw new Error("Invalid prepared hull vertex buffer");
@@ -133,6 +134,10 @@ export function integratePreparedHullPressure(prepared,{
         componentWetArea+=surface.areaM2;wetAreaM2+=surface.areaM2;
         peakGaugePressurePa=Math.max(peakGaugePressurePa,surface.maxPressurePa);
         addTo(forceN,surface.forceN);addTo(momentNm,surface.momentNm);
+        // Independent unbinned X moment of the VERTICAL pressure traction.
+        // The 3D pitch moment additionally includes horizontal pressure.
+        exactVerticalFirstMomentXN+=(surface.centerOfPressure?.[0]??
+          (poly[0][0]+poly[i][0]+poly[i+1][0])/3)*surface.forceN[2];
         // Exact X-strip clipping, independent of how original mesh faces
         // cross station boundaries. Each vertical force's first X moment is
         // computed analytically and preserved for FEM load projection.
@@ -176,12 +181,18 @@ export function integratePreparedHullPressure(prepared,{
   // For a general non-axis-aligned shell, global M_y includes z*F_x;
   // the first moment of vertical pressure is accumulated independently below.
   const stripFirstMomentXN=strips.reduce((sum,entry)=>sum+entry.firstMomentXN,0);
+  const stationFirstMomentErrorNm=stripFirstMomentXN-exactVerticalFirstMomentXN;
+  const stationMomentTol=Math.max(.01,
+    Math.abs(totalForceN[2])*Math.max(1,xmax-xmin)*1e-6);
   const stationAudit={
     forceErrorN:stripForceN-totalForceN[2],
     firstMomentXN:stripFirstMomentXN,
+    independentFirstMomentXN:exactVerticalFirstMomentXN,
+    firstMomentErrorNm:stationFirstMomentErrorNm,
     totalForceZFromStationsN:stripForceN,
-    forceToleranceN:forceTol,
-    passed:Math.abs(stripForceN-totalForceN[2])<=forceTol
+    forceToleranceN:forceTol,momentToleranceNm:stationMomentTol,
+    passed:Math.abs(stripForceN-totalForceN[2])<=forceTol&&
+      Math.abs(stationFirstMomentErrorNm)<=stationMomentTol
   };
   return {schemaVersion:1,waterline,densityKgM3,gravityMps2:G,
     sourceTriangleCount:count,wetTriangles,wetAreaM2,peakGaugePressurePa,
