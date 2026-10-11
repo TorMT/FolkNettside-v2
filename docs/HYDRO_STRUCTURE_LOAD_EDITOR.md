@@ -209,7 +209,68 @@ New automated coverage:
 - `tests/girder-equilibrium.test.mjs`: independent pin/roller reaction
   and pitch-moment balance, with sub-element deflection maxima.
 - `tests/girder-reporting.test.mjs`: side-limit shear/moment SVGs and
-  auditable SI CSV exports.
+  auditable SI CSV exports, including E/I/EI and baseline t/m values.
+- `tests/girder-profiles.test.mjs`: varying section stiffness, nonuniform
+  baseline mass with independent mass/LCG checks, reaction shifts and
+  backward compatibility with constant-EI baseline.
+
+## Longitudinal EI(x) and baseline mass per metre (new)
+
+Structure now permits **two optional, explicit, complete X-station profiles**
+from **Longitudinal beam profiles** in the structural input inspector:
+
+- Structural: `x0_m, x1_m, E_GPa, I_m4`. Each section sets its own
+  Euler–Bernoulli bending rigidity `EI`. **E and I are manually supplied**
+  structural properties and are not inferred from triangles of a visual 3D
+  hull shell. If the structural table is empty, the original constant E/I
+  inputs remain in use.
+- Baseline structural mass: `x0_m, x1_m, tonnes_per_m`. This gives
+  the **unloaded** hull's longitudinal weight distribution. Point masses
+  and distributed deck masses remain additional, separate inputs. If the
+  mass table is empty, the original uniform `hullMassTonnes / span` law
+  remains in use.
+
+A non-empty profile must be arranged **from aft/low X to forward/high X**,
+covering the entire world-coordinate girder X extent **without gaps,
+overlap, zero or negative element length**. Each profile can have up to
+60 sections. The solver creates actual FEM nodes at all section boundaries,
+including all Hydro pressure station boundaries and additional mass loads,
+rather than averaging the jump over neighboring beam elements.
+
+For a given baseline mass profile, calculate:
+
+```text
+m_hull = sum_i ((x1_i-x0_i) * tonnesPerMeter_i)       [tonnes]
+LCG_hull = sum_i (m_i * (x0_i+x1_i)/2) / m_hull          [metres]
+gravity_line_load_i = -1000 * g * tonnesPerMeter_i   [N/m]
+```
+
+The independent mass audit **rejects** an explicit profile if its integrated
+mass differs from the entered unloaded hull mass or if its computed LCG
+differs from the entered unloaded hull CG X. No hidden scale normalization
+or displacement-as-mass shortcut is used. A legacy uniform profile continues
+to place baseline gravity at beam mid-span. In the floating-equilibrium
+case, a mismatched entered baseline CG and uniform beam centroid remains
+invalid; in other cases, the input is a *declared uniform idealisation*.
+
+Bending stress uses **local** section inertia `sigma_x=M(x)*c/I(x)`, with
+uniform entered extreme-fibre distance `c`. The location of the peak
+absolute stress can now change even if the maximum absolute bending moment
+has not changed. The stress display is still a beam-fibre result, not hull
+plating von Mises stress, nor a complete shell model; a true hull section
+needs plate thickness, material and frame/bulkhead participation.
+
+The result shows separately the EI(x) and baseline mass(x) profiles; **Export
+EI/mass sections CSV** writes the effective E, I, EI and mass density for
+every actual beam element. Existing case-report and mass/force/moment
+exports remain available.
+
+**Next engineering level:** Source true section inertia from an explicit
+longitudinal cross-section *structural* model (plate geometry and thickness,
+stiffeners, bulkheads, materials, effective breadth) with a documented
+neutral axis, and compare weight by frame/station to a declared weight
+ledger. A watertight *external visual hull surface alone cannot provide
+these engineering properties*.
 
 ## Regression and CI
 
