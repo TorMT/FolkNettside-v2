@@ -64,6 +64,42 @@ export function hullGirderActionDiagram(girder,{metric="moment",width=880,height
     '<text x="'+(width-pad)+'" y="'+(height-8)+'" text-anchor="end" font-size="11" fill="var(--ink-2)">X '+fmt(x1,2)+'</text>'+
     '</svg>';
 }
+/** A traceable section diagram; values are manually specified, not inferred. */
+export function hullGirderProfileDiagram(girder,{width=880,height=275}={}){
+  const elements=girder?.frame?.elements||[];
+  const nodes=girder?.frame?.nodes||[];
+  const mass= girder?.baselineAudit?.stations||[];
+  if(!elements.length||nodes.length<2||!mass.length)return "";
+  const x0=nodes[0].x,x1=nodes.at(-1).x, pad=46,scale=(width-2*pad)/(x1-x0);
+  const intervals=elements.map((e,i)=>{
+    const left=nodes[i].x,right=nodes[i+1].x,mid=(left+right)/2;
+    const station=mass.find(row=>mid>=row.x0&&mid<=row.x1);
+    return {left,right,EI:e.E*e.I,tonnesPerM:station?.tonnesPerM??0};
+  });
+  const maxEI=Math.max(1,...intervals.map(r=>r.EI));
+  const maxMass=Math.max(.0001,...intervals.map(r=>r.tonnesPerM));
+  const EIbars=[],massBars=[];
+  for(const station of intervals){
+    const x=pad+(station.left-x0)*scale;
+    const w=(station.right-station.left)*scale;
+    const upper=station.EI/maxEI*65,lower=station.tonnesPerM/maxMass*65;
+    EIbars.push('<rect x="'+x.toFixed(2)+'" y="'+(96-upper).toFixed(2)+
+      '" width="'+w.toFixed(2)+'" height="'+upper.toFixed(2)+'" fill="var(--accent)" opacity=".75"/>');
+    massBars.push('<rect x="'+x.toFixed(2)+'" y="'+(216-lower).toFixed(2)+
+      '" width="'+w.toFixed(2)+'" height="'+lower.toFixed(2)+'" fill="var(--danger)" opacity=".7"/>');
+  }
+  return '<svg class="hull-fem-profile-chart" viewBox="0 0 '+width+' '+height+'" role="img" '+
+    'aria-label="Engineering-entered longitudinal EI bending stiffness and hull baseline mass per metre">'+
+    '<text x="'+pad+'" y="17" fill="var(--accent)" font-size="12">EI(x) bending stiffness · N·m²</text>'+
+    '<text x="'+(width-pad)+'" y="17" text-anchor="end" fill="var(--ink-2)" font-size="11">Max '+fmt(maxEI,0)+'</text>'+
+    '<path d="M'+pad+' 96H'+(width-pad)+'" stroke="var(--line)"/>'+EIbars.join("")+
+    '<text x="'+pad+'" y="135" fill="var(--danger)" font-size="12">Baseline mass(x) · tonnes/m</text>'+
+    '<text x="'+(width-pad)+'" y="135" text-anchor="end" fill="var(--ink-2)" font-size="11">Max '+fmt(maxMass,3)+'</text>'+
+    '<path d="M'+pad+' 216H'+(width-pad)+'" stroke="var(--line)"/>'+massBars.join("")+
+    '<text x="'+pad+'" y="260" fill="var(--ink-2)" font-size="11">X '+fmt(x0,2)+' m</text>'+
+    '<text x="'+(width-pad)+'" y="260" text-anchor="end" fill="var(--ink-2)" font-size="11">X '+fmt(x1,2)+' m</text>'+
+    '</svg>';
+}
 export function hullGirderLoadDiagram(girder,{width=880,height=245}={}){
   if(!girder?.lineLoads?.length)return "";
   const rows=girder.lineLoads;
@@ -122,6 +158,7 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
     <strong>Global girder · ${result.buoyancyTransfer?"pressure + gravity":"gravity-only fixture"}</strong>
     <div class="readout"><span>Mass (including loads)</span><strong>${fmt(result.loading.totalMassTonnes,2)} t</strong></div>
     <div class="readout"><span>Peak |σx| · beam fibre</span><strong>${fmt(result.maxStressPa/1e6,2)} MPa</strong></div>
+    <div class="readout"><span>Peak stress at X</span><strong>${fmt(result.maxStressX,3)} m</strong></div>
     <div class="readout"><span>Peak deflection</span><strong>${fmt(result.maxDeflectionM*1000,3)} mm</strong></div>
     <div class="readout"><span>Max bending moment</span><strong>${fmt(result.maxMomentNm/1000,2)} kN·m</strong></div>
     <div class="readout"><span>Force equilibrium error</span><strong>${fmt(result.equilibriumAudit?.forceResidualN,5)} N</strong></div>
@@ -199,6 +236,7 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
     </div>
     <p class="muted">Blue and red represent opposite signed longitudinal fibre stress. Colors are projected onto actual 3D mesh vertices; this is NOT a shell-element von Mises plot.</p>
     <p class="muted">The shear and bending-moment diagrams include FEM element-side limits. Sharp jumps reflect concentrated forces or applied couples, not smooth distributed pressure. Deflection maxima include stationary points inside elements.</p>
+    ${hullGirderProfileDiagram(result)}
     ${result.buoyancyTransfer?hullGirderLoadDiagram(result):""}
     ${hullGirderDiagram(result)}
     ${hullGirderDiagram(result,{metric:"deflection"})}
