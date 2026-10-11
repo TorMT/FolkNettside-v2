@@ -1,18 +1,24 @@
-import {solveFrame2D} from "../structure/frame2d.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
+import {solveFrame2D} from "../structure/frame2d.js?v=db4ff2cd274a67b85dc07eff9102584337c9234e";
 
-let fixturePromise;
+const fixturePromises=new Map();
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
 }
 export function loadStructureFixture(path="./examples/engineering/cantilever-frame.json"){
-  if(!fixturePromise){
-    fixturePromise=fetch(path).then(response=>{
-      if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${path}`);
+  const source=String(path);
+  if(!fixturePromises.has(source)){
+    const pending=fetch(source).then(response=>{
+      if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${source}`);
       return response.json();
+    }).catch(error=>{
+      // Do not poison the cache after an offline failure or transient 404.
+      fixturePromises.delete(source);
+      throw error;
     });
+    fixturePromises.set(source,pending);
   }
-  return fixturePromise;
+  return fixturePromises.get(source);
 }
 export function evaluateStructureCase(baseCase,{loadFy,loadPosition}={}){
   const model=JSON.parse(JSON.stringify(baseCase));

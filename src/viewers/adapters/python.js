@@ -1,8 +1,9 @@
-import {pythonSourceURL} from "../python-source.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
-import {fetchText} from "../utils.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
-import {createPythonSession} from "../python-session.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
-import {createDomFinder} from "../dom-search.js?v=28848fc2e648e3c06003a0bb024ccfd161791d60";
+import {pythonSourceURL} from "../python-source.js?v=db4ff2cd274a67b85dc07eff9102584337c9234e";
+import {pythonUploadPaths} from "../python-folder-paths.js?v=db4ff2cd274a67b85dc07eff9102584337c9234e";
+import {fetchText} from "../utils.js?v=db4ff2cd274a67b85dc07eff9102584337c9234e";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=db4ff2cd274a67b85dc07eff9102584337c9234e";
+import {createPythonSession} from "../python-session.js?v=db4ff2cd274a67b85dc07eff9102584337c9234e";
+import {createDomFinder} from "../dom-search.js?v=db4ff2cd274a67b85dc07eff9102584337c9234e";
 
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
   const source=resource.sourceText!==undefined?String(resource.sourceText):await fetchText(resource.path||resource.url);
@@ -14,7 +15,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
         <button type="button" id="python-open-vscode">VS Code</button>
         <button type="button" id="python-download">Save .py</button>
         <label class="python-upload-label">Add data / .py modules<input id="python-local-files" type="file" multiple hidden></label>
-        <label class="python-upload-label">Add folder<input id="python-local-folder" type="file" webkitdirectory directory multiple hidden></label>
+        <label class="python-upload-label">Add folder (include nested packages)<input id="python-local-folder" type="file" webkitdirectory directory multiple hidden></label>
         <button type="button" id="python-restart">Reset Python</button>
       </div>
     </div>
@@ -63,7 +64,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
   fileStatus.className="python-files-status";
   localFiles.closest("label").append(fileStatus);
   const localFolder=container.querySelector("#python-local-folder");
-  const addFiles=async input=>{
+  const addFiles=async (input,{folder=false}={})=>{
     const selected=[...input.files||[]];
     if(!selected.length)return;
     try{
@@ -71,8 +72,8 @@ export async function render(container,resource,{sessionFactory=createPythonSess
          selected.reduce((size,file)=>size+file.size,0)>25_000_000)
         throw new Error("Choose at most 40 files, 8 MB per file, 25 MB total");
       const files=[];
-      for(const file of selected)files.push({
-        name:file.webkitRelativePath||file.name,data:new Uint8Array(await file.arrayBuffer())
+      for(const item of pythonUploadPaths(selected,{folder}))files.push({
+        name:item.name,data:new Uint8Array(await item.file.arrayBuffer())
       });
       const result=await session.mount(files);
       fileStatus.textContent=result.mounted+" file(s) mounted";
@@ -84,7 +85,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     input.value="";
   };
   localFiles.addEventListener("change",()=>addFiles(localFiles));
-  localFolder.addEventListener("change",()=>addFiles(localFolder));
+  localFolder.addEventListener("change",()=>addFiles(localFolder,{folder:true}));
   container.querySelector("#python-restart").addEventListener("click",()=>{
     session.stop();cell.setStatus("Runtime reset");cell.setRunning(false);
   });
