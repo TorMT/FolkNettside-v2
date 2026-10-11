@@ -96,6 +96,6 @@ export function hydroForcesHTML({
     '</tr></thead><tbody>'+details+'</tbody></table></div>':
     '<p>No additional masses applied. Pending editor rows are excluded until Apply is used.</p>')+
     '</details><small>Arrow positions use computed CB and entered combined CG. Arrow lengths are schematic. '+
-    'A spatial buoyancy pressure distribution would require wetted-surface pressure integration; '+
-    'this diagram shows the hydrostatic resultant only.</small></section>';
+    'The separate pressure audit can integrate wetted mesh faces on request; '+
+    'this CB/CG diagram shows only global resultant forces.</small></section>';
 }
