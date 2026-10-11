@@ -312,6 +312,30 @@ jobs:
             exit 1
           }
           grep '<pre id="result">' /tmp/load-sketch-smoke-dom.html || true
+      - name: Hydro pressure browser smoke
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          python -m http.server 4185 --bind 127.0.0.1 >/tmp/hydro-pressure-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python - <<'PY'
+          import time,urllib.request
+          for _ in range(50):
+              try:
+                  urllib.request.urlopen("http://127.0.0.1:4185/tests/browser/hydro-pressure-smoke.html",timeout=1).read(32)
+                  break
+              except Exception:time.sleep(.1)
+          else:raise SystemExit("Pressure smoke server did not start")
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=1100,700 --virtual-time-budget=10000 \
+            --dump-dom http://127.0.0.1:4185/tests/browser/hydro-pressure-smoke.html \
+            >/tmp/hydro-pressure-smoke-dom.html
+          grep -q 'data-status="pass"' /tmp/hydro-pressure-smoke-dom.html || {
+            cat /tmp/hydro-pressure-smoke-dom.html
+            exit 1
+          }
+          grep '<pre id="result">' /tmp/hydro-pressure-smoke-dom.html || true
       - name: Hydro performance benchmark
         run: npm run benchmark:hydro
       - name: Smoke check
