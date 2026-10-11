@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Hydro pressure-integral browser smoke</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/engineering.css">
+<style>#app{max-width:940px;margin:20px auto}</style></head>
+<body data-status="running"><main id="app"></main><pre id="result">Testing pressure integration…</pre>
+<script type="module">
+import {boxMesh} from "../../src/hydro/fixtures.js";
+import {executeHydroRequest} from "../../src/hydro/hydro-service.js";
+import {hydroPressureResultHTML} from "../../src/engineering/hydro-pressure-panel.js";
+import {hydroPanelHTML} from "../../src/engineering/hydro-panel.js";
+const check=(ok,message)=>{if(!ok)throw Error(message)};
+try{
+ const model={name:"Closed reference hull",unitScaleToMeters:1,components:[{
+  id:"hull",name:"External box hull",geometry:boxMesh({L:10,B:4,H:3}),metadata:{hydro:true}
+ }]};
+ const result=executeHydroRequest(model,"analyze",{waterline:1});
+ const pressure=executeHydroRequest(model,"pressure",{waterline:1,densityKgM3:1025,sections:16});
+ check(pressure.crossCheck.passed,"Box integrated pressure must satisfy Archimedes volume and moments");
+ const html=hydroPressureResultHTML(pressure);
+ document.querySelector("#app").innerHTML=html;
+ const section=document.querySelector(".hydro-pressure-report");
+ check(section,"Pressure audit panel did not render");
+ check(section.querySelector(".hydro-pressure-audit.passed"),"Reference audit status was not PASS");
+ check(section.querySelectorAll(".hydro-pressure-histogram svg rect").length===16,"Missing longitudinal force bars");
+ check(section.textContent.includes("392.27"),"Incorrect pressure-integrated force");
+ check(section.textContent.includes("moment discrepancy"),"Moment audit unavailable");
+ const altered=structuredClone(pressure);
+ altered.crossCheck.passed=false;
+ document.querySelector("#app").innerHTML=hydroPressureResultHTML(altered);
+ check(document.querySelector(".hydro-pressure-audit.failed"),"Numerical disagreement must render a warning");
+ const panel=hydroPanelHTML({modelDocument:model,result,curve:[],draft:1,kg:"1",config:{
+  density:1025,minDraft:0,maxDraft:3
+ }});
+ check(panel.results.includes('id="hydro-pressure-run"'),"Pressure audit button missing from Hydro UI");
+ check(panel.results.includes('id="hydro-pressure-result"'),"Pressure audit result target missing");
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent="PASS: validated pressure forces and moments, force histogram, review error and Hydro integration button";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>
