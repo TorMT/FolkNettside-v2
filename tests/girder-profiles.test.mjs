@@ -62,6 +62,14 @@ test("variable stiffness changes internal deflection, not vertical reactions for
  close(profiled.equilibriumAudit.momentResidualNm,0,.01);
  assert.ok(profiled.frame.nodes.some(n=>n.x===5));
  assert.equal(profiled.stiffnessStations.length,2);
+ const expectedStress=Math.max(...profiled.moments.map(p=>Math.abs(p.value)*1/
+   profiled.frame.elements.find(e=>e.id===p.elementId).I));
+ close(profiled.maxStressPa,expectedStress,.001);
+ const uniformApprox=Math.abs(profiled.moments.reduce((a,p)=>
+   Math.abs(p.value)>Math.abs(a.value)?p:a,profiled.moments[0]).value)/.2;
+ assert.ok(profiled.maxStressPa>uniformApprox,
+  "Local smaller-I station must not be reported with global inertia");
+
 });
 
 test("variable baseline mass shifts pin-roller reaction in agreement with analytic static equilibrium",()=>{
@@ -86,4 +94,17 @@ test("legacy uniform solver remains exactly the same when both profiles are abse
  close(traditional.maxDeflectionM,withEmpty.maxDeflectionM,1e-12);
  assert.deepEqual(traditional.lineLoads,withEmpty.lineLoads);
  assert.equal(withEmpty.baselineAudit.isExplicit,false);
+});
+
+test("different section moduli require local stress calculation even when global E/I are fixed",()=>{
+ const stiff=parseGirderStations("0,5,105,.1\n5,10,210,.2",{kind:"stiffness"});
+ const result=beam({stiffnessStations:stiff,pointWeights:[{massTonnes:2,x:3,y:0,z:1}]});
+ assert.equal(result.equilibriumAudit.passed,true);
+ for(const end of result.moments){
+   const element=result.frame.elements.find(e=>e.id===end.elementId);
+   close(end.stressPa,end.value*1/element.I,.002);
+ }
+ assert.equal(result.peakStressElement, result.moments.find(x=>
+   Math.abs(x.stressPa)===result.maxStressPa)?.elementId);
+ assert.ok(result.maxStressX>=0&&result.maxStressX<=10);
 });
