@@ -41,6 +41,8 @@ test("clipped box pressure has station forces uniform along X and exact first mo
  close(b.equilibriumResidualN,0,.05);
  close(b.maxMomentNm,0,1e-4);
  close(b.maxStressPa,0,1e-3);
+ close(b.netBeamMomentNm,0,.01);
+ close(b.pitchCoupleNm,0,.01);
 });
 test("off-equilibrium added mass gives clear floating-block, but explicit pinned/roller fixture reacts",()=>{
  const p=pressure(boxMesh({L:10,B:4,H:3}));
@@ -70,6 +72,11 @@ test("wedge pressure projection conserves force and longitudinal first moment th
  const transferred=projectPressureToBeam(p,{xMin:-4,xMax:4});
  close(transferred.totalForceN,p.forceN[2]);
  close(transferred.totalFirstMomentXN,p.strips.reduce((a,x)=>a+x.firstMomentXN,0));
+ close(transferred.totalFirstMomentXN+transferred.equivalentPitchCoupleNm,
+   -p.momentNm[1],.01);
+ close(transferred.totalFirstMomentXN+transferred.equivalentPitchCoupleNm,
+   p.reference.centerOfBuoyancy[0]*p.forceN[2],.01);
+ close(transferred.conservation.beamMomentErrorNm,0,.01);
  let nodalXN=0,uniformXN=0;
  for(const x of transferred.nodalCorrections)nodalXN+=x.x*x.fy;
  for(const l of transferred.lineLoads)uniformXN+=l.qy*(l.to-l.from)*(l.from+l.to)/2;
@@ -86,4 +93,21 @@ test("unvalidated source, invalid span and missing station audit cannot silently
    E:210e9,I:.08,extremeFiberM:1,supportModel:"floating-equilibrium"}),/requires/);
  assert.throws(()=>beam(projectPressureToBeam(p,{xMin:-5,xMax:5}),
    {supportModel:"floating-equilibrium",hullCG:[1,0,1]}),/hull CG at mid-span/);
+});
+
+test("full pitch moment is mapped as equivalent beam couple when horizontal facet forces matter",()=>{
+ const p=pressure(wedgePrismMesh({L:8,B:2,H0:.5,H1:2}),1.2,16);
+ const t=projectPressureToBeam(p,{xMin:-4,xMax:4});
+ close(t.totalFirstMomentXN+t.equivalentPitchCoupleNm,-p.momentNm[1],.01);
+ // The structural equivalent carries the entire hydro pitch moment; it is
+ // not interchangeable with the first moment of vertical force alone.
+ assert.ok(Number.isFinite(t.equivalentPitchCoupleNm));
+ const m=solveHullGirder({
+   xMin:-4,xMax:4,hullMassTonnes:15,hullCG:[0,0,.5],
+   E:210e9,I:.08,extremeFiberM:1,segments:12,
+   buoyancyTransfer:t,supportModel:"pinned-roller"
+ });
+ close(m.netBeamMomentNm,m.gravityForceN*0-p.momentNm[1],.05);
+ close(m.equilibriumResidualN,0,.1);
+ assert.ok(m.reactionN!==0);
 });
