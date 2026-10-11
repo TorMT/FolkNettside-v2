@@ -70,12 +70,15 @@ export function solveHullGirder({
   );
   const netForceN=gravityN+qBuoyancy+nodeBuoyancy;
   const netFirstMomentXN=gravityFirstMomentXN+qFirstMoment+nodeFirstMoment;
+  const pitchCoupleNm=buoyancyTransfer?.equivalentPitchCoupleNm||0;
+  if(!Number.isFinite(pitchCoupleNm))throw new Error("Invalid equivalent hydrostatic pitch couple");
+  const netBeamMomentNm=netFirstMomentXN+pitchCoupleNm;
   if(supportModel==="floating-equilibrium"){
     if(Math.abs(loading.hullCG[0]-(a+b)/2)>span*1e-6)
       throw new Error("Uniform beam hull weight requires baseline hull CG at mid-span for floating-equilibrium mode; supply a verified longitudinal hull weight distribution instead");
     const forceTol=Math.max(.01,Math.abs(qBuoyancy)*.001);
     const momentTol=Math.max(.01,Math.abs(qBuoyancy)*span*.001);
-    if(Math.abs(netForceN)>forceTol||Math.abs(netFirstMomentXN)>momentTol)
+    if(Math.abs(netForceN)>forceTol||Math.abs(netBeamMomentNm)>momentTol)
       throw new Error("Floating reference blocked: nonzero vertical force or longitudinal moment; solve hydro loading/draft and check LCG before using reaction-free floating equilibrium");
   }
   for(const [index,p] of loading.pointWeights.entries()){
@@ -121,9 +124,16 @@ export function solveHullGirder({
     if(!node)throw new Error("Buoyancy correction failed to map to an FEM node");
     return {node:node.id,fy:entry.fy};
   });
+  const pitchMomentLoads=Math.abs(pitchCoupleNm)>1e-9?[{
+    // Applied near the beam midpoint as an equivalent 2D bending couple.
+    // This preserves the global pressure pitch moment, not its local 3D
+    // horizontal-pressure stress distribution.
+    node:nodes.reduce((best,n)=>Math.abs(n.x-(a+b)/2)<Math.abs(best.x-(a+b)/2)?n:best,nodes[0]).id,
+    mz:pitchCoupleNm
+  }]:[];
   const frame={name:buoyancyTransfer?"Hull-girder coupled pressure/mass model":"Global hull-girder fixture",nodes,elements,
     supports:[{node:nodes[0].id,ux:true,uy:true},{node:nodes.at(-1).id,uy:true}],
-    loads:[...pointLoads,...equivalentBuoyancyLoads],distributedLoads};
+    loads:[...pointLoads,...equivalentBuoyancyLoads,...pitchMomentLoads],distributedLoads};
   const analysis=solveFrame2D(frame);
   const moments=[],shears=[],fem=analysis.elements;
   const sampleResults=[];
@@ -167,7 +177,7 @@ export function solveHullGirder({
   return {method:buoyancyTransfer?"Euler-Bernoulli beam with integrated hydrostatic station forces":"Euler-Bernoulli simply-supported hull girder (global beam proxy)",
     loading,frame,analysis,reactions,lineLoads,moments,shears,field:sampleResults,
     buoyancyTransfer,supportModel,gravityForceN:gravityN,buoyancyForceN:qBuoyancy+nodeBuoyancy,
-    netFirstMomentXN,projectedForceErrorN:buoyancyTransfer?
+    netFirstMomentXN,netBeamMomentNm,pitchCoupleNm,projectedForceErrorN:buoyancyTransfer?
       qBuoyancy+nodeBuoyancy-buoyancyTransfer.totalForceN:null,
     maxMomentNm:Math.abs(peak.value),
     momentAtMax:peak.x,
@@ -177,7 +187,7 @@ export function solveHullGirder({
     verticalLoadN,reactionN,
     equilibriumResidualN:reactionN+verticalLoadN,
     disclaimer:buoyancyTransfer?
-      "Integrated wetted pressure mapped by exact X strips and conservative nodal corrections. End pin/roller restraints eliminate rigid-body modes; any nonzero reaction represents a nonfloating fixture load. Bending stress is a global-beam proxy, never shell stress or a validated hull support model.":
+      "Integrated wetted pressure mapped by exact X strips, force-conserving nodal corrections and an equivalent pitch couple. The couple is placed at midspan as a modeling choice. End pin/roller restraints eliminate rigid-body modes; any nonzero reaction represents a nonfloating fixture load. Bending stress is a beam proxy, never shell stress or validated hull strength.":
       "Not shell/plate stress FEM. End supports are a test fixture, not distributed buoyancy. Geometry does not determine E, I, plate thickness or structural boundary conditions."
   };
 }
