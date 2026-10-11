@@ -47,6 +47,7 @@ import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js"
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 import {mountFrame3D} from "./engineering/frame-3d.js";
 import {solveHullGirder} from "./structure/hull-girder.js";
+import {projectPressureToBeam} from "./structure/hydro-beam-transfer.js";
 import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js";
 import {mountLoadSketch} from "./engineering/load-sketch.js";
 import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js";
@@ -117,7 +118,9 @@ let hydroCurveCache={model:null,data:null};
 let structureMode="girder";
 let girderRunRequested=false;
 let girderForm={hullMassTonnes:"",cg:[0,0,0],pointText:"",areaText:"",
-  eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false};
+  eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false,
+  loadingMode:"gravity-only",supportModel:"pinned-roller",pressureDraft:null,
+  pressureDensity:null,pressureSections:12};
 let girderComputeError="";
 let structureLoadKn=-20;
 let structureLoadPosition=3;
@@ -1043,6 +1046,8 @@ async function engineeringPage(){
         throw new Error("Hull girder preview requires geometry with positive longitudinal X length");
       const derived={
         ...girderForm,
+        pressureDraft:girderForm.pressureDraft??hydroDraft,
+        pressureDensity:girderForm.pressureDensity??(Number(model.hydro?.density)||1025),
         hullMassTonnes:hullMassText||girderForm.hullMassTonnes,
         pointText:hydroPointWeightsText||girderForm.pointText,
         areaText:hullAreaLoadsText||girderForm.areaText,
@@ -1059,7 +1064,27 @@ async function engineeringPage(){
         try{
           if(!girderForm.axisConfirmed)
             throw new Error("Confirm the imported model longitudinal axis is world X before running the beam calculation");
+          let buoyancyTransfer=null;
+          if(derived.loadingMode==="pressure-gravity"){
+            const hydroCapability=analysisCapability(model,"hydro");
+            if(!hydroCapability.enabled||model.hydro?.enabled===false)
+              throw new Error("Hydrostatic pressure is not enabled for this model. Select independently qualified external hull geometry first.");
+            const sections=Number(derived.pressureSections);
+            if(!Number.isSafeInteger(sections)||sections<2||sections>24)
+              throw new Error("Structure pressure transfer requires 2–24 stations");
+            const pressure=await integrateHullPressureAsync(documentModel,{
+              waterline:Number(derived.pressureDraft),
+              densityKgM3:Number(derived.pressureDensity),
+              sections,maxTriangles:160000
+            });
+            if(renderId!==engineeringRenderId)return;
+            buoyancyTransfer=projectPressureToBeam(pressure,{
+              xMin:bounds.min[0],xMax:bounds.max[0]
+            });
+          }
           girder=solveHullGirder({
+            buoyancyTransfer,
+            supportModel:derived.loadingMode==="pressure-gravity"?derived.supportModel:"pinned-roller",
             xMin:bounds.min[0],xMax:bounds.max[0],
             hullMassTonnes:Number(derived.hullMassTonnes),hullCG:derived.cg,
             pointWeights:pointWeightsFromLines(derived.pointText),
@@ -1089,7 +1114,7 @@ async function engineeringPage(){
           <div class="tree-row">World X: ${bounds.min[0].toFixed(2)}–${bounds.max[0].toFixed(2)} m</div>
           <div class="tree-row">World Z: ${bounds.min[2].toFixed(2)}–${bounds.max[2].toFixed(2)} m</div>
           <div class="tree-label">Support idealisation</div>
-          <div class="tree-row">Pinned/roller at extreme X</div>
+          <div class="tree-row">${girder?.buoyancyTransfer?(girder.supportModel==="floating-equilibrium"?"Numerical pin/roller, zero reaction required":"Explicit pin/roller fixture with reactions"):"Pinned/roller fixture · gravity only"}</div>
           <div class="tree-label">Approval</div>
           <div class="tree-row"><strong>Uncertified structural preview</strong></div>
         </aside>
@@ -1112,16 +1137,21 @@ async function engineeringPage(){
           ${panel.results}</section>
         <footer class="statusbar"><span>Global beam FEM · linear static</span>
           <span>Manual E, I and support assumptions</span>
-          <span>Not a floating or local plate-stress solver</span></footer>
+          <span>${girder?.buoyancyTransfer?(girder.supportModel==="floating-equilibrium"?"Force-balanced floating beam reference":"Hydro pressure + mass · fixture supports"):"No hydro pressure; gravity-only fixture"}</span></footer>
       </main>`;
       bindNav();bindEngineeringModelSelector();
       mountWorkspaceResultsResize(app.querySelector(".workspace"));
       const report=girder?engineeringCaseReport({
         modelConfig:model,modelDocument:documentModel,mode:"Structure",
-        method:{name:"global Euler–Bernoulli girder proxy",scope:"simply supported laboratory idealisation"},
+        method:{name:"global Euler–Bernoulli girder proxy",scope:girder.buoyancyTransfer?
+          "exact wetted pressure strips with force and first-moment conserving Euler beam load projection":
+          "simply supported gravity-only laboratory idealisation"},
         inputs:{...derived,bounds,axisConfirmed:girderForm.axisConfirmed},
         results:{girder},
-        assumptions:["not structural shell FEM","supports at ends—not hydrostatic buoyancy",
+        assumptions:["not structural shell FEM",girder.buoyancyTransfer?
+          "pressure derived from validated external wetted hull and mapped to Euler beam":"no hydrostatic buoyancy applied",
+          girder.supportModel==="floating-equilibrium"?"numerical supports remove rigid-body modes and must have zero reactions":
+            "pin/roller external reactions are allowed and do not represent floating equilibrium",
           "manual E/I/neutral axis","uniform hull mass per beam length"]
       }):null;
       bindEngineeringCaseExport(report);
@@ -1140,6 +1170,11 @@ async function engineeringPage(){
           eGpa:app.querySelector("#girder-e").value,
           iM4:app.querySelector("#girder-i").value,
           extremeFiberM:app.querySelector("#girder-c").value,
+          loadingMode:app.querySelector("#girder-loading-mode").value,
+          supportModel:app.querySelector("#girder-support-model").value,
+          pressureDraft:app.querySelector("#girder-pressure-draft").value,
+          pressureDensity:app.querySelector("#girder-pressure-density").value,
+          pressureSections:app.querySelector("#girder-pressure-sections").value,
           neutralZ:Number(app.querySelector("#girder-neutral-z").value),
           segments:Number(app.querySelector("#girder-segments").value),
           axisConfirmed:app.querySelector("#girder-axis-confirm").checked
