@@ -65,6 +65,28 @@ export function pressureOnTriangle(triangle,{waterline,densityKgM3=1025}={}){
     centerOfPressure,maxPressurePa:Math.max(...d)*scalar};
 }
 
+/** Cut an already-wetted surface polygon at an exact longitudinal station. */
+export function clipPressurePolygonX(vertices,planeX,keepRight=true){
+  if(!Number.isFinite(planeX))throw new Error("Invalid longitudinal station");
+  if(!vertices?.length)return [];
+  const out=[];
+  for(let i=0;i<vertices.length;i++){
+    const a=vertices[i],b=vertices[(i+1)%vertices.length];
+    const insideA=keepRight?a[0]>=planeX:a[0]<=planeX;
+    const insideB=keepRight?b[0]>=planeX:b[0]<=planeX;
+    if(insideA&&insideB)out.push(b);
+    else if(insideA!==insideB){
+      const denom=b[0]-a[0];
+      if(Math.abs(denom)<1e-15)continue;
+      const intersection=interp(a,b,(planeX-a[0])/denom);
+      intersection[0]=planeX;
+      out.push(intersection);
+      if(insideB)out.push(b);
+    }
+  }
+  return out;
+}
+
 export function integratePreparedHullPressure(prepared,{
   waterline,densityKgM3=1025,sections=24,maxTriangles=160000,
   referenceResult=null
@@ -88,7 +110,7 @@ export function integratePreparedHullPressure(prepared,{
   const strips=Array.from({length:sections},(_,i)=>({
     x0:xmin+i*(xmax-xmin)/sections,
     x1:xmin+(i+1)*(xmax-xmin)/sections,
-    forceZKN:0,momentYNm:0,faces:0
+    forceZKN:0,firstMomentXN:0,momentYNm:0,faces:0
   }));
   const totalForceN=[0,0,0],totalMomentNm=[0,0,0],perComponent=[];
   let wetAreaM2=0,wetTriangles=0,peakGaugePressurePa=0;
@@ -111,14 +133,27 @@ export function integratePreparedHullPressure(prepared,{
         componentWetArea+=surface.areaM2;wetAreaM2+=surface.areaM2;
         peakGaugePressurePa=Math.max(peakGaugePressurePa,surface.maxPressurePa);
         addTo(forceN,surface.forceN);addTo(momentNm,surface.momentNm);
-        // Each force is exactly integrated on its triangle; this station
-        // histogram bins by force centroid and does not split triangles.
-        const x=surface.centerOfPressure?.[0]??
-          (poly[0][0]+poly[i][0]+poly[i+1][0])/3;
-        const slot=Math.min(sections-1,Math.max(0,Math.floor((x-xmin)/interval*sections)));
-        strips[slot].forceZKN+=surface.forceN[2]/1000;
-        strips[slot].momentYNm+=surface.momentNm[1];
-        strips[slot].faces++;
+        // Exact X-strip clipping, independent of how original mesh faces
+        // cross station boundaries. Each vertical force's first X moment is
+        // computed analytically and preserved for FEM load projection.
+        const tri=[poly[0],poly[i],poly[i+1]];
+        const xlo=Math.min(...tri.map(p=>p[0])),xhi=Math.max(...tri.map(p=>p[0]));
+        const first=Math.max(0,Math.min(sections-1,Math.floor((xlo-xmin)/interval*sections)));
+        const last=Math.max(0,Math.min(sections-1,Math.floor((xhi-xmin)/interval*sections)));
+        for(let bin=first;bin<=last;bin++){
+          const strip=strips[bin];
+          const left=clipPressurePolygonX(tri,strip.x0,true);
+          const slice=clipPressurePolygonX(left,strip.x1,false);
+          for(let k=1;k+1<slice.length;k++){
+            const patch=pressureOnTriangle([slice[0],slice[k],slice[k+1]],{waterline,densityKgM3});
+            if(!patch.areaM2)continue;
+            const fz=patch.forceN[2];
+            strip.forceZKN+=fz/1000;
+            strip.firstMomentXN+=(patch.centerOfPressure?.[0]??(strip.x0+strip.x1)/2)*fz;
+            strip.momentYNm+=patch.momentNm[1];
+            strip.faces++;
+          }
+        }
       }
     }
     addTo(totalForceN,forceN);addTo(totalMomentNm,momentNm);
@@ -137,6 +172,17 @@ export function integratePreparedHullPressure(prepared,{
   const momentTol=Math.max(.01,Math.abs(targetForceN[2])*length*1e-6);
   const passed=forceErrorN.every(x=>Math.abs(x)<=forceTol)&&
     momentErrorNm.every(x=>Math.abs(x)<=momentTol);
+  const stripForceN=strips.reduce((sum,entry)=>sum+entry.forceZKN*1000,0);
+  // For a general non-axis-aligned shell, global M_y includes z*F_x;
+  // the first moment of vertical pressure is accumulated independently below.
+  const stripFirstMomentXN=strips.reduce((sum,entry)=>sum+entry.firstMomentXN,0);
+  const stationAudit={
+    forceErrorN:stripForceN-totalForceN[2],
+    firstMomentXN:stripFirstMomentXN,
+    totalForceZFromStationsN:stripForceN,
+    forceToleranceN:forceTol,
+    passed:Math.abs(stripForceN-totalForceN[2])<=forceTol
+  };
   return {schemaVersion:1,waterline,densityKgM3,gravityMps2:G,
     sourceTriangleCount:count,wetTriangles,wetAreaM2,peakGaugePressurePa,
     forceN:totalForceN,momentNm:totalMomentNm,
@@ -144,9 +190,9 @@ export function integratePreparedHullPressure(prepared,{
       forceN:targetForceN,momentNm:targetMomentNm},
     crossCheck:{passed,forceErrorN,momentErrorNm,forceToleranceN:forceTol,
       momentToleranceNm:momentTol},
-    strips,components:perComponent,
+    strips,stationAudit,components:perComponent,
     notes:["Pressure facets integrate p=ρg(waterline-z) on outward wetted triangles",
-      "X-strip contributions are binned by pressure centroid, not clipped at station boundaries",
+      "X strips are independently clipped at station boundaries; each strip stores exact vertical force and first X moment",
       "Requires an independently verified external shell and preflight-compliant winding",
       "Does not compute longitudinal beam bending, panel stress or free-surface dynamics"]
   };
