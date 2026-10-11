@@ -1149,3 +1149,15 @@
 .course-updates-list{display:flex;flex-wrap:wrap;gap:7px}
 .course-updates-list>.btn{max-width:100%;overflow-wrap:anywhere;white-space:normal;font-size:12px;text-align:start}
 @media(max-width:600px){.course-updates-banner{padding:11px 12px}.course-update-count{min-width:18px;height:18px}}
+
+/* CoolProp diagrams: legible small-screen overlays and accessible zoom actions. */
+.coolprop-diagram-controls #cp-diagram-zoom-in,
+.coolprop-diagram-controls #cp-diagram-zoom-out{min-width:36px;min-height:34px;font-size:17px;line-height:1}
+.coolprop-diagram-canvas:focus-visible{outline:3px solid var(--accent);outline-offset:-4px}
+@media(max-width:760px){
+  .coolprop-diagram-overlay{flex-direction:column;justify-content:space-between;align-items:stretch}
+  .coolprop-diagram-legend{max-width:100%;width:max-content;max-height:60px;overflow:hidden}
+  .coolprop-diagram-readout{align-self:flex-end;max-width:100%;min-height:26px;white-space:normal;overflow-wrap:anywhere}
+  .coolprop-diagram-controls #cp-diagram-zoom-in,
+  .coolprop-diagram-controls #cp-diagram-zoom-out{flex:0 0 40px}
+}
