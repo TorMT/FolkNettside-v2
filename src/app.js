@@ -1127,7 +1127,7 @@ async function engineeringPage(){
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>
         button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
       mountLoadSketch(app.querySelector("#girder-load-sketch"),{
-        bounds,areaInput:app.querySelector("#girder-areas"),
+        bounds,modelDocument:documentModel,areaInput:app.querySelector("#girder-areas"),
         pointInput:app.querySelector("#girder-points")
       });
       const readForm=()=>{
@@ -2025,7 +2025,7 @@ async function engineeringPage(){
   const areaInput=app.querySelector("#hydro-area-loads");
   const massInput=app.querySelector("#hydro-hull-mass");
   mountLoadSketch(app.querySelector("#hydro-load-sketch"),{
-    bounds:diagnostics.bounds,areaInput,pointInput
+    bounds:diagnostics.bounds,modelDocument:documentModel,areaInput,pointInput
   });
   pointInput?.addEventListener("input",()=>{hydroPointWeightsText=pointInput.value});
   areaInput?.addEventListener("input",()=>{hullAreaLoadsText=areaInput.value});
