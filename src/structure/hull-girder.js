@@ -165,7 +165,10 @@ export function solveHullGirder({
       const critical=-actions[1]/q;
       if(critical>0&&critical<L)candidates.push(critical);
     }
-    for(const d of candidates)moments.push({x:xs[i]+d,value:moment(d)});
+    for(const d of candidates){
+      const value=moment(d);
+      moments.push({x:xs[i]+d,value,stressPa:value*c/elements[i].I,elementId:elements[i].id});
+    }
     shears.push({x:xs[i],value:actions[1]},{x:xs[i+1],value:actions[1]+q*L});
     const [v1,t1,,v2,t2]=[
       fem[i].localDisplacements[1],fem[i].localDisplacements[2],0,
@@ -183,11 +186,13 @@ export function solveHullGirder({
         +L*(-t2x+t3x)*t2;
       const localX=tau*L,M=moment(localX);
       sampleResults.push({x:xs[i]+localX,deflectionM:w,momentNm:M,
-        stressPa:M*c/inertia,shearN:actions[1]+q*localX});
+        stressPa:M*c/elements[i].I,shearN:actions[1]+q*localX});
     }
   }
   const peak= moments.reduce((top,entry)=>
     !top||Math.abs(entry.value)>Math.abs(top.value)?entry:top,null);
+  const peakStress=moments.reduce((top,entry)=>
+    !top||Math.abs(entry.stressPa)>Math.abs(top.stressPa)?entry:top,null);
   const peakDeflection=analysis.nodes.reduce((top,node)=>
     !top||Math.abs(node.uy)>Math.abs(top.uy)?node:top,null);
   const peakDeflectionExact=deflectionCandidates.reduce((top,entry)=>
@@ -216,7 +221,9 @@ export function solveHullGirder({
       qBuoyancy+nodeBuoyancy-buoyancyTransfer.totalForceN:null,
     maxMomentNm:Math.abs(peak.value),
     momentAtMax:peak.x,
-    maxStressPa:Math.abs(peak.value)*c/inertia,
+    maxStressPa:Math.abs(peakStress.stressPa),
+    maxStressX:peakStress.x,
+    peakStressElement:peakStress.elementId,
     maxDeflectionM:Math.abs(peakDeflectionExact.deflectionM),
     peakDeflectionX:peakDeflectionExact.x,
     peakDeflectionSignedM:peakDeflectionExact.deflectionM,
