@@ -226,3 +226,22 @@
  .workspace-bar .engineering-model-control>.btn{min-height:36px;padding:8px 10px}
  .kisssoft-assembly-controls [data-gear-beta]{width:110px}
 }
+
+/* Engineering mass-load sketch: actual values live in the existing input fields. */
+.load-sketch-panel{margin:10px 0 14px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.load-sketch-panel>summary{padding:11px 12px;cursor:pointer;font-size:12px;font-weight:650;color:var(--ink)}
+.load-sketch-panel[open]>summary{border-bottom:1px solid var(--line)}
+.load-sketch-panel>div{padding:11px;display:grid;gap:10px;min-width:0}
+.load-sketch-toolbar{display:flex;gap:6px;flex-wrap:wrap}
+.load-sketch-toolbar [aria-pressed="true"]{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.load-sketch-settings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.load-sketch-settings label{min-width:0;font-size:11px;color:var(--ink-2);display:grid;gap:5px}
+.load-sketch-settings input{width:100%;min-width:0;box-sizing:border-box;padding:7px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.load-sketch-frame{border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--surface-sunk)}
+.load-sketch-svg{display:block;width:100%;height:auto;aspect-ratio:2/1;touch-action:none;cursor:crosshair;user-select:none}
+.load-sketch-status{font-size:11px;margin:0;line-height:1.5;color:var(--ink-2);overflow-wrap:anywhere}
+.load-sketch-panel small{font-size:10px;color:var(--ink-3);line-height:1.5}
+@media(max-width:760px){
+ .load-sketch-settings{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .load-sketch-toolbar .btn{white-space:normal;min-height:37px}
+}
