@@ -90,8 +90,55 @@ try{
  host.querySelector("[data-sketch-undo]").click();
  check(point.value===pointBefore,"Point mass undo did not restore original rows");
  end();
+ // Real 3D triangle projection: test explicit deck metadata, Z snapping,
+ // accepted footprints and rejection over unmeshed bounding-box territory.
+ const surfaceHost=document.createElement("div");
+ surfaceHost.style.width="650px";
+ const surfaceArea=document.createElement("textarea");
+ const surfacePoint=document.createElement("textarea");
+ document.body.append(surfaceArea,surfacePoint,surfaceHost);
+ const syntheticDeck={unitScaleToMeters:1,components:[{
+   id:"physical-deck",name:"Test deck",type:"deck",
+   metadata:{semantic:{role:"deck"}},
+   geometry:{positions:[-2,-1,3,2,-1,3,2,1,3,-2,1,3],
+     indices:[0,1,2,0,2,3]}
+ }]};
+ const stopSurface=mountLoadSketch(surfaceHost,{
+   modelDocument:syntheticDeck,
+   bounds:{min:[-5,-2,0],max:[5,2,4]},
+   areaInput:surfaceArea,pointInput:surfacePoint
+ });
+ const plane=surfaceHost.querySelector("svg");
+ const surfaceSelect=surfaceHost.querySelector("[data-sketch-surface]");
+ check(surfaceSelect.value!=="manual","Explicit deck should be the selected placement surface");
+ check(plane.querySelectorAll("polygon").length===2,"Actual 3D deck faces not projected into sketch");
+ check(surfaceHost.querySelector("[data-sketch-z]").value==="3","Deck height not sourced from 3D geometry");
+ check(surfaceHost.querySelector("[data-sketch-z]").readOnly,"Deck Z must be geometry constrained");
+ const sketch=(from,to,which=plane)=>{
+   const rc=plane.getBoundingClientRect();
+   const xy=p=>({clientX:rc.left+p.x/600*rc.width,clientY:rc.top+p.y/300*rc.height});
+   plane.setPointerCapture=()=>{};
+   which.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,button:0,pointerId:21,...xy(from)}));
+   plane.dispatchEvent(new PointerEvent("pointermove",{bubbles:true,button:0,pointerId:21,...xy(to)}));
+   plane.dispatchEvent(new PointerEvent("pointerup",{bubbles:true,button:0,pointerId:21,...xy(to)}));
+ };
+ sketch({x:270,y:120},{x:330,y:180});
+ check(areaLoadsFromLines(surfaceArea.value).length===1,"Valid deck-covered area not accepted");
+ check(areaLoadsFromLines(surfaceArea.value)[0].z===3,"Saved mass elevation differs from actual deck Z");
+ const validText=surfaceArea.value;
+ sketch({x:80,y:120},{x:290,y:180});
+ check(surfaceArea.value===validText,"Partly unsupported rectangle was incorrectly accepted");
+ check(surfaceHost.querySelector("[data-sketch-status]").textContent.includes("surface"),
+   "Unsupported area should report selected surface coverage error");
+ surfaceHost.querySelector('[data-sketch-mode="point"]').click();
+ sketch({x:300,y:150},{x:300,y:150});
+ check(pointWeightsFromLines(surfacePoint.value)[0].z===3,"Deck point height was not snapped");
+ const safePoint=surfacePoint.value;
+ sketch({x:70,y:70},{x:70,y:70});
+ check(surfacePoint.value===safePoint,"Out-of-deck point incorrectly accepted");
+ stopSurface();
  document.body.dataset.status="pass";
- document.querySelector("#result").textContent="PASS: drawing, selection, editing, moving, deleting, undo and Hydro mass/CG";
+ document.querySelector("#result").textContent="PASS: editing, undo, mesh deck projection, footprint rejection and Hydro mass/CG";
 }catch(error){
  end();document.body.dataset.status="fail";
  document.querySelector("#result").textContent=String(error?.stack||error);
