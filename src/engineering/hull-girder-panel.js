@@ -246,6 +246,7 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
       <button class="btn" type="button" id="girder-export-response">Export response CSV</button>
       <button class="btn" type="button" id="girder-export-loads">Export load strips CSV</button>
       <button class="btn" type="button" id="girder-export-reactions">Export reactions CSV</button>
+      <button class="btn" type="button" id="girder-export-sections">Export EI/mass sections CSV</button>
     </div>
     <p class="muted">Load distribution: ${result.lineLoads.length} segments ·
        ${result.loading.pointWeights.length} point masses · ${result.loading.areaLoads.length} area patches.
