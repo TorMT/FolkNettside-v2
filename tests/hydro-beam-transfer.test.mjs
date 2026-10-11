@@ -23,6 +23,7 @@ test("clipped box pressure has station forces uniform along X and exact first mo
  const p=pressure(boxMesh({L:10,B:4,H:3}),1,12);
  assert.equal(p.crossCheck.passed,true);
  assert.equal(p.stationAudit.passed,true);
+ close(p.stationAudit.firstMomentErrorNm,0,.05);
  close(p.stationAudit.forceErrorN,0);
  close(p.strips.reduce((s,x)=>s+x.firstMomentXN,0),0,1e-6);
  for(const s of p.strips){
@@ -68,6 +69,7 @@ test("eccentric added mass has moment and requires support reactions in constrai
 test("wedge pressure projection conserves force and longitudinal first moment through nonuniform strips",()=>{
  const p=pressure(wedgePrismMesh({L:8,B:2,H0:.5,H1:2}),1.2,16);
  assert.equal(p.stationAudit.passed,true);
+ close(p.stationAudit.firstMomentErrorNm,0,.05);
  assert.equal(p.crossCheck.passed,true);
  const transferred=projectPressureToBeam(p,{xMin:-4,xMax:4});
  close(transferred.totalForceN,p.forceN[2]);
