@@ -11,11 +11,19 @@ export function diagramType(id){
   return DIAGRAM_TYPES[id]||DIAGRAM_TYPES["log-ph"];
 }
 
+/** Distinguish absent values from physically meaningful 0 J/kg or 0 J/(kg K). */
+function stateNumber(value){
+  if(value===null||value===undefined||typeof value==="boolean"||
+     (typeof value==="string"&&!value.trim()))return NaN;
+  const number=Number(value);
+  return Number.isFinite(number)?number:NaN;
+}
 export function stateToDiagramPoint(state,type="log-ph"){
   const values=state?.valuesSI||state||{};
-  const P=Number(values.P),H=Number(values.H),S=Number(values.S),T=Number(values.T),D=Number(values.D);
+  const P=stateNumber(values.P),H=stateNumber(values.H),S=stateNumber(values.S);
+  const T=stateNumber(values.T),D=stateNumber(values.D);
   if(type==="ts"){
-    if(!Number.isFinite(S)||!Number.isFinite(T))return null;
+    if(!Number.isFinite(S)||!Number.isFinite(T)||T<=0)return null;
     return {x:S/1000,y:T-273.15};
   }
   if(type==="pv"){
@@ -163,7 +171,11 @@ export function generateIsobars(engine,fluid,type="log-ph",{lines=7,points=36,bo
 export function diagramDatasets(engine,fluid,type,states=[],options={}){
   const datasets=[];
   const bookBasis=Boolean(options.bookBasis);
-  const saturation=generateSaturationCurve(engine,fluid,type,{points:options.saturationPoints||60,bookBasis});
+  // Single-phase or unsupported fluids may not expose a saturation dome.
+  // Preserve valid user state points rather than failing the entire diagram.
+  let saturation={liquid:[],vapor:[]};
+  try{saturation=generateSaturationCurve(engine,fluid,type,{points:options.saturationPoints||60,bookBasis})}
+  catch{/* No saturation EOS for this fluid; state points still plot. */}
   if(saturation.liquid.length)datasets.push({kind:"saturation",label:"Saturated liquid",points:saturation.liquid,affectsBounds:true});
   if(saturation.vapor.length)datasets.push({kind:"saturation",label:"Saturated vapour",points:saturation.vapor,affectsBounds:true});
   if(saturation.liquid.length&&saturation.vapor.length){
@@ -176,14 +188,20 @@ export function diagramDatasets(engine,fluid,type,states=[],options={}){
       affectsBounds:true
     });
   }
-  if(options.quality!==false){
-    for(const line of generateQualityLines(engine,fluid,type,{bookBasis}))datasets.push({kind:"quality",affectsBounds:false,...line});
+  if(options.quality!==false&&saturation.liquid.length&&saturation.vapor.length){
+    try{
+      for(const line of generateQualityLines(engine,fluid,type,{bookBasis}))datasets.push({kind:"quality",affectsBounds:false,...line});
+    }catch{/* Unsupported two-phase quality: retain plotted states. */}
   }
   if(options.isotherms!==false){
-    for(const line of generateIsotherms(engine,fluid,type,{bookBasis}))datasets.push({kind:"isotherm",affectsBounds:false,...line});
+    try{
+      for(const line of generateIsotherms(engine,fluid,type,{bookBasis}))datasets.push({kind:"isotherm",affectsBounds:false,...line});
+    }catch{/* Skip unavailable auxiliary lines, never fabricated values. */}
   }
   if(options.isobars!==false){
-    for(const line of generateIsobars(engine,fluid,type,{bookBasis}))datasets.push({kind:"isobar",affectsBounds:false,...line});
+    try{
+      for(const line of generateIsobars(engine,fluid,type,{bookBasis}))datasets.push({kind:"isobar",affectsBounds:false,...line});
+    }catch{/* Skip unavailable auxiliary lines, never fabricated values. */}
   }
   const statePoints=states.map((state,index)=>{
     const point=stateToDiagramPoint(state,type);
