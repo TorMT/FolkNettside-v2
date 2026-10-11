@@ -53,6 +53,15 @@ try{
     "Transferred buoyancy summary missing");
   check(document.querySelector("#panel").textContent.includes("Support reactions"),
     "Explicit support reactions missing");
+  check(document.querySelectorAll(".hull-fem-action-chart").length===2,
+    "Shear and bending-moment charts missing from combined result");
+  for(const id of ["girder-export-response","girder-export-loads","girder-export-reactions"]){
+    check(document.getElementById(id),"Missing structural CSV action "+id);
+  }
+  check(document.querySelector("#panel").textContent.includes("Pitch-moment equilibrium error"),
+    "Independent pitch-moment residual missing");
+  check(document.querySelector("#panel").textContent.includes("Maximum deflection location"),
+    "Continuous FEM deflection maximum location missing");
   document.body.dataset.status="pass";
   document.querySelector("#result").textContent=
     "PASS: actual Hydro pressure -> X stations -> beam reactions, floating guard and combined signed-load UI";
