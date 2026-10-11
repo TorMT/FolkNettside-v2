@@ -1,6 +1,7 @@
 import {solveFrame2D} from "./frame2d.js";
 import {combineHullLoading} from "../hydro/hull-loading.js";
 import {auditGirderReactions,hermiteDeflectionExtrema} from "./girder-equilibrium.js";
+import {validateGirderProfile,girderProfileAt,baselineMassAudit} from "./girder-profiles.js";
 
 const G=9.80665;
 const number=(value,name)=>{
@@ -11,16 +12,17 @@ const number=(value,name)=>{
 /**
  * Global Euler–Bernoulli HULL-GIRDER IDEALISATION (NOT 3D plate/shell FEM).
  *
- * Treat the hull as one longitudinal straight beam with constant E, I and
+ * Treat the hull as one longitudinal beam with manually declared E/I and
  * distance c to the extreme fibre. Pinned/roller support at its ends is a
  * structural TEST FIXTURE, not hydrostatic buoyancy for a floating vessel.
- * Gravity of own hull weight is taken uniformly in X; deck area-load mass
- * becomes a piecewise uniform line load from its projected Y width.
+ * Baseline hull weight is uniform unless a complete audited longitudinal
+ * mass profile is entered. Deck mass becomes a line load from its Y width.
  */
 export function solveHullGirder({
   xMin=0,xMax, hullMassTonnes,hullCG=[0,0,0],
   pointWeights=[],areaLoads=[],
   E, I, extremeFiberM,segments=20,
+  stiffnessStations=null,massStations=null,
   buoyancyTransfer=null,supportModel="pinned-roller"
 }={}){
   const a=number(xMin,"Hull xMin"),b=number(xMax,"Hull xMax");
@@ -32,6 +34,16 @@ export function solveHullGirder({
     throw new Error("Hull girder needs xMax>xMin, positive E/I/c and 2–50 elements");
   const loading=combineHullLoading({hullMassTonnes,hullCG,pointWeights,areaLoads});
   const span=b-a,tol=1e-8*span;
+  const EIStations=validateGirderProfile(stiffnessStations,{
+    xMin:a,xMax:b,kind:"stiffness"
+  });
+  const baselineStations=validateGirderProfile(massStations,{
+    xMin:a,xMax:b,kind:"mass"
+  });
+  const baselineAudit=baselineMassAudit(baselineStations,{
+    hullMassTonnes:loading.hullMassTonnes,
+    hullCGx:loading.hullCG[0],xMin:a,xMax:b
+  });
   if(!["pinned-roller","floating-equilibrium"].includes(supportModel))
     throw new Error("Unknown support model");
   if(supportModel==="floating-equilibrium"&&!buoyancyTransfer)
@@ -65,7 +77,7 @@ export function solveHullGirder({
     throw new Error("Structural station projection has lost vertical force or first moment");
   const gravityN=-loading.totalMassTonnes*1000*G;
   const gravityFirstMomentXN=-G*1000*(
-    loading.hullMassTonnes*(a+b)/2+
+    baselineAudit.firstMomentTonnesM+
     loading.areaLoads.reduce((sum,w)=>sum+w.massTonnes*w.x,0)+
     loading.pointWeights.reduce((sum,w)=>sum+w.massTonnes*w.x,0)
   );
@@ -75,7 +87,7 @@ export function solveHullGirder({
   if(!Number.isFinite(pitchCoupleNm))throw new Error("Invalid equivalent hydrostatic pitch couple");
   const netBeamMomentNm=netFirstMomentXN+pitchCoupleNm;
   if(supportModel==="floating-equilibrium"){
-    if(Math.abs(loading.hullCG[0]-(a+b)/2)>span*1e-6)
+    if(!baselineStations&&Math.abs(loading.hullCG[0]-(a+b)/2)>span*1e-6)
       throw new Error("Uniform beam hull weight requires baseline hull CG at mid-span for floating-equilibrium mode; supply a verified longitudinal hull weight distribution instead");
     const forceTol=Math.max(.01,Math.abs(qBuoyancy)*.001);
     const momentTol=Math.max(.01,Math.abs(qBuoyancy)*span*.001);
@@ -94,19 +106,26 @@ export function solveHullGirder({
     ...loading.areaLoads.flatMap(area=>[area.x0,area.x1]),
     ...loading.pointWeights.map(weight=>weight.x),
     ...buoyancyLines.flatMap(entry=>[entry.from,entry.to]),
-    ...correctionForces.map(entry=>entry.x)];
+    ...correctionForces.map(entry=>entry.x),
+    ...(EIStations||[]).flatMap(entry=>[entry.x0,entry.x1]),
+    ...(baselineStations||[]).flatMap(entry=>[entry.x0,entry.x1])];
   coords.sort((x,y)=>x-y);
   const xs=coords.filter((x,i)=>i===0||x-coords[i-1]>tol);
   const nodes=xs.map((x,i)=>({id:"h"+i,x,y:0}));
-  const elements=xs.slice(0,-1).map((x,i)=>({
-    id:"girder-"+i,n1:nodes[i].id,n2:nodes[i+1].id,E:young,I:inertia,A:1
-  }));
-  const uniformHull=-loading.hullMassTonnes*1000*G/span;
+  const elements=xs.slice(0,-1).map((x,i)=>{
+    const midpoint=(x+xs[i+1])/2;
+    const stiff=girderProfileAt(EIStations,midpoint);
+    return {
+      id:"girder-"+i,n1:nodes[i].id,n2:nodes[i+1].id,
+      E:stiff?.E??young,I:stiff?.I??inertia,A:1
+    };
+  });
   const lineLoads=[];
   const distributedLoads=elements.map((element,i)=>{
     const mid=(xs[i]+xs[i+1])/2;
     const areal=loading.areaLoads.filter(w=>mid>=w.x0-tol&&mid<=w.x1+tol);
-    const gravityQ=uniformHull-areal.reduce((q,w)=>q+w.densityTonnesPerM2*(w.y1-w.y0)*1000*G,0);
+    const hullQ=-girderProfileAt(baselineAudit.stations,mid).tonnesPerM*1000*G;
+    const gravityQ=hullQ-areal.reduce((q,w)=>q+w.densityTonnesPerM2*(w.y1-w.y0)*1000*G,0);
     const buoyancyQ=buoyancyLines.filter(entry=>mid>=entry.from-tol&&mid<=entry.to+tol)
       .reduce((q,entry)=>q+entry.qy,0);
     const qy=gravityQ+buoyancyQ;
@@ -191,6 +210,7 @@ export function solveHullGirder({
   return {method:buoyancyTransfer?"Euler-Bernoulli beam with integrated hydrostatic station forces":"Euler-Bernoulli simply-supported hull girder (global beam proxy)",
     loading,frame,analysis,reactions,lineLoads,moments,shears,field:sampleResults,
     equilibriumAudit,
+    baselineAudit,stiffnessStations:EIStations,
     buoyancyTransfer,supportModel,gravityForceN:gravityN,buoyancyForceN:qBuoyancy+nodeBuoyancy,
     netFirstMomentXN,netBeamMomentNm,pitchCoupleNm,projectedForceErrorN:buoyancyTransfer?
       qBuoyancy+nodeBuoyancy-buoyancyTransfer.totalForceN:null,
