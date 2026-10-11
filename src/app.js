@@ -47,6 +47,7 @@ import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-p
 import {mountFrame3D} from "./engineering/frame-3d.js";
 import {solveHullGirder} from "./structure/hull-girder.js";
 import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js";
+import {mountLoadSketch} from "./engineering/load-sketch.js";
 import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js";
 import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js";
 import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js";
@@ -1125,6 +1126,10 @@ async function engineeringPage(){
       bindEngineeringCaseExport(report);
       app.querySelectorAll("[data-engineering-mode]").forEach(button=>
         button.onclick=()=>go(engineeringModeRoute(button.dataset.engineeringMode)));
+      mountLoadSketch(app.querySelector("#girder-load-sketch"),{
+        bounds,areaInput:app.querySelector("#girder-areas"),
+        pointInput:app.querySelector("#girder-points")
+      });
       const readForm=()=>{
         girderForm={
           hullMassTonnes:app.querySelector("#girder-hull-mass").value,
@@ -2019,6 +2024,9 @@ async function engineeringPage(){
   const pointInput=app.querySelector("#hydro-point-weights");
   const areaInput=app.querySelector("#hydro-area-loads");
   const massInput=app.querySelector("#hydro-hull-mass");
+  mountLoadSketch(app.querySelector("#hydro-load-sketch"),{
+    bounds:diagnostics.bounds,areaInput,pointInput
+  });
   pointInput?.addEventListener("input",()=>{hydroPointWeightsText=pointInput.value});
   areaInput?.addEventListener("input",()=>{hullAreaLoadsText=areaInput.value});
   massInput?.addEventListener("input",()=>{hullMassText=massInput.value});
