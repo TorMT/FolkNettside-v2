@@ -77,20 +77,10 @@ Hydro, and presupposes that contributing components do not overlap. Area and
 point loads are listed by their masses and moment arms; pending editor rows
 are excluded until Apply is selected.
 
-The panel **does not compute the local pressure distribution** \(p(z)=
-\rho g\max(h-z,0)\) over the wetted faces, and the resulting beam reactions
-of the current **Structure** panel do not include buoyancy; its supports
-remain a simply supported test idealisation.
-
-### Recommended next method
-
-For a genuine distributed hull buoyancy load, integrate pressure *normal to
-each clipped, verified, submerged external hull triangle*, and verify that
-the integrated vertical resultant and moment match \(\rho g V\) and the
-existing CB to numerical tolerance. Only then map the integrated loads to
-a separately declared hull-girder or shell FEM support model. Do not use a
-visual rectangle or a uniform upward line load as a replacement for this
-calculation.
+The CB/CG overview displays global resultants. A separate pressure audit now
+computes the wetted-surface distribution, and Structure can **optionally**
+transfer its vertical load distribution to an explicitly constrained beam
+proxy. Neither visualization is a certification of local shell stress.
 
 ## Exact wetted-surface pressure integration (new)
 
@@ -115,11 +105,14 @@ compared with the independent hydrostatic reference
 errors and their tolerances, rather than assuming the pressure integral
 matches by construction. Horizontal pressure cancellation is checked too.
 
-For readability, the X-directed chart bins each triangle's already
-integrated vertical resultant by its pressure-centroid X into longitudinal
-strips. **This is not exact triangle clipping by station boundaries**, and
-it is not automatically suitable as FEM nodal loading. The pressure force
-and moment totals, however, are computed from the unbinned triangles.
+For the longitudinal force chart and structural transfer, the wetted
+triangles are **clipped again at exact X-station boundaries**. Each station
+records the integrated vertical force and first longitudinal moment of this
+force. The overall pressure resultant and 3D pitch moment are independently
+integrated over the original wetted triangles. The X-station results are
+validated against the original total force. This supplies a geometrically
+meaningful distributed load projection, not a nearest-triangle-centroid
+histogram.
 
 The reported peak gauge pressure depends on the selected reference
 waterline. The wetted surface area and per-component force breakdown come
@@ -131,15 +124,69 @@ structures.
 
 The calculation is upright and still-water only. Pressures under arbitrary
 heel/trim, wave-induced loading, free-surface effects, local shell strength
-and hydro-elastic support conditions are **not** represented. In
-particular, the **Structure** workspace continues to use its explicitly
-simply-supported beam proxy, and is **not automatically loaded** with these
-distributed hydro forces.
+and hydro-elastic support conditions are **not** represented. The **Structure** workspace can optionally include the forces using a
+separately declared structural idealisation. The default remains the
+gravity-only pinned/roller test fixture.
 
 Regression qualification covers rectangular blocks at different drafts,
 translated and unit-scaled hulls, sloping wedge geometry, component selection,
 model preflight rejection and force/moment numerical equality. A dedicated
 browser smoke test checks rendering and the numerical review/failure state.
+
+## Hydro to Structure: explicit conservative Euler-beam transfer
+
+The **Structure** workspace has a load-case selector:
+
+- `Gravity only`: the pre-existing pinned/roller beam laboratory fixture,
+  without any buoyancy.
+- `Mass + wetted-surface pressure`: runs validated still-water pressure
+  integration on the selected externally qualified hull at the explicitly
+  entered waterline, density and number of stations. The beam carries hull
+  baseline gravity (uniform by model assumption), user-added point masses,
+  rectangular projected-area masses and the integrated upward pressure.
+
+For each X station, an equivalent uniform line load is computed as
+`qz = Fz / station_width`, and an equal/opposite **end-node force pair**
+restores its exact first longitudinal force moment `∫x dFz`. Because 3D
+pressure may also have horizontal traction components generating pitch
+moments, a single **equivalent bending couple** at the beam midpoint restores
+the full integrated global pitching moment `-M_y`. This couple's location
+is a modeling decision: it is not an exact mapping of local shell traction,
+and the resulting bending distribution will depend on that idealisation.
+The system audits total transferred force, X first moment and global beam
+pitch moment before performing the FE solve.
+
+### Boundary condition selection
+
+- `Pinned / roller fixture`: artificial end supports can carry vertical
+  residuals or trim moments. Nonzero reactions are reported; this is NOT a
+  freely floating vessel.
+- `Balanced floating reference`: uses these mathematical supports to
+  eliminate rigid-body modes only. The requested input must have negligible
+  net vertical force and beam pitching moment, baseline hull CG on the
+  declared uniform beam weight centroid, and negligible artificial support
+  reaction. If the checks fail, the solve is explicitly blocked. The user
+  must solve Hydro displacement/draft and loading, or choose the fixture
+  case and interpret its reactions.
+
+These results remain preliminary **global Euler–Bernoulli beam bending**,
+with manually supplied E, structural second moment I, extreme fibre and
+neutral axis. The model omits shear deformation, hull-shell plates,
+torsion, wave loads, local load application effects, transverse pressure
+stress, buckling, strength certification and hydroelastic supports.
+
+The default Structural model is unchanged until the user chooses the
+pressure-connected load case. A Gunnerus visual model with disabled or
+unvalidated Hydro is **not** allowed to source hydrostatic beam pressure
+until its external hull geometry and capability are qualified.
+
+New automated coverage:
+
+- `tests/hydro-beam-transfer.test.mjs`: exact station clipping, force
+  and first-moment conservation, pitching couple, balanced barge,
+  unbalanced fixture reactions and explicit rejection cases.
+- `tests/browser/hull-girder-hydro-coupled-smoke.html`: coupled beam
+  rendering, mass/buoyancy chart and floating-equilibrium guard.
 
 ## Regression and CI
 
