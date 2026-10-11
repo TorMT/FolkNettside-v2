@@ -1,6 +1,7 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=54824451a6ccb72220b24e9086340868292d7b5e";
-import {gzMetrics} from "../hydro/gz.js?v=54824451a6ccb72220b24e9086340868292d7b5e";
-import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=54824451a6ccb72220b24e9086340868292d7b5e";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=0f8d2c6055b25ada3f32ca51ca82a8cf9d3a5d09";
+import {gzMetrics} from "../hydro/gz.js?v=0f8d2c6055b25ada3f32ca51ca82a8cf9d3a5d09";
+import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=0f8d2c6055b25ada3f32ca51ca82a8cf9d3a5d09";
+import {hydroForcesHTML} from "./hydro-force-diagram.js?v=0f8d2c6055b25ada3f32ca51ca82a8cf9d3a5d09";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -254,6 +255,8 @@ export function hydroPanelHTML({
     results:`
       <div class="hydro-results-wrap">
         ${numericalSummary}
+        ${hydroForcesHTML({modelDocument,result,densityKgM3:density,draft:clamped,
+          pointWeightSummary,hullMassText,kg,lcg,tcg})}
         ${pointWeightSummary&&loadedGM?`<section class="hydro-loaded-gm" aria-label="Recalculated loading condition">
           <strong>With combined loads · recalculated loaded draft</strong>
           <div class="hydro-loaded-gm-grid">

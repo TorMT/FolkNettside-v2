@@ -15,17 +15,21 @@ export function hydroForceBalance({
     throw new Error("Hydro force display requires valid submerged volume, water density and CB");
   const buoyancyKN=volume*density*G/1000;
   if(!finite(buoyancyKN))throw new Error("Buoyancy exceeds numeric limits");
-  const components=(hydroResult.components||[]).map((component,index)=>{
+  // Some legacy analyses only return aggregate hydrostatics. Never invent
+  // per-component buoyancy when their decomposed volumes are unavailable.
+  const components=(hydroResult.components||[]).flatMap((component,index)=>{
+    if(component.volume===undefined||component.centerOfBuoyancy===undefined)return [];
     if(!finite(component.volume)||component.volume<0||
-      !Array.isArray(component.centerOfBuoyancy)||!component.centerOfBuoyancy.every(finite))
+      !Array.isArray(component.centerOfBuoyancy)||component.centerOfBuoyancy.length!==3||
+      !component.centerOfBuoyancy.every(finite))
       throw new Error("Invalid submerged volume / CB for component "+(index+1));
-    return {
+    return [{
       id:component.componentId??index,
       name:String(component.name||"Hull component "+(index+1)),
       displacedM3:component.volume,
       buoyancyKN:component.volume*density*G/1000,
       centerOfBuoyancy:[...component.centerOfBuoyancy]
-    };
+    }];
   });
   const hasMass=loadedMass!==null&&loadedMass!==undefined;
   if(hasMass&&(!finite(loadedMass)||loadedMass<=0))
