@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Hydro-to-Structure beam transfer browser smoke</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/engineering.css">
+<style>body{margin:24px}#panel{max-width:1080px;margin:auto}</style></head>
+<body data-status="running"><main id="panel"></main><pre id="result">Testing hydro-coupled beam…</pre>
+<script type="module">
+import {boxMesh,wedgePrismMesh} from "../../src/hydro/fixtures.js";
+import {executeHydroRequest} from "../../src/hydro/hydro-service.js";
+import {projectPressureToBeam} from "../../src/structure/hydro-beam-transfer.js";
+import {solveHullGirder} from "../../src/structure/hull-girder.js";
+import {hullGirderPanelHTML} from "../../src/engineering/hull-girder-panel.js";
+const check=(ok,message)=>{if(!ok)throw Error(message)};
+try{
+  const model={name:"Analytic floating 10 m barge",unitScaleToMeters:1,components:[{
+    id:"hull",name:"Hull",geometry:boxMesh({L:10,B:4,H:3}),metadata:{hydro:true}
+  }]};
+  const pressure=executeHydroRequest(model,"pressure",{waterline:1,densityKgM3:1000,sections:12});
+  check(pressure.crossCheck.passed&&pressure.stationAudit.passed,"Pressure checks failed");
+  const buoyancyTransfer=projectPressureToBeam(pressure,{xMin:-5,xMax:5});
+  const calculate=(supportModel,weights=[])=>solveHullGirder({
+    xMin:-5,xMax:5,hullMassTonnes:40,hullCG:[0,0,.5],
+    pointWeights:weights,buoyancyTransfer,supportModel,
+    E:210e9,I:.08,extremeFiberM:1,segments:12
+  });
+  const floating=calculate("floating-equilibrium");
+  check(Math.abs(floating.reactionN)<.05,"Balanced floating case has fake support loads");
+  check(Math.abs(floating.verticalLoadN)<.05,"Gravity and buoyancy don't cancel");
+  check(Math.abs(floating.maxMomentNm)<.001,"Balanced uniform barge generated a bending moment");
+  const extra=[{massTonnes:2,x:0,y:0,z:1.5}];
+  let blocked=false;
+  try{calculate("floating-equilibrium",extra)}catch(error){blocked=String(error.message).includes("Floating reference blocked")}
+  check(blocked,"Floating solver allowed unbalanced extra cargo");
+  const fixture=calculate("pinned-roller",extra);
+  check(Math.abs(fixture.reactionN-2*1000*9.80665)<.01,"Pin/roller must react to cargo imbalance");
+  const panel=hullGirderPanelHTML({caseInput:{
+    hullMassTonnes:40,cg:[0,0,.5],pointText:"2,0,0,1.5",areaText:"",
+    eGpa:210,iM4:.08,extremeFiberM:1,segments:12,neutralZ:1,
+    loadingMode:"pressure-gravity",supportModel:"pinned-roller",
+    pressureDraft:1,pressureDensity:1000,pressureSections:12
+  },result:fixture,modelName:model.name,bounds:{min:[-5,-2,0],max:[5,2,3]}});
+  document.querySelector("#panel").innerHTML=panel.inspector+panel.summary+panel.results;
+  for(const id of ["girder-loading-mode","girder-support-model","girder-pressure-draft",
+    "girder-pressure-density","girder-pressure-sections","girder-run"]){
+    check(document.getElementById(id),"Missing structural hydro UI "+id);
+  }
+  check(document.querySelector("#girder-loading-mode").value==="pressure-gravity",
+    "Combined loading state not retained");
+  check(document.querySelector(".hull-fem-load-chart"),"Signed buoyancy and gravity chart missing");
+  check(document.querySelectorAll(".hull-fem-diagram").length===2,
+    "Coupled result missing bending stress/deflection diagrams");
+  check(document.querySelector("#panel").textContent.includes("Integrated buoyancy"),
+    "Transferred buoyancy summary missing");
+  check(document.querySelector("#panel").textContent.includes("Support reactions"),
+    "Explicit support reactions missing");
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent=
+    "PASS: actual Hydro pressure -> X stations -> beam reactions, floating guard and combined signed-load UI";
+}catch(error){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>
