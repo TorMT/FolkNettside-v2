@@ -336,6 +336,30 @@ jobs:
             exit 1
           }
           grep '<pre id="result">' /tmp/hydro-pressure-smoke-dom.html || true
+      - name: Coupled Hydro Structure girder browser smoke
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          python -m http.server 4186 --bind 127.0.0.1 >/tmp/hydro-girder-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python - <<'PY'
+          import time,urllib.request
+          for _ in range(50):
+              try:
+                  urllib.request.urlopen("http://127.0.0.1:4186/tests/browser/hull-girder-hydro-coupled-smoke.html",timeout=1).read(32)
+                  break
+              except Exception:time.sleep(.1)
+          else:raise SystemExit("Hydro Structure smoke server did not start")
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=1120,720 --virtual-time-budget=12000 \
+            --dump-dom http://127.0.0.1:4186/tests/browser/hull-girder-hydro-coupled-smoke.html \
+            >/tmp/hydro-girder-smoke-dom.html
+          grep -q 'data-status="pass"' /tmp/hydro-girder-smoke-dom.html || {
+            cat /tmp/hydro-girder-smoke-dom.html
+            exit 1
+          }
+          grep '<pre id="result">' /tmp/hydro-girder-smoke-dom.html || true
       - name: Hydro performance benchmark
         run: npm run benchmark:hydro
       - name: Smoke check
