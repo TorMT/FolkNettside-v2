@@ -291,3 +291,29 @@
 .hydro-force-section details p,.hydro-force-section details small{font-size:10px;color:var(--ink-3)}
 @media(max-width:700px){.hydro-force-numbers{grid-template-columns:1fr}
   .hydro-force-component{grid-template-columns:1fr 1fr auto}}
+
+/* Validated wetted pressure audit: calculations remain separate from beam FEM. */
+.hydro-pressure-workspace{margin:12px 0;display:grid;gap:9px;padding:13px;
+  border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.hydro-pressure-workspace h3{font-size:13px;margin:0}
+.hydro-pressure-workspace>p{font-size:11px;line-height:1.55;margin:0}
+.hydro-pressure-workspace>.btn{width:max-content;max-width:100%;white-space:normal}
+#hydro-pressure-result{min-width:0;overflow-wrap:anywhere;font-size:11px}
+.hydro-pressure-report{min-width:0;display:grid;gap:9px;border-top:1px solid var(--line);padding-top:10px}
+.hydro-pressure-report h4{margin:0;font-size:12px}
+.hydro-pressure-audit{font-size:11px;padding:7px 9px;margin:0;border-left:3px solid var(--accent);background:var(--surface-sunk)}
+.hydro-pressure-audit.failed{border-left-color:var(--danger)}
+.hydro-pressure-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.hydro-pressure-stats>div{display:grid;gap:4px;min-width:0;padding:8px;border:1px solid var(--line);border-radius:7px}
+.hydro-pressure-stats span{font-size:10px;color:var(--ink-2)}
+.hydro-pressure-stats strong{font-size:12px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.hydro-pressure-histogram svg{width:100%;height:auto;display:block;max-height:190px}
+.hydro-pressure-report details{border-top:1px solid var(--line);padding-top:8px}
+.hydro-pressure-report details>summary{cursor:pointer;font-size:11px;font-weight:600}
+.hydro-pressure-report details>p{color:var(--ink-2);line-height:1.5}
+.hydro-pressure-report details table{border-collapse:collapse;width:100%;font-size:10px}
+.hydro-pressure-report details th,.hydro-pressure-report details td{text-align:left;padding:6px;border-bottom:1px solid var(--line)}
+@media(max-width:760px){
+ .hydro-pressure-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .hydro-pressure-workspace>.btn{width:100%}
+}
