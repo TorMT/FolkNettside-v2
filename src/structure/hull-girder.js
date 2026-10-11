@@ -1,5 +1,5 @@
-import {solveFrame2D} from "./frame2d.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {combineHullLoading} from "../hydro/hull-loading.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
+import {solveFrame2D} from "./frame2d.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {combineHullLoading} from "../hydro/hull-loading.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
 
 const G=9.80665;
 const number=(value,name)=>{
@@ -19,7 +19,8 @@ const number=(value,name)=>{
 export function solveHullGirder({
   xMin=0,xMax, hullMassTonnes,hullCG=[0,0,0],
   pointWeights=[],areaLoads=[],
-  E, I, extremeFiberM,segments=20
+  E, I, extremeFiberM,segments=20,
+  buoyancyTransfer=null,supportModel="pinned-roller"
 }={}){
   const a=number(xMin,"Hull xMin"),b=number(xMax,"Hull xMax");
   const young=number(E,"E"),inertia=number(I,"Section I");
@@ -30,6 +31,53 @@ export function solveHullGirder({
     throw new Error("Hull girder needs xMax>xMin, positive E/I/c and 2–50 elements");
   const loading=combineHullLoading({hullMassTonnes,hullCG,pointWeights,areaLoads});
   const span=b-a,tol=1e-8*span;
+  if(!["pinned-roller","floating-equilibrium"].includes(supportModel))
+    throw new Error("Unknown support model");
+  if(supportModel==="floating-equilibrium"&&!buoyancyTransfer)
+    throw new Error("Floating equilibrium requires a verified pressure-to-beam transfer");
+  if(buoyancyTransfer&&!buoyancyTransfer.conservation?.passed)
+    throw new Error("Buoyancy transfer must conserve force and X first moment");
+  const buoyancyLines=buoyancyTransfer?.lineLoads||[];
+  const correctionForces=buoyancyTransfer?.nodalCorrections||[];
+  if(buoyancyLines.length>120||correctionForces.length>240)
+    throw new Error("Excessive buoyancy station or correction count");
+  for(const entry of buoyancyLines){
+    if(![entry.from,entry.to,entry.qy].every(Number.isFinite)||
+      !(entry.to>entry.from)||entry.from<a-tol||entry.to>b+tol)
+      throw new Error("Buoyancy line load is outside structural beam X bounds");
+  }
+  for(const entry of correctionForces){
+    if(!Number.isFinite(entry.x)||!Number.isFinite(entry.fy)||
+      entry.x<a-tol||entry.x>b+tol)
+      throw new Error("Invalid beam load-projection node");
+  }
+  const qBuoyancy=buoyancyLines.reduce((sum,line)=>sum+(line.to-line.from)*line.qy,0);
+  const qFirstMoment=buoyancyLines.reduce((sum,line)=>
+    sum+(line.to-line.from)*line.qy*(line.from+line.to)/2,0);
+  const nodeBuoyancy=correctionForces.reduce((sum,entry)=>sum+entry.fy,0);
+  const nodeFirstMoment=correctionForces.reduce((sum,entry)=>sum+entry.fy*entry.x,0);
+  const projectionTol=Math.max(1e-4,Math.abs(qBuoyancy)*1e-7);
+  if(buoyancyTransfer&&(
+    Math.abs(qBuoyancy+nodeBuoyancy-buoyancyTransfer.totalForceN)>projectionTol||
+    Math.abs(qFirstMoment+nodeFirstMoment-buoyancyTransfer.totalFirstMomentXN)>
+      Math.max(.01,Math.abs(buoyancyTransfer.totalForceN)*span*1e-7)))
+    throw new Error("Structural station projection has lost vertical force or first moment");
+  const gravityN=-loading.totalMassTonnes*1000*G;
+  const gravityFirstMomentXN=-G*1000*(
+    loading.hullMassTonnes*(a+b)/2+
+    loading.areaLoads.reduce((sum,w)=>sum+w.massTonnes*w.x,0)+
+    loading.pointWeights.reduce((sum,w)=>sum+w.massTonnes*w.x,0)
+  );
+  const netForceN=gravityN+qBuoyancy+nodeBuoyancy;
+  const netFirstMomentXN=gravityFirstMomentXN+qFirstMoment+nodeFirstMoment;
+  if(supportModel==="floating-equilibrium"){
+    if(Math.abs(loading.hullCG[0]-(a+b)/2)>span*1e-6)
+      throw new Error("Uniform beam hull weight requires baseline hull CG at mid-span for floating-equilibrium mode; supply a verified longitudinal hull weight distribution instead");
+    const forceTol=Math.max(.01,Math.abs(qBuoyancy)*.001);
+    const momentTol=Math.max(.01,Math.abs(qBuoyancy)*span*.001);
+    if(Math.abs(netForceN)>forceTol||Math.abs(netFirstMomentXN)>momentTol)
+      throw new Error("Floating reference blocked: nonzero vertical force or longitudinal moment; solve hydro loading/draft and check LCG before using reaction-free floating equilibrium");
+  }
   for(const [index,p] of loading.pointWeights.entries()){
     if(p.x<a-tol||p.x>b+tol)
       throw new Error("Point weight "+(index+1)+" is outside the beam span");
@@ -40,7 +88,9 @@ export function solveHullGirder({
   }
   const coords=[a,b,...Array.from({length:n-1},(_,i)=>a+(i+1)*span/n),
     ...loading.areaLoads.flatMap(area=>[area.x0,area.x1]),
-    ...loading.pointWeights.map(weight=>weight.x)];
+    ...loading.pointWeights.map(weight=>weight.x),
+    ...buoyancyLines.flatMap(entry=>[entry.from,entry.to]),
+    ...correctionForces.map(entry=>entry.x)];
   coords.sort((x,y)=>x-y);
   const xs=coords.filter((x,i)=>i===0||x-coords[i-1]>tol);
   const nodes=xs.map((x,i)=>({id:"h"+i,x,y:0}));
@@ -52,8 +102,11 @@ export function solveHullGirder({
   const distributedLoads=elements.map((element,i)=>{
     const mid=(xs[i]+xs[i+1])/2;
     const areal=loading.areaLoads.filter(w=>mid>=w.x0-tol&&mid<=w.x1+tol);
-    const qy=uniformHull-areal.reduce((q,w)=>q+w.densityTonnesPerM2*(w.y1-w.y0)*1000*G,0);
-    lineLoads.push({from:xs[i],to:xs[i+1],qy});
+    const gravityQ=uniformHull-areal.reduce((q,w)=>q+w.densityTonnesPerM2*(w.y1-w.y0)*1000*G,0);
+    const buoyancyQ=buoyancyLines.filter(entry=>mid>=entry.from-tol&&mid<=entry.to+tol)
+      .reduce((q,entry)=>q+entry.qy,0);
+    const qy=gravityQ+buoyancyQ;
+    lineLoads.push({from:xs[i],to:xs[i+1],qy,gravityQ,buoyancyQ});
     return {element:element.id,qy};
   });
   // Split elements at every force application coordinate. This makes shear
@@ -63,9 +116,14 @@ export function solveHullGirder({
     if(!node)throw new Error("Point load could not be matched to a FEM node");
     return {node:node.id,fy:-w.massTonnes*1000*G};
   });
-  const frame={name:"Global hull-girder fixture",nodes,elements,
+  const equivalentBuoyancyLoads=correctionForces.map(entry=>{
+    const node=nodes.find(n=>Math.abs(n.x-entry.x)<=tol);
+    if(!node)throw new Error("Buoyancy correction failed to map to an FEM node");
+    return {node:node.id,fy:entry.fy};
+  });
+  const frame={name:buoyancyTransfer?"Hull-girder coupled pressure/mass model":"Global hull-girder fixture",nodes,elements,
     supports:[{node:nodes[0].id,ux:true,uy:true},{node:nodes.at(-1).id,uy:true}],
-    loads:pointLoads,distributedLoads};
+    loads:[...pointLoads,...equivalentBuoyancyLoads],distributedLoads};
   const analysis=solveFrame2D(frame);
   const moments=[],shears=[],fem=analysis.elements;
   const sampleResults=[];
@@ -101,10 +159,16 @@ export function solveHullGirder({
     !top||Math.abs(node.uy)>Math.abs(top.uy)?node:top,null);
   const reactions=analysis.nodes.map((node,i)=>({x:xs[i],verticalN:node.ry}))
     .filter(r=>Math.abs(r.verticalN)>1e-5);
-  const verticalLoadN=-loading.totalMassTonnes*1000*G;
+  const verticalLoadN=netForceN;
   const reactionN=reactions.reduce((sum,r)=>sum+r.verticalN,0);
-  return {method:"Euler-Bernoulli simply-supported hull girder (global beam proxy)",
+  if(supportModel==="floating-equilibrium"&&Math.abs(reactionN)>
+    Math.max(.01,Math.abs(qBuoyancy)*.001))
+    throw new Error("Floating equilibrium failed: residual artificial support reactions exceed tolerance");
+  return {method:buoyancyTransfer?"Euler-Bernoulli beam with integrated hydrostatic station forces":"Euler-Bernoulli simply-supported hull girder (global beam proxy)",
     loading,frame,analysis,reactions,lineLoads,moments,shears,field:sampleResults,
+    buoyancyTransfer,supportModel,gravityForceN:gravityN,buoyancyForceN:qBuoyancy+nodeBuoyancy,
+    netFirstMomentXN,projectedForceErrorN:buoyancyTransfer?
+      qBuoyancy+nodeBuoyancy-buoyancyTransfer.totalForceN:null,
     maxMomentNm:Math.abs(peak.value),
     momentAtMax:peak.x,
     maxStressPa:Math.abs(peak.value)*c/inertia,
@@ -112,6 +176,8 @@ export function solveHullGirder({
     peakDeflectionNode:peakDeflection.id,
     verticalLoadN,reactionN,
     equilibriumResidualN:reactionN+verticalLoadN,
-    disclaimer:"Not shell/plate stress FEM. End supports are a test fixture, not distributed buoyancy. Geometry does not determine E, I, plate thickness or structural boundary conditions."
+    disclaimer:buoyancyTransfer?
+      "Integrated wetted pressure mapped by exact X strips and conservative nodal corrections. End pin/roller restraints eliminate rigid-body modes; any nonzero reaction represents a nonfloating fixture load. Bending stress is a global-beam proxy, never shell stress or a validated hull support model.":
+      "Not shell/plate stress FEM. End supports are a test fixture, not distributed buoyancy. Geometry does not determine E, I, plate thickness or structural boundary conditions."
   };
 }

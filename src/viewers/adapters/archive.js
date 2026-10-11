@@ -1,5 +1,5 @@
-import {getJSZip} from "../../vendor/jszip.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {escapeHTML,fetchBoundedBuffer} from "../utils.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
+import {getJSZip} from "../../vendor/jszip.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {escapeHTML,fetchBoundedBuffer} from "../utils.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
 export async function render(container,resource){
  const path=resource.url||resource.path;
  const buffer=await fetchBoundedBuffer(path,{maxBytes:80_000_000});

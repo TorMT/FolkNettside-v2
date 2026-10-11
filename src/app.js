@@ -1,76 +1,77 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {writeSpaceMouseSettings,resetSpaceMouseSettings} from "./model/spacemouse-settings.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {mountViewer} from "./viewer.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {render as renderPythonWorkbench} from "./viewers/adapters/python.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {loadContent} from "./content.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {kisssoftPageHTML,mountKisssoft} from "./engineering/kisssoft-tool.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {cadToolHTML,mountCADTool} from "./engineering/cad-tool.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {renderResourceTree} from "./components/resource-tree.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {karakterwebUrl} from "./courses/external-links.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {bindCourseNavigation} from "./courses/course-navigation.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {createResourceNotices} from "./courses/resource-updates.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {escapeHTML as escCourse} from "./viewers/utils.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {hydroPressureResultHTML} from "./engineering/hydro-pressure-panel.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {hydrostaticParticulars} from "./hydro/stability.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {createHydroInclude} from "./hydro/hydro-selection.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {prepareHydroModel} from "./hydro/hydrostatics.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {sectionalAreaCurve,sacCSV} from "./hydro/sac-curve.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {sacCurvePanelHTML} from "./engineering/sac-panel.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {buildSearchIndex} from "./search/search-index.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {createSearchController} from "./components/search-dialog.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {staticVaultPageHTML,bindStaticVaultPage} from "./tools/static-vault-page.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {activeTools} from "./tools/tool-registry.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {loadModelDocument} from "./model/load-model.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {parseModelBuffer} from "./tools/model-inspector-core.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {UNIT_SCALE_TO_METERS} from "./model/model-document.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {validateHydroModel} from "./model/hull-surface-validator.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {mountModelScene} from "./model/model-scene.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {mountWaveControls} from "./model/model-wave-controls.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {integrateHullPressureAsync,analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {mountFrame3D} from "./engineering/frame-3d.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {solveHullGirder} from "./structure/hull-girder.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {mountLoadSketch} from "./engineering/load-sketch.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {portfolioInfoPageHTML,loadCV} from "./portfolio/profile-pages.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {analyticsConsent,analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent,registerAnalyticsCourses} from "./platform/analytics.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {mountAnalyticsNotice} from "./platform/analytics-notice.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {diversePageHTML} from "./diverse/diverse-page.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {DIVERSE_MODULES} from "./diverse/diverse-registry.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {diveMapHTML,mountDiveMap} from "./diverse/dive-map.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {sandalenPageHTML} from "./diverse/sandalen-page.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {studyCatalogPageHTML,mountStudyCatalog} from "./diverse/study-catalog-pages.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {matprisPageHTML,mountMatpris} from "./diverse/matpris-page.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {configuredMatprisEndpoint} from "./diverse/matpris-api.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
-import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js?v=281a134882dfdb16ab44e478f1db78320090aa04";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {writeSpaceMouseSettings,resetSpaceMouseSettings} from "./model/spacemouse-settings.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {mountViewer} from "./viewer.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {render as renderPythonWorkbench} from "./viewers/adapters/python.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {loadContent} from "./content.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {kisssoftPageHTML,mountKisssoft} from "./engineering/kisssoft-tool.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {cadToolHTML,mountCADTool} from "./engineering/cad-tool.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {renderResourceTree} from "./components/resource-tree.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {karakterwebUrl} from "./courses/external-links.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {bindCourseNavigation} from "./courses/course-navigation.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {createResourceNotices} from "./courses/resource-updates.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {escapeHTML as escCourse} from "./viewers/utils.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {hydroPressureResultHTML} from "./engineering/hydro-pressure-panel.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {hydrostaticParticulars} from "./hydro/stability.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {createHydroInclude} from "./hydro/hydro-selection.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {prepareHydroModel} from "./hydro/hydrostatics.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {sectionalAreaCurve,sacCSV} from "./hydro/sac-curve.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {sacCurvePanelHTML} from "./engineering/sac-panel.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {buildSearchIndex} from "./search/search-index.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {createSearchController} from "./components/search-dialog.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {staticVaultPageHTML,bindStaticVaultPage} from "./tools/static-vault-page.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {activeTools} from "./tools/tool-registry.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {loadModelDocument} from "./model/load-model.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {parseModelBuffer} from "./tools/model-inspector-core.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {UNIT_SCALE_TO_METERS} from "./model/model-document.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {validateHydroModel} from "./model/hull-surface-validator.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {mountModelScene} from "./model/model-scene.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {mountWaveControls} from "./model/model-wave-controls.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {integrateHullPressureAsync,analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {mountFrame3D} from "./engineering/frame-3d.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {solveHullGirder} from "./structure/hull-girder.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {projectPressureToBeam} from "./structure/hydro-beam-transfer.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {mountLoadSketch} from "./engineering/load-sketch.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {portfolioInfoPageHTML,loadCV} from "./portfolio/profile-pages.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {analyticsConsent,analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent,registerAnalyticsCourses} from "./platform/analytics.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {mountAnalyticsNotice} from "./platform/analytics-notice.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {diversePageHTML} from "./diverse/diverse-page.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {DIVERSE_MODULES} from "./diverse/diverse-registry.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {diveMapHTML,mountDiveMap} from "./diverse/dive-map.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {sandalenPageHTML} from "./diverse/sandalen-page.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {studyCatalogPageHTML,mountStudyCatalog} from "./diverse/study-catalog-pages.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {matprisPageHTML,mountMatpris} from "./diverse/matpris-page.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {configuredMatprisEndpoint} from "./diverse/matpris-api.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
+import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js?v=0f2c46fb5407953a6027ee84752684d80ac98516";
 
 initSettings();
 initGoogleSession();
@@ -117,7 +118,9 @@ let hydroCurveCache={model:null,data:null};
 let structureMode="girder";
 let girderRunRequested=false;
 let girderForm={hullMassTonnes:"",cg:[0,0,0],pointText:"",areaText:"",
-  eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false};
+  eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false,
+  loadingMode:"gravity-only",supportModel:"pinned-roller",pressureDraft:null,
+  pressureDensity:null,pressureSections:12};
 let girderComputeError="";
 let structureLoadKn=-20;
 let structureLoadPosition=3;
@@ -1043,6 +1046,8 @@ async function engineeringPage(){
         throw new Error("Hull girder preview requires geometry with positive longitudinal X length");
       const derived={
         ...girderForm,
+        pressureDraft:girderForm.pressureDraft??hydroDraft,
+        pressureDensity:girderForm.pressureDensity??(Number(model.hydro?.density)||1025),
         hullMassTonnes:hullMassText||girderForm.hullMassTonnes,
         pointText:hydroPointWeightsText||girderForm.pointText,
         areaText:hullAreaLoadsText||girderForm.areaText,
@@ -1059,7 +1064,27 @@ async function engineeringPage(){
         try{
           if(!girderForm.axisConfirmed)
             throw new Error("Confirm the imported model longitudinal axis is world X before running the beam calculation");
+          let buoyancyTransfer=null;
+          if(derived.loadingMode==="pressure-gravity"){
+            const hydroCapability=analysisCapability(model,"hydro");
+            if(!hydroCapability.enabled||model.hydro?.enabled===false)
+              throw new Error("Hydrostatic pressure is not enabled for this model. Select independently qualified external hull geometry first.");
+            const sections=Number(derived.pressureSections);
+            if(!Number.isSafeInteger(sections)||sections<2||sections>24)
+              throw new Error("Structure pressure transfer requires 2–24 stations");
+            const pressure=await integrateHullPressureAsync(documentModel,{
+              waterline:Number(derived.pressureDraft),
+              densityKgM3:Number(derived.pressureDensity),
+              sections,maxTriangles:160000
+            });
+            if(renderId!==engineeringRenderId)return;
+            buoyancyTransfer=projectPressureToBeam(pressure,{
+              xMin:bounds.min[0],xMax:bounds.max[0]
+            });
+          }
           girder=solveHullGirder({
+            buoyancyTransfer,
+            supportModel:derived.loadingMode==="pressure-gravity"?derived.supportModel:"pinned-roller",
             xMin:bounds.min[0],xMax:bounds.max[0],
             hullMassTonnes:Number(derived.hullMassTonnes),hullCG:derived.cg,
             pointWeights:pointWeightsFromLines(derived.pointText),
@@ -1089,7 +1114,7 @@ async function engineeringPage(){
           <div class="tree-row">World X: ${bounds.min[0].toFixed(2)}–${bounds.max[0].toFixed(2)} m</div>
           <div class="tree-row">World Z: ${bounds.min[2].toFixed(2)}–${bounds.max[2].toFixed(2)} m</div>
           <div class="tree-label">Support idealisation</div>
-          <div class="tree-row">Pinned/roller at extreme X</div>
+          <div class="tree-row">${girder?.buoyancyTransfer?(girder.supportModel==="floating-equilibrium"?"Numerical pin/roller, zero reaction required":"Explicit pin/roller fixture with reactions"):"Pinned/roller fixture · gravity only"}</div>
           <div class="tree-label">Approval</div>
           <div class="tree-row"><strong>Uncertified structural preview</strong></div>
         </aside>
@@ -1112,16 +1137,21 @@ async function engineeringPage(){
           ${panel.results}</section>
         <footer class="statusbar"><span>Global beam FEM · linear static</span>
           <span>Manual E, I and support assumptions</span>
-          <span>Not a floating or local plate-stress solver</span></footer>
+          <span>${girder?.buoyancyTransfer?(girder.supportModel==="floating-equilibrium"?"Force-balanced floating beam reference":"Hydro pressure + mass · fixture supports"):"No hydro pressure; gravity-only fixture"}</span></footer>
       </main>`;
       bindNav();bindEngineeringModelSelector();
       mountWorkspaceResultsResize(app.querySelector(".workspace"));
       const report=girder?engineeringCaseReport({
         modelConfig:model,modelDocument:documentModel,mode:"Structure",
-        method:{name:"global Euler–Bernoulli girder proxy",scope:"simply supported laboratory idealisation"},
+        method:{name:"global Euler–Bernoulli girder proxy",scope:girder.buoyancyTransfer?
+          "exact wetted pressure strips with force and first-moment conserving Euler beam load projection":
+          "simply supported gravity-only laboratory idealisation"},
         inputs:{...derived,bounds,axisConfirmed:girderForm.axisConfirmed},
         results:{girder},
-        assumptions:["not structural shell FEM","supports at ends—not hydrostatic buoyancy",
+        assumptions:["not structural shell FEM",girder.buoyancyTransfer?
+          "pressure derived from validated external wetted hull and mapped to Euler beam":"no hydrostatic buoyancy applied",
+          girder.supportModel==="floating-equilibrium"?"numerical supports remove rigid-body modes and must have zero reactions":
+            "pin/roller external reactions are allowed and do not represent floating equilibrium",
           "manual E/I/neutral axis","uniform hull mass per beam length"]
       }):null;
       bindEngineeringCaseExport(report);
@@ -1140,6 +1170,11 @@ async function engineeringPage(){
           eGpa:app.querySelector("#girder-e").value,
           iM4:app.querySelector("#girder-i").value,
           extremeFiberM:app.querySelector("#girder-c").value,
+          loadingMode:app.querySelector("#girder-loading-mode").value,
+          supportModel:app.querySelector("#girder-support-model").value,
+          pressureDraft:app.querySelector("#girder-pressure-draft").value,
+          pressureDensity:app.querySelector("#girder-pressure-density").value,
+          pressureSections:app.querySelector("#girder-pressure-sections").value,
           neutralZ:Number(app.querySelector("#girder-neutral-z").value),
           segments:Number(app.querySelector("#girder-segments").value),
           axisConfirmed:app.querySelector("#girder-axis-confirm").checked
