@@ -10,6 +10,8 @@ import {executeHydroRequest} from "../../src/hydro/hydro-service.js";
 import {projectPressureToBeam} from "../../src/structure/hydro-beam-transfer.js";
 import {solveHullGirder} from "../../src/structure/hull-girder.js";
 import {hullGirderPanelHTML} from "../../src/engineering/hull-girder-panel.js";
+import {parseGirderStations} from "../../src/structure/girder-profiles.js";
+import {girderSectionsCSV} from "../../src/structure/girder-export.js";
 const check=(ok,message)=>{if(!ok)throw Error(message)};
 try{
   const model={name:"Analytic floating 10 m barge",unitScaleToMeters:1,components:[{
@@ -33,15 +35,33 @@ try{
   check(blocked,"Floating solver allowed unbalanced extra cargo");
   const fixture=calculate("pinned-roller",extra);
   check(Math.abs(fixture.reactionN-2*1000*9.80665)<.01,"Pin/roller must react to cargo imbalance");
+  const massProfileText="-5,-2,3\n-2,2,5.5\n2,5,3";
+  const stiffnessText="-5,0,210,0.04\n0,5,210,0.08";
+  const variable=solveHullGirder({
+    xMin:-5,xMax:5,hullMassTonnes:40,hullCG:[0,0,.5],
+    massStations:parseGirderStations(massProfileText,{kind:"mass"}),
+    stiffnessStations:parseGirderStations(stiffnessText,{kind:"stiffness"}),
+    buoyancyTransfer,supportModel:"floating-equilibrium",
+    E:210e9,I:.08,extremeFiberM:1,segments:12
+  });
+  check(variable.equilibriumAudit.passed,"Variable weight/EI reference is not force/moment balanced");
+  check(variable.maxDeflectionM>0,"Variable weight must produce nonzero longitudinal deflection");
+  check(Math.abs(variable.reactionN)<.05,"Symmetric variable baseline weight created artificial support forces");
+  check(variable.frame.elements[0].I===.04,"Variable EI not assigned to correct element");
+  const csv=girderSectionsCSV(variable);
+  check(csv.includes("baseline_mass_t_per_m"),"Missing section/mass CSV provenance header");
+  check(csv.includes("5.5"),"Longitudinal concentrated baseline mass section missing from CSV");
   const panel=hullGirderPanelHTML({caseInput:{
     hullMassTonnes:40,cg:[0,0,.5],pointText:"2,0,0,1.5",areaText:"",
     eGpa:210,iM4:.08,extremeFiberM:1,segments:12,neutralZ:1,
     loadingMode:"pressure-gravity",supportModel:"pinned-roller",
-    pressureDraft:1,pressureDensity:1000,pressureSections:12
+    pressureDraft:1,pressureDensity:1000,pressureSections:12,
+    stiffnessText,massProfileText
   },result:fixture,modelName:model.name,bounds:{min:[-5,-2,0],max:[5,2,3]}});
   document.querySelector("#panel").innerHTML=panel.inspector+panel.summary+panel.results;
   for(const id of ["girder-loading-mode","girder-support-model","girder-pressure-draft",
-    "girder-pressure-density","girder-pressure-sections","girder-run"]){
+    "girder-pressure-density","girder-pressure-sections","girder-stiffness-profile",
+    "girder-mass-profile","girder-run"]){
     check(document.getElementById(id),"Missing structural hydro UI "+id);
   }
   check(document.querySelector("#girder-loading-mode").value==="pressure-gravity",
@@ -58,6 +78,14 @@ try{
   for(const id of ["girder-export-response","girder-export-loads","girder-export-reactions"]){
     check(document.getElementById(id),"Missing structural CSV action "+id);
   }
+  check(document.querySelector("#girder-stiffness-profile").value===stiffnessText,
+    "Structural EI profile input is not preserved");
+  check(document.querySelector("#girder-mass-profile").value===massProfileText,
+    "Baseline mass profile input is not preserved");
+  check(document.querySelector(".hull-fem-profile-chart"),
+    "Longitudinal EI and mass station preview missing");
+  check(document.querySelector("#girder-export-sections"),
+    "Section stiffness and mass CSV export action missing");
   check(document.querySelector("#panel").textContent.includes("Pitch-moment equilibrium error"),
     "Independent pitch-moment residual missing");
   check(document.querySelector("#panel").textContent.includes("Maximum deflection location"),
