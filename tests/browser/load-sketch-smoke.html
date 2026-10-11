@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Mass load sketch browser smoke</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/engineering.css">
+<style>#host{width:650px;max-width:95vw}</style></head>
+<body data-status="running">
+  <textarea id="area"># original area load\n0.05, -5, -4, -2, -1, 0</textarea>
+  <textarea id="point"># original point mass\n1, -4, 0, 1</textarea>
+  <div id="host"></div><pre id="result">Checking…</pre>
+<script type="module">
+import {mountLoadSketch} from "../../src/engineering/load-sketch.js";
+import {areaLoadsFromLines,combineHullLoading} from "../../src/hydro/hull-loading.js";
+import {pointWeightsFromLines} from "../../src/hydro/point-loads.js";
+const check=(pass,message)=>{if(!pass)throw Error(message)};
+const area=document.querySelector("#area"),point=document.querySelector("#point"),host=document.querySelector("#host");
+const end=mountLoadSketch(host,{bounds:{min:[-5,-2,0],max:[5,2,3]},areaInput:area,pointInput:point});
+const svg=host.querySelector("svg");
+function draw(from,to){
+ const rect=svg.getBoundingClientRect();
+ const loc=xy=>({clientX:rect.left+xy.x/600*rect.width,
+   clientY:rect.top+xy.y/300*rect.height});
+ svg.setPointerCapture=()=>{};
+ svg.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,button:0,pointerId:1,...loc(from)}));
+ svg.dispatchEvent(new PointerEvent("pointermove",{bubbles:true,button:0,pointerId:1,...loc(to)}));
+ svg.dispatchEvent(new PointerEvent("pointerup",{bubbles:true,button:0,pointerId:1,...loc(to)}));
+}
+try{
+ check(svg.getBoundingClientRect().width>0,"Load sketch is hidden or too small");
+ host.querySelector("[data-sketch-density]").value=".25";
+ host.querySelector("[data-sketch-z]").value="1.5";
+ let inputs=0;area.addEventListener("input",()=>inputs++);
+ draw({x:150,y:75},{x:450,y:225});
+ const areas=areaLoadsFromLines(area.value);
+ check(areas.length===2,"Drawing did not append a second area load");
+ check(area.value.startsWith("# original area load"),"Existing area input overwritten");
+ check(Math.abs(areas[1].x0+2.5)<1e-6&&Math.abs(areas[1].y1-1)<1e-6,"Coordinates mapped incorrectly");
+ check(areas[1].z===1.5&&areas[1].densityTonnesPerM2===.25,"Drawn elevation or density lost");
+ check(inputs===1,"Area change did not emit an input event");
+ check(svg.querySelectorAll("[data-sketch-area]").length===2,"Old+new area load preview missing");
+ host.querySelector('[data-sketch-mode="point"]').click();
+ host.querySelector("[data-sketch-mass]").value="-2";
+ host.querySelector("[data-sketch-z]").value="2.5";
+ draw({x:400,y:150},{x:400,y:150});
+ const points=pointWeightsFromLines(point.value);
+ check(points.length===2,"Point drawing did not append a mass load");
+ check(points[1].massTonnes===-2&&points[1].z===2.5,"Signed point mass height lost");
+ check(svg.querySelectorAll("[data-sketch-point]").length===2,"Point preview missing");
+ const combined=combineHullLoading({hullMassTonnes:20,hullCG:[0,0,1],pointWeights:points,areaLoads:areas});
+ check(Number.isFinite(combined.totalMassTonnes)&&
+   combined.centerOfGravity.every(Number.isFinite),"Combined load failed physics validation");
+ end();
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent="PASS: drawing -> mass/area text inputs -> Hydro mass+CG and on-screen preview";
+}catch(error){
+ end();document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>
