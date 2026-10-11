@@ -58,6 +58,8 @@ export function validateGirderProfile(stations,{xMin,xMax,kind}={}){
     if(!s||![s.x0,s.x1].every(finite)||!(s.x1>s.x0)||
        Math.abs(s.x0-edge)>tol)
       throw new Error(kind+" stations must cover X continuously in ascending order; check row "+(i+1));
+    if(i===stations.length-1&&Math.abs(s.x1-xMax)>tol)
+      throw new Error(kind+" final station must end at the beam X maximum");
     const upper=(i===stations.length-1)?xMax:s.x1;
     if(upper> xMax+tol||!(upper>edge+tol))
       throw new Error(kind+" station "+(i+1)+" lies beyond girder span or has zero length");
