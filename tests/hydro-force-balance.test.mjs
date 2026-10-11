@@ -14,7 +14,7 @@ test("Archimedes force matches gravity exactly at 40 m3 fresh water and 40 t",()
  const f=hydroForceBalance({hydroResult:result,densityKgM3:1000,
    loadedMass:gravityTonnes,centerOfGravity:[0,0,1]});
  assert.ok(Math.abs(f.buoyancyKN-392.266)<1e-10);
- assert.equal(f.gravityKN,392.266);
+ assert.ok(Math.abs(f.gravityKN-392.266)<1e-10);
  assert.ok(Math.abs(f.residualKN)<1e-10);
  assert.equal(f.balanced,true);
  assert.ok(Math.abs(f.components.reduce((sum,c)=>sum+c.buoyancyKN,0)-f.buoyancyKN)<1e-10);
