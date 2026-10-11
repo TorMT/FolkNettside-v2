@@ -48,7 +48,7 @@ import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-p
 import {mountFrame3D} from "./engineering/frame-3d.js";
 import {solveHullGirder} from "./structure/hull-girder.js";
 import {parseGirderStations} from "./structure/girder-profiles.js";
-import {girderResponseCSV,girderLoadsCSV,girderReactionsCSV} from "./structure/girder-export.js";
+import {girderResponseCSV,girderLoadsCSV,girderReactionsCSV,girderSectionsCSV} from "./structure/girder-export.js";
 import {projectPressureToBeam} from "./structure/hydro-beam-transfer.js";
 import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js";
 import {mountLoadSketch} from "./engineering/load-sketch.js";
@@ -1165,7 +1165,8 @@ async function engineeringPage(){
         for(const [id,filename,makeCSV] of [
           ["girder-export-response","hull-girder-response.csv",girderResponseCSV],
           ["girder-export-loads","hull-girder-loads.csv",girderLoadsCSV],
-          ["girder-export-reactions","hull-girder-reactions.csv",girderReactionsCSV]
+          ["girder-export-reactions","hull-girder-reactions.csv",girderReactionsCSV],
+          ["girder-export-sections","hull-girder-sections.csv",girderSectionsCSV]
         ]){
           app.querySelector("#"+id)?.addEventListener("click",()=>
             downloadTextFile(makeCSV(girder),filename));
