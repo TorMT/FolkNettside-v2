@@ -1,27 +1,36 @@
-import {areaLoadsFromLines,normaliseAreaLoad} from "../hydro/hull-loading.js?v=9a712f5cf5e5cbc34435fa7864ed6a73ae36fe17";
-import {pointWeightsFromLines} from "../hydro/point-loads.js?v=9a712f5cf5e5cbc34435fa7864ed6a73ae36fe17";
+import {areaLoadsFromLines,normaliseAreaLoad} from "../hydro/hull-loading.js?v=54824451a6ccb72220b24e9086340868292d7b5e";
+import {pointWeightsFromLines} from "../hydro/point-loads.js?v=54824451a6ccb72220b24e9086340868292d7b5e";
 import {
   planBounds,planMetersToPixel,sketchAreaLoad,sketchPointMass,
   areaLoadLine,pointMassLine,appendSketchLine,updateSketchDataRow,
   moveSketchAreaLoad,moveSketchPointMass,editSketchAreaProperties,
   editSketchPointProperties
-} from "./load-sketch-core.js?v=9a712f5cf5e5cbc34435fa7864ed6a73ae36fe17";
+} from "./load-sketch-core.js?v=54824451a6ccb72220b24e9086340868292d7b5e";
+import {extractDeckSurfaceCandidates,deckSurfaceAt,sampledDeckFootprint} from "./deck-surface-projection.js?v=54824451a6ccb72220b24e9086340868292d7b5e";
 
 /**
  * The validated text fields remain authoritative. Editing changes only the
  * selected data row; comments, other loads and line order are preserved.
  * No mass is applied to a physics solver until the user chooses Apply/Calculate.
  */
-export function mountLoadSketch(host,{bounds,areaInput,pointInput}={}){
+export function mountLoadSketch(host,{bounds,areaInput,pointInput,modelDocument=null}={}){
   if(!host||!areaInput||!pointInput)return()=>{};
   try{planBounds(bounds)}catch(error){host.textContent=error.message;return()=>{}}
   const width=600,height=300,size={width,height};
+  const surfaces=modelDocument?extractDeckSurfaceCandidates(modelDocument):[];
+  let activeSurface=surfaces.find(item=>item.declaredDeck)||null;
   host.innerHTML=
     '<div class="load-sketch-toolbar" role="group" aria-label="Load editing tools">'+
     '<button type="button" class="btn" data-sketch-mode="area" aria-pressed="true">Draw area load</button>'+
     '<button type="button" class="btn" data-sketch-mode="point" aria-pressed="false">Place point mass</button>'+
     '<button type="button" class="btn" data-sketch-mode="edit" aria-pressed="false">Select / move</button>'+
     '<button type="button" class="btn" data-sketch-undo disabled title="Undo the latest sketch change">Undo</button></div>'+
+    '<label class="load-sketch-surface-control">Placement basis <select data-sketch-surface>'+ 
+      '<option value="manual">Manual X/Y rectangle · not surface-validated</option>'+
+      surfaces.map((item,i)=>'<option value="'+i+'" '+(item===activeSurface?'selected':'')+'>'+
+        (item.declaredDeck?'Tagged deck':'Candidate horizontal mesh')+' · '+String(item.name).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]))+
+        ' · Z='+item.z.toFixed(2)+' m</option>').join('')+
+      '</select></label>'+
     '<div class="load-sketch-settings">'+
     '<label>Area density · t/m² <input type="number" step="any" min=".000001" data-sketch-density value=".10"></label>'+
     '<label>Point mass · t <input type="number" step="any" data-sketch-mass value="1"></label>'+
@@ -42,6 +51,39 @@ export function mountLoadSketch(host,{bounds,areaInput,pointInput}={}){
   const density=host.querySelector("[data-sketch-density]");
   const mass=host.querySelector("[data-sketch-mass]");
   const z=host.querySelector("[data-sketch-z]");
+  const surfaceInput=host.querySelector("[data-sketch-surface]");
+  const surfaceNote=activeSurface?activeSurface.declaredDeck?
+    "Tagged mesh surface: verify deck loading suitability independently.":
+    "Unverified upward-facing mesh candidate; not a certified loading deck.":
+    "Manual bounds; no actual deck coverage check.";
+  const note=document.createElement("small");
+  note.setAttribute("data-sketch-surface-note","");
+  host.querySelector(".load-sketch-frame").after(note);
+  note.textContent=surfaceNote;
+  if(activeSurface){z.value=String(activeSurface.z);z.readOnly=true}
+  surfaceInput.addEventListener("change",()=>{
+    activeSurface=surfaceInput.value==="manual"?null:surfaces[Number(surfaceInput.value)]||null;
+    z.readOnly=Boolean(activeSurface);
+    if(activeSurface)z.value=String(activeSurface.z);
+    note.textContent=activeSurface?(activeSurface.declaredDeck?
+      "Tagged horizontal mesh surface. Density and structural capacity are not verified.":
+      "Unverified candidate horizontal mesh surface: confirm it is a load-bearing deck."):
+      "Manual bounding-box placement: loads are not checked against the actual mesh.";
+    selected=null;drag=null;render();
+  });
+  function enforceSurface(kind,load){
+    if(!activeSurface)return load;
+    if(kind==="area"){
+      if(Math.abs(load.z-activeSurface.z)>.001)throw Error("Z must equal selected surface height");
+      const check=sampledDeckFootprint(activeSurface,load);
+      if(!check.accepted)throw Error("Area extends beyond the selected mesh surface (sampled coverage "+Math.round(check.coverage*100)+"%). Choose a smaller rectangle or manual mode.");
+    }else{
+      if(Math.abs(load.z-activeSurface.z)>.001)throw Error("Z must equal selected surface height");
+      if(!deckSurfaceAt(activeSurface,load.x,load.y))
+        throw Error("Point lies outside the selected mesh surface; move onto a highlighted triangle.");
+    }
+    return load;
+  }
   const selectionBar=host.querySelector("[data-sketch-selection]");
   const selectionLabel=host.querySelector("[data-sketch-selection-label]");
   const undoButton=host.querySelector("[data-sketch-undo]");
@@ -108,7 +150,13 @@ export function mountLoadSketch(host,{bounds,areaInput,pointInput}={}){
       return '<circle data-sketch-point="'+index+'" cx="'+n(p.x)+'" cy="'+n(p.y)+
         '" r="'+(active?8:5)+'" fill="var(--danger)" stroke="var(--surface)" stroke-width="2"/>';
     });
+    const deckPolygons=activeSurface?activeSurface.triangles.slice(0,5000).map(triangle=>
+      '<polygon points="'+triangle.map(p=>{
+        const q=planMetersToPixel(p[0],p[1],bounds,size);
+        return n(q.x)+','+n(q.y);
+      }).join(' ')+'" fill="var(--accent)" fill-opacity=".15" stroke="var(--accent)" stroke-opacity=".32" stroke-width=".6" pointer-events="none"/>').join(""):"";
     svg.innerHTML='<rect width="'+width+'" height="'+height+'" fill="var(--surface-sunk)"/>'+
+      deckPolygons+
       grid.join("")+boxes.join("")+dots.join("")+
       '<path d="M1 1H599V299H1Z" fill="none" stroke="var(--line-strong)" stroke-width="2" pointer-events="none"/>'+
       '<text x="12" y="19" font-size="12" fill="var(--ink)" pointer-events="none">Y '+n(b.y1)+' m</text>'+
@@ -237,11 +285,12 @@ export function mountLoadSketch(host,{bounds,areaInput,pointInput}={}){
         const relocated=kind==="area"?
           moveSketchAreaLoad(current.load,current.start,end,bounds,size):
           moveSketchPointMass(current.load,end,bounds,size);
+        enforceSurface(kind,relocated);
         mutate(kind,index,relocated,inputFor(kind).value);
         status.textContent="Moved "+(kind==="area"?"area load ":"point mass ")+(index+1)+
           " without changing mass or Z. Click Apply/Calculate to solve.";
       }else if(current.kind==="area"){
-        const area=sketchAreaLoad(current.start,end,bounds,density.value,z.value,size);
+        const area=enforceSurface("area",sketchAreaLoad(current.start,end,bounds,density.value,z.value,size));
         readInputs();
         const before=areaInput.value;
         undo={input:areaInput,before,after:appendSketchLine(before,areaLoadLine(area))};
@@ -250,7 +299,7 @@ export function mountLoadSketch(host,{bounds,areaInput,pointInput}={}){
         status.textContent="Added "+area.areaM2.toFixed(2)+" m², "+
           area.massTonnes.toFixed(3)+" t at Z="+area.z+" m. Click Apply/Calculate.";
       }else if(current.kind==="point"){
-        const added=sketchPointMass(end,bounds,mass.value,z.value,size);
+        const added=enforceSurface("point",sketchPointMass(end,bounds,mass.value,z.value,size));
         readInputs();
         const before=pointInput.value;
         undo={input:pointInput,before,after:appendSketchLine(before,pointMassLine(added))};
@@ -280,6 +329,7 @@ export function mountLoadSketch(host,{bounds,areaInput,pointInput}={}){
         const updated=kind==="area"?
           editSketchAreaProperties(load,density.value,z.value):
           editSketchPointProperties(load,mass.value,z.value);
+        enforceSurface(kind,updated);
         mutate(kind,index,updated,original);
         status.textContent="Mass / elevation updated. Click Apply/Calculate.";
       }

@@ -1,8 +1,8 @@
-import {escapeHTML,fetchJSON} from "../utils.js?v=9a712f5cf5e5cbc34435fa7864ed6a73ae36fe17";
+import {escapeHTML,fetchJSON} from "../utils.js?v=54824451a6ccb72220b24e9086340868292d7b5e";
 import {
   answerQuestion,createQuizAttempt,normalizeQuiz,quizScore,quizChapterView,quizChapterStorageKey,sanitizeQuizAttempt
-} from "../quiz-core.js?v=9a712f5cf5e5cbc34435fa7864ed6a73ae36fe17";
-import {mistakeQuestions,recordQuizChoice,clearMistakeBank} from "../quiz-mistake-bank.js?v=9a712f5cf5e5cbc34435fa7864ed6a73ae36fe17";
+} from "../quiz-core.js?v=54824451a6ccb72220b24e9086340868292d7b5e";
+import {mistakeQuestions,recordQuizChoice,clearMistakeBank} from "../quiz-mistake-bank.js?v=54824451a6ccb72220b24e9086340868292d7b5e";
 
 function loadAttempt(key,quiz){
   try{
