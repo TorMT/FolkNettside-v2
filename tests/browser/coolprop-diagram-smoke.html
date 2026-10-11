@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><title>CoolProp diagram interaction smoke</title>
+  <style>
+    body{font-family:system-ui;margin:16px}
+    #stage{width:860px;height:500px;position:relative}
+    #stage canvas{width:100%;height:100%;display:block}
+    #stage .coolprop-diagram-overlay{position:absolute;inset:0;pointer-events:none}
+  </style>
+</head>
+<body data-status="running">
+  <div id="stage"></div><pre id="result">Running…</pre>
+  <script type="module">
+    import {mountCoolPropDiagram} from "../../src/tools/coolprop-diagram-view.js";
+    const assert=(check,message)=>{if(!check)throw Error(message)};
+    const engine={
+      props1SI(fluid,key){return {Tcrit:500,Pcrit:5e6,Ttriple:200}[key]},
+      propsSI(output,k1,a,k2,b){
+        const T=k1==="T"?a:k2==="T"?b:300;
+        const Q=k1==="Q"?a:k2==="Q"?b:.5;
+        const P=k1==="P"?a:k2==="P"?b:1e5+T*5000;
+        return {P,H:T*1000+Q*1e6,S:T*10+Q*5000,D:Math.max(1,900-(T-200)*1.2-Q*700)}[output];
+      }
+    };
+    let diagram;
+    try{
+      const host=document.querySelector("#stage");
+      diagram=mountCoolPropDiagram(host,{
+        engine,fluid:"Water",type:"log-ph",
+        states:[{valuesSI:{P:2e5,H:500000,T:350,S:7000,D:2}}],
+        options:{isotherms:true,isobars:true,quality:true}
+      });
+      const canvas=host.querySelector("canvas");
+      assert(canvas&&canvas.width>0&&canvas.height>0,"Canvas was not drawn");
+      assert(canvas.tabIndex===0,"Diagram is not keyboard focusable");
+      assert(diagram.datasets.some(x=>x.kind==="states"),"User state missing");
+      assert(diagram.datasets.some(x=>x.kind==="saturation"),"Saturation curve missing");
+      const original=diagram.getView();
+      canvas.focus();
+      canvas.dispatchEvent(new KeyboardEvent("keydown",{key:"+",bubbles:true,cancelable:true}));
+      const zoomed=diagram.getView();
+      assert(zoomed.xmax-zoomed.xmin<original.xmax-original.xmin,"Keyboard zoom in did not work");
+      canvas.dispatchEvent(new KeyboardEvent("keydown",{key:"-",bubbles:true,cancelable:true}));
+      assert(Math.abs(diagram.getView().xmax-original.xmax)<1e-7,"Keyboard zoom out failed");
+      const rect=canvas.getBoundingClientRect();
+      canvas.dispatchEvent(new WheelEvent("wheel",{
+        bubbles:true,cancelable:true,deltaY:-100,clientX:rect.left+rect.width/2,clientY:rect.top+rect.height/2
+      }));
+      assert(diagram.getView().xmax-diagram.getView().xmin<
+        original.xmax-original.xmin,"Wheel zoom did not work");
+      canvas.dispatchEvent(new KeyboardEvent("keydown",{key:"0",bubbles:true,cancelable:true}));
+      assert(Math.abs(diagram.getView().xmin-original.xmin)<1e-7,"Reset shortcut failed");
+      diagram.zoom(.8);
+      assert(diagram.getView().xmax-diagram.getView().xmin<
+        original.xmax-original.xmin,"Zoom button API did not work");
+      diagram.reset();
+      assert(Math.abs(diagram.getView().xmin-original.xmin)<1e-7,"Zoom reset button API did not work");
+      diagram.cleanup();
+      document.body.dataset.status="pass";
+      document.querySelector("#result").textContent="PASS: CoolProp diagram drawing, saturation, state markers, keyboard, zoom API, wheel and reset";
+    }catch(error){
+      diagram?.cleanup?.();
+      document.body.dataset.status="fail";
+      document.querySelector("#result").textContent=String(error?.stack||error);
+    }
+  </script>
+</body>
+</html>
