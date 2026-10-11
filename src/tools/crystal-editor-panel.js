@@ -1,4 +1,4 @@
-import {MANUAL_ATOMS} from "./crystal-analysis.js?v=8e0c15571814ec770413057e733c1fddcf4e4d02";
+import {MANUAL_ATOMS} from "./crystal-analysis.js?v=9a712f5cf5e5cbc34435fa7864ed6a73ae36fe17";
 
 function option(value,label,current){
   return "<option value=\""+value+"\""+(String(value)===String(current)?" selected":"")+">"+label+"</option>";

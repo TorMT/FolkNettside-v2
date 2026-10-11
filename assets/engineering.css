@@ -245,3 +245,15 @@
  .load-sketch-settings{grid-template-columns:repeat(2,minmax(0,1fr))}
  .load-sketch-toolbar .btn{white-space:normal;min-height:37px}
 }
+
+/* Sketch editing: selection controls are only visible for an active mass load. */
+.load-sketch-selection{display:flex;align-items:center;flex-wrap:wrap;gap:7px;
+  padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--surface-sunk)}
+.load-sketch-selection[hidden]{display:none}
+.load-sketch-selection>span{flex:1 1 100%;font-weight:650;font-size:11px;color:var(--ink)}
+.load-sketch-toolbar [data-sketch-undo]:disabled{opacity:.45;cursor:not-allowed}
+.load-sketch-selection [data-sketch-delete]{color:var(--danger)}
+.load-sketch-frame [data-sketch-area],.load-sketch-frame [data-sketch-point]{cursor:move}
+@media(max-width:500px){
+ .load-sketch-selection>.btn{flex:1 1 auto;white-space:normal;min-height:36px}
+}

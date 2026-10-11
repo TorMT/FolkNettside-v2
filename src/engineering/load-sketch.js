@@ -1,116 +1,294 @@
-import {areaLoadsFromLines} from "../hydro/hull-loading.js?v=8e0c15571814ec770413057e733c1fddcf4e4d02";
-import {pointWeightsFromLines} from "../hydro/point-loads.js?v=8e0c15571814ec770413057e733c1fddcf4e4d02";
-import {planBounds,planMetersToPixel,sketchAreaLoad,sketchPointMass,
-  areaLoadLine,pointMassLine,appendSketchLine} from "./load-sketch-core.js?v=8e0c15571814ec770413057e733c1fddcf4e4d02";
+import {areaLoadsFromLines,normaliseAreaLoad} from "../hydro/hull-loading.js?v=9a712f5cf5e5cbc34435fa7864ed6a73ae36fe17";
+import {pointWeightsFromLines} from "../hydro/point-loads.js?v=9a712f5cf5e5cbc34435fa7864ed6a73ae36fe17";
+import {
+  planBounds,planMetersToPixel,sketchAreaLoad,sketchPointMass,
+  areaLoadLine,pointMassLine,appendSketchLine,updateSketchDataRow,
+  moveSketchAreaLoad,moveSketchPointMass,editSketchAreaProperties,
+  editSketchPointProperties
+} from "./load-sketch-core.js?v=9a712f5cf5e5cbc34435fa7864ed6a73ae36fe17";
 
-/** The validated text fields remain authoritative; drawing only adds input rows. */
+/**
+ * The validated text fields remain authoritative. Editing changes only the
+ * selected data row; comments, other loads and line order are preserved.
+ * No mass is applied to a physics solver until the user chooses Apply/Calculate.
+ */
 export function mountLoadSketch(host,{bounds,areaInput,pointInput}={}){
   if(!host||!areaInput||!pointInput)return()=>{};
   try{planBounds(bounds)}catch(error){host.textContent=error.message;return()=>{}}
-  const width=600,height=300;
+  const width=600,height=300,size={width,height};
   host.innerHTML=
-    '<div class="load-sketch-toolbar" role="group" aria-label="Select load type">'+
+    '<div class="load-sketch-toolbar" role="group" aria-label="Load editing tools">'+
     '<button type="button" class="btn" data-sketch-mode="area" aria-pressed="true">Draw area load</button>'+
-    '<button type="button" class="btn" data-sketch-mode="point" aria-pressed="false">Place point mass</button></div>'+
+    '<button type="button" class="btn" data-sketch-mode="point" aria-pressed="false">Place point mass</button>'+
+    '<button type="button" class="btn" data-sketch-mode="edit" aria-pressed="false">Select / move</button>'+
+    '<button type="button" class="btn" data-sketch-undo disabled title="Undo the latest sketch change">Undo</button></div>'+
     '<div class="load-sketch-settings">'+
     '<label>Area density · t/m² <input type="number" step="any" min=".000001" data-sketch-density value=".10"></label>'+
     '<label>Point mass · t <input type="number" step="any" data-sketch-mass value="1"></label>'+
     '<label>Height Z · m <input type="number" step="any" data-sketch-z value="0"></label></div>'+
     '<div class="load-sketch-frame"><svg viewBox="0 0 600 300" preserveAspectRatio="none" class="load-sketch-svg"'+
-    ' aria-label="Hull top view: X right, Y up. Drag to draw rectangular area loads or click to place a mass point" role="img"></svg></div>'+
+    ' aria-label="Hull plan: X right, Y up. Draw an area, place a mass, or select and drag an existing load" role="img"></svg></div>'+
+    '<div class="load-sketch-selection" data-sketch-selection hidden>'+
+    '<span data-sketch-selection-label></span>'+
+    '<button type="button" class="btn" data-sketch-save>Update mass / height</button>'+
+    '<button type="button" class="btn" data-sketch-delete>Remove selected</button>'+
+    '<button type="button" class="btn" data-sketch-clear>Clear selection</button></div>'+
     '<p class="load-sketch-status" data-sketch-status aria-live="polite">Drag to draw an area. X rightwards, Y upwards; enter Z above.</p>'+
-    '<small>Projected plan rectangle, not an exact deck surface. Loads are masses, not applied forces. The original rows remain editable; press Apply/Calculate to solve.</small>';
+    '<small>Projected plan rectangle, not an exact deck surface. Loads are masses, not forces. '+
+    'The text fields remain editable. Select / move lets you drag existing loads; '+
+    'Apply/Calculate runs the actual mass and CG solver.</small>';
   const svg=host.querySelector("svg");
   const status=host.querySelector("[data-sketch-status]");
   const density=host.querySelector("[data-sketch-density]");
   const mass=host.querySelector("[data-sketch-mass]");
   const z=host.querySelector("[data-sketch-z]");
-  let mode="area",drag=null,disposed=false;
+  const selectionBar=host.querySelector("[data-sketch-selection]");
+  const selectionLabel=host.querySelector("[data-sketch-selection-label]");
+  const undoButton=host.querySelector("[data-sketch-undo]");
+  const toolbar=host.querySelector(".load-sketch-toolbar");
+  let mode="area",drag=null,selected=null,undo=null,disposed=false;
   const n=value=>Number(value.toFixed(3));
-  const point=event=>{
+  const inputFor=kind=>kind==="area"?areaInput:pointInput;
+  const lineFor=(kind,load)=>kind==="area"?areaLoadLine(load):pointMassLine(load);
+  function readInputs(){
+    // Reject invalid pre-existing rows before attempting to mutate either field.
+    return {
+      areas:areaLoadsFromLines(areaInput.value).map((a,index)=>normaliseAreaLoad(a,index)),
+      points:pointWeightsFromLines(pointInput.value).map((p,index)=>{
+        if(p.massTonnes===0)throw Error("Point mass line "+(index+1)+" cannot be zero");
+        return p;
+      })
+    };
+  }
+  function at(event){
     const rect=svg.getBoundingClientRect();
     if(rect.width<=0||rect.height<=0)throw Error("Drawing is not visible");
-    return {x:Math.max(0,Math.min(width,(event.clientX-rect.left)/rect.width*width)),
-      y:Math.max(0,Math.min(height,(event.clientY-rect.top)/rect.height*height))};
-  };
+    return {
+      x:Math.max(0,Math.min(width,(event.clientX-rect.left)/rect.width*width)),
+      y:Math.max(0,Math.min(height,(event.clientY-rect.top)/rect.height*height))
+    };
+  }
+  function currentSelection(loads){
+    if(!selected)return null;
+    const list=selected.kind==="area"?loads.areas:loads.points;
+    return list[selected.index]||null;
+  }
+  function refreshSelection(loads){
+    const load=currentSelection(loads);
+    if(!load){selected=null;selectionBar.hidden=true;return}
+    selectionBar.hidden=false;
+    selectionLabel.textContent=(selected.kind==="area"?"Area load ":"Point mass ")+(selected.index+1);
+  }
   function render(){
     if(disposed)return;
-    let areas=[],points=[];
-    try{areas=areaLoadsFromLines(areaInput.value);points=pointWeightsFromLines(pointInput.value)}
-    catch(error){status.textContent="Input preview: "+error.message+". Original text preserved."}
+    let loads={areas:[],points:[]};
+    try{loads=readInputs()}
+    catch(error){
+      status.textContent="Invalid load rows: "+error.message+". Correct the text before editing; no data was changed.";
+      selected=null;
+    }
     const b=planBounds(bounds);
     const grid=[];
     for(let i=1;i<5;i++){
       const x=i/5*width,y=i/5*height;
       grid.push('<path d="M'+n(x)+' 0V'+height+'M0 '+n(y)+'H'+width+'" stroke="currentColor" opacity=".10"/>');
     }
-    const boxes=areas.map((area,index)=>{
-      const tl=planMetersToPixel(area.x0,area.y1,bounds,{width,height});
-      const br=planMetersToPixel(area.x1,area.y0,bounds,{width,height});
+    const boxes=loads.areas.map((load,index)=>{
+      const tl=planMetersToPixel(load.x0,load.y1,bounds,size);
+      const br=planMetersToPixel(load.x1,load.y0,bounds,size);
+      const active=selected?.kind==="area"&&selected.index===index;
       return '<rect data-sketch-area="'+index+'" x="'+n(tl.x)+'" y="'+n(tl.y)+
         '" width="'+n(br.x-tl.x)+'" height="'+n(br.y-tl.y)+
-        '" fill="var(--accent)" fill-opacity=".17" stroke="var(--accent)" stroke-width="2"/>';
+        '" fill="var(--accent)" fill-opacity="'+(active?".34":".17")+
+        '" stroke="var(--accent)" stroke-width="'+(active?4:2)+'"/>';
     });
-    const dots=points.map((massPoint,index)=>{
-      const p=planMetersToPixel(massPoint.x,massPoint.y,bounds,{width,height});
+    const dots=loads.points.map((load,index)=>{
+      const p=planMetersToPixel(load.x,load.y,bounds,size);
+      const active=selected?.kind==="point"&&selected.index===index;
       return '<circle data-sketch-point="'+index+'" cx="'+n(p.x)+'" cy="'+n(p.y)+
-        '" r="5" fill="var(--danger)" stroke="var(--surface)" stroke-width="2"/>';
+        '" r="'+(active?8:5)+'" fill="var(--danger)" stroke="var(--surface)" stroke-width="2"/>';
     });
     svg.innerHTML='<rect width="'+width+'" height="'+height+'" fill="var(--surface-sunk)"/>'+
       grid.join("")+boxes.join("")+dots.join("")+
-      '<path d="M1 1H599V299H1Z" fill="none" stroke="var(--line-strong)" stroke-width="2"/>'+
-      '<text x="12" y="19" font-size="12" fill="var(--ink)">Y '+n(b.y1)+' m</text>'+
-      '<text x="12" y="292" font-size="12" fill="var(--ink)">Y '+n(b.y0)+' m</text>'+
-      '<text x="12" y="37" font-size="11" fill="var(--ink-2)">X '+n(b.x0)+' m</text>'+
-      '<text x="588" y="292" text-anchor="end" font-size="12" fill="var(--ink)">X '+n(b.x1)+' m</text>'+
-      '<g data-sketch-preview></g>';
+      '<path d="M1 1H599V299H1Z" fill="none" stroke="var(--line-strong)" stroke-width="2" pointer-events="none"/>'+
+      '<text x="12" y="19" font-size="12" fill="var(--ink)" pointer-events="none">Y '+n(b.y1)+' m</text>'+
+      '<text x="12" y="292" font-size="12" fill="var(--ink)" pointer-events="none">Y '+n(b.y0)+' m</text>'+
+      '<text x="12" y="37" font-size="11" fill="var(--ink-2)" pointer-events="none">X '+n(b.x0)+' m</text>'+
+      '<text x="588" y="292" text-anchor="end" font-size="12" fill="var(--ink)" pointer-events="none">X '+n(b.x1)+' m</text>'+
+      '<g data-sketch-preview pointer-events="none"></g>';
+    refreshSelection(loads);
+    undoButton.disabled=!undo;
   }
-  const onMode=event=>{
+  function select(kind,index,loads){
+    selected={kind,index};
+    const load=currentSelection(loads);
+    if(!load)throw Error("Selected load no longer exists");
+    z.value=String(load.z);
+    if(kind==="area")density.value=String(load.densityTonnesPerM2);
+    else mass.value=String(load.massTonnes);
+    render();
+    status.textContent="Selected "+(kind==="area"?"area load ":"point mass ")+(index+1)+
+      ". Drag to move, update mass / height, or remove. Click Apply/Calculate afterwards.";
+  }
+  function mutate(kind,index,updated,previousText){
+    const input=inputFor(kind);
+    if(input.value!==previousText)throw Error("Load text changed while editing. Select again.");
+    const next=updateSketchDataRow(previousText,index,updated===null?null:lineFor(kind,updated));
+    // Validate the entire resulting field before committing.
+    if(kind==="area")areaLoadsFromLines(next).map((a,i)=>normaliseAreaLoad(a,i));
+    else{
+      const rows=pointWeightsFromLines(next);
+      if(rows.some(p=>p.massTonnes===0))throw Error("A point mass cannot be zero");
+    }
+    if(next===previousText)return;
+    undo={input,before:previousText,after:next};
+    input.value=next;
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+  }
+  function onMode(event){
     const button=event.target.closest("[data-sketch-mode]");
-    if(!button)return;
-    mode=button.dataset.sketchMode;
-    host.querySelectorAll("[data-sketch-mode]").forEach(b=>
-      b.setAttribute("aria-pressed",String(b.dataset.sketchMode===mode)));
-    status.textContent=mode==="area"?
-      "Drag a rectangle to add a mass-per-area patch at the chosen Z.":
-      "Click to place a mass point. Negative point masses represent removed weight.";
-  };
-  function preview(at){
+    if(button){
+      mode=button.dataset.sketchMode;
+      selected=null;drag=null;
+      host.querySelectorAll("[data-sketch-mode]").forEach(b=>
+        b.setAttribute("aria-pressed",String(b.dataset.sketchMode===mode)));
+      render();
+      status.textContent=mode==="area"?"Drag a rectangle to add an area mass at Z.":
+        mode==="point"?"Click to place a point mass. Negative tonnes remove mass.":
+        "Click an existing area or point to select; drag it to change X/Y.";
+      return;
+    }
+    if(!event.target.closest("[data-sketch-undo]"))return;
+    if(!undo)return;
+    if(undo.input.value!==undo.after){
+      status.textContent="Cannot undo: the load rows were edited since the last sketch change.";
+      undo=null;render();return;
+    }
+    const saved=undo;
+    undo=null;
+    saved.input.value=saved.before;
+    saved.input.dispatchEvent(new Event("input",{bubbles:true}));
+    selected=null;render();
+    status.textContent="Last sketch change undone. Recalculate to update the analysis.";
+  }
+  function preview(to){
     const target=svg.querySelector("[data-sketch-preview]");
     if(!target||!drag)return;
-    target.innerHTML='<rect x="'+n(Math.min(drag.x,at.x))+'" y="'+n(Math.min(drag.y,at.y))+
-      '" width="'+n(Math.abs(at.x-drag.x))+'" height="'+n(Math.abs(at.y-drag.y))+
-      '" fill="var(--accent)" fill-opacity=".30" stroke="var(--accent)" stroke-dasharray="5 4" stroke-width="2"/>';
+    const start=drag.start;
+    try{
+      if(drag.kind==="moving"&&drag.load){
+        const moved=drag.selected.kind==="area"?
+          moveSketchAreaLoad(drag.load,start,to,bounds,size):
+          moveSketchPointMass(drag.load,to,bounds,size);
+        if(drag.selected.kind==="area"){
+          const tl=planMetersToPixel(moved.x0,moved.y1,bounds,size);
+          const br=planMetersToPixel(moved.x1,moved.y0,bounds,size);
+          target.innerHTML='<rect x="'+n(tl.x)+'" y="'+n(tl.y)+'" width="'+n(br.x-tl.x)+
+            '" height="'+n(br.y-tl.y)+'" fill="none" stroke="var(--accent)" stroke-dasharray="5 4" stroke-width="3"/>';
+        }else{
+          const p=planMetersToPixel(moved.x,moved.y,bounds,size);
+          target.innerHTML='<circle cx="'+n(p.x)+'" cy="'+n(p.y)+
+            '" r="10" fill="none" stroke="var(--danger)" stroke-dasharray="5 4" stroke-width="3"/>';
+        }
+      }else if(drag.kind==="area"){
+        target.innerHTML='<rect x="'+n(Math.min(start.x,to.x))+'" y="'+n(Math.min(start.y,to.y))+
+          '" width="'+n(Math.abs(to.x-start.x))+'" height="'+n(Math.abs(to.y-start.y))+
+          '" fill="var(--accent)" fill-opacity=".30" stroke="var(--accent)" stroke-dasharray="5 4" stroke-width="2"/>';
+      }
+    }catch(error){status.textContent=error.message}
   }
   function onDown(event){
     if(event.button!==0||disposed)return;
-    try{drag=point(event);svg.setPointerCapture?.(event.pointerId);if(mode==="area")preview(drag)}
-    catch(error){status.textContent=error.message}
+    try{
+      const start=at(event);
+      const loads=readInputs();
+      if(mode==="edit"){
+        const rect=event.target.closest("[data-sketch-area]");
+        const dot=event.target.closest("[data-sketch-point]");
+        if(!rect&&!dot){
+          selected=null;render();
+          status.textContent="Choose an existing colored rectangle or red mass point.";
+          return;
+        }
+        const kind=rect?"area":"point",index=Number((rect||dot).dataset[rect?"sketchArea":"sketchPoint"]);
+        select(kind,index,loads);
+        drag={kind:"moving",start,selected:{kind,index},
+          load:kind==="area"?loads.areas[index]:loads.points[index],
+          areaText:areaInput.value,pointText:pointInput.value};
+      }else drag={kind:mode,start};
+      svg.setPointerCapture?.(event.pointerId);
+      if(mode==="area")preview(start);
+    }catch(error){drag=null;status.textContent=error.message}
   }
-  function onMove(event){if(drag&&mode==="area")preview(point(event))}
+  function onMove(event){
+    if(!drag)return;
+    try{preview(at(event))}catch(error){status.textContent=error.message}
+  }
   function onUp(event){
     if(!drag||disposed)return;
-    const start=drag;drag=null;
+    const current=drag;drag=null;
     try{
-      const end=point(event);
-      if(mode==="area"){
-        const area=sketchAreaLoad(start,end,bounds,density.value,z.value,{width,height});
-        areaInput.value=appendSketchLine(areaInput.value,areaLoadLine(area));
+      const end=at(event),distance=Math.hypot(end.x-current.start.x,end.y-current.start.y);
+      if(current.kind==="moving"){
+        if(distance<3){render();return}
+        const {kind,index}=current.selected;
+        if(areaInput.value!==current.areaText||pointInput.value!==current.pointText)
+          throw Error("Load rows changed during dragging; please select the load again");
+        const relocated=kind==="area"?
+          moveSketchAreaLoad(current.load,current.start,end,bounds,size):
+          moveSketchPointMass(current.load,end,bounds,size);
+        mutate(kind,index,relocated,inputFor(kind).value);
+        status.textContent="Moved "+(kind==="area"?"area load ":"point mass ")+(index+1)+
+          " without changing mass or Z. Click Apply/Calculate to solve.";
+      }else if(current.kind==="area"){
+        const area=sketchAreaLoad(current.start,end,bounds,density.value,z.value,size);
+        readInputs();
+        const before=areaInput.value;
+        undo={input:areaInput,before,after:appendSketchLine(before,areaLoadLine(area))};
+        areaInput.value=undo.after;
         areaInput.dispatchEvent(new Event("input",{bubbles:true}));
-        status.textContent="Added "+area.areaM2.toFixed(2)+" m², "+area.massTonnes.toFixed(3)+" t at Z="+area.z+" m. Apply/Calculate to solve.";
-      }else{
-        const located=sketchPointMass(end,bounds,mass.value,z.value,{width,height});
-        pointInput.value=appendSketchLine(pointInput.value,pointMassLine(located));
+        status.textContent="Added "+area.areaM2.toFixed(2)+" m², "+
+          area.massTonnes.toFixed(3)+" t at Z="+area.z+" m. Click Apply/Calculate.";
+      }else if(current.kind==="point"){
+        const added=sketchPointMass(end,bounds,mass.value,z.value,size);
+        readInputs();
+        const before=pointInput.value;
+        undo={input:pointInput,before,after:appendSketchLine(before,pointMassLine(added))};
+        pointInput.value=undo.after;
         pointInput.dispatchEvent(new Event("input",{bubbles:true}));
-        status.textContent="Added "+located.massTonnes+" t at X="+located.x.toFixed(2)+
-          ", Y="+located.y.toFixed(2)+", Z="+located.z+" m. Apply/Calculate to solve.";
+        status.textContent="Added "+added.massTonnes+" t at X="+added.x.toFixed(2)+
+          ", Y="+added.y.toFixed(2)+", Z="+added.z+" m. Click Apply/Calculate.";
       }
-    }catch(error){status.textContent="Load not added: "+error.message}
+    }catch(error){status.textContent="Load unchanged: "+error.message}
+    render();
+  }
+  function onAction(event){
+    if(event.target.closest("[data-sketch-clear]")){
+      selected=null;render();status.textContent="Selection cleared.";return;
+    }
+    if(!selected)return;
+    if(!event.target.closest("[data-sketch-save],[data-sketch-delete]"))return;
+    try{
+      const loads=readInputs(),load=currentSelection(loads);
+      if(!load)throw Error("The selected load no longer exists");
+      const {kind,index}=selected,original=inputFor(kind).value;
+      if(event.target.closest("[data-sketch-delete]")){
+        mutate(kind,index,null,original);
+        selected=null;
+        status.textContent="Selected load removed; click Apply/Calculate to recalculate.";
+      }else{
+        const updated=kind==="area"?
+          editSketchAreaProperties(load,density.value,z.value):
+          editSketchPointProperties(load,mass.value,z.value);
+        mutate(kind,index,updated,original);
+        status.textContent="Mass / elevation updated. Click Apply/Calculate.";
+      }
+    }catch(error){status.textContent="Load unchanged: "+error.message}
     render();
   }
   function onCancel(){drag=null;render()}
-  const toolbar=host.querySelector(".load-sketch-toolbar");
   toolbar.addEventListener("click",onMode);
+  selectionBar.addEventListener("click",onAction);
   svg.addEventListener("pointerdown",onDown);
   svg.addEventListener("pointermove",onMove);
   svg.addEventListener("pointerup",onUp);
@@ -121,6 +299,7 @@ export function mountLoadSketch(host,{bounds,areaInput,pointInput}={}){
   return ()=>{
     disposed=true;
     toolbar.removeEventListener("click",onMode);
+    selectionBar.removeEventListener("click",onAction);
     svg.removeEventListener("pointerdown",onDown);
     svg.removeEventListener("pointermove",onMove);
     svg.removeEventListener("pointerup",onUp);
