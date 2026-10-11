@@ -311,6 +311,7 @@ export function mountCoolPropDiagram(container,{engine,fluid,type="log-ph",state
     datasets,
     reset,
     zoom,
+    getView:()=>({...view}),
     downloadPNG(filename="coolprop-diagram.png"){
       canvas.toBlob(blob=>{
         if(!blob)return;
