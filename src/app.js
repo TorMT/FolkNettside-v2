@@ -47,6 +47,7 @@ import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js"
 import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js";
 import {mountFrame3D} from "./engineering/frame-3d.js";
 import {solveHullGirder} from "./structure/hull-girder.js";
+import {parseGirderStations} from "./structure/girder-profiles.js";
 import {girderResponseCSV,girderLoadsCSV,girderReactionsCSV} from "./structure/girder-export.js";
 import {projectPressureToBeam} from "./structure/hydro-beam-transfer.js";
 import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js";
@@ -121,7 +122,7 @@ let girderRunRequested=false;
 let girderForm={hullMassTonnes:"",cg:[0,0,0],pointText:"",areaText:"",
   eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false,
   loadingMode:"gravity-only",supportModel:"pinned-roller",pressureDraft:null,
-  pressureDensity:null,pressureSections:12};
+  pressureDensity:null,pressureSections:12,stiffnessText:"",massProfileText:""};
 let girderComputeError="";
 let structureLoadKn=-20;
 let structureLoadPosition=3;
@@ -224,7 +225,9 @@ function selectEngineeringModel(id){
   propulsionInitialized=false;
   girderRunRequested=false;girderComputeError="";
   girderForm={hullMassTonnes:"",cg:[0,0,0],pointText:"",areaText:"",
-    eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false};
+    eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false,
+     loadingMode:"gravity-only",supportModel:"pinned-roller",pressureDraft:null,
+     pressureDensity:null,pressureSections:12,stiffnessText:"",massProfileText:""};
   return true;
 }
 
@@ -1092,7 +1095,9 @@ async function engineeringPage(){
             areaLoads:areaLoadsFromLines(derived.areaText),
             E:Number(derived.eGpa)*1e9,
             I:Number(derived.iM4),extremeFiberM:Number(derived.extremeFiberM),
-            segments:Number(derived.segments)
+            segments:Number(derived.segments),
+            stiffnessStations:parseGirderStations(derived.stiffnessText,{kind:"stiffness"}),
+            massStations:parseGirderStations(derived.massProfileText,{kind:"mass"})
           });
           girderComputeError="";
         }catch(error){
@@ -1178,6 +1183,8 @@ async function engineeringPage(){
           cg:["x","y","z"].map(axis=>Number(app.querySelector("#girder-cg-"+axis).value)),
           pointText:app.querySelector("#girder-points").value,
           areaText:app.querySelector("#girder-areas").value,
+          stiffnessText:app.querySelector("#girder-stiffness-profile").value,
+          massProfileText:app.querySelector("#girder-mass-profile").value,
           eGpa:app.querySelector("#girder-e").value,
           iM4:app.querySelector("#girder-i").value,
           extremeFiberM:app.querySelector("#girder-c").value,
