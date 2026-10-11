@@ -43,7 +43,7 @@ test("placing point mass adds correct height and supports signed removal",()=>{
 });
 
 test("sketch does not write tiny boxes, blank heights, zero point masses, or invalid hull bounds",()=>{
- assert.throws(()=>sketchAreaLoad({x:100,y:100},{x:100,y:105},bounds,.1,1),/larger/);
+ assert.throws(()=>sketchAreaLoad({x:100,y:100},{x:100.1,y:105},bounds,.1,1),/larger/);
  assert.throws(()=>sketchAreaLoad({x:100,y:100},{x:200,y:205},bounds,.1,""),/required/);
  assert.throws(()=>sketchAreaLoad({x:100,y:100},{x:200,y:205},bounds,0,1),/positive/);
  assert.throws(()=>sketchPointMass({x:100,y:100},bounds,0,1),/nonzero/);
