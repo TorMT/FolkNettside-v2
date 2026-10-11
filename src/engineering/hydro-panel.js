@@ -1,6 +1,7 @@
 import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js";
 import {gzMetrics} from "../hydro/gz.js";
 import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js";
+import {hydroForcesHTML} from "./hydro-force-diagram.js";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -254,6 +255,8 @@ export function hydroPanelHTML({
     results:`
       <div class="hydro-results-wrap">
         ${numericalSummary}
+        ${hydroForcesHTML({modelDocument,result,densityKgM3:density,draft:clamped,
+          pointWeightSummary,hullMassText,kg,lcg,tcg})}
         ${pointWeightSummary&&loadedGM?`<section class="hydro-loaded-gm" aria-label="Recalculated loading condition">
           <strong>With combined loads · recalculated loaded draft</strong>
           <div class="hydro-loaded-gm-grid">
