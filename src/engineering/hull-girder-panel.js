@@ -114,7 +114,9 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
     supportModel:caseInput.supportModel||"pinned-roller",
     pressureDraft:caseInput.pressureDraft??1,
     pressureDensity:caseInput.pressureDensity??1025,
-    pressureSections:caseInput.pressureSections??12
+    pressureSections:caseInput.pressureSections??12,
+    stiffnessText:caseInput.stiffnessText||"",
+    massProfileText:caseInput.massProfileText||""
   };
   const summary=result?`
     <strong>Global girder · ${result.buoyancyTransfer?"pressure + gravity":"gravity-only fixture"}</strong>
@@ -125,6 +127,9 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
     <div class="readout"><span>Force equilibrium error</span><strong>${fmt(result.equilibriumAudit?.forceResidualN,5)} N</strong></div>
     <div class="readout"><span>Pitch-moment equilibrium error</span><strong>${fmt(result.equilibriumAudit?.momentResidualNm,5)} N·m</strong></div>
     <div class="readout"><span>Maximum deflection location</span><strong>X = ${fmt(result.peakDeflectionX,3)} m</strong></div>
+    <div class="readout"><span>Baseline mass LCG from stations</span><strong>${fmt(result.baselineAudit?.centerX,3)} m</strong></div>
+    <div class="readout"><span>Baseline station mass total</span><strong>${fmt(result.baselineAudit?.totalMassTonnes,3)} t</strong></div>
+    <div class="readout"><span>Longitudinal section stations</span><strong>${result.stiffnessStations?.length||1}</strong></div>
     ${buoyancySummaryHTML(result)}`:
     `<strong>Global girder study · inputs required</strong>
       <p class="muted">Assign measured hull mass, E, structural I and neutral-axis distance. Geometry alone cannot determine structural stiffness.</p>`;
@@ -167,6 +172,16 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
       <label><span>Neutral axis z, m</span><input id="girder-neutral-z" type="number" step=".1" value="${esc(values.neutralZ)}"></label>
       <label><span>Minimum beam divisions</span><input id="girder-segments" type="number" min="2" max="50" step="1" value="${esc(values.segments)}"></label>
     </div>
+    <details class="hull-girder-profiles">
+      <summary>Longitudinal beam profiles · E(x), I(x), baseline mass(x)</summary>
+      <p class="muted">Optional complete X-station tables, one row per interval. When empty, constant E/I and uniform baseline hull mass are used. If entered, each profile must cover the full structural X span without gaps or overlaps. Segment boundaries become actual FEM nodes.</p>
+      <label class="field"><span>Structural sections: x0 [m], x1 [m], E [GPa], I [m⁴]</span>
+        <textarea id="girder-stiffness-profile" spellcheck="false" rows="4" placeholder="e.g. 0, 5, 210, 0.10&#10;5, 10, 210, 0.15">${esc(values.stiffnessText)}</textarea></label>
+      <p class="muted">Provide measured or separately calculated longitudinal section properties. A graphical hull skin does not define plate thickness, bulkheads or steel section inertia.</p>
+      <label class="field"><span>Baseline hull mass stations: x0 [m], x1 [m], mass [t/m]</span>
+        <textarea id="girder-mass-profile" spellcheck="false" rows="4" placeholder="e.g. 0, 5, 2&#10;5, 10, 8">${esc(values.massProfileText)}</textarea></label>
+      <p class="muted">The mass integral must equal baseline hull mass above; the profile LCG must equal hull CG X. Added masses stay separate, including graphical area loads. Profiles are never normalized to fit input automatically.</p>
+    </details>
     <button class="btn" id="girder-run" type="button">Calculate hull girder FEM</button>
     <button class="btn" id="girder-frame-example" type="button">Show legacy frame reference</button>
     <label class="field"><span>3D color mode</span><select id="girder-color-mode">
@@ -174,6 +189,7 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
        <option value="off">Normal model color</option>
     </select></label>
     ${error?`<p class="hydro-solve-error" role="alert">${esc(error)}</p>`:""}
+    <p class="muted">If sectional or mass profile rows are provided, the sections must cover the full longitudinal span and pass independent mass and LCG validation. Baseline mass is never inferred from water displacement.</p>
     <p class="muted">Beam E, I, supports and baseline distributed weight are engineer-defined. End restraints either represent a test fixture with reported reactions or numerical rigid-body stabilization in the strictly balanced floating mode. Do not infer hull strength from solid STL skin.</p>`;
   const results=result?`<div class="hull-fem-results">
     <h3>Stress contours · longitudinal beam approximation</h3>
