@@ -10,7 +10,8 @@ const host=document.querySelector("#host"),result=document.querySelector("#resul
 const assert=(x,msg)=>{if(!x)throw new Error(msg)};
 const tick=()=>new Promise(resolve=>setTimeout(resolve,50));
 class FakeSession{
- constructor(){this.calls=[];this.stops=0;this.closed=false}
+ constructor(){this.calls=[];this.stops=0;this.closed=false;this.mounted=[]}
+ async mount(files){this.mounted.push(...files);return {mounted:files.length}}
  async run(code,{status}={}){
    this.calls.push(code);status?.("Mock Python ready");
    return {stdout:"Executed: "+code.slice(0,22),stderr:"",figures:[]};
@@ -38,6 +39,28 @@ try{
  assert(latest.stops===1,"PyStop did not reset session");
  host.querySelector("#python-restart").click();
  assert(latest.stops===2,"Python reset failed");
+ // Directory pickers include an enclosing folder name which must not
+ // become an extra import namespace inside Pyodide's /workspace.
+ const filesInput=host.querySelector("#python-local-folder");
+ const packageFiles=[
+   ["engineering-project/main.py","print('main')"],
+   ["engineering-project/samplelib/__init__.py",""],
+   ["engineering-project/samplelib/geometry/loads.py","value=42"]
+ ];
+ const transfer=new DataTransfer();
+ for(const [path,body] of packageFiles){
+   const f=new File([body],path.split("/").at(-1),{type:"text/x-python"});
+   Object.defineProperty(f,"webkitRelativePath",{value:path});
+   transfer.items.add(f);
+ }
+ filesInput.files=transfer.files;
+ filesInput.dispatchEvent(new Event("change",{bubbles:true}));
+ for(let i=0;i<40&&latest.mounted.length!==3;i++)await tick();
+ assert(latest.mounted.length===3,"Directory files did not mount");
+ assert(latest.mounted[0].name==="main.py","Root file has unwanted project prefix");
+ assert(latest.mounted[2].name==="samplelib/geometry/loads.py",
+   "Nested imported package path was not retained");
+
  a.cleanup();assert(latest.closed,"PyView failed to clean its Worker");
 
  const noteResource={kind:"FILE",path:"../../examples/semesters/5/TMR4182/Kok/hydro-demo.ipynb",label:"Hydro.ipynb"};
