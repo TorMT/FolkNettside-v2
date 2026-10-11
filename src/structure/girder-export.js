@@ -33,3 +33,19 @@ export function girderReactionsCSV(girder){
   return table(["x_m","vertical_support_reaction_N"],
     girder.reactions.map(r=>[r.x,r.verticalN]));
 }
+
+/** Audit the actually assigned per-element stiffness and baseline mass law. */
+export function girderSectionsCSV(girder){
+  if(!girder?.frame?.elements?.length||!girder?.baselineAudit?.stations?.length)
+    throw Error("Calculate a structural section and mass profile before export");
+  const elements=girder.frame.elements,nodes=girder.frame.nodes,
+    stations=girder.baselineAudit.stations;
+  return table(["x_from_m","x_to_m","young_modulus_Pa",
+    "section_inertia_m4","bending_rigidity_N_m2","baseline_mass_t_per_m"],
+    elements.map((e,i)=>{
+      const left=nodes[i].x,right=nodes[i+1].x,mid=(left+right)/2;
+      const mass=stations.find(s=>mid>=s.x0&&mid<=s.x1);
+      if(!mass)throw Error("Structural mass profile does not cover exported beam element");
+      return [left,right,e.E,e.I,e.E*e.I,mass.tonnesPerM];
+    }));
+}

@@ -335,3 +335,19 @@
  .hull-fem-hydro-controls .hydro-cg-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  .hull-fem-hydro-controls{padding:10px 9px}
 }
+
+/* Hull-girder section and baseline weight stations. */
+.hull-girder-profiles{margin:12px 0;padding:10px 11px;
+  border:1px solid var(--line);border-radius:10px;min-width:0;background:var(--surface-sunk)}
+.hull-girder-profiles summary{cursor:pointer;color:var(--ink);font-size:12px;font-weight:650}
+.hull-girder-profiles[open] summary{padding-bottom:8px;border-bottom:1px solid var(--line)}
+.hull-girder-profiles .field{margin:11px 0 7px}
+.hull-girder-profiles textarea{width:100%;min-width:0;box-sizing:border-box;
+  resize:vertical;min-height:84px;background:var(--surface);color:var(--ink);
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;
+  border:1px solid var(--line);border-radius:7px;padding:9px}
+.hull-girder-profiles p{font-size:10px;line-height:1.55;color:var(--ink-2);margin:7px 0}
+.hull-fem-profile-chart{display:block;width:100%;height:auto;max-height:290px;
+  background:var(--surface-sunk);border:1px solid var(--line);border-radius:9px}
+@media(max-width:760px){.hull-girder-profiles{padding:9px}
+  .hull-girder-profiles textarea{font-size:12px;min-height:110px}}

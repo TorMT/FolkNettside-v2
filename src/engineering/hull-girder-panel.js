@@ -1,4 +1,4 @@
-import {stressRGB,interpolateGirderAt} from "../structure/hull-contours.js?v=c7d3fea039731151b509ab0835d2f32708518698";
+import {stressRGB,interpolateGirderAt} from "../structure/hull-contours.js?v=8e80d2f316da68e351e1bf838a61f2f4d962c804";
 
 const esc=v=>String(v??"").replace(/[&<>"']/g,ch=>({
   "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
@@ -64,6 +64,42 @@ export function hullGirderActionDiagram(girder,{metric="moment",width=880,height
     '<text x="'+(width-pad)+'" y="'+(height-8)+'" text-anchor="end" font-size="11" fill="var(--ink-2)">X '+fmt(x1,2)+'</text>'+
     '</svg>';
 }
+/** A traceable section diagram; values are manually specified, not inferred. */
+export function hullGirderProfileDiagram(girder,{width=880,height=275}={}){
+  const elements=girder?.frame?.elements||[];
+  const nodes=girder?.frame?.nodes||[];
+  const mass= girder?.baselineAudit?.stations||[];
+  if(!elements.length||nodes.length<2||!mass.length)return "";
+  const x0=nodes[0].x,x1=nodes.at(-1).x, pad=46,scale=(width-2*pad)/(x1-x0);
+  const intervals=elements.map((e,i)=>{
+    const left=nodes[i].x,right=nodes[i+1].x,mid=(left+right)/2;
+    const station=mass.find(row=>mid>=row.x0&&mid<=row.x1);
+    return {left,right,EI:e.E*e.I,tonnesPerM:station?.tonnesPerM??0};
+  });
+  const maxEI=Math.max(1,...intervals.map(r=>r.EI));
+  const maxMass=Math.max(.0001,...intervals.map(r=>r.tonnesPerM));
+  const EIbars=[],massBars=[];
+  for(const station of intervals){
+    const x=pad+(station.left-x0)*scale;
+    const w=(station.right-station.left)*scale;
+    const upper=station.EI/maxEI*65,lower=station.tonnesPerM/maxMass*65;
+    EIbars.push('<rect x="'+x.toFixed(2)+'" y="'+(96-upper).toFixed(2)+
+      '" width="'+w.toFixed(2)+'" height="'+upper.toFixed(2)+'" fill="var(--accent)" opacity=".75"/>');
+    massBars.push('<rect x="'+x.toFixed(2)+'" y="'+(216-lower).toFixed(2)+
+      '" width="'+w.toFixed(2)+'" height="'+lower.toFixed(2)+'" fill="var(--danger)" opacity=".7"/>');
+  }
+  return '<svg class="hull-fem-profile-chart" viewBox="0 0 '+width+' '+height+'" role="img" '+
+    'aria-label="Engineering-entered longitudinal EI bending stiffness and hull baseline mass per metre">'+
+    '<text x="'+pad+'" y="17" fill="var(--accent)" font-size="12">EI(x) bending stiffness · N·m²</text>'+
+    '<text x="'+(width-pad)+'" y="17" text-anchor="end" fill="var(--ink-2)" font-size="11">Max '+fmt(maxEI,0)+'</text>'+
+    '<path d="M'+pad+' 96H'+(width-pad)+'" stroke="var(--line)"/>'+EIbars.join("")+
+    '<text x="'+pad+'" y="135" fill="var(--danger)" font-size="12">Baseline mass(x) · tonnes/m</text>'+
+    '<text x="'+(width-pad)+'" y="135" text-anchor="end" fill="var(--ink-2)" font-size="11">Max '+fmt(maxMass,3)+'</text>'+
+    '<path d="M'+pad+' 216H'+(width-pad)+'" stroke="var(--line)"/>'+massBars.join("")+
+    '<text x="'+pad+'" y="260" fill="var(--ink-2)" font-size="11">X '+fmt(x0,2)+' m</text>'+
+    '<text x="'+(width-pad)+'" y="260" text-anchor="end" fill="var(--ink-2)" font-size="11">X '+fmt(x1,2)+' m</text>'+
+    '</svg>';
+}
 export function hullGirderLoadDiagram(girder,{width=880,height=245}={}){
   if(!girder?.lineLoads?.length)return "";
   const rows=girder.lineLoads;
@@ -114,17 +150,23 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
     supportModel:caseInput.supportModel||"pinned-roller",
     pressureDraft:caseInput.pressureDraft??1,
     pressureDensity:caseInput.pressureDensity??1025,
-    pressureSections:caseInput.pressureSections??12
+    pressureSections:caseInput.pressureSections??12,
+    stiffnessText:caseInput.stiffnessText||"",
+    massProfileText:caseInput.massProfileText||""
   };
   const summary=result?`
     <strong>Global girder · ${result.buoyancyTransfer?"pressure + gravity":"gravity-only fixture"}</strong>
     <div class="readout"><span>Mass (including loads)</span><strong>${fmt(result.loading.totalMassTonnes,2)} t</strong></div>
     <div class="readout"><span>Peak |σx| · beam fibre</span><strong>${fmt(result.maxStressPa/1e6,2)} MPa</strong></div>
+    <div class="readout"><span>Peak stress at X</span><strong>${fmt(result.maxStressX,3)} m</strong></div>
     <div class="readout"><span>Peak deflection</span><strong>${fmt(result.maxDeflectionM*1000,3)} mm</strong></div>
     <div class="readout"><span>Max bending moment</span><strong>${fmt(result.maxMomentNm/1000,2)} kN·m</strong></div>
     <div class="readout"><span>Force equilibrium error</span><strong>${fmt(result.equilibriumAudit?.forceResidualN,5)} N</strong></div>
     <div class="readout"><span>Pitch-moment equilibrium error</span><strong>${fmt(result.equilibriumAudit?.momentResidualNm,5)} N·m</strong></div>
     <div class="readout"><span>Maximum deflection location</span><strong>X = ${fmt(result.peakDeflectionX,3)} m</strong></div>
+    <div class="readout"><span>Baseline mass LCG from stations</span><strong>${fmt(result.baselineAudit?.centerX,3)} m</strong></div>
+    <div class="readout"><span>Baseline station mass total</span><strong>${fmt(result.baselineAudit?.totalMassTonnes,3)} t</strong></div>
+    <div class="readout"><span>Longitudinal section stations</span><strong>${result.stiffnessStations?.length||1}</strong></div>
     ${buoyancySummaryHTML(result)}`:
     `<strong>Global girder study · inputs required</strong>
       <p class="muted">Assign measured hull mass, E, structural I and neutral-axis distance. Geometry alone cannot determine structural stiffness.</p>`;
@@ -167,6 +209,16 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
       <label><span>Neutral axis z, m</span><input id="girder-neutral-z" type="number" step=".1" value="${esc(values.neutralZ)}"></label>
       <label><span>Minimum beam divisions</span><input id="girder-segments" type="number" min="2" max="50" step="1" value="${esc(values.segments)}"></label>
     </div>
+    <details class="hull-girder-profiles">
+      <summary>Longitudinal beam profiles · E(x), I(x), baseline mass(x)</summary>
+      <p class="muted">Optional complete X-station tables, one row per interval. When empty, constant E/I and uniform baseline hull mass are used. If entered, each profile must cover the full structural X span without gaps or overlaps. Segment boundaries become actual FEM nodes.</p>
+      <label class="field"><span>Structural sections: x0 [m], x1 [m], E [GPa], I [m⁴]</span>
+        <textarea id="girder-stiffness-profile" spellcheck="false" rows="4" placeholder="e.g. 0, 5, 210, 0.10&#10;5, 10, 210, 0.15">${esc(values.stiffnessText)}</textarea></label>
+      <p class="muted">Provide measured or separately calculated longitudinal section properties. A graphical hull skin does not define plate thickness, bulkheads or steel section inertia.</p>
+      <label class="field"><span>Baseline hull mass stations: x0 [m], x1 [m], mass [t/m]</span>
+        <textarea id="girder-mass-profile" spellcheck="false" rows="4" placeholder="e.g. 0, 5, 2&#10;5, 10, 8">${esc(values.massProfileText)}</textarea></label>
+      <p class="muted">The mass integral must equal baseline hull mass above; the profile LCG must equal hull CG X. Added masses stay separate, including graphical area loads. Profiles are never normalized to fit input automatically.</p>
+    </details>
     <button class="btn" id="girder-run" type="button">Calculate hull girder FEM</button>
     <button class="btn" id="girder-frame-example" type="button">Show legacy frame reference</button>
     <label class="field"><span>3D color mode</span><select id="girder-color-mode">
@@ -174,6 +226,7 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
        <option value="off">Normal model color</option>
     </select></label>
     ${error?`<p class="hydro-solve-error" role="alert">${esc(error)}</p>`:""}
+    <p class="muted">If sectional or mass profile rows are provided, the sections must cover the full longitudinal span and pass independent mass and LCG validation. Baseline mass is never inferred from water displacement.</p>
     <p class="muted">Beam E, I, supports and baseline distributed weight are engineer-defined. End restraints either represent a test fixture with reported reactions or numerical rigid-body stabilization in the strictly balanced floating mode. Do not infer hull strength from solid STL skin.</p>`;
   const results=result?`<div class="hull-fem-results">
     <h3>Stress contours · longitudinal beam approximation</h3>
@@ -183,6 +236,7 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
     </div>
     <p class="muted">Blue and red represent opposite signed longitudinal fibre stress. Colors are projected onto actual 3D mesh vertices; this is NOT a shell-element von Mises plot.</p>
     <p class="muted">The shear and bending-moment diagrams include FEM element-side limits. Sharp jumps reflect concentrated forces or applied couples, not smooth distributed pressure. Deflection maxima include stationary points inside elements.</p>
+    ${hullGirderProfileDiagram(result)}
     ${result.buoyancyTransfer?hullGirderLoadDiagram(result):""}
     ${hullGirderDiagram(result)}
     ${hullGirderDiagram(result,{metric:"deflection"})}
@@ -192,6 +246,7 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
       <button class="btn" type="button" id="girder-export-response">Export response CSV</button>
       <button class="btn" type="button" id="girder-export-loads">Export load strips CSV</button>
       <button class="btn" type="button" id="girder-export-reactions">Export reactions CSV</button>
+      <button class="btn" type="button" id="girder-export-sections">Export EI/mass sections CSV</button>
     </div>
     <p class="muted">Load distribution: ${result.lineLoads.length} segments ·
        ${result.loading.pointWeights.length} point masses · ${result.loading.areaLoads.length} area patches.
