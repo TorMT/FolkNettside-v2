@@ -40,8 +40,9 @@ test("world Y/Z ↔ pixel mapping and dragging maintain material, thickness and 
  const initial={kind:"plate",x0:-5,x1:5,y0:-1,z0:.5,y1:1,z1:.5,
   t:.02,E:70e9,rho:2700};
  const moved=translateSectionMember(initial,.3,-.4);
- assert.deepEqual([moved.x0,moved.x1,moved.y0,moved.z1,moved.t,moved.E],
-   [-5,5,-.7,.1,.02,70e9]);
+ assert.deepEqual([moved.x0,moved.x1,moved.y0,moved.t,moved.E],
+   [-5,5,-.7,.02,70e9]);
+ assert.ok(Math.abs(moved.z1-.1)<1e-12);
  const b=sectionDrawBounds([initial]);
  for(const source of [{y:-1,z:.5},{y:1,z:.5},{y:0,z:0}]){
    const p=sectionMetersToPixel(source.y,source.z,b);
