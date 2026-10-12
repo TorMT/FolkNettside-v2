@@ -1,0 +1,11 @@
+{
+  "_comment": "Example only. Review against the actual NTNU public semester/course indexes before indexing a course. No protected folders.",
+  "publicCourses": [
+    {
+      "semester": 5,
+      "slug": "Marin-Dynamikk",
+      "title": "Marin teknikk 5 – Marin dynamikk",
+      "sections": ["filer"]
+    }
+  ]
+}
