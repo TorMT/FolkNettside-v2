@@ -80,8 +80,8 @@ def prepare(stage: Path, webroot: Path, backup_dir: Path) -> dict:
         dest = target / relative
         # The file list came from the vetted code-only build; never accept
         # absolute paths or paths escaping the staging subtree.
-        if relative.is_absolute() or ".." in relative.parts or
-                dest.is_symlink() or not dest.resolve().is_relative_to(target.resolve()):
+        if (relative.is_absolute() or ".." in relative.parts or
+            dest.is_symlink() or not dest.resolve().is_relative_to(target.resolve())):
             raise ValueError("Unsafe destination path in deployment")
         existed = dest.is_file()
         records.append({
@@ -138,8 +138,8 @@ def rollback(release_dir: Path, *, apply: bool = False) -> dict:
         elif entry.get("existed"):
             raise ValueError("Rollback conflict: an original file disappeared")
         if entry.get("existed"):
-            if not backup_file.is_file() or backup_file.is_symlink() or
-                    sha256(backup_file) != entry.get("before"):
+            if (not backup_file.is_file() or backup_file.is_symlink() or
+                sha256(backup_file) != entry.get("before")):
                 raise ValueError("Missing or modified rollback backup: " + entry["path"])
         operations.append((path, backup_file, bool(entry.get("existed"))))
     if apply:
