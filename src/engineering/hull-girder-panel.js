@@ -254,6 +254,7 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
       <p class="muted">Define the actual longitudinal structural cross-section per X interval. Y/Z coordinates, dimensions and thicknesses are in metres. Repeat X interval for each member; intervals must cover the full beam.</p>
       <label class="field"><span>Cross-section members (CSV rows)</span>
         <textarea id="girder-section-members" spellcheck="false" rows="8" placeholder="plate,0,5,-2,1,2,1,.012,210,7850&#10;plate,0,5,-2,-1,-2,1,.01,210,7850&#10;stiffener,0,5,0,-.8,.12,.15,210,7850">${esc(values.sectionText)}</textarea></label>
+      <div id="girder-section-sketch"></div>
       <small>Plate: <code>plate, x0, x1, y0, z0, y1, z1, thickness, E_GPa, density_kg_m3</code></small>
       <small>Rectangular stiffener: <code>stiffener, x0, x1, y_c, z_c, width_y, height_z, E_GPa, density_kg_m3</code></small>
       <label class="field"><span>How to treat calculated structural weight</span>
@@ -262,7 +263,7 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
           <option value="derived" ${values.sectionMassMode==="derived"?"selected":""}>Use section material mass as complete baseline ONLY if mass and LCG match</option>
         </select></label>
       <p class="muted">Nonempty structural members replace the manual EI station table. The general E input defines the equivalent-I reference modulus; each member retains its own E for bending stresses. General I and c become fallback values.</p>
-      <p class="muted">Gross sections: no subtracting plate/stiffener overlaps, cutouts, corrosion, effective breadth, shear lag or buckling. Structural member mass normally excludes machinery, fluids and outfitting.</p>
+      <p class="muted">Overlapping plate/stiffener metal is detected and blocks stiffness/mass evaluation until corrected. Touching edges are allowed. Openings, corrosion, effective breadth, shear lag and buckling are not included. Structural member mass normally excludes machinery, fluids and outfitting.</p>
     </details>
     <details class="hull-girder-profiles">
       <summary>Longitudinal beam profiles · E(x), I(x), baseline mass(x)</summary>
