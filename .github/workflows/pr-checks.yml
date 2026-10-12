@@ -31,6 +31,9 @@ jobs:
           test -f "$temp/v2-staging/src/courses/ntnu-catalog.js"
           test ! -d "$temp/v2-staging/semestre"
           test ! -d "$temp/v2-staging/.git"
+      - name: ChromeDriver readiness startup regression
+        run: python3 -m unittest discover -s tests -p 'test_browser_driver_startup.py' -v
+
       - name: VS Code style Python and Jupyter viewer on desktop and mobile
         run: |
           command -v chromedriver
