@@ -35,6 +35,15 @@ export function validateFusionEngineeringManifest(raw){
    !finite(total.solidVolumeM3)||total.solidVolumeM3<0||
    !vec3(total.centerOfMassM))
    throw Error("Fusion assembly total mass, volume or center-of-mass is invalid");
+ if(total.surfaceAreaM2!==undefined&&
+   (!finite(total.surfaceAreaM2)||total.surfaceAreaM2<0))
+   throw Error("Fusion surface area must be finite and nonnegative");
+ if(total.boundsM!==undefined){
+   const bb=total.boundsM;
+   if(!vec3(bb?.min)||!vec3(bb?.max)||
+     bb.min.some((n,i)=>n>bb.max[i]))
+     throw Error("Fusion bounding extents must be ordered finite XYZ coordinates");
+ }
  if(!Array.isArray(raw.occurrences)||raw.occurrences.length>1000)
    throw Error("Fusion assembly occurrence inventory exceeds limit");
  const occurrences=raw.occurrences.map((occ,i)=>{
@@ -59,6 +68,8 @@ export function validateFusionEngineeringManifest(raw){
    total:{
      massKg:total.massKg,solidVolumeM3:total.solidVolumeM3,
      centerOfMassM:total.centerOfMassM.slice(),
+     ...(total.surfaceAreaM2===undefined?{}:{surfaceAreaM2:total.surfaceAreaM2}),
+     ...(total.boundsM===undefined?{}:{boundsM:{min:total.boundsM.min.slice(),max:total.boundsM.max.slice()}}),
      // Fusion body/assembly physical properties are independent of Hydro.
      qualification:"Fusion physical properties from assigned CAD materials"
    },
