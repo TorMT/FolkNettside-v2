@@ -1,4 +1,4 @@
-import {escapeHTML} from "../viewers/utils.js?v=5465842a0ede545623ecfc153e531bd300f85e0e";
+import {escapeHTML} from "../viewers/utils.js?v=3a2d1f6057e8d2cb943bf65844a4bd8c00c919ae";
 export const PRIMARY_NAV=[
   {id:"portfolio",label:"Projects",route:"/portfolio"},
   {id:"engineering",label:"Engineering",route:"/engineering"},
@@ -38,12 +38,17 @@ function navButton(item,active,{mobile=false,coursesLabel="Courses",courseUpdate
   return `<button data-go="${item.route}" class="${activeClass}">${label}${news}</button>`;
 }
 
-export function renderTopShell(active,{coursesLabel="Courses",account={},courseUpdates=0}={}){
+export function renderTopShell(active,{coursesLabel="Courses",account={},folkAccount={},courseUpdates=0}={}){
   const desktopPrimary=PRIMARY_NAV.map(item=>navButton(item,active,{coursesLabel})).join("");
   const mobile=MOBILE_NAV.map(item=>navButton(item,active,{mobile:true,coursesLabel,courseUpdates})).join("");
-  const signedIn=account?.status==="signed-in";
-  const accountName=escapeHTML(signedIn?(account?.profile?.name||account?.profile?.email||"Google"):"Sign in");
-  const accountInitial=signedIn?String(accountName).trim().slice(0,1).toUpperCase():"○";
+  const googleConnected=account?.status==="signed-in";
+  const folkConnected=folkAccount?.status==="signed-in";
+  const signedIn=googleConnected||folkConnected;
+  const text=googleConnected&&folkConnected?"FolkNet + Drive":
+    folkConnected?(folkAccount.user?.email||"FolkNet account"):
+    googleConnected?(account?.profile?.name||account?.profile?.email||"Google"):"Sign in";
+  const accountName=escapeHTML(text);
+  const accountInitial=signedIn?String(text).trim().slice(0,1).toUpperCase():"○";
 
   return `<header class="topbar">
     <div class="brand" id="home"><span class="brand-mark"></span>FolkNettside</div>
