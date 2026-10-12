@@ -50,7 +50,7 @@ try{
  svg.setPointerCapture=()=>{};
  drag(centre,centre,stroke);
  assert(host.querySelector("[data-section-selected]").hidden===false,"Selecting real plate line failed");
- assert(host.querySelector('[data-section-prop="t"]').value===".02",
+ assert(Number(host.querySelector('[data-section-prop="t"]').value)===.02,
    "Selected plate thickness not populated");
  const thickness=host.querySelector('[data-section-prop="t"]');
  thickness.value=".03";
