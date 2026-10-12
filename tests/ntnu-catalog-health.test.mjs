@@ -34,6 +34,19 @@ test("public index audit summarizes real viewer kinds without exposing paths",()
  }
 });
 
+test("index audit counts separate quiz metadata and skips duplicate quiz paths",()=>{
+ const source={
+   exphil:{dir:"exphil",files:["filer/readme.pdf"],quiz:"quiz/quiz.json"},
+   itgk:{dir:"itgk",files:["quiz/quiz.json"],quiz:"quiz/quiz.json"},
+   nofile:{dir:"nofile",quiz:"quiz/quiz.json"}
+ };
+ const result=summarizeSemester(1,source);
+ assert.equal(result.publicIndexEntries,4);
+ assert.equal(result.visibleResources,4);
+ assert.equal(result.viewerFormats.quiz,3);
+ assert.equal(result.skippedEntries,0);
+});
+
 test("partial public semester indexes produce an explicit unavailable state",()=>{
  const root={"1":{dir:"1",beskyttet:false},"2":{dir:"2",beskyttet:false},
    "3":{dir:"3",beskyttet:false}};
