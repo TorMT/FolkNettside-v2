@@ -1,0 +1,29 @@
+name: autodesk-edge-checks
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/functions/autodesk-hub/**'
+      - 'tests/autodesk-oauth-core.test.mjs'
+      - 'src/platform/autodesk-hub-client.js'
+      - '.github/workflows/autodesk-edge-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-autodesk-edge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check Edge runtime imports and TypeScript
+        run: |
+          deno check --config supabase/functions/autodesk-hub/deno.json supabase/functions/autodesk-hub/index.ts
+      - name: Test OAuth and pinned browser identity
+        run: |
+          node --test tests/autodesk-oauth-core.test.mjs tests/autodesk-hub-client.test.mjs
