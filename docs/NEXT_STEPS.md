@@ -11,7 +11,7 @@ Dette er arbeidslisten for V2 **preview**, ikke en erklæring om paritet med NTN
 
 ## P1 — funksjonell videreføring
 6. **Viewer:** Test store/skadde PDF/Office-arkiv, sammensatte 3MF/F3Z, nestede Python-importer og mobiloppsett med ekte dokumenter. Bevar gamle lenker for ikke-støttede arbeidsflyter.
-7. **Engineering:** Kvalifiser hydrostatikk mot en uavhengig modell; sikre mesh- og overlappskontroll; test fordelt last og lastplassering, høyde og enheter. Ikke fremstille konseptuell KISSsoft-/bølgevisning som styrke- eller RAO-løser.
+7. **Engineering:** Local Fusion export → ZIP import is the primary CAD workflow without APS; the installer and Pages download are tested, but a real Fusion assembly is still an acceptance gate. Kvalifiser hydrostatikk mot en uavhengig modell; sikre mesh- og overlappskontroll; test fordelt last og lastplassering, høyde og enheter. Ikke fremstille konseptuell KISSsoft-/bølgevisning som styrke- eller RAO-løser.
 8. **CoolProp:** Verifiser væskespesifikke tabeller, diagramkoordinater, dimensjoner og mobil UI mot referanseverdier og gamle brukstilfeller.
 9. **SiteUpdater:** Kjør targeted course/semester, full build, dry-run og restore på godkjent faktisk kilde. Verifiser at andre semestere og bilde-/metadata beholdes.
 10. **Dykking:** Validér stedlisten, koordinater, sikkerhets-/dybdeklassifisering, kart og logg. Null/manglende koordinater skal aldri tolkes som (0,0).
