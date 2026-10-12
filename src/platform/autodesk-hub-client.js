@@ -66,7 +66,8 @@ export function parseCatalogResponse(body,{maxEntries=150}={}){
  if(!body||!Array.isArray(body.entries)||body.entries.length>maxEntries)
    throw Error("Malformed or oversized Autodesk hub response");
  const entries=body.entries.map(normalizeHubEntry);
- if(body.nextCursor!==undefined&&body.nextCursor!==null&&!id(body.nextCursor))
+ if(body.nextCursor!==undefined&&body.nextCursor!==null&&!(typeof body.nextCursor==="string"&&body.nextCursor.length<=6000&&
+    /^[A-Za-z0-9_.-]+$/.test(body.nextCursor)))
    throw Error("Invalid Autodesk pagination cursor");
  return {entries,nextCursor:body.nextCursor||null};
 }
@@ -80,7 +81,8 @@ export function catalogRequestURL(base,level,ids={},cursor=null){
    u.searchParams.set(name,ids[name]);
  }
  if(cursor){
-   if(!id(cursor))throw Error("Invalid Autodesk catalog cursor");
+   if(typeof cursor!=="string"||cursor.length>6000||
+      !/^[A-Za-z0-9_.-]+$/.test(cursor))throw Error("Invalid Autodesk catalog cursor");
    u.searchParams.set("cursor",cursor);
  }
  return u.toString();
