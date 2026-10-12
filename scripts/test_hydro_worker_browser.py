@@ -18,15 +18,28 @@ def call(method, path, body=None, timeout=30):
         raise RuntimeError(str(payload["value"]))
     return payload.get("value")
 
+def wait_for_driver(seconds=30, request=call, sleep=time.sleep, clock=time.monotonic):
+    """Wait for startup under a wall-clock bound; do not retry actual smoke failures."""
+    deadline = clock() + seconds
+    last_error = None
+    while clock() < deadline:
+        try:
+            status = request("GET", "/status", timeout=1)
+            if isinstance(status, dict) and status.get("ready") is False:
+                last_error = "ChromeDriver running but not ready"
+            else:
+                return
+        except (OSError, TimeoutError, urllib.error.URLError) as error:
+            last_error = type(error).__name__
+        sleep(min(0.25, max(0, deadline - clock())))
+    raise RuntimeError("ChromeDriver did not start within " +
+                       str(seconds) + "s (" + str(last_error or "unknown") + ")")
+
+
 def main(url):
     session=None
     try:
-        for _ in range(90):
-            try:
-                call("GET","/status",timeout=1)
-                break
-            except Exception:time.sleep(.15)
-        else:raise RuntimeError("ChromeDriver did not start")
+        wait_for_driver()
         window_size=sys.argv[3] if len(sys.argv)>3 else "800,600"
         response=call("POST","/session",{"capabilities":{"alwaysMatch":{
             "browserName":"chrome",
