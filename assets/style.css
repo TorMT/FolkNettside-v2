@@ -1161,3 +1161,13 @@
   .coolprop-diagram-controls #cp-diagram-zoom-in,
   .coolprop-diagram-controls #cp-diagram-zoom-out{flex:0 0 40px}
 }
+
+/* FolkNet optional private account, isolated from Google Drive sign-in. */
+.folk-auth-form{display:grid;gap:8px;min-width:0;max-width:360px}
+.folk-auth-form>label{font-size:11px;color:var(--ink-2);display:grid;gap:5px}
+.folk-auth-form input{min-width:0;width:100%;box-sizing:border-box;border:1px solid var(--line);
+ border-radius:7px;padding:9px;background:var(--surface);color:var(--ink)}
+.folk-auth-form small{display:block;line-height:1.5;font-size:10px;color:var(--ink-2)}
+.folk-auth-form .settings-connection-actions{display:flex;flex-wrap:wrap;gap:7px}
+.folk-auth-form button{min-height:34px}
+@media(max-width:620px){.folk-auth-form{width:100%;max-width:none}}
