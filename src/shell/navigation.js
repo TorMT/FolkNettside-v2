@@ -48,7 +48,7 @@ export function renderTopShell(active,{coursesLabel="Courses",account={},folkAcc
     folkConnected?(folkAccount.user?.email||"FolkNet account"):
     googleConnected?(account?.profile?.name||account?.profile?.email||"Google"):"Sign in";
   const accountName=escapeHTML(text);
-  const accountInitial=signedIn?String(text).trim().slice(0,1).toUpperCase():"○";
+  const accountInitial=signedIn?escapeHTML(String(text).trim().slice(0,1).toUpperCase()):"○";
 
   return `<header class="topbar">
     <div class="brand" id="home"><span class="brand-mark"></span>FolkNettside</div>
