@@ -1,12 +1,12 @@
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=7b269b6c1fa8fddb4255af2c8b9fe83df8d89336";
-import {parseSTL} from "../model/parsers/stl.js?v=7b269b6c1fa8fddb4255af2c8b9fe83df8d89336";
-import {parse3MF} from "../model/parsers/three-mf.js?v=7b269b6c1fa8fddb4255af2c8b9fe83df8d89336";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=7b269b6c1fa8fddb4255af2c8b9fe83df8d89336";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=7b269b6c1fa8fddb4255af2c8b9fe83df8d89336";
-import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=7b269b6c1fa8fddb4255af2c8b9fe83df8d89336";
-import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=7b269b6c1fa8fddb4255af2c8b9fe83df8d89336";
-import {createModelDocument} from "../model/model-document.js?v=7b269b6c1fa8fddb4255af2c8b9fe83df8d89336";
-import {boxMesh} from "../hydro/fixtures.js?v=7b269b6c1fa8fddb4255af2c8b9fe83df8d89336";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=90616dc45709175ba1c1aca73e4f6b14378857eb";
+import {parseSTL} from "../model/parsers/stl.js?v=90616dc45709175ba1c1aca73e4f6b14378857eb";
+import {parse3MF} from "../model/parsers/three-mf.js?v=90616dc45709175ba1c1aca73e4f6b14378857eb";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=90616dc45709175ba1c1aca73e4f6b14378857eb";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=90616dc45709175ba1c1aca73e4f6b14378857eb";
+import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=90616dc45709175ba1c1aca73e4f6b14378857eb";
+import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=90616dc45709175ba1c1aca73e4f6b14378857eb";
+import {createModelDocument} from "../model/model-document.js?v=90616dc45709175ba1c1aca73e4f6b14378857eb";
+import {boxMesh} from "../hydro/fixtures.js?v=90616dc45709175ba1c1aca73e4f6b14378857eb";
 
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
