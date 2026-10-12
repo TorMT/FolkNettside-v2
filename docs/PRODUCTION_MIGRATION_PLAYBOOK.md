@@ -1,5 +1,16 @@
 # Produksjonsmigrering V1 → V2 – komplett og reverserbar prosedyre
 
+**Oppdatert beslutning 12.10.2026:** **Semesterfiler skal IKKE migreres**
+fra NTNU til GitHub, og kopiering av kursarkivet er ikke en produksjonsport.
+V2 bruker allerede NTNUs eksisterende `/semestre/<n>/index.json` og åpner
+originalfilene over samme domene når applikasjonen publiseres der.
+Denne eldre playbooken gjelder nå kun **eventuell fremtidig utskifting av
+V1-forsiden/rotdomenet og migrering av ikke-kursrelaterte tjenester**.
+For ordinære oppdateringer er riktig prosedyre
+[GitHub-kode → trygg NTNU-staging](NTNU_CODE_ONLY_DEPLOY.md).
+Ingenting i denne planen autoriserer endring av eksisterende `semestre/`,
+V1 `index.html` eller produksjons-API-er.
+
 **Status:** Planlagt sluttfase, **ikke autorisasjon til å migrere**. Sist gjennomgått 10.10.2026.
 **Eier:** FolkNettside.
 **Prinsipp:** Ingen sletting, overskriving eller omdirigering av fungerende V1 før faktisk funksjonsparitet og dataparitet er godkjent. Den eksisterende NTNU-nettsiden og Engineering Portfolio som brukes i søknader må bevares; tidligere avtalt overgangsport er tidligst 01.01.2027 og forutsetter separat, eksplisitt godkjenning.

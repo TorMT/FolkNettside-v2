@@ -86,7 +86,7 @@ initGoogleSession();
 const app=document.querySelector("#app");
 mountAnalyticsNotice();
 const content=await loadContent();
-const {site,semesters,navLabels,projects}=content;
+const {site,semesters,navLabels,projects,courseSource}=content;
 const courseNotices=createResourceNotices(semesters);
 registerAnalyticsCourses(semesters);
 const engineeringModels=content.models?.length?content.models:[content.model];
@@ -546,6 +546,11 @@ function coursesPage(requestedSemester){
   }).join("");
 
   app.innerHTML=top("courses")+`<main class="study courses-overview">
+    ${courseSource?.mode==="ntnu"&&courseSource.status==="live"?
+      '<p class="course-source-status" role="status">Originale kursfiler leses direkte fra NTNU-serveren · ingen kopiering til GitHub.</p>':
+      courseSource?.mode==="ntnu"?
+      '<p class="course-source-warning" role="alert">Kun deler av NTNU-kursindeksen er tilgjengelig, eller indeksene kunne ikke leses. Eksisterende filer på NTNU er ikke endret. '+(courseSource.failedSemesters?.length?'Feil ved semester '+courseSource.failedSemesters.join(", ")+'.':'')+'</p>':
+      '<p class="course-source-status" role="status">GitHub-forhåndsvisning viser kun testressurser. Hele kursarkivet ligger på NTNU-serveren.</p>'}
     <section class="study-hero courses-hero">
       <div>
         <span class="project-kicker">Study archive</span>

@@ -1,6 +1,6 @@
 # NTNU folk.ntnu.no hosting – validated constraints and V2 staging architecture
 
-**Reviewed:** 10 October 2026. **Status:** design and LOCAL candidate package only. Nothing has been deployed to NTNU and V1 stays untouched. The earliest previously agreed production cutover is **1 January 2027**, subject to separate owner approval, complete backups, privacy/reuse rights and end-to-end parity.
+**Reviewed:** 12 October 2026. **Status:** NTNU same-origin course index reader and code-only sync added in V2; candidate package still LOCAL only. Nothing has been deployed to NTNU and V1 stays untouched. The earliest previously agreed production cutover is **1 January 2027**, subject to separate owner approval, complete backups, privacy/reuse rights and end-to-end parity.
 
 ## Official NTNU documentation: what is and is not supported
 
@@ -17,12 +17,12 @@
 |---|---|---|
 | `TorMT/FolkNettside-v2` GitHub `main` | Code, documented API contracts, client-side regression fixtures | **No NTNU course archive, private material or secrets** |
 | `https://tormt.github.io/FolkNettside-v2/` | CI-tested public preview | Static. No PHP, LDAP or truly protected files. All published source bytes readable. |
-| Owner's **local** `.deploy-ntnu-staging/` | Separate, repeatable V2 webedit candidate package | Public code + **explicitly reviewed public** course files; optionally PHP adapters. NOT auto-uploaded. |
+| Owner's **local** `.deploy-ntnu-staging/` | Separate V2 webedit code candidate | Default is code-only, with NO course files copied from NTNU or GitHub. An older optional reviewed-manifest import workflow remains separate. NOT auto-uploaded. |
 | Future `https://tormt.folk.ntnu.no/v2-staging/` | Manual staging when the user decides | Must not overlap original `index.html`, `semestre/`, `includes/` or existing Engineering Portfolio paths. |
 | Future restricted NTNU folder (distinct from public V2 package) | Actual private course files | Apache LDAP or `htpasswd` server-side checks before **every HTTP download**; verified 401 without credentials and success only for allowed account(s). |
 | Future `includes/matpris/api.php` **inside V2 staging subdirectory** | Opt-in, same-origin PHP adapter | Credentials set only via protected server configuration or environment. Not assumed present or working. |
 
-For now this is **NTNU-first architecture conditional on live checks**, not a commitment to move production. If NTNU cannot execute the required PHP/cURL/secret isolation or a PHP backend with restricted data, then keep the frontend deployment independent and move API functions to an authorized external backend. GitHub Pages remains a preview.
+**Decision 12.10.2026:** No migration of five semesters into GitHub. Existing `/semestre/` resources remain on NTNU; V2 reads the original public per-semester indexes on the same host. Follow [code-only Git → NTNU webedit publishing](NTNU_CODE_ONLY_DEPLOY.md) for the safe update path. For now this is **NTNU-first architecture conditional on live checks**, not a commitment to move production. If NTNU cannot execute the required PHP/cURL/secret isolation or a PHP backend with restricted data, then keep the frontend deployment independent and move API functions to an authorized external backend. GitHub Pages remains a preview.
 
 ## Build a local candidate (without private course material)
 
