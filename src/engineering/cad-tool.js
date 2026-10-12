@@ -5,6 +5,7 @@ import {renderModelWorkbench} from "../viewers/model-workbench.js";
 import {renderFusionPackage} from "../viewers/fusion-package-view.js";
 import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js";
 import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js";
+import {downloadFusionScriptPackage} from "./fusion-installer.js";
 import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js";
 import {createModelDocument} from "../model/model-document.js";
 import {boxMesh} from "../hydro/fixtures.js";
@@ -12,26 +13,52 @@ import {boxMesh} from "../hydro/fixtures.js";
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
  <p class="crumbs">Engineering / CAD</p><h1>CAD workbench</h1>
- <p>Open STEP/STP, IGES/IGS, BREP, STL, 3MF, Fusion F3D/F3Z archives or a Fusion engineering ZIP locally. OpenCascade converts
- exact CAD surfaces to a <strong>tessellated visual mesh</strong> in a browser worker;
- measurements and exports are therefore approximate, not a substitute for CAD inspection in your authoring tool.</p>
- <p class="muted"><strong>Fusion assembly workflow:</strong> native F3Z uploads show designs and saved previews,
- but native F3D solids cannot be decoded to engineering geometry in a static browser.
- To extract mass, volume, center of mass and actual 3D STEP geometry, run
- <a href="./scripts/fusion_export_folknet.py" download>Fusion-to-FolkNet Python script</a>
- inside Fusion's Scripts and Add-ins. It creates one engineering ZIP to upload here;
- keep the original F3Z separately. Fusion's internal centimeters are converted to metres.</p>
- <div id="cad-fusion-hub-browser" class="cad-hub-section"></div>
- <div class="cad-import-bar">
+ <p class="muted">Inspect CAD geometry and source-reported engineering properties in one workspace.
+ OpenCascade tessellates STEP/IGES/BREP into an interactive preview; measurements
+ from those meshes are approximations and not engineering certification.</p>
+ <section class="cad-fusion-quickstart" aria-labelledby="cad-fusion-heading">
+   <header class="cad-fusion-quickstart-head"><div>
+     <span class="project-kicker">Recommended · works with Fusion student licence</span>
+     <h2 id="cad-fusion-heading">Fusion → FolkNet, locally</h2>
+     <p>Export STEP geometry, mass, material volume, centre of mass and inertia
+     from the model open in Fusion. <strong>No APS account or cloud upload required.</strong></p>
+   </div><button class="btn primary" id="cad-fusion-install" type="button">Get Fusion export script (.zip)</button></header>
+   <ol class="cad-fusion-steps">
+     <li><strong>Install once</strong><span>Unzip the download, then in Fusion go to Utilities → Scripts and Add-ins → Add (+). Select the FolkNetFusion folder.</span></li>
+     <li><strong>Export in Fusion</strong><span>Open your assembly and run FolkNetFusion. It writes a ZIP into Documents/FolkNet_Fusion_Exports.</span></li>
+     <li><strong>Inspect here</strong><span>Drop that ZIP below. STEP geometry and Fusion physical properties appear together.</span></li>
+   </ol>
+   <p class="muted cad-fusion-script-fallback">Prefer manual setup?
+     <a href="./scripts/fusion_export_folknet.py" download>Get Python script only</a> ·
+     <a href="https://github.com/TorMT/FolkNettside-v2/blob/main/docs/FUSION_IMPORT.md" target="_blank" rel="noopener noreferrer">Import instructions</a>
+   </p>
+   <p data-cad-fusion-install-status role="status" aria-live="polite"></p>
+ </section>
+ <section class="cad-local-import" aria-labelledby="cad-import-heading">
+  <header><div><h2 id="cad-import-heading">Open a model</h2>
+    <p class="muted">Files are handled in your browser. A native .f3z/.f3d can be inspected,
+    but proprietary solids require the Fusion export above for physical-property analysis.</p></div></header>
+  <label for="cad-import-file" id="cad-drop-zone" class="cad-drop-zone">
+    <strong>Drop an engineering ZIP or model file here</strong>
+    <span>or choose from your device · ZIP, STEP, IGES, BREP, STL, 3MF, F3D, F3Z · up to 55 MiB</span>
+  </label>
+  <div class="cad-import-bar">
    <label>Model file <input id="cad-import-file" type="file"
      accept=".step,.stp,.iges,.igs,.brep,.stl,.3mf,.f3d,.f3z,.zip"></label>
    <label>BREP units (if no metadata)
     <select id="cad-brep-units"><option value="millimeter">mm</option><option value="meter">m</option><option value="inch">in</option><option value="centimeter">cm</option></select>
    </label>
    <button class="btn" id="cad-import-cancel" type="button" disabled>Cancel import</button>
- </div>
- <p id="cad-import-status" role="status" aria-live="polite">Choose a file or open the demonstration. Files remain local.</p>
+  </div>
+  <p id="cad-import-status" role="status" aria-live="polite">Choose a file or open the demonstration. No file is uploaded to our server.</p>
+ </section>
  <section id="cad-geometry-stage" class="cad-geometry-stage" aria-label="CAD 3D workbench"></section>
+ <details class="cad-hub-advanced">
+   <summary>Optional: Autodesk Fusion Hub cloud browsing (APS)</summary>
+   <p class="muted">For accounts with an Autodesk APS app and authorized Hub access.
+     This is separate from local Fusion export and is not needed for CAD analysis.</p>
+   <div id="cad-fusion-hub-browser" class="cad-hub-section"></div>
+ </details>
  </main>`;
 }
 export function mountCADTool(root){
