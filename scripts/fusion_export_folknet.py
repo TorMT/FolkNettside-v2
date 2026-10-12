@@ -3,6 +3,7 @@
 # Fusion internal geometry lengths are centimeters, volumes cm^3, mass kg.
 import datetime
 import json
+import math
 import os
 import re
 import tempfile
@@ -15,12 +16,42 @@ import adsk.fusion
 def _safe_name(value):
     return (re.sub(r"[^A-Za-z0-9_-]+", "_", str(value or "model")).strip("_") or "model")[:60]
 
+def _optional_inertia(p):
+    """Optional Fusion API measurements (kg*cm² -> kg*m²).
+
+    The world components are Fusion's reported moments and products about
+    its world-coordinate reference. Do not silently treat xy/yz/xz as the
+    signed off-diagonal entries of another inertia-tensor convention.
+    """
+    result = {}
+    factor = 1.0 / 10000.0
+    try:
+        ok, xx, yy, zz, xy, yz, xz = p.getXYZMomentsOfInertia()
+        values = [float(x) * factor for x in (xx, yy, zz, xy, yz, xz)]
+        if ok and all(math.isfinite(x) for x in values) and all(
+            x >= 0 for x in values[:3]
+        ):
+            result["inertiaWorldKgM2"] = dict(
+                zip(("xx", "yy", "zz", "xy", "yz", "xz"), values)
+            )
+    except (AttributeError, TypeError, ValueError, RuntimeError):
+        pass  # API data unavailable: never synthesize moments from bounding box.
+    try:
+        ok, i1, i2, i3 = p.getPrincipalMomentsOfInertia()
+        moments = [float(x) * factor for x in (i1, i2, i3)]
+        if ok and all(math.isfinite(x) and x >= 0 for x in moments):
+            result["principalMomentsKgM2"] = moments
+    except (AttributeError, TypeError, ValueError, RuntimeError):
+        pass
+    return result
+
+
 def _properties(object_with_properties):
     accuracy = adsk.fusion.CalculationAccuracy.HighCalculationAccuracy
     p = object_with_properties.getPhysicalProperties(accuracy)
     if p is None or p.centerOfMass is None:
         raise RuntimeError("Fusion cannot calculate physical properties")
-    return {
+    result = {
         "massKg": float(p.mass),
         "solidVolumeM3": float(p.volume) / 1_000_000.0,
         "surfaceAreaM2": float(p.area) / 10_000.0,
@@ -30,6 +61,8 @@ def _properties(object_with_properties):
             float(p.centerOfMass.z) / 100,
         ],
     }
+    result.update(_optional_inertia(p))
+    return result
 
 def export_active_design():
     app = adsk.core.Application.get()
@@ -84,6 +117,8 @@ def export_active_design():
         "properties": {
             "lengthUnit": "m", "volumeUnit": "m3",
             "massUnit": "kg", "centerUnit": "m",
+            "inertiaUnit": "kg*m2",
+            "inertiaWorldReference": "Fusion world-coordinate system",
             "source": "Autodesk Fusion HighCalculationAccuracy",
             "coordinateFrame": "Fusion design world frame",
         },

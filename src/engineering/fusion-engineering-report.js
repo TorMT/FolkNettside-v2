@@ -10,6 +10,22 @@ export function fusionEngineeringReportHTML(info){
  if(!info?.total||!Array.isArray(info.occurrences))
    throw Error("Fusion physical-property report is missing");
  const t=info.total,com=t.centerOfMassM;
+ const world=t.inertiaWorldKgM2,principal=t.principalMomentsKgM2;
+ const worldDiagonals=world?[world.xx,world.yy,world.zz]:null;
+ const worldProducts=world?[world.xy,world.yz,world.xz]:null;
+ const inertiaDetails=(world||principal)?
+   '<details><summary>Fusion mass moments of inertia (kg·m²)</summary>'+
+   '<p class="muted">Source-reported values, not approximations from the STEP mesh. '+
+   'World components refer to the Fusion coordinate system; xy, yz and xz are '+
+   'Fusion-reported products of inertia (tensor off-diagonal signs depend on convention). '+
+   'Check axis origin and orientation before use in dynamics.</p>'+
+   (world?'<p><strong>World moments xx / yy / zz:</strong> '+
+     worldDiagonals.map(v=>fmt(v,6)).join(' / ')+' kg·m²</p>'+
+     '<p><strong>World products xy / yz / xz:</strong> '+
+     worldProducts.map(v=>fmt(v,6)).join(' / ')+' kg·m²</p>':'')+
+   (principal?'<p><strong>Principal moments 1 / 2 / 3:</strong> '+
+     principal.map(v=>fmt(v,6)).join(' / ')+' kg·m²</p>':'')+
+   '</details>':'';
  const rows=info.occurrences.slice(0,80).map(o=>
    '<tr><td>'+esc(o.fullPath||o.name)+'</td>'+
    '<td>'+fmt(o.massKg,3)+'</td><td>'+fmt(o.solidVolumeM3,6)+
@@ -27,6 +43,7 @@ export function fusionEngineeringReportHTML(info){
     ' m</strong></div>':"")+
   '<div><span>Center of mass X / Y / Z</span><strong>'+com.map(c=>fmt(c,3)).join(' / ')+' m</strong></div>'+
   '<div><span>Assembly occurrences</span><strong>'+info.occurrences.length+'</strong></div></div>'+
+  inertiaDetails+
   '<p class="fusion-data-scope"><strong>Measured in Fusion, not calculated from STEP triangles.</strong> '+
   'Assembly mass depends on correctly assigned material density. Solid volume is NOT the '+ 
   'underwater displaced volume, and the model is NOT yet a verified pressure hull or structural EI model.</p>'+
