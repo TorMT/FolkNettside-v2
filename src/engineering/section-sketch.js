@@ -1,10 +1,10 @@
 import {parseStructuralMembers,sectionProperties}
-  from "../structure/girder-section-properties.js?v=c5051d0b74b45fbfd26ed6b01d81bf5520ece5f3";
+  from "../structure/girder-section-properties.js?v=d2fcf2c3b455d0b7469559cd05d7e20dc0ed8f0f";
 import {structuralOverlapAudit,memberFootprint}
-  from "../structure/girder-section-geometry.js?v=c5051d0b74b45fbfd26ed6b01d81bf5520ece5f3";
+  from "../structure/girder-section-geometry.js?v=d2fcf2c3b455d0b7469559cd05d7e20dc0ed8f0f";
 import {insertSectionMember,updateSectionRow,translateSectionMember,
   sectionDrawBounds,sectionPixelToMeters,sectionMetersToPixel}
-  from "./section-sketch-core.js?v=c5051d0b74b45fbfd26ed6b01d81bf5520ece5f3";
+  from "./section-sketch-core.js?v=d2fcf2c3b455d0b7469559cd05d7e20dc0ed8f0f";
 
 /**
  * An optional visual Y/Z editor for the authoritative human-readable member
@@ -39,6 +39,7 @@ export function mountSectionSketch(host,{textInput,modelBounds}={}){
     '<label>Density (kg/m³) <input data-section-rho type="number" step="any" min=".001" value="7850"></label></div>'+
     '<div class="section-sketch-canvas"><svg viewBox="0 0 640 340" preserveAspectRatio="none" '+
     'aria-label="Transverse Y horizontal, vertical Z upwards; edit structural members" role="img"></svg></div>'+
+    '<div data-section-live class="section-sketch-live" aria-live="polite"></div>'+
     '<div data-section-selected hidden class="section-sketch-selected">'+
     '<strong data-section-selected-name></strong>'+
     '<div data-section-fields class="section-sketch-fields"></div>'+
@@ -51,6 +52,7 @@ export function mountSectionSketch(host,{textInput,modelBounds}={}){
     'Physical member intersections are checked and must be corrected before calculating EI and mass. '+
     'Manual CSV remains authoritative; Apply/Calculate still runs the solver.</small></section>';
   const svg=host.querySelector("svg");
+  const live=host.querySelector("[data-section-live]");
   const stationSelect=host.querySelector("[data-section-station]");
   const x0=host.querySelector("[data-section-x0]"),x1=host.querySelector("[data-section-x1]");
   const thickness=host.querySelector("[data-section-thickness]");
@@ -114,6 +116,7 @@ export function mountSectionSketch(host,{textInput,modelBounds}={}){
     try{members=read()}catch(err){
       selected=null;details.hidden=true;
       warning.hidden=false;warning.textContent="Invalid CSV: "+err.message;
+      live.textContent="Correct invalid member rows to restore section properties.";
       svg.innerHTML="";return;
     }
     updateStations(members);
@@ -123,6 +126,27 @@ export function mountSectionSketch(host,{textInput,modelBounds}={}){
     warning.hidden=overlap.passed;
     warning.textContent=overlap.passed?"":overlap.warnings[0].description+
       " Calculation is blocked until physical metal intersections are corrected.";
+    let section=null;
+    const localAudit=structuralOverlapAudit(subset);
+    if(subset.length&&localAudit.passed){
+      try{section=sectionProperties(subset)}
+      catch(err){live.textContent="Section properties unavailable: "+err.message}
+    }
+    if(section){
+      live.innerHTML=
+        '<div><span>Elastic neutral axis Z</span><strong>'+
+        section.zNeutral.toFixed(4)+' m</strong></div>'+
+        '<div><span>Section bending stiffness EI</span><strong>'+
+        section.EI.toExponential(4)+' N·m²</strong></div>'+
+        '<div><span>Gross member mass per metre</span><strong>'+
+        section.tonnesPerM.toFixed(4)+' t/m</strong></div>'+
+        '<div><span>Gross structural cross-section area</span><strong>'+
+        section.areaM2.toFixed(5)+' m²</strong></div>';
+    }else if(!subset.length){
+      live.textContent="Draw at least one member in this X station to preview its EI, elastic neutral axis and mass.";
+    }else if(!localAudit.passed){
+      live.textContent="Section preview blocked by overlapping structural members; correct the marked geometry first.";
+    }
     const b=bounds;
     const grid=[];
     for(let j=1;j<5;j++){
@@ -149,6 +173,8 @@ export function mountSectionSketch(host,{textInput,modelBounds}={}){
     }).join("");
     svg.innerHTML='<rect width="'+size.width+'" height="'+size.height+'" fill="var(--surface-sunk)"/>'+
       grid.join("")+shapes+
+      (section?'<path data-section-neutral-axis d="M8 '+round(xy([0,section.zNeutral]).y)+
+        'H632" stroke="var(--ink)" stroke-width="1.4" stroke-dasharray="6 4" pointer-events="none"/>':"")+
       '<rect x="1" y="1" width="638" height="338" fill="none" stroke="var(--line-strong)"/>'+
       '<text x="10" y="18" font-size="12" fill="var(--ink)">Z '+round(b.z1)+' m</text>'+
       '<text x="10" y="330" font-size="12" fill="var(--ink)">Z '+round(b.z0)+' m</text>'+
