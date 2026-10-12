@@ -73,5 +73,5 @@ test("unsafe ambiguous manual versus derived E/I is explicitly refused",()=>{
  assert.throws(()=>solve({sectionModel,stiffnessStations:[
   {x0:0,x1:10,E:210e9,I:.01}]}),/either calculated/);
  assert.throws(()=>solve({sectionModel:{sections:[{x0:0,x1:10,I:1,E:210e9}]}}),
-  /calculated structural sections are invalid/);
+  /Calculated structural sections are invalid/);
 });
