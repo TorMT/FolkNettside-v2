@@ -89,6 +89,8 @@ create table if not exists private.folk_oauth_pending (
 );
 create index if not exists folk_oauth_pending_expiry_idx
   on private.folk_oauth_pending (expires_at);
+create index if not exists folk_oauth_pending_user_idx
+  on private.folk_oauth_pending (user_id);
 
 alter table public.folk_user_settings enable row level security;
 alter table public.folk_user_files enable row level security;
