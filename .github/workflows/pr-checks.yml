@@ -17,6 +17,15 @@ jobs:
         run: find src tests -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
       - name: Run regression tests
         run: npm test
+      - name: Verify NTNU same-origin code-only publishing
+        run: |
+          python3 -m unittest discover -s tests -p 'test_publish_ntnu_staging.py' -v
+          temp="$(mktemp -d)"
+          python3 scripts/build_ntnu_staging.py --version "$GITHUB_SHA" --output "$temp/v2-staging"
+          test -f "$temp/v2-staging/index.html"
+          test -f "$temp/v2-staging/src/courses/ntnu-catalog.js"
+          test ! -d "$temp/v2-staging/semestre"
+          test ! -d "$temp/v2-staging/.git"
       - name: VS Code style Python and Jupyter viewer on desktop and mobile
         run: |
           command -v chromedriver
