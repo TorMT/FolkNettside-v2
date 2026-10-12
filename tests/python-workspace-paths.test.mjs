@@ -35,6 +35,7 @@ test("NTNU sibling importer rejects traversal, hidden, encoded and cross-folder 
   for(const path of ["../secrets.py","../../filer/vault.json",".env","mod/.secret.py",
     "/server/config.py","a//x.py","a/./x.py","a/../x.py",
     "a/%2e%2e/secret.py","https://evil.invalid/module.py",
-    "a?x.py","a#fragment.py","a\\x.py".replace("a\\x","a\\x"),""])
-    if(path!=="a\\x.py")assert.equal(sibling(path),null,path);
+    "a?x.py","a#fragment.py",""])
+    assert.equal(sibling(path),null,path);
+  assert.equal(sibling("a\\x.py"),"a/x.py");
 });
