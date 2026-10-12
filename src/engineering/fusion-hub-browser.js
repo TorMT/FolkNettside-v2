@@ -1,5 +1,5 @@
 import {createAutodeskHubClient,validateHubConfig}
-  from "../platform/autodesk-hub-client.js?v=3f1c541799b268cb69f60484e17f788050c1cb27";
+  from "../platform/autodesk-hub-client.js?v=b12f77bd9f5bfbfaefe3e9fabba6a393250ab995";
 
 const escapeHTML=text=>String(text??"").replace(/[&<>"']/g,c=>({
  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
@@ -126,10 +126,32 @@ export function mountAutodeskHubBrowser(root,{config=null,client=null,configLoad
      const session=await activeClient.session({signal:controller.signal});
      if(ticket!==seq||disposed)return;
      if(!session.connected){
-       const login=document.createElement("a");
-       login.href=activeClient.loginURL();
-       login.className="btn";login.textContent="Sign in with Autodesk";
-       entries.append(login);
+       if(session.configured===false){
+         announce("Autodesk app credentials are not yet configured on the backend. Hub access is disabled.");
+         return;
+       }
+       if(typeof activeClient.startAuthorization==="function"){
+         const login=document.createElement("button");
+         login.type="button";login.className="btn";
+         login.textContent="Connect Autodesk account";
+         login.addEventListener("click",async()=>{
+           login.disabled=true;
+           announce("Creating a protected Autodesk authorization request…");
+           try{
+             const url=await activeClient.startAuthorization({signal:controller.signal});
+             if(!disposed)window.location.assign(url);
+           }catch(error){
+             if(!disposed){login.disabled=false;
+               announce("Autodesk connection failed: "+String(error?.message||error));}
+           }
+         });
+         entries.append(login);
+       }else{
+         const login=document.createElement("a");
+         login.href=activeClient.loginURL();
+         login.className="btn";login.textContent="Sign in with Autodesk";
+         entries.append(login);
+       }
        announce("Autodesk login required. This is separate from Google sign-in.");
        return;
      }
