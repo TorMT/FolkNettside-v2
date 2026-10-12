@@ -1,5 +1,5 @@
-import {trianglePlaneSegment} from "./hydrostatics.js?v=5ef8460bb35c24feff80ea8522df99edd4be06d8";
-import {integrateWaterplaneContours} from "./waterplane-contours.js?v=5ef8460bb35c24feff80ea8522df99edd4be06d8";
+import {trianglePlaneSegment} from "./hydrostatics.js?v=795e5702f951a9c3ed3228548828ba9698badba1";
+import {integrateWaterplaneContours} from "./waterplane-contours.js?v=795e5702f951a9c3ed3228548828ba9698badba1";
 
 // Sectional Area Curve (SAC), exploratory geometry from already transformed
 // selected hull triangles. Like Hydro, must be gated by mesh validation first.
