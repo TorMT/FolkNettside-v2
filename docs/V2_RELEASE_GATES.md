@@ -15,9 +15,12 @@ Production FolkNettside must remain unchanged. GitHub is the intended source of 
 course paths across semesters 1–5, and some public indexes name
 `(beskyttet)` paths. The GitHub V1 repo does **not** contain this full
 `semestre/` tree. The V2 manifest is still primarily example content.
-Release requires a complete offline NTNU production backup, reviewed
-V1-slug → V2-code mapping, SHA-256 verified authorized public resources,
-and real-API parity; a UI card or green CI is insufficient.
+The **staging** deployment does not require copying public semester files:
+V2 consumes the original same-origin NTNU `index.json` indexes and keeps
+those files on the existing server. `v2-staging` still needs real browser,
+permission and API acceptance. A complete offline production backup and
+rollback rehearsal are required **later**, before any change to the live
+V1 homepage or PHP/private data. A UI card or green CI is insufficient.
 
 See [full production migration instructions](PRODUCTION_MIGRATION_PLAYBOOK.md),
 [parity blockers](PRODUCTION_PARITY_GAP_REGISTER.md) and
