@@ -5,7 +5,7 @@ export function getCoolProp(){
 
   runtimePromise=new Promise((resolve,reject)=>{
     const wasmUrl=new URL("./coolprop/coolprop.wasm",import.meta.url).href;
-    const scriptUrl=new URL("./coolprop/coolprop.js?v=586f5f8583e1958aed309d5fa3d5b9bfda6f50d6",import.meta.url).href;
+    const scriptUrl=new URL("./coolprop/coolprop.js?v=d6a52c819161b70263a3229136a2315c3bf243ce",import.meta.url).href;
     const timeout=setTimeout(()=>reject(new Error("CoolProp runtime timed out")),30000);
 
     const previous=globalThis.Module;

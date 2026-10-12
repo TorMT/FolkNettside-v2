@@ -1,7 +1,7 @@
-import {solveFrame2D} from "./frame2d.js?v=586f5f8583e1958aed309d5fa3d5b9bfda6f50d6";
-import {combineHullLoading} from "../hydro/hull-loading.js?v=586f5f8583e1958aed309d5fa3d5b9bfda6f50d6";
-import {auditGirderReactions,hermiteDeflectionExtrema} from "./girder-equilibrium.js?v=586f5f8583e1958aed309d5fa3d5b9bfda6f50d6";
-import {validateGirderProfile,girderProfileAt,baselineMassAudit} from "./girder-profiles.js?v=586f5f8583e1958aed309d5fa3d5b9bfda6f50d6";
+import {solveFrame2D} from "./frame2d.js?v=d6a52c819161b70263a3229136a2315c3bf243ce";
+import {combineHullLoading} from "../hydro/hull-loading.js?v=d6a52c819161b70263a3229136a2315c3bf243ce";
+import {auditGirderReactions,hermiteDeflectionExtrema} from "./girder-equilibrium.js?v=d6a52c819161b70263a3229136a2315c3bf243ce";
+import {validateGirderProfile,girderProfileAt,baselineMassAudit} from "./girder-profiles.js?v=d6a52c819161b70263a3229136a2315c3bf243ce";
 
 const G=9.80665;
 const number=(value,name)=>{

@@ -12,7 +12,7 @@
  * No inference from visual hull triangles, corrosion, effective breadth,
  * shear lag, cutouts, welds, torsion, buckling, or overlap subtraction.
  */
-import {validateGirderProfile} from "./girder-profiles.js?v=586f5f8583e1958aed309d5fa3d5b9bfda6f50d6";
+import {validateGirderProfile} from "./girder-profiles.js?v=d6a52c819161b70263a3229136a2315c3bf243ce";
 const finite=Number.isFinite;
 function number(raw,name){
   if(raw===undefined||raw===null||String(raw).trim()==="")
