@@ -1,0 +1,74 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/engineering.css">
+<title>Autodesk Hub read-only browser smoke</title></head>
+<body data-status="running"><div id="host"></div><div id="unconfigured"></div>
+<pre id="result">Running...</pre>
+<script type="module">
+import {mountAutodeskHubBrowser} from "../../src/engineering/fusion-hub-browser.js";
+const check=(ok,msg)=>{if(!ok)throw Error(msg)};
+const wait=async test=>{
+ for(let i=0;i<90;i++){
+   if(test())return;
+   await new Promise(resolve=>setTimeout(resolve,20));
+ }
+ throw Error("Timed out waiting for hub browser");
+};
+try{
+ const source={
+   hubs:[{id:"hub-1",type:"hub",name:"My Fusion Hub"}],
+   projects:[{id:"project-1",type:"project",name:"Marine projects"}],
+   topFolders:[{id:"folder-1",type:"folder",name:"Designs"}],
+   contents:[{id:"item-1",type:"item",name:"Ship assembly.f3d",
+     webUrl:"https://fusionteam.autodesk.com/projects/item1"}],
+   versions:[{id:"version-1",type:"version",name:"v3",versionNumber:3,
+     modifiedAt:"2026-10-10T11:00:00Z"}]
+ };
+ const requests=[];
+ const client={
+   async session(){return {connected:true,displayName:"Fusion user"}},
+   async catalog(level,ids,{cursor}={}){
+     requests.push({level,ids,cursor});
+     if(level==="hubs"&&cursor)return {entries:[
+       {id:"hub-2",type:"hub",name:"Secondary hub"}],nextCursor:null};
+     return {entries:source[level]||[],nextCursor:level==="hubs"?"more":null};
+   },
+   loginURL(){return "https://developer.api.autodesk.com/authentication/v2/authorize"}
+ };
+ const host=document.querySelector("#host"),stop=mountAutodeskHubBrowser(host,{client});
+ const click=(selector)=>{const element=host.querySelector(selector);
+   check(Boolean(element),"Missing clickable control: "+selector);element.click()};
+ await wait(()=>host.textContent.includes("My Fusion Hub"));
+ check(host.querySelector("[data-aps-more]").hidden===false,"Pagination button missing");
+ click("[data-aps-more]");
+ await wait(()=>host.textContent.includes("Secondary hub"));
+ click('[data-aps-open="hub"][data-aps-id="hub-1"]');
+ await wait(()=>host.textContent.includes("Marine projects"));
+ click('[data-aps-open="project"]');
+ await wait(()=>host.textContent.includes("Designs"));
+ click('[data-aps-open="folder"]');
+ await wait(()=>host.textContent.includes("Ship assembly.f3d"));
+ check(host.querySelector('a[href^="https://fusionteam.autodesk.com/"]'),
+   "Allowed Autodesk web view missing");
+ click('[data-aps-open="item"]');
+ await wait(()=>host.textContent.includes("Version 3"));
+ check(requests.some(r=>r.level==="versions"&&r.ids.itemId==="item-1"),
+   "CAD item versions request lacked item ID");
+ click('[data-aps-back="2"]');
+ await wait(()=>host.textContent.includes("Designs"));
+ check(!host.textContent.includes("v3"),"Back navigation left stale version data");
+ stop();
+ const unavailable=document.querySelector("#unconfigured");
+ const stop2=mountAutodeskHubBrowser(unavailable,{configLoader:async()=>null});
+ await wait(()=>unavailable.textContent.includes("not connected"));
+ check(!unavailable.querySelector('[data-aps-open]'),
+   "Unconfigured hub browser must never fake a signed-in hub");
+ stop2();
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent=
+   "PASS: authenticated read-only hub/project/folder/versions browsing, pagination, back and disabled status";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error.stack||error);
+}
+</script></body></html>
