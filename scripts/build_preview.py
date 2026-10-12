@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = ROOT / ".deploy"
 COPY_DIRS = ("assets", "src", "config", "data", "examples")
 COPY_FILES = ("index.html",)
+# Explicit allowlist: never publish the complete scripts/ source tree.
+PUBLIC_SCRIPT_FILES = ("scripts/fusion_export_folknet.py",)
 
 STATIC_IMPORT = re.compile(
     r'(?P<prefix>(?:from\s*|import\s*\(\s*)["\'])(?P<path>\.{1,2}/[^"\']+?\.js)(?P<suffix>["\'])'
@@ -52,7 +54,7 @@ def validate_sources_for_publish() -> None:
     """Do not copy sensitive filenames or follow symlinks into the public site."""
     import runpy
     check = runpy.run_path(str(ROOT / "scripts" / "audit_public_assets.py"))["resource_violations"]
-    for name in COPY_FILES + COPY_DIRS:
+    for name in COPY_FILES + COPY_DIRS + PUBLIC_SCRIPT_FILES:
         source = ROOT / name
         if source.is_symlink():
             raise ValueError(f"Refusing symbolic link in public source: {name}")
@@ -87,6 +89,13 @@ def build(version: str, output: Path) -> None:
 
     for filename in COPY_FILES:
         shutil.copy2(ROOT / filename, output / filename)
+
+    # Fusion script downloads must resolve on Pages, while SiteUpdater,
+    # internal security checks and any future private scripts stay excluded.
+    for filename in PUBLIC_SCRIPT_FILES:
+        dest = output / filename
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / filename, dest)
 
     for dirname in COPY_DIRS:
         shutil.copytree(ROOT / dirname, output / dirname)
