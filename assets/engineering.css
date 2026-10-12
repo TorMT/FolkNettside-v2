@@ -419,3 +419,14 @@
  .section-sketch-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
  .section-sketch-toolbar .btn{font-size:10px}
 }
+
+/* Live cross-section calculation reads only the chosen longitudinal station. */
+.section-sketch-live{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;min-width:0}
+.section-sketch-live>div{min-width:0;display:grid;gap:5px;
+  padding:9px;border-radius:7px;border:1px solid var(--line);background:var(--surface-sunk)}
+.section-sketch-live span{font-size:10px;color:var(--ink-2);line-height:1.35}
+.section-sketch-live strong{font-size:12px;font-variant-numeric:tabular-nums;
+  color:var(--ink);overflow-wrap:anywhere}
+.section-sketch-live:not(:has(>div)){font-size:11px;color:var(--ink-2)}
+@media(max-width:580px){.section-sketch-live{grid-template-columns:1fr}}

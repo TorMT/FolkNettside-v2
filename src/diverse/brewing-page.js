@@ -1,5 +1,5 @@
-import {mountBrewingIngredients} from "./brewing/inventory.js?v=d2fcf2c3b455d0b7469559cd05d7e20dc0ed8f0f";
-import {brewingEndpoint,loadBrewingServiceConfig} from "./brewing/backend-config.js?v=d2fcf2c3b455d0b7469559cd05d7e20dc0ed8f0f";
+import {mountBrewingIngredients} from "./brewing/inventory.js?v=86c67fd7ff6aa797cee2c00a2f48815856868088";
+import {brewingEndpoint,loadBrewingServiceConfig} from "./brewing/backend-config.js?v=86c67fd7ff6aa797cee2c00a2f48815856868088";
 const LEGACY_BREWING_URL="https://tormt.folk.ntnu.no/diverse/Brygging/";
 const MODULES=[
   "./src/diverse/brewing/legacy/hydrometer-filter.js",
