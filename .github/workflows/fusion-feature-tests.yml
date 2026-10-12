@@ -1,0 +1,35 @@
+name: fusion-feature-tests
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/fusion_export_folknet.py'
+      - 'src/model/parsers/fusion-engineering-bundle.js'
+      - 'src/engineering/fusion-engineering-report.js'
+      - 'tests/fusion-engineering-bundle.test.mjs'
+      - 'tests/test_fusion_export_inertia.py'
+      - '.github/workflows/fusion-feature-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-fusion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Syntax
+        run: |
+          node --check src/model/parsers/fusion-engineering-bundle.js
+          node --check src/engineering/fusion-engineering-report.js
+          node --check tests/fusion-engineering-bundle.test.mjs
+          python -m py_compile scripts/fusion_export_folknet.py
+      - name: Fusion regression tests
+        run: |
+          node --test tests/fusion-engineering-bundle.test.mjs tests/autodesk-hub-client.test.mjs
+          python -m unittest discover -s tests -p 'test_fusion_export_inertia.py' -v
