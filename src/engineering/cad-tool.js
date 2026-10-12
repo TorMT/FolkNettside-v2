@@ -69,7 +69,18 @@ export function mountCADTool(root){
  const installerStatus=root.querySelector("[data-cad-fusion-install-status]");
  if(!picker||!stage)return ()=>{};
  let controller=null,cleanup=()=>{},request=0,disposed=false;
- const stopHubBrowser=mountAutodeskHubBrowser(root.querySelector("#cad-fusion-hub-browser"));
+ const hubDetails=root.querySelector(".cad-hub-advanced");
+ let hubMounted=false,stopHubBrowser=()=>{};
+ const maybeMountHub=()=>{
+   // Optional APS browsing is intentionally lazy: no config/network lookup
+   // when the CAD user only wants to import local files.
+   if(!disposed&&hubDetails?.open&&!hubMounted){
+     hubMounted=true;
+     stopHubBrowser=mountAutodeskHubBrowser(root.querySelector("#cad-fusion-hub-browser"));
+   }
+ };
+ hubDetails?.addEventListener("toggle",maybeMountHub);
+ maybeMountHub();
  function showEmpty(message="Inspect assemblies using orbit, pan, Fit and the component tree."){
    stage.replaceChildren();
    const box=document.createElement("div");
@@ -207,6 +218,7 @@ export function mountCADTool(root){
  installer?.addEventListener("click",onInstall);
  return ()=>{
    disposed=true;request++;stop();stopHubBrowser();
+   hubDetails?.removeEventListener("toggle",maybeMountHub);
    picker.removeEventListener("change",onChange);
    cancel.removeEventListener("click",onCancel);
    dropZone?.removeEventListener("dragover",onDrag);
