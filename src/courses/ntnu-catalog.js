@@ -86,10 +86,15 @@ export function parseNTNUSemesterIndex(semesterId,raw,{titles=new Map(),origin=N
      const url=new URL(path,origin);
      if(url.origin!==origin||!url.pathname.startsWith("/semestre/"+sid+"/"))
        continue;
+     // Existing NTNU quiz files use V1's text/options/answer[] format.
+     // Route their JSON through the interactive quiz viewer, not raw text.
+     // Auxiliary attribution JSON remains a normal file.
+     const isQuiz=parts[0]?.toLowerCase()==="quiz"&&parts.length===2&&
+       /^quiz(?:_[a-z0-9-]+)?\.json$/i.test(filename);
      resources.push({
        source:"ntnu",section,folders,
        name:filename,label:label(filename),relativePath:file,
-       path:url.pathname,url:url.toString(),kind:readKind(filename)
+       path:url.pathname,url:url.toString(),kind:isQuiz?"QUIZ":readKind(filename)
      });
    }
    resources.sort((a,b)=>a.section.localeCompare(b.section,"no")||

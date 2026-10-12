@@ -1,4 +1,4 @@
-import {quizStorageKey} from "./quiz-core.js?v=7d13052833027ac258e1bfc0923cb2e10b3fb3fc";
+import {quizStorageKey,answerMatches} from "./quiz-core.js?v=301cd1ad39956f18bcf1f2a01b695f2c42a9d89f";
 
 function storageKey(resource){return quizStorageKey(resource)+":mistake-bank.v1"}
 function hash(text){
@@ -22,12 +22,15 @@ export function readMistakeBank(resource,storage=globalThis.localStorage){
   }catch{return []}
 }
 export function recordQuizChoice(resource,question,choice,storage=globalThis.localStorage){
-  const chosen=Number(choice);
-  if(!Number.isInteger(chosen)||chosen<0||chosen>=question.choices.length)return false;
+  const chosen=question.multiple?choice:Number(choice);
+  if(question.multiple){
+    if(!Array.isArray(chosen)||!chosen.length||
+       !chosen.every(v=>Number.isInteger(v)&&v>=0&&v<question.choices.length))return false;
+  }else if(!Number.isInteger(chosen)||chosen<0||chosen>=question.choices.length)return false;
   const entries=readMistakeBank(resource,storage);
   const key=quizQuestionKey(question);
   const index=entries.findIndex(item=>item.key===key);
-  const correct=chosen===question.answer;
+  const correct=answerMatches(question,chosen);
   if(correct){
     if(index>=0)entries.splice(index,1);
   }else{
