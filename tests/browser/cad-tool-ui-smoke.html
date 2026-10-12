@@ -22,6 +22,8 @@ try{
    throw Error("Accessible file drop/choose area missing");
  if(host.querySelector(".cad-hub-advanced")?.open)
    throw Error("Inactive APS Hub must be collapsed by default");
+ if(host.querySelector("#cad-fusion-hub-browser")?.children.length)
+   throw Error("Inactive APS Hub must not initialize until opened");
  const stage=host.querySelector("#cad-geometry-stage");
  if(stage.clientHeight<350||stage.clientWidth<300)
    throw Error("CAD stage has no usable geometry: "+stage.clientWidth+"x"+stage.clientHeight);
