@@ -120,6 +120,8 @@ if ($Apply) { $args += "--apply" }
 Invoke-Python $args
 if ($Apply) {
     Write-Host "Staging deployment finished. Check https://tormt.folk.ntnu.no/v2-staging/"
+    Write-Host "Run read-only HTTP checks once the NTNU server reflects the update:"
+    Write-Host "  py -3 scripts/verify_ntnu_staging.py --commit $commit"
     Write-Host "Rollback with:"
     Write-Host "  .\Oppdater-FolkNettside.ps1 -Rollback `"$releaseDir`" -Apply"
 } else {

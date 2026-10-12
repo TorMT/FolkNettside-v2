@@ -75,6 +75,20 @@ them as live NTNU courses**. Course data comes from existing semester-specific
 
 ## 3. Mandatory staging acceptance in a real browser
 
+First run the bounded, **read-only** public HTTP and deployed Git SHA
+verification from the local checkout. It never fetches protected course files:
+
+```powershell
+py -3 scripts/verify_ntnu_staging.py --commit (git rev-parse HEAD)
+```
+
+If the report says `ready: false`, do not promote V2. Examine its named
+public URLs and re-run after NTNU has served the latest published build.
+The script cannot verify browser JavaScript, logins, real CAD calculations
+or Apache access protection; complete the remaining acceptance steps below.
+
+
+
 1. Visit `https://tormt.folk.ntnu.no/v2-staging/` on desktop and mobile.
    Confirm the application loads and `Courses` shows real semester 1–5
    entries from **NTNU**, not TMR4182's synthetic GitHub fixtures.

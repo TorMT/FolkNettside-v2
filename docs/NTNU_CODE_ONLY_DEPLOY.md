@@ -66,7 +66,22 @@ secrets directly inside a public NTNU webroot.** Use the validated build
 instead. A plain `git pull` does not create a publishable static build
 or safely separate your files from deployment internals.
 
-### Permissions and known limits
+### Post-deploy smoke test (no protected course downloads)
+
+After manually copying V2 to `v2-staging` and confirming webedit has
+published the new files, run:
+
+```powershell
+py -3 scripts/verify_ntnu_staging.py --commit (git rev-parse HEAD)
+```
+
+The verifier checks only the V2 index/entrypoints, Fusion script, build
+marker, and **public semester JSON indexes** over HTTPS. It rejects
+unexpected redirects, wrong build SHA or missing files. It does not
+access protected PDFs or mutate anything. This is a prerequisite for
+manual browser checks, **not** a substitute for real login/API testing.
+
+
 
 - Existing `(beskyttet)`, `private`, and related directory names are
   **excluded** from the public V2 catalog. This prevents casual exposure of
