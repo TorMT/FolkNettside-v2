@@ -77,6 +77,7 @@ import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js";
 import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js";
 import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js";
 import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignUp,folkSignOut} from "./platform/folkside-auth.js";
+import {probeFolkCoreBackend} from "./platform/folkside-cloud.js";
 
 initSettings();
 initGoogleSession();
@@ -1004,6 +1005,19 @@ function settingsPage(){
   app.querySelector("[data-folk-signout]")?.addEventListener("click",async()=>{
     await folkSignOut();
     if(route().startsWith("/settings")&&settingsSection==="connections")settingsPage();
+  });
+  app.querySelector("[data-folk-probe]")?.addEventListener("click",async event=>{
+    const button=event.currentTarget;
+    const feedback=app.querySelector("[data-folk-probe-result]");
+    button.disabled=true;
+    if(feedback)feedback.textContent="Checking your Supabase account and private backend…";
+    try{
+      const result=await probeFolkCoreBackend();
+      if(feedback)feedback.textContent="Verified: Supabase account and private storage are available. "+
+        (result.autodeskConnected?"Autodesk connected.":"Autodesk authorization is not connected yet.");
+    }catch(error){
+      if(feedback)feedback.textContent=String(error?.message||"Backend verification failed");
+    }finally{if(button.isConnected)button.disabled=false}
   });
 
   app.querySelectorAll("[data-spacemouse-setting]").forEach(input=>{
