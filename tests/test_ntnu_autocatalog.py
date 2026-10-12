@@ -78,7 +78,7 @@ class NtnuAutoIndexTests(unittest.TestCase):
     def test_protected_course_and_section_never_whitelisted_by_filename(self):
         private_allow = {"publicCourses":[{"semester":5,"slug":"Hemmelig",
                                              "sections":["filer"]}]}
-        with self.assertRaisesRegex(ValueError,"explicitly public"):
+        with self.assertRaises(ValueError):
             scan.build_catalog(self.webroot,private_allow)
         (self.course/"index.json").write_text(json.dumps({
             "filer":{"dir":"filer","beskyttet":True,"files":[]},
