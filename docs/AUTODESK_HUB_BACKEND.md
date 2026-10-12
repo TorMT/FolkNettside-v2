@@ -2,7 +2,7 @@
 
 ## Status and scope
 
-A **backend implementation** exists in `supabase/functions/autodesk-hub/`.
+The **backend implementation is deployed** to the verified FolkNet Supabase project as `autodesk-hub` (ACTIVE, v1 on 2026-10-12) and version-controlled in `supabase/functions/autodesk-hub/`. Deployment is distinct from working Autodesk authorization: APS app secrets and live consent tests are still pending.
 It uses the existing FolkNet Supabase Auth account as its *first-party user identity*.
 The Autodesk three-legged authorization flow is a **separate consent step** and
 only requests `data:read`. Read-only hub → project → folder → file →
