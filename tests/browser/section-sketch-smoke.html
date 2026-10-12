@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Structure Y/Z member editor interaction smoke</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/engineering.css">
+<style>body{margin:24px}main{width:760px;max-width:100%}</style></head>
+<body data-status="running"><main><textarea id="section" rows="5"># Structural member ledger
+plate,0,5,-1,1,1,1,.02,210,7850 # top flange
+stiffener,0,5,0,.7,.1,.2,210,7850
+# next X station
+plate,5,10,-1,1,1,1,.025,210,7850</textarea>
+<div id="editor"></div></main><pre id="result">Testing section editor...</pre>
+<script type="module">
+import {mountSectionSketch} from "../../src/engineering/section-sketch.js";
+import {parseStructuralMembers,deriveLongitudinalSections}
+  from "../../src/structure/girder-section-properties.js";
+const assert=(test,message)=>{if(!test)throw Error(message)};
+try{
+ const textarea=document.getElementById("section");
+ const host=document.getElementById("editor");
+ const unmount=mountSectionSketch(host,{
+  textInput:textarea,modelBounds:{min:[0,-3,-2],max:[10,3,2]}
+ });
+ const svg=host.querySelector("svg");
+ const original=textarea.value;
+ assert(host.querySelectorAll("[data-section-mode]").length===3,
+   "Member tools missing");
+ assert(host.querySelector("[data-section-station]").value==="0|5",
+   "Default first structural station not shown");
+ assert(svg.querySelectorAll("[data-section-member]").length===2,
+   "Expected two member shapes in first station");
+ const dispatch=(element,type,pointer)=>{
+   const rc=svg.getBoundingClientRect();
+   const xy=p=>({clientX:rc.left+p.x/640*rc.width,
+     clientY:rc.top+p.y/340*rc.height});
+   element.dispatchEvent(new PointerEvent(type,{
+     bubbles:true,button:0,pointerId:5,...xy(pointer)
+   }));
+ };
+ const stroke=svg.querySelector('[data-section-member="0"]');
+ const centre={
+   x:(Number(stroke.getAttribute("x1"))+Number(stroke.getAttribute("x2")))/2,
+   y:(Number(stroke.getAttribute("y1"))+Number(stroke.getAttribute("y2")))/2
+ };
+ const drag=(from,to,startElement=svg)=>{
+   dispatch(startElement,"pointerdown",from);
+   dispatch(svg,"pointermove",to);
+   dispatch(svg,"pointerup",to);
+ };
+ svg.setPointerCapture=()=>{};
+ drag(centre,centre,stroke);
+ assert(host.querySelector("[data-section-selected]").hidden===false,"Selecting real plate line failed");
+ assert(host.querySelector('[data-section-prop="t"]').value===".02",
+   "Selected plate thickness not populated");
+ const thickness=host.querySelector('[data-section-prop="t"]');
+ thickness.value=".03";
+ host.querySelector("[data-section-update]").click();
+ assert(parseStructuralMembers(textarea.value)[0].t===.03,"Selected plate numeric edit failed");
+ assert(textarea.value.includes("# top flange"),"Inline CSV comment unexpectedly removed");
+ host.querySelector("[data-section-undo]").click();
+ assert(textarea.value===original,"Undo did not restore the authoritative original CSV");
+ const selectedLine=svg.querySelector('[data-section-member="0"]');
+ drag(centre,{x:centre.x+35,y:centre.y+21},selectedLine);
+ assert(parseStructuralMembers(textarea.value)[0].y0> -1,
+   "Dragging existing member did not change Y");
+ assert(parseStructuralMembers(textarea.value)[0].z0<1,
+   "Dragging existing member did not change Z");
+ assert(parseStructuralMembers(textarea.value)[2].x0===5,
+   "Dragging modified an unrelated X section");
+ host.querySelector("[data-section-undo]").click();
+ assert(textarea.value===original,"Undo of moved member failed");
+ host.querySelector('[data-section-mode="plate"]').click();
+ drag({x:215,y:265},{x:410,y:265});
+ assert(parseStructuralMembers(textarea.value).length===4,"Drawing plate didn't add member");
+ assert(parseStructuralMembers(textarea.value).map(m=>m.x0).join(",")==="0,0,0,5",
+   "Inserted plate disrupted longitudinal section row grouping");
+ host.querySelector("[data-section-undo]").click();
+ assert(textarea.value===original,"Undo of new plate failed");
+ const station=host.querySelector("[data-section-station]");
+ station.value="custom";
+ station.dispatchEvent(new Event("change",{bubbles:true}));
+ host.querySelector("[data-section-x0]").value="10";
+ host.querySelector("[data-section-x1]").value="15";
+ host.querySelector('[data-section-mode="stiffener"]').click();
+ drag({x:320,y:140},{x:320,y:140});
+ assert(parseStructuralMembers(textarea.value).at(-1).x0===10,
+   "Custom structural station didn't create an X=10 row");
+ assert(host.querySelector("[data-section-station]").value==="10|15",
+   "New structural station was not selected");
+ host.querySelector("[data-section-undo]").click();
+ assert(textarea.value===original,"Undo of custom station insert failed");
+ // Draw intersecting plate over the first existing top flange.
+ station.value="0|5";station.dispatchEvent(new Event("change",{bubbles:true}));
+ host.querySelector('[data-section-mode="stiffener"]').click();
+ const existing=svg.querySelector('[data-section-member="0"]');
+ const mid={
+   x:(Number(existing.getAttribute("x1"))+Number(existing.getAttribute("x2")))/2,
+   y:(Number(existing.getAttribute("y1"))+Number(existing.getAttribute("y2")))/2
+ };
+ drag(mid,mid);
+ assert(host.querySelector("[data-section-warning]").hidden===false,
+   "Overlapping structural metal should be prominently flagged");
+ assert.throws(()=>deriveLongitudinalSections(parseStructuralMembers(textarea.value),{
+   xMin:0,xMax:10
+ }),/overlap/);
+ host.querySelector("[data-section-undo]").click();
+ assert(host.querySelector("[data-section-warning]").hidden===true,
+   "Undo should clear overlap warning and restore safe geometry");
+ unmount();
+ document.body.dataset.status="pass";
+ document.getElementById("result").textContent=
+  "PASS: plate selection, numeric update, drag move, undo, station insertion and overlapping metal guard";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.getElementById("result").textContent=String(error?.stack||error);
+}
+</script></body></html>
