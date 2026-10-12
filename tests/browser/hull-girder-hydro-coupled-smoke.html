@@ -11,6 +11,7 @@ import {projectPressureToBeam} from "../../src/structure/hydro-beam-transfer.js"
 import {solveHullGirder} from "../../src/structure/hull-girder.js";
 import {hullGirderPanelHTML} from "../../src/engineering/hull-girder-panel.js";
 import {parseGirderStations} from "../../src/structure/girder-profiles.js";
+import {parseStructuralMembers,deriveLongitudinalSections} from "../../src/structure/girder-section-properties.js";
 import {girderSectionsCSV} from "../../src/structure/girder-export.js";
 const check=(ok,message)=>{if(!ok)throw Error(message)};
 try{
@@ -51,17 +52,31 @@ try{
   const csv=girderSectionsCSV(variable);
   check(csv.includes("baseline_mass_t_per_m"),"Missing section/mass CSV provenance header");
   check(csv.includes("5.5"),"Longitudinal concentrated baseline mass section missing from CSV");
+  const sectionText="plate,-5,0,-1,-1,-1,1,.1,210,7850\n"+
+    "plate,0,5,-1,-1,-1,1,.2,210,7850";
+  const sectionModel=deriveLongitudinalSections(parseStructuralMembers(sectionText),{
+    xMin:-5,xMax:5,referenceE:210e9
+  });
+  const sectionBeam=solveHullGirder({
+    xMin:-5,xMax:5,hullMassTonnes:40,hullCG:[0,0,.5],
+    sectionModel,buoyancyTransfer,supportModel:"pinned-roller",
+    E:210e9,I:.08,extremeFiberM:1,segments:12
+  });
+  check(sectionBeam.frame.elements[0].I<sectionBeam.frame.elements.at(-1).I,
+    "Declared plate thickness did not alter the derived EI");
+  check(sectionBeam.equilibriumAudit.passed,"Composite structural EI violates force balance");
+  check(sectionBeam.maxStressPa>0,"Composite-section member stress not computed");
   const panel=hullGirderPanelHTML({caseInput:{
     hullMassTonnes:40,cg:[0,0,.5],pointText:"2,0,0,1.5",areaText:"",
     eGpa:210,iM4:.08,extremeFiberM:1,segments:12,neutralZ:1,
     loadingMode:"pressure-gravity",supportModel:"pinned-roller",
     pressureDraft:1,pressureDensity:1000,pressureSections:12,
-    stiffnessText,massProfileText
+    stiffnessText:"",massProfileText:"",sectionText,sectionMassMode:"independent"
   },result:fixture,modelName:model.name,bounds:{min:[-5,-2,0],max:[5,2,3]}});
   document.querySelector("#panel").innerHTML=panel.inspector+panel.summary+panel.results;
   for(const id of ["girder-loading-mode","girder-support-model","girder-pressure-draft",
     "girder-pressure-density","girder-pressure-sections","girder-stiffness-profile",
-    "girder-mass-profile","girder-run"]){
+    "girder-mass-profile","girder-section-members","girder-section-mass-mode","girder-run"]){
     check(document.getElementById(id),"Missing structural hydro UI "+id);
   }
   check(document.querySelector("#girder-loading-mode").value==="pressure-gravity",
@@ -82,6 +97,10 @@ try{
     "Structural EI profile input is not preserved");
   check(document.querySelector("#girder-mass-profile").value===massProfileText,
     "Baseline mass profile input is not preserved");
+  check(document.querySelector("#girder-section-members").value===sectionText,
+    "Structural member rows not preserved in editor");
+  check(document.querySelector("#girder-section-mass-mode").value==="independent",
+    "Default section mass policy must not auto-overwrite hull baseline");
   check(document.querySelector(".hull-fem-profile-chart"),
     "Longitudinal EI and mass station preview missing");
   check(document.querySelector("#girder-export-sections"),
@@ -90,6 +109,14 @@ try{
     "Independent pitch-moment residual missing");
   check(document.querySelector("#panel").textContent.includes("Maximum deflection location"),
     "Continuous FEM deflection maximum location missing");
+  const derivedPanel=hullGirderPanelHTML({caseInput:{sectionText,
+    sectionMassMode:"independent"},result:sectionBeam});
+  const preview=document.createElement("div");
+  preview.innerHTML=derivedPanel.summary+derivedPanel.results;
+  check(preview.querySelector(".hull-fem-section-sketch"),"Derived section Y/Z sketch missing");
+  check(preview.textContent.includes("Gross structural member mass"),
+    "Calculated structural material mass not reported");
+  check(preview.textContent.includes("Elastic NA"),"Section neutral-axis preview missing");
   document.body.dataset.status="pass";
   document.querySelector("#result").textContent=
     "PASS: actual Hydro pressure -> X stations -> beam reactions, floating guard and combined signed-load UI";
