@@ -1,0 +1,30 @@
+name: prepare-ntnu-v2-code-package
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  code-only-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check public bundle isolation and publishing tests
+        run: |
+          python3 scripts/audit_public_assets.py
+          python3 -m unittest discover -s tests -p 'test_publish_ntnu_staging.py' -v
+      - name: Build NTNU code-only staging
+        run: |
+          python3 scripts/build_ntnu_staging.py --version "$GITHUB_SHA"
+          test ! -d .deploy-ntnu-staging/semestre
+          test ! -d .deploy-ntnu-staging/.git
+          test -f .deploy-ntnu-staging/src/courses/ntnu-catalog.js
+      - name: Downloadable staging package (never auto-deploy)
+        uses: actions/upload-artifact@v4
+        with:
+          name: folknet-v2-ntnu-code-only
+          path: .deploy-ntnu-staging/
+          include-hidden-files: false
+          retention-days: 14
