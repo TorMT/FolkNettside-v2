@@ -1,6 +1,6 @@
 import {escapeHTML,fetchJSON} from "../utils.js";
 import {
-  answerQuestion,answerMatches,quizImageURL,createQuizAttempt,normalizeQuiz,quizScore,quizChapterView,quizChapterStorageKey,sanitizeQuizAttempt
+  answerQuestion,answerMatches,quizImageURL,selectQuizQuestions,createQuizAttempt,normalizeQuiz,quizScore,quizChapterView,quizChapterStorageKey,sanitizeQuizAttempt
 } from "../quiz-core.js";
 import {mistakeQuestions,recordQuizChoice,clearMistakeBank} from "../quiz-mistake-bank.js";
 
@@ -17,7 +17,8 @@ function saveAttempt(key,attempt){
 }
 
 export async function render(container,resource){
-  const wholeQuiz=normalizeQuiz(await fetchJSON(resource.path));
+  const catalogQuiz=normalizeQuiz(await fetchJSON(resource.path));
+  let wholeQuiz=selectQuizQuestions(catalogQuiz,resource);
   let selectedChapter="all";
   let quiz=wholeQuiz;
   let storageKey=quizChapterStorageKey(resource);
@@ -164,6 +165,10 @@ export async function render(container,resource){
         draw();
       });
       container.querySelector("#quiz-restart")?.addEventListener("click",()=>{
+        wholeQuiz=selectQuizQuestions(catalogQuiz,resource,{reset:true});
+        quiz=wholeQuiz;selectedChapter="all";mistakeMode=false;
+        storageKey=quizChapterStorageKey(resource);
+        drafts.clear();
         attempt=createQuizAttempt(quiz);
         review=false;
         persist();
