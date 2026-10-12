@@ -31,11 +31,14 @@ from proprietary F3D binaries.
    hull** before attempting Hydro. Structural section properties still
    require scantlings/material definitions or a dedicated structural import.
 
-The export script has been syntax-checked, but must still be tested against
-your installed Fusion version and a real user assembly. The site test uses
-an actual STEP fixture and synthetic physical metadata to verify the ZIP
-contract; it does **not** prove that any particular real Fusion assembly
-successfully exports without manual checks.
+The export script is Python-syntax-checked, but must still be tested against
+your installed Fusion version and a real user assembly. The new ZIP browser
+test exercises a **real ZIP archive, manifest and STEP byte extraction** with
+a deterministic injected CAD converter; it does **not** claim to exercise
+an actual OpenCascade STEP translation or a real Fusion export. The CAD
+worker is validated separately by existing dedicated CAD import tests.
+A real sample Fusion assembly and its STEP output are required for the
+end-to-end engineering acceptance test.
 
 ### Exactly which data can come from Fusion
 
