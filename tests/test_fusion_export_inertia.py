@@ -72,6 +72,20 @@ class FusionExporterTests(unittest.TestCase):
 
         self.assertEqual(self.exporter._optional_inertia(Malformed()), {})
 
+    def test_unique_exports_are_time_stamped_and_never_overwrite(self):
+        import datetime
+        when = datetime.datetime(2026, 10, 12, 13, 45, 10, 123456,
+                                 tzinfo=datetime.timezone.utc)
+        name = self.exporter._unique_export_filename("../Test assembly", when)
+        self.assertEqual(
+            name, "FolkNet_Fusion_Test_assembly_20261012T134510123456Z.zip")
+        later = self.exporter._unique_export_filename(
+            "../Test assembly", when + datetime.timedelta(microseconds=1))
+        self.assertNotEqual(name, later)
+        with self.assertRaises(ValueError):
+            self.exporter._unique_export_filename(
+                "No timezone", datetime.datetime(2026, 10, 12))
+
     def test_total_measurements_retain_si_dimensions(self):
         class Component:
             def getPhysicalProperties(self, accuracy):
