@@ -9,7 +9,7 @@
  * Only use on models that passed validateHydroModel preflight. The result is
  * a pressure resultant, NOT a structural FEM or a certified external hull.
  */
-import {analyzePreparedHydro,prepareHydroModel} from "./hydrostatics.js?v=b2da5ada6668a650d63b271c56da47a964332d82";
+import {analyzePreparedHydro,prepareHydroModel} from "./hydrostatics.js?v=1a6e79a179cf3eb7de0bd0ca8920153fb3746b40";
 const G=9.80665,EPS=1e-12;
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
 const subtract=(a,b)=>a.map((x,i)=>x-b[i]);

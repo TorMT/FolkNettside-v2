@@ -1,4 +1,4 @@
-import {getJSZip} from "../../vendor/jszip.js?v=b2da5ada6668a650d63b271c56da47a964332d82";
+import {getJSZip} from "../../vendor/jszip.js?v=1a6e79a179cf3eb7de0bd0ca8920153fb3746b40";
 
 /** Native Fusion archives are packages, not triangulated CAD meshes.
  * This inspector reads ZIP entry names and original embedded preview images.

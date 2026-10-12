@@ -6,8 +6,8 @@
  * Do NOT confuse Fusion solid volume (material) with displaced hull volume.
  * There is no automatic hull tagging, hydro enablement, or derived EI.
  */
-import {getJSZip} from "../../vendor/jszip.js?v=b2da5ada6668a650d63b271c56da47a964332d82";
-import {parseCADBuffer} from "./cad-runtime.js?v=b2da5ada6668a650d63b271c56da47a964332d82";
+import {getJSZip} from "../../vendor/jszip.js?v=1a6e79a179cf3eb7de0bd0ca8920153fb3746b40";
+import {parseCADBuffer} from "./cad-runtime.js?v=1a6e79a179cf3eb7de0bd0ca8920153fb3746b40";
 
 const MAX_ARCHIVE=55*1024*1024, MAX_STEP=25*1024*1024;
 const MAX_JSON=1024*1024, MAX_ENTRIES=30;
@@ -35,6 +35,15 @@ export function validateFusionEngineeringManifest(raw){
    !finite(total.solidVolumeM3)||total.solidVolumeM3<0||
    !vec3(total.centerOfMassM))
    throw Error("Fusion assembly total mass, volume or center-of-mass is invalid");
+ if(total.surfaceAreaM2!==undefined&&
+   (!finite(total.surfaceAreaM2)||total.surfaceAreaM2<0))
+   throw Error("Fusion surface area must be finite and nonnegative");
+ if(total.boundsM!==undefined){
+   const bb=total.boundsM;
+   if(!vec3(bb?.min)||!vec3(bb?.max)||
+     bb.min.some((n,i)=>n>bb.max[i]))
+     throw Error("Fusion bounding extents must be ordered finite XYZ coordinates");
+ }
  if(!Array.isArray(raw.occurrences)||raw.occurrences.length>1000)
    throw Error("Fusion assembly occurrence inventory exceeds limit");
  const occurrences=raw.occurrences.map((occ,i)=>{
@@ -59,6 +68,8 @@ export function validateFusionEngineeringManifest(raw){
    total:{
      massKg:total.massKg,solidVolumeM3:total.solidVolumeM3,
      centerOfMassM:total.centerOfMassM.slice(),
+     ...(total.surfaceAreaM2===undefined?{}:{surfaceAreaM2:total.surfaceAreaM2}),
+     ...(total.boundsM===undefined?{}:{boundsM:{min:total.boundsM.min.slice(),max:total.boundsM.max.slice()}}),
      // Fusion body/assembly physical properties are independent of Hydro.
      qualification:"Fusion physical properties from assigned CAD materials"
    },
