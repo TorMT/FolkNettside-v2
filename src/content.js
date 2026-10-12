@@ -1,3 +1,5 @@
+import {onNTNUHost,loadNTNUCatalog} from "./courses/ntnu-catalog.js?v=a1e28fad9d52f0f7b7b9c365b9b14445df76c120";
+
 let cache;
 
 async function readJSON(path) {
@@ -18,13 +20,33 @@ function flattenCourses(manifest) {
 export async function loadContent() {
   if (cache) return cache;
 
-  const [site, manifest, model, gunnerusModel, projects] = await Promise.all([
+  const [site, baseManifest, model, gunnerusModel, projects] = await Promise.all([
     readJSON("./config/site.json"),
     readJSON("./data/content-manifest.json"),
     readJSON("./data/demo-model.json"),
     readJSON("./data/gunnerus-model.json"),
     readJSON("./data/projects.json")
   ]);
+  let manifest=baseManifest;
+  let courseSource={mode:"preview",status:"demo",failedSemesters:[]};
+  if(onNTNUHost(globalThis.location?.hostname)){
+    try{
+      let navbarHtml="";
+      try{
+        const response=await fetch("/includes/navbar.html",{
+          credentials:"same-origin",mode:"same-origin",cache:"no-store",redirect:"error"
+        });
+        if(response.ok)navbarHtml=(await response.text()).slice(0,250_000);
+      }catch{ /* Course labels fall back to NTNU directory names. */ }
+      manifest=await loadNTNUCatalog({navbarHtml});
+      courseSource={mode:"ntnu",status:manifest.status,
+        failedSemesters:manifest.failedSemesters};
+    }catch{
+      // A tiny synthetic GitHub demo must never masquerade as the NTNU archive.
+      manifest={schemaVersion:2,source:"ntnu-same-origin",semesters:[]};
+      courseSource={mode:"ntnu",status:"unavailable",failedSemesters:[]};
+    }
+  }
   const models=[
     {id:model.id||"fixture",label:model.label||model.name,...model},
     {id:gunnerusModel.id||"gunnerus",label:gunnerusModel.label||gunnerusModel.name,...gunnerusModel}
@@ -44,6 +66,7 @@ export async function loadContent() {
   cache = {
     site,
     manifest,
+    courseSource,
     semesters,
     courses,
     resources,
