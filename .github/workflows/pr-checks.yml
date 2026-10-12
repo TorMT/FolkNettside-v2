@@ -206,6 +206,7 @@ jobs:
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4207/tests/browser/quiz-formula-smoke.html 35 1440,900
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4207/tests/browser/ntnu-legacy-quiz-smoke.html 35 1440,900
 
       - name: Native V1 lecture grouping and watched state browser regression
         run: |
