@@ -14,7 +14,8 @@ const fixture={
     massUnit:"kg",volumeUnit:"m3",centerUnit:"m",lengthUnit:"m",
     source:"Autodesk Fusion HighCalculationAccuracy"
   },
-  total:{massKg:650,solidVolumeM3:.08,centerOfMassM:[2,-1,.7]},
+  total:{massKg:650,solidVolumeM3:.08,surfaceAreaM2:3.2,
+    boundsM:{min:[-2,-1,0],max:[4,1,3]},centerOfMassM:[2,-1,.7]},
   occurrences:[
     {name:"Frame",fullPath:"Hull:1+Frame:2",massKg:250,
       solidVolumeM3:.03,centerOfMassM:[1,0,1]},
@@ -27,6 +28,8 @@ test("native Fusion source properties retain SI units and explicit physical prov
  const normalized=validateFusionEngineeringManifest(fixture);
  assert.equal(normalized.total.massKg,650);
  assert.equal(normalized.total.solidVolumeM3,.08);
+ assert.equal(normalized.total.surfaceAreaM2,3.2);
+ assert.deepEqual(normalized.total.boundsM.max,[4,1,3]);
  assert.deepEqual(normalized.total.centerOfMassM,[2,-1,.7]);
  assert.equal(normalized.occurrences.length,2);
  assert.equal(normalized.occurrences[0].isOccurrenceAggregate,true);
@@ -35,6 +38,9 @@ test("native Fusion source properties retain SI units and explicit physical prov
  assert.match(html,/Assembly mass/);
  assert.match(html,/650 kg/);
  assert.match(html,/0\.08 m³/);
+ assert.match(html,/CAD body surface area/);
+ assert.match(html,/XYZ envelope/);
+ assert.match(html,/6 × 2 × 3 m/);
  assert.match(html,/2 \/ -1 \/ 0\.7 m/);
  assert.match(html,/NOT the/);
  assert.match(html,/do not sum nested aggregates/);
@@ -79,4 +85,18 @@ test("nested occurrence masses are not summed to reconstruct top-level mass",()=
  assert.equal(normalized.total.massKg,650);
  const rendered=fusionEngineeringReportHTML(normalized);
  assert.match(rendered,/650 kg/);
+});
+
+test("unqualified bounds and surface-area values are rejected rather than rendered",()=>{
+ assert.throws(()=>validateFusionEngineeringManifest({...fixture,
+   total:{...fixture.total,boundsM:{min:[0,0,0],max:[-1,1,1]}}
+ }),/bounding extents/);
+ assert.throws(()=>validateFusionEngineeringManifest({...fixture,
+   total:{...fixture.total,surfaceAreaM2:-5}
+ }),/surface area/);
+ const minimal=validateFusionEngineeringManifest({...fixture,
+   total:{massKg:1,solidVolumeM3:1,centerOfMassM:[0,0,0]}
+ });
+ assert.ok(!Object.hasOwn(minimal.total,"boundsM"));
+ assert.ok(!Object.hasOwn(minimal.total,"surfaceAreaM2"));
 });
