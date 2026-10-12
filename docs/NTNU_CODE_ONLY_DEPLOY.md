@@ -50,6 +50,22 @@ are replaced individually and verified by source/destination SHA-256.
 The NTNU staging URL, after an authorized first upload, is:
 `https://tormt.folk.ntnu.no/v2-staging/`.
 
+### Alternative: download ready-made code from GitHub Actions
+
+Without running a local build, open **GitHub → Actions →
+prepare-ntnu-v2-code-package → Run workflow**. The workflow creates a
+versioned artifact named `folknet-v2-ntnu-code-only` containing the static
+V2 application, **not** semester files, credentials or the Git history.
+Download and extract it *outside* the NTNU webedit directory first.
+Use `scripts/publish_ntnu_staging.py` from your local checkout for the
+same dry-run and safe `v2-staging` update. The Action never connects to
+NTNU automatically.
+
+**Never `git clone` a repository containing `.git` or configuration
+secrets directly inside a public NTNU webroot.** Use the validated build
+instead. A plain `git pull` does not create a publishable static build
+or safely separate your files from deployment internals.
+
 ### Permissions and known limits
 
 - Existing `(beskyttet)`, `private`, and related directory names are
