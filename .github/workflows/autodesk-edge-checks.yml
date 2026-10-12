@@ -23,7 +23,7 @@ jobs:
           node-version: '22'
       - name: Check Edge runtime imports and TypeScript
         run: |
-          deno check supabase/functions/autodesk-hub/index.ts
+          deno check --config supabase/functions/autodesk-hub/deno.json supabase/functions/autodesk-hub/index.ts
       - name: Test OAuth and pinned browser identity
         run: |
           node --test tests/autodesk-oauth-core.test.mjs tests/autodesk-hub-client.test.mjs
