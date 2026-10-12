@@ -116,3 +116,14 @@ test("OAuth backend redirects cannot point to malicious origins",async()=>{
  });
  await assert.rejects(client.startAuthorization(),/authorization URL rejected/);
 });
+
+test("long HMAC pagination cursor is accepted but malformed payload is rejected",()=>{
+ const opaque="a".repeat(2500)+"."+"b".repeat(43);
+ const parsed=parseCatalogResponse({entries:[],nextCursor:opaque});
+ assert.equal(parsed.nextCursor,opaque);
+ const base="https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/";
+ const u=new URL(catalogRequestURL(base,"hubs",{},opaque));
+ assert.equal(u.searchParams.get("cursor"),opaque);
+ assert.throws(()=>parseCatalogResponse({entries:[],nextCursor:"javascript:alert(1)"}),
+   /cursor/);
+});
