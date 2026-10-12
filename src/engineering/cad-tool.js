@@ -1,45 +1,86 @@
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=17fdff0a6e45b58d67d4c9854bc5db012bbe4664";
-import {parseSTL} from "../model/parsers/stl.js?v=17fdff0a6e45b58d67d4c9854bc5db012bbe4664";
-import {parse3MF} from "../model/parsers/three-mf.js?v=17fdff0a6e45b58d67d4c9854bc5db012bbe4664";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=17fdff0a6e45b58d67d4c9854bc5db012bbe4664";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=17fdff0a6e45b58d67d4c9854bc5db012bbe4664";
-import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=17fdff0a6e45b58d67d4c9854bc5db012bbe4664";
-import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=17fdff0a6e45b58d67d4c9854bc5db012bbe4664";
-import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=17fdff0a6e45b58d67d4c9854bc5db012bbe4664";
-import {createModelDocument} from "../model/model-document.js?v=17fdff0a6e45b58d67d4c9854bc5db012bbe4664";
-import {boxMesh} from "../hydro/fixtures.js?v=17fdff0a6e45b58d67d4c9854bc5db012bbe4664";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=07f63084a4ab14484952a5235704e90c5ed0ce2a";
+import {parseSTL} from "../model/parsers/stl.js?v=07f63084a4ab14484952a5235704e90c5ed0ce2a";
+import {parse3MF} from "../model/parsers/three-mf.js?v=07f63084a4ab14484952a5235704e90c5ed0ce2a";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=07f63084a4ab14484952a5235704e90c5ed0ce2a";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=07f63084a4ab14484952a5235704e90c5ed0ce2a";
+import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=07f63084a4ab14484952a5235704e90c5ed0ce2a";
+import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=07f63084a4ab14484952a5235704e90c5ed0ce2a";
+import {downloadFusionScriptPackage} from "./fusion-installer.js?v=07f63084a4ab14484952a5235704e90c5ed0ce2a";
+import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=07f63084a4ab14484952a5235704e90c5ed0ce2a";
+import {createModelDocument} from "../model/model-document.js?v=07f63084a4ab14484952a5235704e90c5ed0ce2a";
+import {boxMesh} from "../hydro/fixtures.js?v=07f63084a4ab14484952a5235704e90c5ed0ce2a";
 
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
  <p class="crumbs">Engineering / CAD</p><h1>CAD workbench</h1>
- <p>Open STEP/STP, IGES/IGS, BREP, STL, 3MF, Fusion F3D/F3Z archives or a Fusion engineering ZIP locally. OpenCascade converts
- exact CAD surfaces to a <strong>tessellated visual mesh</strong> in a browser worker;
- measurements and exports are therefore approximate, not a substitute for CAD inspection in your authoring tool.</p>
- <p class="muted"><strong>Fusion assembly workflow:</strong> native F3Z uploads show designs and saved previews,
- but native F3D solids cannot be decoded to engineering geometry in a static browser.
- To extract mass, volume, center of mass and actual 3D STEP geometry, run
- <a href="./scripts/fusion_export_folknet.py" download>Fusion-to-FolkNet Python script</a>
- inside Fusion's Scripts and Add-ins. It creates one engineering ZIP to upload here;
- keep the original F3Z separately. Fusion's internal centimeters are converted to metres.</p>
- <div id="cad-fusion-hub-browser" class="cad-hub-section"></div>
- <div class="cad-import-bar">
+ <p class="muted">Inspect CAD geometry and source-reported engineering properties in one workspace.
+ OpenCascade tessellates STEP/IGES/BREP into an interactive preview; measurements
+ from those meshes are approximations and not engineering certification.</p>
+ <section class="cad-fusion-quickstart" aria-labelledby="cad-fusion-heading">
+   <header class="cad-fusion-quickstart-head"><div>
+     <span class="project-kicker">Recommended · works with Fusion student licence</span>
+     <h2 id="cad-fusion-heading">Fusion → FolkNet, locally</h2>
+     <p>Export STEP geometry, mass, material volume, centre of mass and inertia
+     from the model open in Fusion. <strong>No APS account or cloud upload required.</strong></p>
+   </div><button class="btn primary" id="cad-fusion-install" type="button">Get Fusion export script (.zip)</button></header>
+   <ol class="cad-fusion-steps">
+     <li><strong>Install once</strong><span>Unzip the download, then in Fusion go to Utilities → Scripts and Add-ins → Add (+). Select the FolkNetFusion folder.</span></li>
+     <li><strong>Export in Fusion</strong><span>Open your assembly and run FolkNetFusion. It writes a ZIP into Documents/FolkNet_Fusion_Exports.</span></li>
+     <li><strong>Inspect here</strong><span>Drop that ZIP below. STEP geometry and Fusion physical properties appear together.</span></li>
+   </ol>
+   <p class="muted cad-fusion-script-fallback">Prefer manual setup?
+     <a href="./scripts/fusion_export_folknet.py" download>Get Python script only</a> ·
+     <a href="https://github.com/TorMT/FolkNettside-v2/blob/main/docs/FUSION_IMPORT.md" target="_blank" rel="noopener noreferrer">Import instructions</a>
+   </p>
+   <p data-cad-fusion-install-status role="status" aria-live="polite"></p>
+ </section>
+ <section class="cad-local-import" aria-labelledby="cad-import-heading">
+  <header><div><h2 id="cad-import-heading">Open a model</h2>
+    <p class="muted">Files are handled in your browser. A native .f3z/.f3d can be inspected,
+    but proprietary solids require the Fusion export above for physical-property analysis.</p></div></header>
+  <label for="cad-import-file" id="cad-drop-zone" class="cad-drop-zone">
+    <strong>Drop an engineering ZIP or model file here</strong>
+    <span>or choose from your device · ZIP, STEP, IGES, BREP, STL, 3MF, F3D, F3Z · up to 55 MiB</span>
+  </label>
+  <div class="cad-import-bar">
    <label>Model file <input id="cad-import-file" type="file"
      accept=".step,.stp,.iges,.igs,.brep,.stl,.3mf,.f3d,.f3z,.zip"></label>
    <label>BREP units (if no metadata)
     <select id="cad-brep-units"><option value="millimeter">mm</option><option value="meter">m</option><option value="inch">in</option><option value="centimeter">cm</option></select>
    </label>
    <button class="btn" id="cad-import-cancel" type="button" disabled>Cancel import</button>
- </div>
- <p id="cad-import-status" role="status" aria-live="polite">Choose a file or open the demonstration. Files remain local.</p>
+  </div>
+  <p id="cad-import-status" role="status" aria-live="polite">Choose a file or open the demonstration. No file is uploaded to our server.</p>
+ </section>
  <section id="cad-geometry-stage" class="cad-geometry-stage" aria-label="CAD 3D workbench"></section>
+ <details class="cad-hub-advanced">
+   <summary>Optional: Autodesk Fusion Hub cloud browsing (APS)</summary>
+   <p class="muted">For accounts with an Autodesk APS app and authorized Hub access.
+     This is separate from local Fusion export and is not needed for CAD analysis.</p>
+   <div id="cad-fusion-hub-browser" class="cad-hub-section"></div>
+ </details>
  </main>`;
 }
 export function mountCADTool(root){
  const picker=root.querySelector("#cad-import-file"),stage=root.querySelector("#cad-geometry-stage");
  const cancel=root.querySelector("#cad-import-cancel"),status=root.querySelector("#cad-import-status");
+ const dropZone=root.querySelector("#cad-drop-zone");
+ const installer=root.querySelector("#cad-fusion-install");
+ const installerStatus=root.querySelector("[data-cad-fusion-install-status]");
  if(!picker||!stage)return ()=>{};
  let controller=null,cleanup=()=>{},request=0,disposed=false;
- const stopHubBrowser=mountAutodeskHubBrowser(root.querySelector("#cad-fusion-hub-browser"));
+ const hubDetails=root.querySelector(".cad-hub-advanced");
+ let hubMounted=false,stopHubBrowser=()=>{};
+ const maybeMountHub=()=>{
+   // Optional APS browsing is intentionally lazy: no config/network lookup
+   // when the CAD user only wants to import local files.
+   if(!disposed&&hubDetails?.open&&!hubMounted){
+     hubMounted=true;
+     stopHubBrowser=mountAutodeskHubBrowser(root.querySelector("#cad-fusion-hub-browser"));
+   }
+ };
+ hubDetails?.addEventListener("toggle",maybeMountHub);
+ maybeMountHub();
  function showEmpty(message="Inspect assemblies using orbit, pan, Fit and the component tree."){
    stage.replaceChildren();
    const box=document.createElement("div");
@@ -83,10 +124,9 @@ export function mountCADTool(root){
  }
  const onCancel=()=>{request++;stop();showEmpty();status.textContent="Import cancelled"};
  cancel.addEventListener("click",onCancel);
- const onChange=async()=>{
+ const loadFile=async file=>{
    request++;const current=request;
    stop();stage.replaceChildren();
-   const file=picker.files?.[0];
    if(!file)return;
    const ext=file.name.split(".").pop().toLowerCase();
    controller=new AbortController();cancel.disabled=false;
@@ -119,7 +159,9 @@ export function mountCADTool(root){
        const preview=await renderFusionPackage(stage,buffer,file.name);
        if(current!==request||disposed){preview.cleanup?.();return}
        cleanup=preview.cleanup||(()=>{});
-       status.textContent=preview.info;
+       status.textContent=preview.info+
+         (preview.info.includes("native archive/thumbnail only")?
+          " · To calculate mass/inertia and open actual STEP solids, run the Fusion export script above.":"");
        return;
      }
      status.textContent=isCADFile(file.name)?"Loading OpenCascade WASM for "+file.name+"…":"Reading mesh…";
@@ -139,7 +181,49 @@ export function mountCADTool(root){
      showEmpty("Import could not be displayed. Try the demo or check source units and format.");
    }finally{if(current===request&&!disposed){cancel.disabled=true;controller=null}}
  };
+ const onChange=()=>{
+   const file=picker.files?.[0];
+   picker.value=""; // Choosing the same file again must trigger a fresh import.
+   if(file)void loadFile(file);
+ };
+ const onDrag=event=>{
+   event.preventDefault();
+   if(event.type==="dragover")dropZone?.classList.add("is-dragging");
+   if(event.type==="dragleave")dropZone?.classList.remove("is-dragging");
+   if(event.dataTransfer)event.dataTransfer.dropEffect="copy";
+ };
+ const onDrop=event=>{
+   event.preventDefault();
+   dropZone?.classList.remove("is-dragging");
+   const file=event.dataTransfer?.files?.[0];
+   if(file)void loadFile(file);
+ };
+ const onInstall=async()=>{
+   if(!installer)return;
+   installer.disabled=true;
+   installerStatus.textContent="Preparing Fusion script package locally…";
+   try{
+     await downloadFusionScriptPackage();
+     if(!disposed)installerStatus.textContent="Script downloaded. Unzip the FolkNetFusion folder, add it in Fusion and run it on your open assembly.";
+   }catch(error){
+     if(!disposed)installerStatus.textContent="Could not prepare the script: "+
+       String(error?.message||error)+". Use the Python script link instead.";
+   }finally{if(!disposed)installer.disabled=false}
+ };
  showEmpty();
  picker.addEventListener("change",onChange);
- return ()=>{disposed=true;request++;stop();stopHubBrowser();picker.removeEventListener("change",onChange);cancel.removeEventListener("click",onCancel)};
+ dropZone?.addEventListener("dragover",onDrag);
+ dropZone?.addEventListener("dragleave",onDrag);
+ dropZone?.addEventListener("drop",onDrop);
+ installer?.addEventListener("click",onInstall);
+ return ()=>{
+   disposed=true;request++;stop();stopHubBrowser();
+   hubDetails?.removeEventListener("toggle",maybeMountHub);
+   picker.removeEventListener("change",onChange);
+   cancel.removeEventListener("click",onCancel);
+   dropZone?.removeEventListener("dragover",onDrag);
+   dropZone?.removeEventListener("dragleave",onDrag);
+   dropZone?.removeEventListener("drop",onDrop);
+   installer?.removeEventListener("click",onInstall);
+ };
 }
