@@ -1,0 +1,7 @@
+# Supabase project: folkside (verified ref from the user's project URL).
+# The Edge Function handles JWT verification itself to permit browser CORS
+# preflights with no bearer header; GET routes check /auth/v1/user.
+project_id = "glfuvfmppkjmarujjqwg"
+
+[functions.folk-core]
+verify_jwt = false
