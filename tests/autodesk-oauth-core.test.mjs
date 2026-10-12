@@ -135,3 +135,21 @@ test("unconfigured backend fails closed, never starts OAuth or reads hub",async(
  const catalog=await handleAutodeskHubRequest(request("catalog?level=hubs"),api);
  assert.equal(catalog.status,503);
 });
+
+test("distinct Supabase account cannot borrow someone else's Autodesk connection",async()=>{
+ const {api,connections}=fixtures();
+ connections.set(user,{ciphertext:"opaque"});
+ api.verifyUser=async()=>({id:user2});
+ const session=await handleAutodeskHubRequest(request("session"),api);
+ assert.deepEqual(await session.json(),{connected:false,configured:true});
+ const catalog=await handleAutodeskHubRequest(request("catalog?level=hubs"),api);
+ assert.equal(catalog.status,403);
+ const start=await handleAutodeskHubRequest(request("authorize","POST",{
+   body:{returnTo:SITE}}),api);
+ assert.equal(start.status,200);
+ const authorization=await start.json();
+ assert.ok(authorization.authorizationUrl.includes("scope=data%3Aread"));
+ assert.equal(connections.size,1);
+ assert.ok(connections.has(user));
+ assert.ok(!connections.has(user2));
+});
