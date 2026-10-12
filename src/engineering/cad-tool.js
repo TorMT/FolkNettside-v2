@@ -1,12 +1,12 @@
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=f43c64dc23d4f9c4ea33c44599f732ad61d1ed78";
-import {parseSTL} from "../model/parsers/stl.js?v=f43c64dc23d4f9c4ea33c44599f732ad61d1ed78";
-import {parse3MF} from "../model/parsers/three-mf.js?v=f43c64dc23d4f9c4ea33c44599f732ad61d1ed78";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=f43c64dc23d4f9c4ea33c44599f732ad61d1ed78";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=f43c64dc23d4f9c4ea33c44599f732ad61d1ed78";
-import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=f43c64dc23d4f9c4ea33c44599f732ad61d1ed78";
-import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=f43c64dc23d4f9c4ea33c44599f732ad61d1ed78";
-import {createModelDocument} from "../model/model-document.js?v=f43c64dc23d4f9c4ea33c44599f732ad61d1ed78";
-import {boxMesh} from "../hydro/fixtures.js?v=f43c64dc23d4f9c4ea33c44599f732ad61d1ed78";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
+import {parseSTL} from "../model/parsers/stl.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
+import {parse3MF} from "../model/parsers/three-mf.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
+import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
+import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
+import {createModelDocument} from "../model/model-document.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
+import {boxMesh} from "../hydro/fixtures.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
 
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
@@ -89,7 +89,7 @@ export function mountCADTool(root){
    controller=new AbortController();cancel.disabled=false;
    status.textContent="Reading "+file.name+" locally…";
    try{
-     const fusion=ext==="f3d"||ext==="f3z";
+     const fusion=ext==="f3d"||ext==="f3z"||ext==="zip";
      if(file.size>(fusion?55:25)*1024*1024)throw Error("File exceeds safe import size limit");
      const buffer=await file.arrayBuffer();
      if(current!==request||disposed)return;

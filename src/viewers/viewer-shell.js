@@ -1,5 +1,5 @@
-import {loadAdapter,viewerKind} from "./registry.js?v=f43c64dc23d4f9c4ea33c44599f732ad61d1ed78";
-import {escapeHTML} from "./utils.js?v=f43c64dc23d4f9c4ea33c44599f732ad61d1ed78";
+import {loadAdapter,viewerKind} from "./registry.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
+import {escapeHTML} from "./utils.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the
