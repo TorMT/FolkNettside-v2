@@ -141,8 +141,49 @@ export function quizScore(quiz,attempt){
   };
 }
 
+/** V1 "select" means a stable, randomized subset per round (not 120 at once). */
+export function selectQuizQuestions(quiz,resource,{
+ storage=globalThis.localStorage,random=Math.random,reset=false
+}={}){
+ const count=Math.min(quiz.questions.length,Number(quiz.select)||quiz.questions.length);
+ if(count>=quiz.questions.length)return quiz;
+ const identity=quizStorageKey(resource)+":selected-questions.v1";
+ const lookup=new Map(quiz.questions.map((q,i)=>[q.id,i]));
+ let ids=null;
+ if(!reset){
+   try{
+     const item=JSON.parse(storage?.getItem(identity)||"null");
+     if(item?.version===quiz.version&&Array.isArray(item.ids)&&
+        item.ids.length===count&&new Set(item.ids).size===count&&
+        item.ids.every(id=>lookup.has(id)))
+       ids=item.ids;
+   }catch{}
+ }
+ if(!ids){
+   const pool=[...quiz.questions.keys()];
+   for(let i=0;i<count;i++){
+     const draw=Math.min(pool.length-i-1,Math.max(0,
+       Math.floor(Number(random())*(pool.length-i))));
+     const j=i+draw;
+     [pool[i],pool[j]]=[pool[j],pool[i]];
+   }
+   ids=pool.slice(0,count).map(i=>quiz.questions[i].id);
+   try{storage?.setItem(identity,JSON.stringify({version:quiz.version,ids}))}catch{}
+ }
+ const questions=ids.map(id=>quiz.questions[lookup.get(id)]);
+ const chapters=(quiz.chapters||[]).map(ch=>({
+   ...ch,count:questions.filter(q=>(q.chapter||"general")===ch.id).length
+ })).filter(ch=>ch.count>0);
+ return {...quiz,questions,chapters,version:String(quiz.version)+":"+
+   ids.map(id=>encodeURIComponent(id)).join(",")};
+}
+
 export function quizStorageKey(resource={}){
-  const identity=resource.relativePath||resource.path||resource.url||resource.name||resource.label||"quiz";
+  // NTNU's relativePath is only "quiz/quiz.json" and repeats across
+  // courses. Scope progress to the full original URL on that host.
+  const identity=resource.source==="ntnu"
+    ?(resource.path||resource.url||resource.relativePath||resource.name)
+    :(resource.relativePath||resource.path||resource.url||resource.name||resource.label||"quiz");
   return `folknet:quiz:${String(identity)}`;
 }
 
