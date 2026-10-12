@@ -1,9 +1,11 @@
 -- FolkNettside V2 / planned Supabase project: folkside
--- Staged schema. APPLY ONLY after verifying project identity and migration.
+-- Dedicated Supabase project ref: glfuvfmppkjmarujjqwg (verified 2026-10-12).
+-- Version-controlled deployment schema. Apply only to this verified project.
 -- Public tables use RLS. "private" contains only server-held encrypted
 -- external-service credentials; no browser Data API grants.
 --
 -- Important: medical data must be encrypted client-side BEFORE uploading.
+-- The format label is provenance metadata, not a substitute for validating ciphertext.
 -- Do not store plaintext medicine schedules in user_settings JSON.
 
 create schema if not exists private;
@@ -48,11 +50,11 @@ create table if not exists public.folk_user_files (
     ),
     constraint medicine_requires_encryption check (
       category <> 'medicine' or (
-        is_encrypted and encryption_format = 'folk-vault-v1'
+        is_encrypted and encryption_format = 'folk-medisin-vault'
       )
     ),
     constraint consistent_encryption_format check (
-      (is_encrypted and encryption_format in ('folk-vault-v1'))
+      (is_encrypted and encryption_format in ('folk-medisin-vault','folk-v2-private-vault'))
       or (not is_encrypted and encryption_format is null)
     )
 );
