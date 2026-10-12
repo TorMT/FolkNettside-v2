@@ -57,21 +57,20 @@ export function answerMatches(question,selection){
 
 export function quizImageURL(resource,image){
  if(typeof image!=="string"||image.length>800||!image||
-    image.startsWith("/")||image.includes("\\\\")||image.includes("%")||
+    image.startsWith("/")||image.includes("\\")||image.includes("%")||
     image.includes("?")||image.includes("#"))return null;
  const segments=image.split("/");
  if(segments.some(part=>!part||part==="."||part===".."||
-   /[\\u0000-\\u001f]/.test(part)))return null;
+   /[\u0000-\u001f]/.test(part)))return null;
  const file=segments.at(-1);
- if(!/\\.(png|jpe?g|webp|gif)$/i.test(file))return null;
+ if(!/\.(png|jpe?g|webp|gif)$/i.test(file))return null;
  const root=resource.path||resource.url;
  if(typeof root!=="string"||!root)return null;
  const base=new URL(root,typeof document!=="undefined"?document.baseURI:
    "https://tormt.folk.ntnu.no/");
  if(!["http:","https:"].includes(base.protocol))return null;
- // Legacy V1 stores "quiz/bilder/foo.png" relative to course root, even
- // though the quiz JSON itself already resides in the quiz directory.
- if(segments[0].toLowerCase()==="quiz"&&/\\/quiz\\/$/i.test(
+ // Legacy V1 stores "quiz/bilder/foo.png" relative to course root.
+ if(segments[0].toLowerCase()==="quiz"&&/\/quiz\/$/i.test(
     base.pathname.slice(0,base.pathname.lastIndexOf("/")+1)))
    segments.shift();
  const fileURL=new URL(segments.map(encodeURIComponent).join("/"),base);
