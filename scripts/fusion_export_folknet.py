@@ -23,6 +23,7 @@ def _properties(object_with_properties):
     return {
         "massKg": float(p.mass),
         "solidVolumeM3": float(p.volume) / 1_000_000.0,
+        "surfaceAreaM2": float(p.area) / 10_000.0,
         "centerOfMassM": [
             float(p.centerOfMass.x) / 100,
             float(p.centerOfMass.y) / 100,
@@ -45,6 +46,17 @@ def export_active_design():
 
     # Whole-assembly aggregate. Do not sum nested occurrence mass reports.
     total = _properties(root)
+    try:
+        bbox = root.preciseBoundingBox
+        if bbox and bbox.minPoint and bbox.maxPoint:
+            low = [float(bbox.minPoint.x) / 100, float(bbox.minPoint.y) / 100,
+                   float(bbox.minPoint.z) / 100]
+            high = [float(bbox.maxPoint.x) / 100, float(bbox.maxPoint.y) / 100,
+                    float(bbox.maxPoint.z) / 100]
+            total["boundsM"] = {"min": low, "max": high}
+    except Exception:
+        # Omit geometry envelope rather than guessing about missing solids.
+        pass
     occurrences = []
     warnings = []
     all_occurrences = root.allOccurrences
