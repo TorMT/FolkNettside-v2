@@ -2,7 +2,7 @@
  * Editable structural-section CSV helpers. Human-authored comments, unrelated
  * data rows and newline convention are never rewritten by sketch operations.
  */
-import {parseStructuralMembers} from "../structure/girder-section-properties.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
+import {parseStructuralMembers} from "../structure/girder-section-properties.js?v=b2da5ada6668a650d63b271c56da47a964332d82";
 const finite=Number.isFinite;
 const num=v=>{
   if(!finite(v))throw Error("Cross-section coordinates and properties must be finite");

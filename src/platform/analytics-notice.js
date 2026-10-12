@@ -1,4 +1,4 @@
-import {analyticsConfigured,analyticsConsentChoice,setAnalyticsConsent} from "./analytics.js?v=14a9d4ba470b2c648034ccaade17875ed0a07cac";
+import {analyticsConfigured,analyticsConsentChoice,setAnalyticsConsent} from "./analytics.js?v=b2da5ada6668a650d63b271c56da47a964332d82";
 
 /**
  * Compact consent choice. Google tag may preload with analytics denied.
