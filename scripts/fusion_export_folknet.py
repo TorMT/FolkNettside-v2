@@ -82,9 +82,9 @@ def _write_bundle_zip(output_path, step_path, json_path):
             bundle.write(step_path, "assembly.step")
             bundle.write(json_path, "folknet-fusion.json")
             bundle.writestr("README.txt",
-                "Upload this ZIP in FolkNet V2 Engineering > CAD.\\n"
-                "Keep your original F3Z unchanged. Fusion solid volume is NOT displaced volume.\\n"
-                "The nested occurrence mass records must NOT be summed.\\n")
+                "Upload this ZIP in FolkNet V2 Engineering > CAD.\n"
+                "Keep your original F3Z unchanged. Fusion solid volume is NOT displaced volume.\n"
+                "The nested occurrence mass records must NOT be summed.\n")
     except Exception:
         # FileExistsError before creation must NEVER remove a prior export.
         if created and os.path.isfile(output_path):
