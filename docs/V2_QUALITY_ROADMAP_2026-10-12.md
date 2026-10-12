@@ -46,6 +46,33 @@ Evidens: [paritetsregister](PRODUCTION_PARITY_GAP_REGISTER.md), [verktøykontrak
 
 **Viktig:** Ingen rad betyr at hele nettsiden er «perfekt». En A gjelder konkrete målte bruksområder innenfor oppgitte begrensninger. En grønn CI er ikke dokumentasjon av ekte tjenesteintegrasjon.
 
+## Status på faktiske offentlige NTNU-indekser (lest 12.10.2026)
+
+Indeksene `/semestre/{1..5}/index.json` ble lest som **metadata, uten å
+hente ned kursfilene**. De angir 24 offentlige fagemner og 478 oppførte
+ressurser. Beskyttede kataloger skal utelates fra denne opptellingen.
+
+| Semester | Offentlige fag | Oppførte filer | Filer i dypere mapper | Viktigste filformater |
+| --- | ---: | ---: | ---: | --- |
+| 1 | 3 | 59 | 0 | 39 IPYNB, 14 PDF |
+| 2 | 5 | 49 | 0 | 36 PDF, 8 PY |
+| 3 | 6 | 207 | 35 | 134 PDF, 50 PY |
+| 4 | 5 | 133 | 32 | 90 PDF, 22 PY |
+| 5 | 5 | 30 | 0 | 14 PY, 9 PDF |
+| **Sum** | **24** | **478** | **67** | PDF, Python og notebook dominerer |
+
+Tallene er fra offentlige **indeksoppføringer**, ikke fra en HTTP-`HEAD`
+eller opplastings-/innholdstest for hver fil. De beviser ikke at alle
+lenkene faktisk virker. Et eget `scripts/audit_ntnu_catalog.mjs --live`
+kan brukes til å gjenta en metadata-basert, ikke-destruktiv analyse av
+støttede viewer-typer (når PR for verktøyet er merget). Ingen private
+filbaner skal vises i rapportutskriften.
+
+**Prioritetskonsekvens:** test `.ipynb` intensivt i S1, PY og nested imports
+i S3/S4, PDF-zoom og avanserte presentasjoner fra S2–S4 og faktiske
+CAD-/KISSsoft-filer separat. Ikke anta at Pages-previewens syntetiske
+kurs speiler formatfordelingen.
+
 ## 2. Hva som ikke er helt bra ennå
 
 ### P0 — funksjonell korrekthet og data (før mer visuelt arbeid)
