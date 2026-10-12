@@ -19,7 +19,7 @@ test("backend probe authenticates using Supabase token and checks exact user ide
        autodeskConnected:false})}
  });
  assert.equal(result.ok,true);
- assert.equal(result.privateStorageReady,true);
+ assert.equal(result.privateBucketConfigured,true);
  assert.equal(result.autodeskConnected,false);
  assert.equal(request.url,config.url+"/functions/v1/folk-core/session");
  assert.equal(request.options.headers.Authorization,"Bearer faketoken");
