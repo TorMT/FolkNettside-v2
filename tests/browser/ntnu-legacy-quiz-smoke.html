@@ -1,0 +1,47 @@
+<!doctype html><html lang="no"><head><meta charset="utf-8"><title>NTNU legacy quiz smoke</title></head>
+<body data-status="running"><main id="host"></main><pre id="result">Running</pre>
+<script type="module">
+import {render} from "../../src/viewers/adapters/quiz.js";
+const host=document.querySelector("#host"),report=document.querySelector("#result");
+const check=(value,message)=>{if(!value)throw Error(message)};
+const data={title:"V1 NTNU quiz",select:2,questions:[
+ {id:"m1",type:"multiple",text:"Velg begge riktige",options:["A","B","C"],
+  answer:[0,2],explanation:"A and C",image:"quiz/bilder/m1.png"},
+ {id:"s1",type:"single",text:"Velg riktig",options:["A","B"],
+  answer:[1],explanation:"B"}
+]};
+const realFetch=globalThis.fetch;
+globalThis.fetch=async()=>({
+ ok:true,status:200,headers:{get:()=>null},body:null,
+ text:async()=>JSON.stringify(data)
+});
+try{
+ const resource={source:"ntnu",kind:"QUIZ",relativePath:"quiz/quiz.json",
+  path:location.origin+"/semestre/1/itgk/quiz/quiz.json"};
+ const view=await render(host,resource);
+ check(host.querySelector(".quiz-options [aria-pressed]"),"V1 multiple choice not rendered");
+ check(host.querySelector(".quiz-illustration img")?.getAttribute("src")
+   .includes("/semestre/1/itgk/quiz/bilder/m1.png"),"V1 diagram link incorrect");
+ host.querySelector('[data-choice="0"]').click();
+ check(host.querySelector("#quiz-submit-multiple")&&!host.querySelector("#quiz-submit-multiple").disabled,
+   "Multi-select submit did not enable");
+ host.querySelector('[data-choice="2"]').click();
+ host.querySelector("#quiz-submit-multiple").click();
+ check(host.querySelector(".quiz-feedback.correct"),"Exact multi-answer not accepted");
+ host.querySelector("#quiz-next").click();
+ check(host.querySelectorAll("[data-choice]").length===2,"Single question did not open");
+ host.querySelector('[data-choice="1"]').click();
+ check(host.querySelector(".quiz-feedback.correct"),"Legacy answer array not accepted");
+ host.querySelector("#quiz-finish").click();
+ check(host.querySelector(".quiz-result strong")?.textContent==="100%","Quiz score incorrect");
+ host.querySelector("#quiz-restart").click();
+ check(!host.querySelector(".quiz-result"),"Restart did not clear state");
+ check(host.querySelector(".quiz-question-counter").textContent==="1/2","Restart wrong round length");
+ view.cleanup();
+ document.body.dataset.status="pass";
+ report.textContent="Legacy NTNU multi/single, image, feedback, score and reset PASS";
+}catch(error){
+ document.body.dataset.status="fail";
+ report.textContent=String(error?.stack||error);
+}finally{globalThis.fetch=realFetch}
+</script></body></html>
