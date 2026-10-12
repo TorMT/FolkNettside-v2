@@ -477,3 +477,54 @@
   .autodesk-hub-browser header{align-items:stretch}
   .autodesk-hub-item>div:last-child{width:100%}
   .autodesk-hub-item .btn{flex:1 1 auto}}
+
+
+/* Local-first Fusion workflow: installation is primary, optional APS is secondary. */
+.cad-fusion-quickstart,.cad-local-import{
+ min-width:0;margin:16px 0;padding:clamp(12px,2vw,22px);
+ background:var(--surface);border:1px solid var(--line);border-radius:12px;
+}
+.cad-fusion-quickstart-head{display:flex;align-items:flex-start;justify-content:space-between;
+ gap:16px;flex-wrap:wrap}
+.cad-fusion-quickstart-head>div{flex:1 1 370px;min-width:0}
+.cad-fusion-quickstart h2,.cad-local-import h2{font-size:clamp(17px,1.8vw,23px);margin:6px 0}
+.cad-fusion-quickstart-head p{font-size:13px;line-height:1.6;margin:8px 0;color:var(--ink-2)}
+.cad-fusion-quickstart-head>.btn{min-height:42px;white-space:normal;max-width:100%}
+.cad-fusion-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ list-style:none;counter-reset:fusionstep;padding:0;margin:20px 0 12px;gap:10px}
+.cad-fusion-steps li{counter-increment:fusionstep;min-width:0;border:1px solid var(--line);
+ border-radius:9px;background:var(--surface-sunk);padding:12px;font-size:12px;
+ line-height:1.55;color:var(--ink-2)}
+.cad-fusion-steps li:before{content:counter(fusionstep);display:inline-grid;place-items:center;
+ width:23px;height:23px;border-radius:50%;margin-right:8px;
+ background:var(--line);color:var(--ink);font-weight:750}
+.cad-fusion-steps strong{color:var(--ink);font-size:12px}
+.cad-fusion-steps span{display:block;margin-top:7px}
+.cad-fusion-script-fallback{font-size:12px;line-height:1.5;margin:9px 0 0}
+[data-cad-fusion-install-status]:not(:empty){font-size:12px;line-height:1.5;
+ margin:10px 0 0;color:var(--ink)}
+.cad-local-import>header p{line-height:1.5;font-size:12px;margin:6px 0 12px}
+.cad-drop-zone{display:flex;min-width:0;flex-direction:column;gap:7px;
+ border:2px dashed var(--line-strong);border-radius:10px;background:var(--surface-sunk);
+ padding:18px;text-align:center;cursor:pointer;transition:border-color .15s ease,background .15s ease}
+.cad-drop-zone strong{font-size:14px;color:var(--ink)}
+.cad-drop-zone span{font-size:12px;color:var(--ink-2);line-height:1.5}
+.cad-drop-zone:hover,.cad-drop-zone.is-dragging{
+ border-color:var(--accent);background:var(--surface)}
+.cad-local-import .cad-import-bar{margin:12px 0;gap:10px 20px}
+.cad-local-import #cad-import-status{font-size:12px;line-height:1.5;margin:8px 0 0;
+ overflow-wrap:anywhere}
+.cad-hub-advanced{border:1px solid var(--line);border-radius:10px;
+ padding:12px 16px;margin:18px 0;background:var(--surface)}
+.cad-hub-advanced>summary{font-size:13px;font-weight:650;cursor:pointer;
+ color:var(--ink);padding:3px 0}
+.cad-hub-advanced>p{font-size:12px;line-height:1.5}
+@media(max-width:760px){
+ .cad-fusion-steps{grid-template-columns:1fr;gap:8px}
+ .cad-fusion-quickstart,.cad-local-import{padding:12px;margin:12px 0}
+ .cad-fusion-quickstart-head>.btn{width:100%}
+ .cad-drop-zone{padding:16px 12px}
+ .cad-local-import .cad-import-bar label{gap:7px}
+ .cad-hub-advanced{padding:10px}
+}
+@media(prefers-reduced-motion:reduce){.cad-drop-zone{transition:none}}

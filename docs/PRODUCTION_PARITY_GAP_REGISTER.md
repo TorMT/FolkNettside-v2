@@ -25,7 +25,7 @@
 | 06 | PDF, tekst, kode, LaTeX, HTML, CSV, notebook | ViewerShell-formatadaptere | CI-dekning | Ekte, store og skadede kildefiler, mobil, print/download, låst/innfelt viewer |
 | 07 | Word, Excel, PowerPoint (Office) | V2 OOXML-adaptere | CI-dekning | Sammenlign faktisk formatering/ark/formler/kompleksitet; gamle binære Office-formater separat |
 | 08 | STL/3MF/modeller/hydro | ModelScene/CAD/Hydro | CI-dekning | Verifiser ekte geometri, koordinatsystem, flater, mesh, enheter og SpaceMouse fysisk |
-| 09 | Fusion-/F3D-/F3Z-/APS-visere, native konvertering | V2 F3Z-inspeksjon, STEP/IGES WASM, APS_REQUIRED for native F3D | delvis | Konfigurer og sikkerhetstest Autodesk APS-backend, live F3D-konvertering og tilgang |
+| 09 | Fusion-/F3D-/F3Z-/APS-visere, native konvertering | V2 F3Z-inspeksjon + lokale Fusion-script ZIP-installer, STEP/IGES WASM, Fusion API-masse/treghet fra eksportert bundle | delvis | Verifiser script i faktisk Fusion og import av ekte sammenstilling; native F3D-konvertering og valgfri APS Hub er fortsatt separate og ikke konfigurert |
 | 10 | KISSsoft | V2 ringgir/pinjong, Z012RS, planet, helix | CI-dekning/prototype | Test med egne originalfiler, kontaktgeometri og relevante girvarianter; beregnet styrke fra KISSsoft må ikke erstattes av 3D-skissen |
 | 11 | CoolProp og fluid calculator | V2 WASM + Engineering Tools | CI-dekning | Ekte kursoppgaver og flyttall/referanseverdier mot V1; UI mobil |
 | 12 | ChemDraw, krystall, periodisk tabell | V2 Chemicals/Tools | CI-dekning | Ekte arbeidsflyter, lagring/eksport, klipp/lim og mobil sammenligning |

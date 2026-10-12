@@ -1,5 +1,42 @@
 # Fusion / F3Z / F3D import contract
 
+## Recommended: local Fusion integration (no APS account)
+
+The **primary workflow** in V2 is now local and works with Fusion's own
+Scripts and Add-ins runtime, without Autodesk Platform Services credentials:
+
+1. Open **Engineering → CAD** and select **Get Fusion export script (.zip)**.
+   The browser downloads a regular Fusion script folder with a Python file,
+   a matching `.manifest` and readme. This is generated from the exact
+   versioned `scripts/fusion_export_folknet.py` source.
+2. Extract the ZIP, then in Fusion choose **Utilities → Scripts and Add-ins →
+   Add (+)**, choose the `FolkNetFusion` folder and run the script against
+   the active, saved assembly. Exact menu text may vary by Fusion release.
+3. Find the `FolkNet_Fusion_<name>_<UTC timestamp>.zip` output under
+   `~/Documents/FolkNet_Fusion_Exports/`. Exports are uniquely named, never
+   silently overwritten. The original F3Z assembly is not changed.
+4. Drop the output ZIP on the Engineering CAD page or choose it using the file
+   picker. The importer verifies physical units and ZIP paths, then opens the
+   STEP geometry and displays the **source-reported Fusion properties**.
+
+The script **never uploads** the model or accesses APS. The browser importer
+also processes CAD bytes locally. A pinned JavaScript ZIP or OpenCascade
+runtime may need a network connection for a first run; this is not an Autodesk
+account requirement. If the ZIP installer cannot load, the page retains
+a direct Python source download as a manual fallback.
+
+The **public Pages builder** explicitly copies only the approved Fusion
+source script from `scripts/` into the deployment tree. It never publishes
+SiteUpdater, private files or the entire scripts directory. This is guarded
+by `tests/test_build_preview.py`.
+
+**Engineering limit:** The script needs an actual Fusion design and must be
+tested against your installed Fusion version. The STEP viewer presents a
+tessellated display; Fusion mass/inertia depends on assigned CAD materials.
+These are not hydrostatic displacement, verified hull surfaces or structural
+strength calculations. Native F3Z uploads alone cannot guarantee full
+assembly geometry/physical property extraction.
+
 ## Fusion Hub cloud browsing through APS
 
 The Autodesk Data Management API supports the user-authorized hierarchy
@@ -98,18 +135,13 @@ from proprietary F3D binaries.
 ### Export and upload
 
 1. In Fusion, open the saved top-level assembly in **Design**.
-2. Download the standalone Python script at
-   `scripts/fusion_export_folknet.py` from this repository.
-3. In Fusion choose **Utilities → Scripts and Add-ins → Create** and
-   create a **Python Script** named `FolkNetFusion`. Fusion creates its
-   required named script folder, Python file and matching manifest. Select
-   **Edit** and replace the generated `FolkNetFusion.py` contents with
-   the downloaded script, then choose **Run**. This follows Autodesk's
-   published script-folder/manifest convention. The script requires
-   Fusion's own `adsk` API and **cannot** be run with system Python.
-   It reads the active design; it does not modify the source design or
-   make a network request.
-4. The script exports a `FolkNet_Fusion_<design>.zip` file to
+2. Prefer the **Get Fusion export script (.zip)** installer on the CAD page.
+   Extract its `FolkNetFusion` folder; in Fusion **Utilities → Scripts and
+   Add-ins → Add (+)** select that folder and **Run**. If necessary, use the
+   direct Python source download and Fusion's Create / Edit script workflow.
+   The helper requires Fusion's `adsk` API and cannot run in system Python.
+   It never modifies the source design or makes a network request.
+4. The script exports a uniquely timestamped `FolkNet_Fusion_<design>_<UTC>.zip` file to
    `~/Documents/FolkNet_Fusion_Exports/` containing `assembly.step`,
    `folknet-fusion.json` and a readme. Keep the original `.f3z` archive
    as your design source separately.

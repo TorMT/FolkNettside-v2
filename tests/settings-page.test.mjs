@@ -34,7 +34,9 @@ test("Appearance exposes all persisted global preferences",()=>{
 test("Connections use one optional site-level Google session",()=>{
   const html=settingsPageHTML({settings,section:"connections",account:{status:"signed-out"}});
   assert.match(html,/Google \/ Drive/);
-  assert.match(html,/Autodesk \/ APS/);
+  assert.match(html,/Fusion CAD import/);
+  assert.match(html,/Local mode available/);
+  assert.match(html,/data-go="\/engineering\/cad"/);
   assert.match(html,/data-google-connect/);
   assert.match(html,/Brewing and Dive log stay local/);
 });

@@ -48,6 +48,11 @@ class PagesBuildTests(unittest.TestCase):
             self.assertEqual((target / "build.txt").read_text().strip(), version)
             self.assertTrue((target / ".nojekyll").is_file())
             self.assertTrue((target / "data" / "content-manifest.json").is_file())
+            fusion = target / "scripts" / "fusion_export_folknet.py"
+            self.assertTrue(fusion.is_file())
+            self.assertIn("import adsk.fusion", fusion.read_text(encoding="utf-8"))
+            self.assertFalse((target / "scripts" / "update_site.py").exists())
+            self.assertFalse((target / "scripts" / "build_preview.py").exists())
             self.assertIn("app.js?v=" + version, (target / "index.html").read_text())
             self.assertEqual((ROOT / "index.html").read_bytes(), source_index)
             self.assertEqual((ROOT / "src" / "app.js").read_bytes(), source_app)

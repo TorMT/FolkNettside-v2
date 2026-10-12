@@ -96,7 +96,7 @@ function connectionsHTML(account={},folkAccount={}){
         This test does not upload files or change account data.</small></div>
         <button class="btn" type="button" data-folk-probe>Check backend</button></div>
         <div class="settings-feedback" data-folk-probe-result role="status" aria-live="polite"></div>`:""}
-      <div class="setting-row"><div><strong>Autodesk / APS</strong><small>Optional future native F3D/F3Z conversion path. Embedded 3MF/STL F3Z remains local.</small></div><span class="settings-status planned">Not configured</span></div>
+      <div class="setting-row"><div><strong>Fusion CAD import</strong><small>Local Fusion export needs no APS login. Install the script once, then import the engineering ZIP in CAD. Optional cloud Hub browsing requires a separately configured Autodesk account.</small></div><div class="settings-connection-actions"><span class="settings-status ready">Local mode available</span><button type="button" class="btn" data-go="/engineering/cad">Open CAD</button></div></div>
     </div>
     ${account?.error?`<div class="settings-note"><strong>Google status</strong><span>${esc(account.error)}</span></div>`:""}
     ${folkAccount?.error?`<div class="settings-note"><strong>FolkNet account</strong><span>${esc(folkAccount.error)}</span></div>`:""}

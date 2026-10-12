@@ -11,6 +11,19 @@ try{
  const host=document.querySelector("#host");
  host.innerHTML=cadToolHTML();
  const cleanup=mountCADTool(host);
+ const local=host.querySelector(".cad-fusion-quickstart");
+ if(!local||!local.textContent.includes("No APS account or cloud upload required"))
+   throw Error("Local Fusion first-run flow is missing");
+ if(!host.querySelector("#cad-fusion-install")||
+    !host.querySelector('a[href="./scripts/fusion_export_folknet.py"]'))
+   throw Error("Local Fusion installation and manual fallback not visible");
+ const zone=host.querySelector("#cad-drop-zone");
+ if(!zone||zone.getAttribute("for")!=="cad-import-file")
+   throw Error("Accessible file drop/choose area missing");
+ if(host.querySelector(".cad-hub-advanced")?.open)
+   throw Error("Inactive APS Hub must be collapsed by default");
+ if(host.querySelector("#cad-fusion-hub-browser")?.children.length)
+   throw Error("Inactive APS Hub must not initialize until opened");
  const stage=host.querySelector("#cad-geometry-stage");
  if(stage.clientHeight<350||stage.clientWidth<300)
    throw Error("CAD stage has no usable geometry: "+stage.clientWidth+"x"+stage.clientHeight);
