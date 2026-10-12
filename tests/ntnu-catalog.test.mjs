@@ -14,6 +14,8 @@ test("NTNU-only same-origin mode never runs on Pages preview or arbitrary domain
 test("semester 5 index preserves nested course files without copying bytes",()=>{
  const raw={
    welcome:"/img/welcome-generic.svg",
+   "legacyquiz":{dir:"legacyquiz",beskyttet:false,
+     files:["quiz/quiz.json","quiz/quiz_elmag.json","quiz/bilder/images_attribution.json"]},
    "Marin-Dynamikk":{
      dir:"Marin-Dynamikk",beskyttet:false,
      files:[
@@ -38,7 +40,11 @@ test("semester 5 index preserves nested course files without copying bytes",()=>
  };
  const result=parseNTNUSemesterIndex(5,raw);
  assert.equal(result.id,5);
- assert.equal(result.courses.length,2);
+ assert.equal(result.courses.length,3);
+ const quizCourse=result.courses.find(x=>x.code==="legacyquiz");
+ assert.deepEqual(quizCourse.resources.filter(x=>x.kind==="QUIZ")
+   .map(x=>x.name).sort(),["quiz.json","quiz_elmag.json"]);
+ assert.ok(quizCourse.resources.some(x=>x.name==="images_attribution.json"&&x.kind==="JSON"));
  const item=result.courses.find(x=>x.code==="Marin-Dynamikk");
  assert.equal(item.resources.length,4);
  assert.deepEqual(item.resources.map(x=>x.section).sort(),
