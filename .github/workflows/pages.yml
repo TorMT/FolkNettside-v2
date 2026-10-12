@@ -408,8 +408,10 @@ jobs:
             exit 1
           }
           grep '<pre id="result">' /tmp/fusion-bundle-smoke-dom.html || true
-      - name: Fusion helper script syntax
-        run: python -m py_compile scripts/fusion_export_folknet.py
+      - name: Fusion helper script syntax and physical-property tests
+        run: |
+          python -m py_compile scripts/fusion_export_folknet.py
+          python -m unittest discover -s tests -p 'test_fusion_export_inertia.py' -v
       - name: Autodesk Hub read-only navigation browser smoke
         run: |
           browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
