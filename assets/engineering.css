@@ -430,3 +430,23 @@
   color:var(--ink);overflow-wrap:anywhere}
 .section-sketch-live:not(:has(>div)){font-size:11px;color:var(--ink-2)}
 @media(max-width:580px){.section-sketch-live{grid-template-columns:1fr}}
+
+/* Fusion measurement cards: source properties, never inferred hull displacement. */
+.fusion-engineering-report{display:grid;gap:10px;max-width:100%;padding:13px;
+ border:1px solid var(--line);border-radius:11px;background:var(--surface);margin:10px 0}
+.fusion-engineering-report header{display:grid;gap:5px}
+.fusion-engineering-report header strong{font-size:14px;color:var(--ink)}
+.fusion-engineering-report header span{font-size:11px;color:var(--ink-2)}
+.fusion-engineering-numbers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fusion-engineering-numbers>div{display:grid;gap:4px;border:1px solid var(--line);border-radius:8px;
+ padding:10px;min-width:0;background:var(--surface-sunk)}
+.fusion-engineering-numbers span{font-size:10px;color:var(--ink-2)}
+.fusion-engineering-numbers strong{font-size:13px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.fusion-engineering-report p,.fusion-engineering-report>small{font-size:11px;line-height:1.55;color:var(--ink-2);margin:0}
+.fusion-data-scope{border-left:3px solid var(--line-strong);padding:9px;background:var(--surface-sunk)}
+.fusion-engineering-report summary{font-size:11px;cursor:pointer;font-weight:650}
+.fusion-engineering-table{max-width:100%;overflow-x:auto;margin-top:8px}
+.fusion-engineering-table table{width:100%;min-width:570px;border-collapse:collapse;font-size:10px}
+.fusion-engineering-table th,.fusion-engineering-table td{padding:7px;border-bottom:1px solid var(--line);text-align:left}
+@media(max-width:700px){.fusion-engineering-report{padding:10px}
+ .fusion-engineering-numbers{grid-template-columns:1fr}}
