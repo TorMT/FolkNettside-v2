@@ -77,6 +77,23 @@ class NtnuReleaseTests(unittest.TestCase):
         self.assertEqual((self.course / "big.bin").read_bytes(),
                          b"V1 course original")
 
+    def test_partial_release_rolls_back_without_touching_unchanged_originals(self):
+        release.deploy(self.stage, self.webroot, self.backup, apply=True)
+        old = self.backup / "originals" / "index.html"
+        # Simulate an interrupted release: the old index is still present
+        # while new JS and other assets have been copied.
+        (self.target / "index.html").write_bytes(old.read_bytes())
+        record_path = self.backup / "release.json"
+        record = json.loads(record_path.read_text())
+        record["status"] = "partial"
+        record_path.write_text(json.dumps(record))
+        release.rollback(self.backup, apply=True)
+        self.assertEqual((self.target / "index.html").read_text(), "OLD V2 home")
+        self.assertEqual((self.target / "src" / "app.js").read_text(),
+                         "console.log('old')")
+        self.assertFalse((self.target / "scripts" / "fusion_export_folknet.py").exists())
+        self.assertEqual((self.course / "big.bin").read_bytes(), b"V1 course original")
+
     def test_rollback_fails_closed_if_v2_changes_after_deployment(self):
         release.deploy(self.stage, self.webroot, self.backup, apply=True)
         (self.target / "src" / "app.js").write_text("new edits after release")
