@@ -73,6 +73,56 @@ Do not mistake this function for the Autodesk OAuth backend: Autodesk
 client registration, secret configuration, consent, token refresh,
 encrypted token storage and callback completion remain to be implemented.
 
+## Current V2 account frontend (implemented 12 October 2026)
+
+The optional FolkNet/Supabase Auth account is now visible under
+**Settings → Account & connections**, *separate from the existing
+Google/Drive session*. The browser loads public configuration from
+`data/folkside-auth.json`, which contains the fixed Supabase URL and
+a **publishable key only**. It must never contain the database password,
+the secret/service-role key or OAuth tokens.
+
+Files:
+- `src/platform/folkside-auth.js`: explicit email/password registration,
+  sign-in, single-flight refresh, sign-out, and account snapshot events.
+- `src/platform/folkside-cloud.js`: authenticated user-identity check
+  against the active `folk-core/session` Edge Function.
+- `src/settings/settings-page.js` and `src/app.js`: standalone private
+  cloud controls. The **Check backend** action is shown only after FolkNet
+  sign-in; it requires the returned user ID to match the current
+  authenticated Supabase user ID and reports private bucket readiness.
+- `tests/folkside-auth.test.mjs` and
+  `tests/folkside-cloud.test.mjs`: mock authentication, session refresh,
+  invalid login, rejected backend identity and separation from Google.
+
+The browser stores its Supabase access/refresh session in
+`sessionStorage` for **this browser tab** only. Tokens are not included
+in account snapshots or settings HTML; passwords are not saved in app
+storage. This reduces persistence relative to localStorage but **does not
+defend against cross-site scripting**—continue enforcing safe escaping,
+CSP and trusted scripts. Refresh tokens are serialized using a
+single-flight Promise to avoid accidental reuse in the same tab.
+The existing Google Drive scopes, token, data and consent state remain
+unchanged.
+
+**Not yet completed:**
+- Live email verification and successful sign-in with a real user account,
+  plus two-account RLS and private bucket acceptance tests.
+- Supabase project's Auth **Site URL / Redirect URLs** must allow
+  `https://tormt.github.io/FolkNettside-v2/` to ensure confirmation links
+  return to the published site. Default project email sending limits may
+  apply; configure a proper SMTP provider before broad use.
+- Google → Supabase identity linking must be implemented explicitly before
+  treating them as the same person. A Google access token is not a
+  Supabase JWT. Never automatically merge user records or data.
+- Autodesk OAuth client registration, token exchange/refresh and connected
+  Fusion Hub access. The Hub UI is still a tested read-only frontend
+  contract without a live Autodesk user connection.
+
+No existing module is automatically migrated. This keeps independent
+Drive, medicine and study data intact while the private account layer is
+qualified.
+
 ## Intended migration sequence
 
 1. Configure Supabase Auth provider(s), allowlisted callback URLs and
