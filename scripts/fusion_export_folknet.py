@@ -73,6 +73,25 @@ def _properties(object_with_properties):
     result.update(_optional_inertia(p))
     return result
 
+def _write_bundle_zip(output_path, step_path, json_path):
+    """Create a complete archive exclusively, preserving any existing file."""
+    created = False
+    try:
+        with zipfile.ZipFile(output_path, "x", zipfile.ZIP_DEFLATED) as bundle:
+            created = True
+            bundle.write(step_path, "assembly.step")
+            bundle.write(json_path, "folknet-fusion.json")
+            bundle.writestr("README.txt",
+                "Upload this ZIP in FolkNet V2 Engineering > CAD.\\n"
+                "Keep your original F3Z unchanged. Fusion solid volume is NOT displaced volume.\\n"
+                "The nested occurrence mass records must NOT be summed.\\n")
+    except Exception:
+        # FileExistsError before creation must NEVER remove a prior export.
+        if created and os.path.isfile(output_path):
+            os.remove(output_path)
+        raise
+
+
 def export_active_design():
     app = adsk.core.Application.get()
     if app is None:
@@ -147,19 +166,7 @@ def export_active_design():
         json_path = os.path.join(temporary, "folknet-fusion.json")
         with open(json_path, "w", encoding="utf-8") as file:
             json.dump(manifest, file, ensure_ascii=False, indent=2, allow_nan=False)
-        try:
-            with zipfile.ZipFile(output_path, "x", zipfile.ZIP_DEFLATED) as bundle:
-                bundle.write(step_path, "assembly.step")
-                bundle.write(json_path, "folknet-fusion.json")
-                bundle.writestr("README.txt",
-                    "Upload this ZIP in FolkNet V2 Engineering > CAD.\n"
-                    "Keep your original F3Z unchanged. Fusion solid volume is NOT displaced volume.\n"
-                    "The nested occurrence mass records must NOT be summed.\n")
-        except Exception:
-            # Incomplete archives must never masquerade as successful exports.
-            if os.path.isfile(output_path):
-                os.remove(output_path)
-            raise
+        _write_bundle_zip(output_path, step_path, json_path)
     return output_path, manifest
 
 def run(context):
