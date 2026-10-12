@@ -1,5 +1,5 @@
 import {getFolkAccessToken,getFolkAccountSnapshot,validateFolkAuthConfig}
-  from "./folkside-auth.js?v=3a2d1f6057e8d2cb943bf65844a4bd8c00c919ae";
+  from "./folkside-auth.js?v=170408c684c2a559bce2f17060d632aa89defe06";
 
 /**
  * Check a Supabase-authenticated account against our deployed folk-core
@@ -36,6 +36,6 @@ export async function probeFolkCoreBackend({
  if(data?.connected!==true||data.userId!==expected||
    data.storageBucket!=="folk-private")
    throw Error("FolkNet backend identity or private storage verification failed");
- return {ok:true,userId:expected,privateStorageReady:true,
+ return {ok:true,userId:expected,privateBucketConfigured:true,
    autodeskConnected:data.autodeskConnected===true};
 }
