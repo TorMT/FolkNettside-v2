@@ -157,6 +157,45 @@ publishing pipeline. A ChatGPT task has no implicit access to webedit,
 cannot read private network shares from a public URL, and isn't as
 deterministic as a local OS task.
 
+## Implemented first step (development only)
+
+A dedicated scanner is now available at
+`scripts/preview_ntnu_autocatalog.py`. It is an **opt-in local preview**
+and does not update `v2-staging`, the existing V1 `index.json` files,
+the live `index.html`, Supabase, or the browser's catalog reader.
+
+Run against a **verified** locally mounted NTNU webedit path. Copy
+`data/ntnu-index-allowlist.example.json` to a private local allowlist
+and review every public course/section explicitly:
+
+```powershell
+# Metadata-only dry run; no writes anywhere:
+py -3 scripts/preview_ntnu_autocatalog.py `
+    --webroot "<verified-NTNU-webedit-root>" `
+    --allowlist "data/ntnu-index-allowlist.example.json"
+
+# Explicitly write the candidate JSON OUTSIDE NTNU/webedit:
+py -3 scripts/preview_ntnu_autocatalog.py `
+    --webroot "<verified-NTNU-webedit-root>" `
+    --allowlist "data/ntnu-index-allowlist.example.json" `
+    --output "$env:TEMP\\ntnu-autocatalog-preview.json"
+```
+
+The public semester index must explicitly mark the course public, and
+the course index must independently mark each scanned section public
+(or explicitly reference its quiz). This protects against accidentally
+indexing a protected course even if it is present on the disk. Suspicious
+names, links, hidden content and unapproved folders are never included.
+Only paths, sizes and modification times of approved public resources
+are considered. Review the generated candidate before adding a V2
+consumer or scheduled publishing. Tests:
+`tests/test_ntnu_autocatalog.py`.
+
+**Not implemented yet:** schedule, writing live/staging catalog, browser
+consumer/fallback, Google↔Folk identity linking, and Supabase
+per-user course/dive progress migration. Do not imply they work
+from the existence of the scanner.
+
 ## 4. Implementation sequence while V2 remains in development
 
 1. Add the **read-only scanner + fixture tests**, measuring path, number
