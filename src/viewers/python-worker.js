@@ -34,7 +34,7 @@ function safeSiblingRelativePath(relative){
   const parts=path.split("/");
   if(!parts.length||parts.length>12||
      parts.some(part=>!part||part==="."||part===".."||part.startsWith(".")||
-       part.length>140||!/^[\\p{L}\\p{M}\\p{N}_() +.\\-]+$/u.test(part)))
+       part.length>140||!/^[\p{L}\p{M}\p{N}_() +.\-]+$/u.test(part)))
     return null;
   return path;
 }
@@ -101,9 +101,9 @@ function safeMountPath(name){
   const segments=value.split("/");
   if(!segments.length||segments.length>12||value.length>500||
      segments.some(part=>!part||part==="."||part===".."||
-       part.startsWith(".")||!/[\\p{L}\\p{N}]/u.test(part)))
+       part.startsWith(".")||!/[\p{L}\p{N}]/u.test(part)))
     throw new Error("Invalid Python workspace path");
-  return segments.map(part=>part.replace(/[^\\p{L}\\p{M}\\p{N}_.() +\\-]/gu,"_").slice(0,140)).join("/");
+  return segments.map(part=>part.replace(/[^\p{L}\p{M}\p{N}_.() +\-]/gu,"_").slice(0,140)).join("/");
 }
 function prepareMountFiles(files){
   if(!Array.isArray(files)||files.length>40)
