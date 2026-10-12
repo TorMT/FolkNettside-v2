@@ -450,3 +450,30 @@
 .fusion-engineering-table th,.fusion-engineering-table td{padding:7px;border-bottom:1px solid var(--line);text-align:left}
 @media(max-width:700px){.fusion-engineering-report{padding:10px}
  .fusion-engineering-numbers{grid-template-columns:1fr}}
+
+/* Autodesk Fusion read-only hub catalog, disabled without an authenticated backend. */
+.autodesk-hub-browser{display:grid;gap:10px;padding:13px;margin:14px 0;
+  border:1px solid var(--line);border-radius:10px;background:var(--surface-sunk)}
+.autodesk-hub-browser header{display:flex;justify-content:space-between;
+  align-items:center;gap:12px;flex-wrap:wrap}
+.autodesk-hub-browser h2{margin:0;font-size:15px;color:var(--ink)}
+.autodesk-hub-browser header p{margin:4px 0 0;font-size:11px;line-height:1.5}
+.autodesk-hub-browser [data-aps-message]{font-size:12px;color:var(--ink-2);line-height:1.5}
+.autodesk-hub-browser [data-aps-crumbs]{display:flex;gap:6px;flex-wrap:wrap}
+.autodesk-hub-browser [data-aps-crumbs] .btn{font-size:10px;min-height:32px}
+.autodesk-hub-browser [data-aps-crumbs] .btn:disabled{opacity:.6}
+.autodesk-hub-browser [data-aps-entries]{display:grid;gap:7px}
+.autodesk-hub-item{display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:8px;border:1px solid var(--line);border-radius:8px;
+  padding:9px;background:var(--surface)}
+.autodesk-hub-item>div:first-child{display:grid;gap:3px;min-width:0;flex:1 1 200px}
+.autodesk-hub-item strong{font-size:12px;overflow-wrap:anywhere}
+.autodesk-hub-item span{font-size:10px;overflow-wrap:anywhere}
+.autodesk-hub-item>div:last-child{display:flex;gap:6px;flex-wrap:wrap}
+.autodesk-hub-item .btn{font-size:11px;min-height:30px}
+.autodesk-hub-footer{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.autodesk-hub-footer .muted{font-size:10px;line-height:1.5}
+@media(max-width:720px){.autodesk-hub-browser{padding:10px}
+  .autodesk-hub-browser header{align-items:stretch}
+  .autodesk-hub-item>div:last-child{width:100%}
+  .autodesk-hub-item .btn{flex:1 1 auto}}

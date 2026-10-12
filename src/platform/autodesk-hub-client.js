@@ -59,7 +59,7 @@ export function parseCatalogResponse(body,{maxEntries=150}={}){
  if(!body||!Array.isArray(body.entries)||body.entries.length>maxEntries)
    throw Error("Malformed or oversized Autodesk hub response");
  const entries=body.entries.map(normalizeHubEntry);
- if(body.nextCursor!==undefined&&!id(body.nextCursor))
+ if(body.nextCursor!==undefined&&body.nextCursor!==null&&!id(body.nextCursor))
    throw Error("Invalid Autodesk pagination cursor");
  return {entries,nextCursor:body.nextCursor||null};
 }
