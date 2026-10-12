@@ -20,6 +20,8 @@ jobs:
       - name: Verify NTNU same-origin code-only publishing
         run: |
           python3 -m unittest discover -s tests -p 'test_publish_ntnu_staging.py' -v
+          python3 -m unittest discover -s tests -p 'test_ntnu_release.py' -v
+          python3 -m py_compile scripts/ntnu_release.py
           temp="$(mktemp -d)"
           python3 scripts/build_ntnu_staging.py --version "$GITHUB_SHA" --output "$temp/v2-staging"
           test -f "$temp/v2-staging/index.html"
