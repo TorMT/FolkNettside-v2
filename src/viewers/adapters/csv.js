@@ -1,6 +1,6 @@
-import {escapeHTML,fetchText} from "../utils.js?v=e9fc2476ea219c59d6a44293b891c44b1dcdc4d9";
-import {createDomFinder} from "../dom-search.js?v=e9fc2476ea219c59d6a44293b891c44b1dcdc4d9";
-import {detectCSVDelimiter,filterDelimitedRows,parseDelimitedText} from "../csv-core.js?v=e9fc2476ea219c59d6a44293b891c44b1dcdc4d9";
+import {escapeHTML,fetchText} from "../utils.js?v=22e449b5fc14d5359fcf656ff4e1a9357d400dcb";
+import {createDomFinder} from "../dom-search.js?v=22e449b5fc14d5359fcf656ff4e1a9357d400dcb";
+import {detectCSVDelimiter,filterDelimitedRows,parseDelimitedText} from "../csv-core.js?v=22e449b5fc14d5359fcf656ff4e1a9357d400dcb";
 
 export async function render(container,resource){
   const source=await fetchText(resource.path||resource.url);
