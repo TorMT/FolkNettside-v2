@@ -63,7 +63,7 @@ test("mixed-material elastic neutral axis and peak member stress use constituent
 test("two stations have independent E/I/NA/mass and reject missing span",()=>{
  const members=parseStructuralMembers(
   "plate,0,5,0,-1,0,1,.1,210,7850\n"+
-  "stiffener,0,5,0,1,.2,.1,210,7850\n"+
+  "stiffener,0,5,0,1.05,.2,.1,210,7850\n"+
   "plate,5,10,0,-1,0,1,.15,210,7850"
  );
  const derived=deriveLongitudinalSections(members,{xMin:0,xMax:10,referenceE:210e9});
