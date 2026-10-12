@@ -1,51 +1,38 @@
 [
   {
     "slug": "equipment-mount-fixture",
-    "title": "3D-printed equipment mount",
+    "title": "3D-printed dive computer mount",
     "type": "physical",
-    "status": "prototype",
+    "status": "fabricated prototype",
     "year": 2026,
-    "summary": "Designed, fitted and iterated a compact mount for real equipment.",
-    "problem": "Create a robust attachment that fits existing hardware and can be manufactured quickly.",
-    "solution": "Measured the interfaces, modelled the part parametrically, printed prototypes and refined the fit.",
-    "skills": ["CAD", "DFM", "3D printing", "Measurement", "Iteration"],
-    "tools": ["Fusion 360", "FDM printer", "Calipers"],
-    "materials": ["PETG"],
-    "process": [
-      "Measure mating geometry and constraints",
-      "Create parametric CAD model",
-      "Print first prototype",
-      "Test fit and identify interference/slack",
-      "Adjust tolerances and reprint"
+    "summary": "Parametric Fusion 360 replacement for a dive computer strap, using elastic loops to accommodate drysuit compression.",
+    "problem": "A conventional strap can become loose as a drysuit compresses during descent. A replacement strap assembly was costly.",
+    "solution": "Designed a hinged attachment to fit the existing computer and 3D-printed a support-free part with loops for elastic straps.",
+    "skills": [
+      "Fusion 360",
+      "Parametric CAD",
+      "Design for additive manufacturing",
+      "Prototyping",
+      "Fit and tolerance"
     ],
-    "results": [
-      "Functional prototype",
-      "Repeatable fit",
-      "Design retained as editable parametric model"
+    "tools": [
+      "Fusion 360",
+      "3D printer",
+      "Elastic straps"
     ],
-    "gallery": [],
-    "files": []
-  },
-  {
-    "slug": "repair-fixture",
-    "title": "Mechanical repair fixture",
-    "type": "physical",
-    "status": "fixture",
-    "year": 2026,
-    "summary": "Example structure for documenting a repair, modification or practical engineering job.",
-    "problem": "A component or assembly no longer performs as intended.",
-    "solution": "Diagnose the failure, identify constraints, repair or redesign the affected part and verify function.",
-    "skills": ["Troubleshooting", "Measurement", "Mechanical design", "Hands-on fabrication"],
-    "tools": ["Hand tools", "Calipers"],
     "materials": [],
     "process": [
-      "Inspect failure",
-      "Measure existing geometry",
-      "Identify root cause",
-      "Repair or redesign",
-      "Function test"
+      "Document dimensions and attachment constraints on the existing dive computer",
+      "Model a hinge and attachment loops for an elastic bungee-style strap",
+      "Orient geometry so it can print without support structures",
+      "Prototype and fit the hinged attachment",
+      "Attach inexpensive elastic straps through the printed loops"
     ],
-    "results": ["Working assembly"],
+    "results": [
+      "Working printed attachment replacing the original strap arrangement",
+      "Approximately 11 minutes per print, including setup",
+      "Reported total cost: 49 NOK, versus more than 400 NOK for the replacement strap"
+    ],
     "gallery": [],
     "files": []
   },
@@ -58,11 +45,27 @@
     "summary": "Component-aware 3D model viewer and hydrostatic analysis workspace.",
     "problem": "Engineering model viewers and analysis tools are often fragmented.",
     "solution": "Use one semantic model for rendering, hydrostatics and future structural/CFD modules.",
-    "skills": ["JavaScript", "3D graphics", "Numerical methods", "Marine engineering"],
-    "tools": ["Three.js", "GitHub"],
+    "skills": [
+      "JavaScript",
+      "3D graphics",
+      "Numerical methods",
+      "Marine engineering"
+    ],
+    "tools": [
+      "Three.js",
+      "GitHub"
+    ],
     "materials": [],
-    "process": ["Model import", "Component identity", "Hydro regression tests", "Workspace integration"],
-    "results": ["Shared ModelDocument", "Analytic hydrostatics core"],
+    "process": [
+      "Model import",
+      "Component identity",
+      "Hydro regression tests",
+      "Workspace integration"
+    ],
+    "results": [
+      "Shared ModelDocument",
+      "Analytic hydrostatics core"
+    ],
     "gallery": [],
     "files": []
   }
