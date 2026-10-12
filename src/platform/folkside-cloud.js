@@ -36,6 +36,6 @@ export async function probeFolkCoreBackend({
  if(data?.connected!==true||data.userId!==expected||
    data.storageBucket!=="folk-private")
    throw Error("FolkNet backend identity or private storage verification failed");
- return {ok:true,userId:expected,privateStorageReady:true,
+ return {ok:true,userId:expected,privateBucketConfigured:true,
    autodeskConnected:data.autodeskConnected===true};
 }
