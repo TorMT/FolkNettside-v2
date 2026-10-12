@@ -272,6 +272,108 @@ neutral axis, and compare weight by frame/station to a declared weight
 ledger. A watertight *external visual hull surface alone cannot provide
 these engineering properties*.
 
+## Explicit 2D structural cross-sections: plate/stiffener EI and material stress
+
+Structure also offers **Structural cross-sections · plating, stiffeners,
+materials**. This is a declared **engineering structural cross-section**
+in the transverse Y / vertical Z plane, repeated for one or more X
+intervals. It is not inferred from an imported visual hull STL/GLB mesh.
+
+Each CSV-style row has one of two forms:
+
+```text
+# flat/angled plate segment in YZ, with thickness normal to the segment
+plate,x0,x1,y0,z0,y1,z1,thickness_m,E_GPa,density_kg_m3
+
+# rectangular longitudinal stiffener (Y-width by Z-height)
+stiffener,x0,x1,y_center,z_center,width_y,height_z,E_GPa,density_kg_m3
+```
+
+An intentionally **illustrative** 10 m beam made of two longitudinal
+plates (not an actual vessel scantling) can be entered as:
+
+```text
+plate,0,10,-1,1,1,1,0.1,210,7850
+plate,0,10,-1,-1,1,-1,0.1,210,7850
+```
+
+**All positions and thicknesses are metres** in the world-coordinate
+system. The example is deliberately thick to make analytical checks easy.
+For a real vessel, use validated drawings, material specifications and
+actual plating/stiffener dimensions.
+
+For each longitudinal section, the engine calculates:
+
+```text
+A_i = plate_thickness * plate_length  OR  stiffener_width*stiffener_height
+z_NA = sum(E_i A_i z_i) / sum(E_i A_i)
+EI = sum(E_i * (I_yy,i,own + A_i*(z_i - z_NA)^2))
+m_per_m = sum(A_i * density_i) / 1000 [t/m]
+sigma_x,i(z) = M(x) * E_i * (z-z_NA) / EI
+```
+
+Each plate's exact rectangular own second moment includes its orientation
+and normal thickness, while rectangular stiffeners contribute exact
+width×height area and width×height³/12 inertia about their centroid.
+Composite neutral-axis locations and section extrema are calculated from
+those explicitly declared components, including mixed material E.
+
+For compatibility with the existing Euler–Bernoulli solver, the computed
+EI is passed as `E_ref * I_equivalent` where `E_ref` is the existing
+general structural modulus field. **The reference modulus does not replace
+member-specific material moduli** for bending stress calculations.
+The general (I) and fibre distance `c` are fallback inputs; a populated
+cross-section table replaces the manual EI-station table. These two
+sources cannot both be active.
+
+### Structural weight is not vessel baseline by default
+
+The new cross-section model calculates **gross mass of its structural
+components**, which generally excludes fluids, machinery, equipment,
+outfitting and anything not explicitly entered.
+
+By default, choose **Stiffness only**. The existing independent hull
+baseline mass and optional longitudinal mass-profile ledger remain
+authoritative.
+
+An opt-in mode can use the calculated plate/stiffener `t/m` values as
+the vessel's baseline weight **only when they are complete**: explicit
+mass and LCG comparison with the entered hull baseline must pass, and a
+separate manual mass profile must not also be provided. The solver never
+silently replaces missing hull weight with hydrostatic displacement or
+renormalizes a partial cross-section model.
+
+Every structural station has its own calculated (EI), equivalent I,
+elastic neutral axis Z and gross material weight per metre. These appear
+in a Y/Z geometry preview and a longitudinal property table. The
+resultant beam bending stress chooses the maximum absolute *member*
+fibre stress using material E and its elastic-neutral-axis distance,
+rather than the global manual (c/I) law.
+
+### Important engineering limits
+
+This is a **gross structural-section** idealisation, not a scantling
+verification or full ship stiffness model. It does **not** detect or
+subtract overlapping web/flange areas, penetrations, corrosion deductions,
+effective breadth, shear lag or member instability. It assumes that
+members act together in longitudinal bending and that the relevant joints
+transfer shear. No torsional warping, transverse hull stress, fatigue,
+wave-induced dynamic load or regulatory class-rules assessment is made.
+
+Validate the physical section connectivity, plate intersections,
+neutral-axis assumptions, buckling and shear transfer separately before
+using these values for design. For mixed-material sections, report fibre
+stress by material if detailed design is required.
+
+The following tests cover these assumptions:
+`tests/girder-section-properties.test.mjs` checks exact flanges,
+webs, rectangles, composite material neutral axes, weight and invalid
+geometries. `tests/girder-section-integration.test.mjs` checks that the
+computed sectional EI and material fibre stresses are actually used by
+the existing structural FEM, including the explicit baseline-weight gate.
+The coupled Hydro/Structure browser smoke additionally checks UI fields
+and the structural Y/Z preview.
+
 ## Regression and CI
 
 - `tests/deck-surface-projection.test.mjs`: geometry transforms,
