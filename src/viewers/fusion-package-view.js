@@ -1,6 +1,6 @@
-import {inspectFusionPackage} from "../model/parsers/fusion-preview.js?v=a1e28fad9d52f0f7b7b9c365b9b14445df76c120";
-import {parseFusionArchive} from "../model/parsers/fusion-archive.js?v=a1e28fad9d52f0f7b7b9c365b9b14445df76c120";
-import {renderModelWorkbench} from "./model-workbench.js?v=a1e28fad9d52f0f7b7b9c365b9b14445df76c120";
+import {inspectFusionPackage} from "../model/parsers/fusion-preview.js?v=7d13052833027ac258e1bfc0923cb2e10b3fb3fc";
+import {parseFusionArchive} from "../model/parsers/fusion-archive.js?v=7d13052833027ac258e1bfc0923cb2e10b3fb3fc";
+import {renderModelWorkbench} from "./model-workbench.js?v=7d13052833027ac258e1bfc0923cb2e10b3fb3fc";
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>
  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
