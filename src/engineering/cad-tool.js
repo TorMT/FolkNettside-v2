@@ -64,6 +64,9 @@ export function cadToolHTML(){
 export function mountCADTool(root){
  const picker=root.querySelector("#cad-import-file"),stage=root.querySelector("#cad-geometry-stage");
  const cancel=root.querySelector("#cad-import-cancel"),status=root.querySelector("#cad-import-status");
+ const dropZone=root.querySelector("#cad-drop-zone");
+ const installer=root.querySelector("#cad-fusion-install");
+ const installerStatus=root.querySelector("[data-cad-fusion-install-status]");
  if(!picker||!stage)return ()=>{};
  let controller=null,cleanup=()=>{},request=0,disposed=false;
  const stopHubBrowser=mountAutodeskHubBrowser(root.querySelector("#cad-fusion-hub-browser"));
@@ -110,10 +113,9 @@ export function mountCADTool(root){
  }
  const onCancel=()=>{request++;stop();showEmpty();status.textContent="Import cancelled"};
  cancel.addEventListener("click",onCancel);
- const onChange=async()=>{
+ const loadFile=async file=>{
    request++;const current=request;
    stop();stage.replaceChildren();
-   const file=picker.files?.[0];
    if(!file)return;
    const ext=file.name.split(".").pop().toLowerCase();
    controller=new AbortController();cancel.disabled=false;
@@ -146,7 +148,9 @@ export function mountCADTool(root){
        const preview=await renderFusionPackage(stage,buffer,file.name);
        if(current!==request||disposed){preview.cleanup?.();return}
        cleanup=preview.cleanup||(()=>{});
-       status.textContent=preview.info;
+       status.textContent=preview.info+
+         (preview.info.includes("native archive/thumbnail only")?
+          " · To calculate mass/inertia and open actual STEP solids, run the Fusion export script above.":"");
        return;
      }
      status.textContent=isCADFile(file.name)?"Loading OpenCascade WASM for "+file.name+"…":"Reading mesh…";
@@ -166,7 +170,48 @@ export function mountCADTool(root){
      showEmpty("Import could not be displayed. Try the demo or check source units and format.");
    }finally{if(current===request&&!disposed){cancel.disabled=true;controller=null}}
  };
+ const onChange=()=>{
+   const file=picker.files?.[0];
+   picker.value=""; // Choosing the same file again must trigger a fresh import.
+   if(file)void loadFile(file);
+ };
+ const onDrag=event=>{
+   event.preventDefault();
+   if(event.type==="dragover")dropZone?.classList.add("is-dragging");
+   if(event.type==="dragleave")dropZone?.classList.remove("is-dragging");
+   if(event.dataTransfer)event.dataTransfer.dropEffect="copy";
+ };
+ const onDrop=event=>{
+   event.preventDefault();
+   dropZone?.classList.remove("is-dragging");
+   const file=event.dataTransfer?.files?.[0];
+   if(file)void loadFile(file);
+ };
+ const onInstall=async()=>{
+   if(!installer)return;
+   installer.disabled=true;
+   installerStatus.textContent="Preparing Fusion script package locally…";
+   try{
+     await downloadFusionScriptPackage();
+     if(!disposed)installerStatus.textContent="Script downloaded. Unzip the FolkNetFusion folder, add it in Fusion and run it on your open assembly.";
+   }catch(error){
+     if(!disposed)installerStatus.textContent="Could not prepare the script: "+
+       String(error?.message||error)+". Use the Python script link instead.";
+   }finally{if(!disposed)installer.disabled=false}
+ };
  showEmpty();
  picker.addEventListener("change",onChange);
- return ()=>{disposed=true;request++;stop();stopHubBrowser();picker.removeEventListener("change",onChange);cancel.removeEventListener("click",onCancel)};
+ dropZone?.addEventListener("dragover",onDrag);
+ dropZone?.addEventListener("dragleave",onDrag);
+ dropZone?.addEventListener("drop",onDrop);
+ installer?.addEventListener("click",onInstall);
+ return ()=>{
+   disposed=true;request++;stop();stopHubBrowser();
+   picker.removeEventListener("change",onChange);
+   cancel.removeEventListener("click",onCancel);
+   dropZone?.removeEventListener("dragover",onDrag);
+   dropZone?.removeEventListener("dragleave",onDrag);
+   dropZone?.removeEventListener("drop",onDrop);
+   installer?.removeEventListener("click",onInstall);
+ };
 }
