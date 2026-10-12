@@ -52,9 +52,8 @@ class NtnuAutoIndexTests(unittest.TestCase):
         result = scan.build_catalog(self.webroot, self.allowlist)
         course = result["semesters"][0]["courses"][0]
         self.assertEqual(len(course["resources"]), 3)
-        self.assertIn("Øving 1", course["resources"][2]["relativePath"] if
-                      "Øving 1" in course["resources"][2]["relativePath"] else
-                      " ".join(x["relativePath"] for x in course["resources"]))
+        self.assertTrue(any("Øving 1" in x["relativePath"] for
+                            x in course["resources"]))
         self.assertTrue(any(x["kind"]=="QUIZ" for x in course["resources"]))
         serialized = json.dumps(result,ensure_ascii=False)
         self.assertNotIn("passord", serialized)
