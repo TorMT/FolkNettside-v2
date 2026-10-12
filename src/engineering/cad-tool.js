@@ -1,13 +1,13 @@
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=f7b8422ed3178def3b4139899d7c3ef4bf555e08";
-import {parseSTL} from "../model/parsers/stl.js?v=f7b8422ed3178def3b4139899d7c3ef4bf555e08";
-import {parse3MF} from "../model/parsers/three-mf.js?v=f7b8422ed3178def3b4139899d7c3ef4bf555e08";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=f7b8422ed3178def3b4139899d7c3ef4bf555e08";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=f7b8422ed3178def3b4139899d7c3ef4bf555e08";
-import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=f7b8422ed3178def3b4139899d7c3ef4bf555e08";
-import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=f7b8422ed3178def3b4139899d7c3ef4bf555e08";
-import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=f7b8422ed3178def3b4139899d7c3ef4bf555e08";
-import {createModelDocument} from "../model/model-document.js?v=f7b8422ed3178def3b4139899d7c3ef4bf555e08";
-import {boxMesh} from "../hydro/fixtures.js?v=f7b8422ed3178def3b4139899d7c3ef4bf555e08";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+import {parseSTL} from "../model/parsers/stl.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+import {parse3MF} from "../model/parsers/three-mf.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+import {createModelDocument} from "../model/model-document.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+import {boxMesh} from "../hydro/fixtures.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
 
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
