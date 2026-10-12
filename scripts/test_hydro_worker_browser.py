@@ -25,10 +25,9 @@ def wait_for_driver(seconds=30, request=call, sleep=time.sleep, clock=time.monot
     while clock() < deadline:
         try:
             status = request("GET", "/status", timeout=1)
-            if isinstance(status, dict) and status.get("ready") is False:
-                last_error = "ChromeDriver running but not ready"
-            else:
+            if isinstance(status, dict) and status.get("ready") is True:
                 return
+            last_error = "ChromeDriver running but not ready"
         except (OSError, TimeoutError, urllib.error.URLError) as error:
             last_error = type(error).__name__
         sleep(min(0.25, max(0, deadline - clock())))
