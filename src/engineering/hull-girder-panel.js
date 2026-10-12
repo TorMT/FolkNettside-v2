@@ -186,6 +186,8 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
     pressureDraft:caseInput.pressureDraft??1,
     pressureDensity:caseInput.pressureDensity??1025,
     pressureSections:caseInput.pressureSections??12,
+    sectionText:caseInput.sectionText||"",
+    sectionMassMode:caseInput.sectionMassMode||"independent",
     stiffnessText:caseInput.stiffnessText||"",
     massProfileText:caseInput.massProfileText||""
   };
@@ -202,6 +204,9 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
     <div class="readout"><span>Baseline mass LCG from stations</span><strong>${fmt(result.baselineAudit?.centerX,3)} m</strong></div>
     <div class="readout"><span>Baseline station mass total</span><strong>${fmt(result.baselineAudit?.totalMassTonnes,3)} t</strong></div>
     <div class="readout"><span>Longitudinal section stations</span><strong>${result.stiffnessStations?.length||1}</strong></div>
+    ${result.sectionModel?`<div class="readout"><span>Gross structural member mass</span><strong>${fmt(result.sectionModel.totalStructuralMassTonnes,3)} t</strong></div>
+      <div class="readout"><span>Structural material LCG</span><strong>${fmt(result.sectionModel.structuralLCG,3)} m</strong></div>
+      <div class="readout"><span>First section elastic NA Z</span><strong>${fmt(result.sectionModel.sections[0].zNeutral,3)} m</strong></div>`:""}
     ${buoyancySummaryHTML(result)}`:
     `<strong>Global girder study · inputs required</strong>
       <p class="muted">Assign measured hull mass, E, structural I and neutral-axis distance. Geometry alone cannot determine structural stiffness.</p>`;
@@ -244,6 +249,21 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
       <label><span>Neutral axis z, m</span><input id="girder-neutral-z" type="number" step=".1" value="${esc(values.neutralZ)}"></label>
       <label><span>Minimum beam divisions</span><input id="girder-segments" type="number" min="2" max="50" step="1" value="${esc(values.segments)}"></label>
     </div>
+    <details class="hull-girder-section-editor">
+      <summary>Structural cross-sections · plating, stiffeners, materials</summary>
+      <p class="muted">Define the actual longitudinal structural cross-section per X interval. Y/Z coordinates, dimensions and thicknesses are in metres. Repeat X interval for each member; intervals must cover the full beam.</p>
+      <label class="field"><span>Cross-section members (CSV rows)</span>
+        <textarea id="girder-section-members" spellcheck="false" rows="8" placeholder="plate,0,5,-2,1,2,1,.012,210,7850&#10;plate,0,5,-2,-1,-2,1,.01,210,7850&#10;stiffener,0,5,0,-.8,.12,.15,210,7850">${esc(values.sectionText)}</textarea></label>
+      <small>Plate: <code>plate, x0, x1, y0, z0, y1, z1, thickness, E_GPa, density_kg_m3</code></small>
+      <small>Rectangular stiffener: <code>stiffener, x0, x1, y_c, z_c, width_y, height_z, E_GPa, density_kg_m3</code></small>
+      <label class="field"><span>How to treat calculated structural weight</span>
+        <select id="girder-section-mass-mode">
+          <option value="independent" ${values.sectionMassMode==="independent"?"selected":""}>Stiffness only · preserve separately entered hull mass profile</option>
+          <option value="derived" ${values.sectionMassMode==="derived"?"selected":""}>Use section material mass as complete baseline ONLY if mass and LCG match</option>
+        </select></label>
+      <p class="muted">Nonempty structural members replace the manual EI station table. The general E input defines the equivalent-I reference modulus; each member retains its own E for bending stresses. General I and c become fallback values.</p>
+      <p class="muted">Gross sections: no subtracting plate/stiffener overlaps, cutouts, corrosion, effective breadth, shear lag or buckling. Structural member mass normally excludes machinery, fluids and outfitting.</p>
+    </details>
     <details class="hull-girder-profiles">
       <summary>Longitudinal beam profiles · E(x), I(x), baseline mass(x)</summary>
       <p class="muted">Optional complete X-station tables, one row per interval. When empty, constant E/I and uniform baseline hull mass are used. If entered, each profile must cover the full structural X span without gaps or overlaps. Segment boundaries become actual FEM nodes.</p>
@@ -271,6 +291,16 @@ export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName
     </div>
     <p class="muted">Blue and red represent opposite signed longitudinal fibre stress. Colors are projected onto actual 3D mesh vertices; this is NOT a shell-element von Mises plot.</p>
     <p class="muted">The shear and bending-moment diagrams include FEM element-side limits. Sharp jumps reflect concentrated forces or applied couples, not smooth distributed pressure. Deflection maxima include stationary points inside elements.</p>
+    ${result.sectionModel?`<details class="hull-fem-section-results" open>
+      <summary>Calculated structural sections · Y/Z and properties</summary>
+      <p class="muted">Declared geometry only: blue plating, red rectangular stiffeners and dashed elastic neutral axis.</p>
+      ${girderSectionSketchHTML(result.sectionModel.sections[0])}
+      <div class="hydro-force-table-wrap"><table>
+        <thead><tr><th>X interval (m)</th><th>Elastic NA Z (m)</th><th>EI (N·m²)</th><th>Member mass (t/m)</th></tr></thead>
+        <tbody>${result.sectionModel.sections.map(sec=>`<tr><td>${fmt(sec.x0,2)} – ${fmt(sec.x1,2)}</td><td>${fmt(sec.zNeutral,3)}</td><td>${fmt(sec.EI,0)}</td><td>${fmt(sec.tonnesPerM,4)}</td></tr>`).join("")}</tbody>
+      </table></div>
+      <p class="muted">Bending fibre stress uses each member's E and distance to the composite elastic NA. The equivalent I is referenced to the entered general E; mixed-material section inertia differs from purely geometric I.</p>
+    </details>`:""}
     ${hullGirderProfileDiagram(result)}
     ${result.buoyancyTransfer?hullGirderLoadDiagram(result):""}
     ${hullGirderDiagram(result)}
