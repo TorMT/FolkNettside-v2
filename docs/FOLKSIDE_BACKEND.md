@@ -69,9 +69,11 @@ returning data. Tokens are never echoed in responses. This is covered by
 `tests/folk-core.test.mjs`. The deployment exists in the correct project;
 a live browser session with a real user JWT has **not yet been tested**.
 
-Do not mistake this function for the Autodesk OAuth backend: Autodesk
-client registration, secret configuration, consent, token refresh,
-encrypted token storage and callback completion remain to be implemented.
+Do not mistake `folk-core` for Autodesk OAuth: the separate
+`autodesk-hub` Edge Function now contains an encrypted PKCE token exchange,
+refresh and callback implementation. Autodesk client registration and
+server-side secrets are still missing, and no real Hub user consent has
+been exercised. See `docs/AUTODESK_HUB_BACKEND.md`.
 
 ## Current V2 account frontend (implemented 12 October 2026)
 
@@ -115,9 +117,9 @@ unchanged.
 - Google → Supabase identity linking must be implemented explicitly before
   treating them as the same person. A Google access token is not a
   Supabase JWT. Never automatically merge user records or data.
-- Autodesk OAuth client registration, token exchange/refresh and connected
-  Fusion Hub access. The Hub UI is still a tested read-only frontend
-  contract without a live Autodesk user connection.
+- Autodesk OAuth **app registration, Edge secret provisioning** and
+  actual live Fusion Hub consent/access. Token exchange and refresh code
+  and Hub UI are present but have not been validated with real APS tokens.
 
 ### Opt-in cross-device Appearance backup
 
