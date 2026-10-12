@@ -23,6 +23,7 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_ntnu_release.py' -v
           python3 -m py_compile scripts/ntnu_release.py
           python3 -m unittest discover -s tests -p 'test_verify_ntnu_staging.py' -v
+          python3 -m unittest discover -s tests -p 'test_ntnu_autocatalog.py' -v
           python3 -m py_compile scripts/verify_ntnu_staging.py
           pwsh -NoProfile -Command '$tokens=$null; $errors=$null; [System.Management.Automation.Language.Parser]::ParseFile("Oppdater-FolkNettside.ps1",[ref]$tokens,[ref]$errors) | Out-Null; if($errors.Count -gt 0){ $errors | ForEach-Object { Write-Error $_ }; exit 1 }'
           temp="$(mktemp -d)"
