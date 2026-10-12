@@ -65,3 +65,54 @@ test("authorization failure stops browsing without leaking credentials",async()=
  })});
  await assert.rejects(client.catalog("hubs"),err=>err.status===401);
 });
+
+test("FolkNet mode locks bearer token to exact first-party Edge Function",()=>{
+ const good="https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/";
+ const cfg=validateHubConfig({apiBase:good,authMode:"folknet"});
+ assert.equal(cfg.authMode,"folknet");
+ for(const candidate of ["https://evil.example/functions/v1/autodesk-hub/",
+   "https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/evil/",
+   "https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/login/"]){
+   assert.throws(()=>validateHubConfig({apiBase:candidate,authMode:"folknet"}),
+     /exact first-party/);
+ }
+});
+test("Supabase bearer is only used for first-party session, catalog, OAuth initiation",async()=>{
+ const base="https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/";
+ const logs=[],token="a".repeat(50);
+ const client=createAutodeskHubClient({apiBase:base,authMode:"folknet"},{
+   tokenProvider:async()=>token,
+   fetchImpl:async(url,opts)=>{
+     logs.push({url,opts});
+     return {ok:true,status:200,json:async()=>{
+       if(url.endsWith("/session"))return {connected:false,configured:true};
+       if(url.endsWith("/authorize"))return {authorizationUrl:
+         "https://developer.api.autodesk.com/authentication/v2/authorize?scope=data%3Aread"};
+       return {entries:[],nextCursor:null};
+     }};
+   }
+ });
+ const status=await client.session();
+ assert.equal(status.connected,false);
+ await client.catalog("hubs");
+ const target=await client.startAuthorization({
+   returnTo:"https://tormt.github.io/FolkNettside-v2/#/engineering/cad"});
+ assert.ok(target.startsWith("https://developer.api.autodesk.com/"));
+ assert.equal(logs.length,3);
+ assert.ok(logs.every(r=>r.opts.credentials==="omit"&&
+   r.opts.headers.Authorization==="Bearer "+token));
+ assert.equal(logs[2].opts.method,"POST");
+ assert.equal(JSON.parse(logs[2].opts.body).returnTo,
+   "https://tormt.github.io/FolkNettside-v2/#/engineering/cad");
+ assert.ok(logs.every(r=>r.url.startsWith(base)));
+});
+test("OAuth backend redirects cannot point to malicious origins",async()=>{
+ const base="https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/";
+ const client=createAutodeskHubClient({apiBase:base,authMode:"folknet"},{
+   tokenProvider:async()=>"a".repeat(50),
+   fetchImpl:async()=>({ok:true,status:200,json:async()=>({
+     authorizationUrl:"https://evil.example/steal"
+   })})
+ });
+ await assert.rejects(client.startAuthorization(),/authorization URL rejected/);
+});
