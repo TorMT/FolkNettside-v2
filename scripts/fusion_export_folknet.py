@@ -46,6 +46,15 @@ def _optional_inertia(p):
     return result
 
 
+def _unique_export_filename(title, when=None):
+    """Never silently overwrite a previous export of the same assembly."""
+    when = when or datetime.datetime.now(datetime.timezone.utc)
+    if when.tzinfo is None:
+        raise ValueError("Export timestamp must be timezone-aware")
+    stamp = when.astimezone(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    return "FolkNet_Fusion_" + _safe_name(title) + "_" + stamp + ".zip"
+
+
 def _properties(object_with_properties):
     accuracy = adsk.fusion.CalculationAccuracy.HighCalculationAccuracy
     p = object_with_properties.getPhysicalProperties(accuracy)
@@ -75,7 +84,7 @@ def export_active_design():
     title = str(root.name or "Fusion design")
     output_dir = os.path.join(os.path.expanduser("~"), "Documents", "FolkNet_Fusion_Exports")
     os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, "FolkNet_Fusion_" + _safe_name(title) + ".zip")
+    output_path = os.path.join(output_dir, _unique_export_filename(title))
 
     # Whole-assembly aggregate. Do not sum nested occurrence mass reports.
     total = _properties(root)
@@ -138,13 +147,19 @@ def export_active_design():
         json_path = os.path.join(temporary, "folknet-fusion.json")
         with open(json_path, "w", encoding="utf-8") as file:
             json.dump(manifest, file, ensure_ascii=False, indent=2, allow_nan=False)
-        with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as bundle:
-            bundle.write(step_path, "assembly.step")
-            bundle.write(json_path, "folknet-fusion.json")
-            bundle.writestr("README.txt",
-                "Upload this ZIP in FolkNet V2 Engineering > CAD.\n"
-                "Keep your original F3Z unchanged. Fusion solid volume is NOT displaced volume.\n"
-                "The nested occurrence mass records must NOT be summed.\n")
+        try:
+            with zipfile.ZipFile(output_path, "x", zipfile.ZIP_DEFLATED) as bundle:
+                bundle.write(step_path, "assembly.step")
+                bundle.write(json_path, "folknet-fusion.json")
+                bundle.writestr("README.txt",
+                    "Upload this ZIP in FolkNet V2 Engineering > CAD.\n"
+                    "Keep your original F3Z unchanged. Fusion solid volume is NOT displaced volume.\n"
+                    "The nested occurrence mass records must NOT be summed.\n")
+        except Exception:
+            # Incomplete archives must never masquerade as successful exports.
+            if os.path.isfile(output_path):
+                os.remove(output_path)
+            raise
     return output_path, manifest
 
 def run(context):
