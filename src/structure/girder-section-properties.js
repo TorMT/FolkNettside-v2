@@ -13,6 +13,7 @@
  * shear lag, cutouts, welds, torsion, buckling, or overlap subtraction.
  */
 import {validateGirderProfile} from "./girder-profiles.js";
+import {structuralOverlapAudit} from "./girder-section-geometry.js";
 const finite=Number.isFinite;
 function number(raw,name){
   if(raw===undefined||raw===null||String(raw).trim()==="")
@@ -118,6 +119,10 @@ export function stressFromSectionMoment(section,momentNm){
 }
 export function deriveLongitudinalSections(members,{xMin,xMax,referenceE=210e9}={}){
   if(!Array.isArray(members)||!members.length)return null;
+  const overlapAudit=structuralOverlapAudit(members);
+  if(!overlapAudit.passed)
+    throw new Error(overlapAudit.warnings[0].description+
+      " Overlaps must be resolved before section properties are used.");
   const grouped=[],tol=Math.max(1e-9,Math.abs(xMax-xMin)*1e-8);
   for(const member of members){
     const last=grouped.at(-1);
@@ -139,7 +144,7 @@ export function deriveLongitudinalSections(members,{xMin,xMax,referenceE=210e9}=
     sections:stations,massStations,totalStructuralMassTonnes,
     firstMomentTonnesM,
     structuralLCG:totalStructuralMassTonnes?firstMomentTonnesM/totalStructuralMassTonnes:null,
-    memberCount:members.length,
+    memberCount:members.length,overlapAudit,
     warning:"Structural plate/stiffener gross weight is not automatically the vessel's complete baseline hull weight"
   };
 }
