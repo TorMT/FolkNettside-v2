@@ -28,3 +28,16 @@ test("shell account chip reflects the shared signed-in state",()=>{
   assert.match(html,/account-chip signed-in/);
   assert.match(html,/Test User/);
 });
+
+test("header distinguishes FolkNet account from independent Google Drive session",()=>{
+ const folk={status:"signed-in",user:{email:"cloud@example.org"}};
+ const cloudOnly=renderTopShell("portfolio",{folkAccount:folk});
+ assert.match(cloudOnly,/account-chip signed-in/);
+ assert.match(cloudOnly,/cloud@example.org/);
+ const dual=renderTopShell("engineering",{folkAccount:folk,
+   account:{status:"signed-in",profile:{name:"Google Test"}}});
+ assert.match(dual,/FolkNet \+ Drive/);
+ const guest=renderTopShell("portfolio",{});
+ assert.match(guest,/Sign in/);
+ assert.doesNotMatch(guest,/account-chip signed-in/);
+});
