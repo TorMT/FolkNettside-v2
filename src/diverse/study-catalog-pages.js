@@ -1,4 +1,4 @@
-import {courseExerciseResources,distinctValues,filterKokSites,filterLAOSAssignments,safeCatalogUrl,validateDiverseCatalog} from "./study-catalog-core.js?v=b25b2e7c5ff5b3ee51c96d9681194894d167489f";
+import {courseExerciseResources,distinctValues,filterKokSites,filterLAOSAssignments,safeCatalogUrl,validateDiverseCatalog} from "./study-catalog-core.js?v=acc72226fb6382002d92080427a699bd021eb8ca";
 const URLS={
   laos:{data:"./data/diverse/laos-assignments.json",legacy:"https://tormt.folk.ntnu.no/diverse/LAOS/"},
   kok:{data:"./data/diverse/kok-sites.json",legacy:"https://tormt.folk.ntnu.no/diverse/AndreKokSider/"}
