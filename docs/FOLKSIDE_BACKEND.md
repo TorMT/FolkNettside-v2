@@ -119,6 +119,34 @@ unchanged.
   Fusion Hub access. The Hub UI is still a tested read-only frontend
   contract without a live Autodesk user connection.
 
+### Opt-in cross-device Appearance backup
+
+The first deliberately non-sensitive data path is implemented via
+`src/platform/folkside-preferences.js` with an explicit
+**Back up appearance / Restore appearance** pair under
+Settings → Account & connections. Nothing syncs silently.
+
+- Only the 5 whitelisted UI choices (mode, accent, density, motion, contrast)
+  are sent to `public.folk_user_settings` under key `appearance`. Other
+  data, including medicine content and OAuth credentials, is excluded.
+- The user's Supabase access token is attached only to their API request;
+  Postgres RLS further restricts rows by `auth.uid()=user_id`.
+- The first save is an INSERT-only attempt. Updates include the previously
+  fetched row revision as a compare-and-set condition and raise a conflict
+  rather than silently overwriting a parallel write.
+- Existing cloud backup replacement and local settings restoration require
+  a direct, explicit browser confirmation. Restoring changes only the
+  *current device's* appearance; it does not change Drive, cloud archives
+  or any medical/engineering data.
+- Browser sessionStorage credentials are not placed in exported settings
+  JSON, and account settings remain distinct from Google Drive identity.
+
+`tests/folkside-preferences.test.mjs` verifies row ownership scope,
+whitelisting, refused unknown values, optimistic revision match, and
+the absence of accidental sensitive-property export.
+**A real two-account end-to-end RLS validation is still a launch gate**
+before turning on broader module sync.
+
 No existing module is automatically migrated. This keeps independent
 Drive, medicine and study data intact while the private account layer is
 qualified.
