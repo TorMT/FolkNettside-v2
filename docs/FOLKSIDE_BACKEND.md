@@ -7,7 +7,7 @@
 - **Database:** PostgreSQL 17, EU West
 - **Existing unrelated project:** LeseRavnen, not modified
 - **GitHub:** `TorMT/FolkNettside-v2`; source files are committed individually
-- **Deployed function:** `folk-core` (ACTIVE)
+- **Deployed functions:** `folk-core` (ACTIVE) and `autodesk-hub` (ACTIVE, backend code deployed but APS credentials and live authorization not configured).
 - **Backend authentication status:** Supabase Auth integration with the site's existing Google Drive login is NOT completed. A Google access token from GIS is **not** a Supabase Auth JWT.
 
 This file is an implementation record, **not** permission to remove or migrate
