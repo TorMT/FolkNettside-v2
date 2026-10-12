@@ -29,6 +29,12 @@ try{
    "Default first structural station not shown");
  assert(svg.querySelectorAll("[data-section-member]").length===2,
    "Expected two member shapes in first station");
+ assert(host.querySelector("[data-section-live]").textContent.includes("Section bending stiffness EI"),
+   "Live sectional EI preview missing");
+ assert(host.querySelector("[data-section-live]").textContent.includes("Gross member mass per metre"),
+   "Live structural mass preview missing");
+ assert(svg.querySelector("[data-section-neutral-axis]"),
+   "Live elastic neutral axis line absent from actual Y/Z drawing");
  const dispatch=(element,type,pointer)=>{
    const rc=svg.getBoundingClientRect();
    const xy=p=>({clientX:rc.left+p.x/640*rc.width,
@@ -54,8 +60,11 @@ try{
    "Selected plate thickness not populated");
  const thickness=host.querySelector('[data-section-prop="t"]');
  thickness.value=".03";
+ const massBefore=host.querySelector("[data-section-live]").textContent;
  host.querySelector("[data-section-update]").click();
  assert(parseStructuralMembers(textarea.value)[0].t===.03,"Selected plate numeric edit failed");
+ assert(host.querySelector("[data-section-live]").textContent!==massBefore,
+   "Updating selected plate thickness did not recalculate live section properties");
  assert(textarea.value.includes("# top flange"),"Inline CSV comment unexpectedly removed");
  host.querySelector("[data-section-undo]").click();
  assert(textarea.value===original,"Undo did not restore the authoritative original CSV");
@@ -100,6 +109,8 @@ try{
  drag(mid,mid);
  assert(host.querySelector("[data-section-warning]").hidden===false,
    "Overlapping structural metal should be prominently flagged");
+ assert(host.querySelector("[data-section-live]").textContent.includes("preview blocked"),
+   "Unsafe overlapping metal must disable real-time EI preview");
  let overlapBlocked=false;
  try{
    deriveLongitudinalSections(parseStructuralMembers(textarea.value),{xMin:0,xMax:10});
