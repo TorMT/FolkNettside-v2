@@ -10,6 +10,7 @@ import {getJSZip} from "../../src/vendor/jszip.js";
 import {parseFusionEngineeringBundle} from "../../src/model/parsers/fusion-engineering-bundle.js";
 import {fusionEngineeringReportHTML} from "../../src/engineering/fusion-engineering-report.js";
 import {cadToolHTML} from "../../src/engineering/cad-tool.js";
+import {buildFusionScriptPackage} from "../../src/engineering/fusion-installer.js";
 import {boxMesh} from "../../src/hydro/fixtures.js";
 import {createModelDocument} from "../../src/model/model-document.js";
 const check=(cond,msg)=>{if(!cond)throw Error(msg)};
@@ -53,6 +54,18 @@ try{
    return Math.max(...values)-Math.min(...values);
  });
  check(ranges.every(x=>Math.abs(x-300)<.5),"Expected 300mm STEP cube, got "+ranges);
+ // Actual in-browser JSZip package roundtrip from the published script source.
+ const helperResponse=await fetch("../../scripts/fusion_export_folknet.py");
+ check(helperResponse.ok,"Fusion Python source is not reachable by the local CAD UI");
+ const packageBlob=await buildFusionScriptPackage(await helperResponse.text(),{Zip});
+ const installation=await Zip.loadAsync(packageBlob);
+ check(Boolean(installation.file("FolkNetFusion/FolkNetFusion.py")),
+   "Fusion installer Python file missing from ZIP");
+ const entry=installation.file("FolkNetFusion/FolkNetFusion.manifest");
+ check(Boolean(entry),"Fusion installer manifest missing from ZIP");
+ const manifestData=JSON.parse(await entry.async("string"));
+ check(manifestData.autodeskProduct==="Fusion360"&&manifestData.type==="script"&&
+   manifestData.runOnStartup===false,"Incorrect Fusion script install manifest");
  const host=document.querySelector("#host");
  host.innerHTML=cadToolHTML();
  check(host.querySelector("#cad-import-file").accept.includes(".zip"),
