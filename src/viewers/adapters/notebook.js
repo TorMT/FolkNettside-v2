@@ -1,9 +1,9 @@
-import {pythonSourceURL} from "../python-source.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
-import {escapeHTML,fetchJSON} from "../utils.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
-import {createDomFinder} from "../dom-search.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
-import {createPythonSession} from "../python-session.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
-import {notebookMarkdownHTML} from "../notebook-markdown.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+import {pythonSourceURL} from "../python-source.js?v=9c87cf0caf161ebf6354780cfd49f68f6a66cd7e";
+import {escapeHTML,fetchJSON} from "../utils.js?v=9c87cf0caf161ebf6354780cfd49f68f6a66cd7e";
+import {createDomFinder} from "../dom-search.js?v=9c87cf0caf161ebf6354780cfd49f68f6a66cd7e";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=9c87cf0caf161ebf6354780cfd49f68f6a66cd7e";
+import {createPythonSession} from "../python-session.js?v=9c87cf0caf161ebf6354780cfd49f68f6a66cd7e";
+import {notebookMarkdownHTML} from "../notebook-markdown.js?v=9c87cf0caf161ebf6354780cfd49f68f6a66cd7e";
 
 export const cellText=value=>Array.isArray(value)?value.join(""):String(value||"");
 export function renderNotebookOutput(output={}){

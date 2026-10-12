@@ -1,12 +1,12 @@
-import {areaLoadsFromLines,normaliseAreaLoad} from "../hydro/hull-loading.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
-import {pointWeightsFromLines} from "../hydro/point-loads.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+import {areaLoadsFromLines,normaliseAreaLoad} from "../hydro/hull-loading.js?v=9c87cf0caf161ebf6354780cfd49f68f6a66cd7e";
+import {pointWeightsFromLines} from "../hydro/point-loads.js?v=9c87cf0caf161ebf6354780cfd49f68f6a66cd7e";
 import {
   planBounds,planMetersToPixel,sketchAreaLoad,sketchPointMass,
   areaLoadLine,pointMassLine,appendSketchLine,updateSketchDataRow,
   moveSketchAreaLoad,moveSketchPointMass,editSketchAreaProperties,
   editSketchPointProperties
-} from "./load-sketch-core.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
-import {extractDeckSurfaceCandidates,deckSurfaceAt,sampledDeckFootprint} from "./deck-surface-projection.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+} from "./load-sketch-core.js?v=9c87cf0caf161ebf6354780cfd49f68f6a66cd7e";
+import {extractDeckSurfaceCandidates,deckSurfaceAt,sampledDeckFootprint} from "./deck-surface-projection.js?v=9c87cf0caf161ebf6354780cfd49f68f6a66cd7e";
 
 /**
  * The validated text fields remain authoritative. Editing changes only the

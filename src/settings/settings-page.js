@@ -1,4 +1,4 @@
-import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=bd288256618fb1d442d52feec1b93e911ca6ab33";
+import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=9c87cf0caf161ebf6354780cfd49f68f6a66cd7e";
 const SECTIONS=[
   ["appearance","Appearance"],
   ["connections","Account & connections"],
@@ -83,6 +83,14 @@ function connectionsHTML(account={},folkAccount={}){
       <div class="setting-row"><div><strong>Google / Drive</strong><small>${googleDescription}</small></div>${googleControl}</div>
       <div class="setting-row"><div><strong>FolkNet private cloud / Supabase</strong>
         <small>${folkDescription}</small></div><div>${folkControl}</div></div>
+      ${folkSigned?`<div class="setting-row"><div><strong>Appearance backup</strong>
+        <small>Only light/dark mode, colours, density and contrast. Save and restore manually.
+        Existing cloud backup changes are confirmed before overwrite.</small></div>
+        <div class="settings-connection-actions">
+          <button class="btn" type="button" data-folk-backup>Back up appearance</button>
+          <button class="btn" type="button" data-folk-restore>Restore appearance</button>
+        </div></div>
+        <div class="settings-feedback" data-folk-backup-status role="status" aria-live="polite"></div>`:""}
       ${folkSigned?`<div class="setting-row"><div><strong>Verify private cloud</strong>
         <small>Check the deployed Supabase backend against your current FolkNet identity.
         This test does not upload files or change account data.</small></div>
