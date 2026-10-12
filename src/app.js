@@ -49,6 +49,7 @@ import {mountFrame3D} from "./engineering/frame-3d.js";
 import {solveHullGirder} from "./structure/hull-girder.js";
 import {parseGirderStations} from "./structure/girder-profiles.js";
 import {parseStructuralMembers,deriveLongitudinalSections} from "./structure/girder-section-properties.js";
+import {mountSectionSketch} from "./engineering/section-sketch.js";
 import {girderResponseCSV,girderLoadsCSV,girderReactionsCSV,girderSectionsCSV} from "./structure/girder-export.js";
 import {projectPressureToBeam} from "./structure/hydro-beam-transfer.js";
 import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js";
@@ -1195,6 +1196,9 @@ async function engineeringPage(){
       mountLoadSketch(app.querySelector("#girder-load-sketch"),{
         bounds,modelDocument:documentModel,areaInput:app.querySelector("#girder-areas"),
         pointInput:app.querySelector("#girder-points")
+      });
+      mountSectionSketch(app.querySelector("#girder-section-sketch"),{
+        modelBounds:bounds,textInput:app.querySelector("#girder-section-members")
       });
       const readForm=()=>{
         girderForm={
