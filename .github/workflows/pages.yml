@@ -410,6 +410,30 @@ jobs:
           grep '<pre id="result">' /tmp/fusion-bundle-smoke-dom.html || true
       - name: Fusion helper script syntax
         run: python -m py_compile scripts/fusion_export_folknet.py
+      - name: Autodesk Hub read-only navigation browser smoke
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          python -m http.server 4189 --bind 127.0.0.1 >/tmp/autodesk-hub-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python - <<'PY'
+          import time,urllib.request
+          for _ in range(50):
+              try:
+                  urllib.request.urlopen("http://127.0.0.1:4189/tests/browser/autodesk-hub-browser-smoke.html",timeout=1).read(32)
+                  break
+              except Exception:time.sleep(.1)
+          else:raise SystemExit("Autodesk hub smoke server did not start")
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=14000 \
+            --dump-dom http://127.0.0.1:4189/tests/browser/autodesk-hub-browser-smoke.html \
+            >/tmp/autodesk-hub-smoke-dom.html
+          grep -q 'data-status="pass"' /tmp/autodesk-hub-smoke-dom.html || {
+            cat /tmp/autodesk-hub-smoke-dom.html
+            exit 1
+          }
+          grep '<pre id="result">' /tmp/autodesk-hub-smoke-dom.html || true
       - name: Hydro performance benchmark
         run: npm run benchmark:hydro
       - name: Smoke check
