@@ -15,11 +15,18 @@ web views. It is **read-only**: no uploads, edits, file deletion or background
 download jobs. The browser does **not** ask for or store Autodesk access
 tokens. A separately authenticated backend must be configured first.
 
-**The live Autodesk login/backend is not yet deployed in this repo.**
-Google sign-in does not grant Fusion cloud access. The UI displays an
-unconfigured state until the operator supplies a public backend URL at
-`data/autodesk-hub.json`; see `data/autodesk-hub.example.json` for the
-public JSON shape. Never place APS secrets or user tokens there.
+**Backend update, 12 October 2026:** The `autodesk-hub` Edge Function is
+ACTIVE on the verified FolkNet Supabase project. Its source and security
+checks are versioned in `supabase/functions/autodesk-hub/`. However, the
+Autodesk app credentials have **not** been provisioned and no real Autodesk
+consent or Fusion Hub access has been verified. The browser deliberately
+remains unconfigured until end-to-end acceptance tests pass.
+Google sign-in does not grant Fusion cloud access; the Hub uses a
+**separate FolkNet Supabase Auth identity**. Once deployed and verified,
+the operator may publish the **public URL and auth mode only** at
+`data/autodesk-hub.json` from `data/autodesk-hub.example.json`.
+Never place APS secrets, database passwords or user tokens there.
+See `docs/AUTODESK_HUB_BACKEND.md` for operational details.
 
 ### Required first-party backend contract
 
