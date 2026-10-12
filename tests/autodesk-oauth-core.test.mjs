@@ -45,7 +45,7 @@ function fixtures(){
 }
 test("AES-GCM binds encrypted tokens to purpose/user and cursors are signed",async()=>{
  const sealed=await sealJSON({refresh:"private"},secret,"user:"+user);
- assert.notMatch(sealed.ciphertext,/private/);
+ assert.doesNotMatch(sealed.ciphertext,/private/);
  assert.deepEqual(await openJSON(sealed,secret,"user:"+user),{refresh:"private"});
  await assert.rejects(openJSON(sealed,secret,"user:"+user2));
  const cursor=await encodeCursor({userId:user,pageUrl:"https://example.test"},secret);
