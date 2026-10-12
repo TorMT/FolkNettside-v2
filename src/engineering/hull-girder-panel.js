@@ -1,4 +1,4 @@
-import {stressRGB,interpolateGirderAt} from "../structure/hull-contours.js?v=219793135ebba981835f3ef4debffda2fcc20f69";
+import {stressRGB,interpolateGirderAt} from "../structure/hull-contours.js?v=e3cf3c80b1b5f77bd6808d1a3d97aef7016481dc";
 
 const esc=v=>String(v??"").replace(/[&<>"']/g,ch=>({
   "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
@@ -137,6 +137,41 @@ function buoyancySummaryHTML(result){
     fmt(result.verticalLoadN/1000,3)+' kN</strong></div>'+
     '<div class="readout"><span>Support reactions (numerical fixture)</span><strong>'+
     fmt(result.reactionN/1000,3)+' kN</strong></div>';
+}
+/** Actual explicitly entered Y/Z section geometry, including elastic neutral axis. */
+export function girderSectionSketchHTML(section,{width=590,height=305}={}){
+  if(!section?.parts?.length)return "";
+  const raw=section.parts;
+  const Y=raw.flatMap(p=>p.kind==="plate"?[p.y0,p.y1]:[p.y-p.width/2,p.y+p.width/2]);
+  const Z=raw.flatMap(p=>[p.zMin,p.zMax]);
+  const ymin=Math.min(...Y),ymax=Math.max(...Y),zmin=Math.min(...Z),zmax=Math.max(...Z);
+  const span=Math.max(ymax-ymin,zmax-zmin,.1),pad=42;
+  const scale=Math.min((width-pad*2)/span,(height-pad*2)/span);
+  const sx=y=>width/2+(y-(ymin+ymax)/2)*scale;
+  const sy=z=>height/2-(z-(zmin+zmax)/2)*scale;
+  const parts=raw.slice(0,200).map(p=>{
+    if(p.kind==="plate")
+      return '<line x1="'+sx(p.y0).toFixed(3)+'" y1="'+sy(p.z0).toFixed(3)+
+        '" x2="'+sx(p.y1).toFixed(3)+'" y2="'+sy(p.z1).toFixed(3)+
+        '" stroke="var(--accent)" stroke-width="'+Math.max(1,p.t*scale).toFixed(2)+
+        '" stroke-linecap="butt"/>';
+    return '<rect x="'+sx(p.y-p.width/2).toFixed(3)+
+      '" y="'+sy(p.z+p.height/2).toFixed(3)+
+      '" width="'+(p.width*scale).toFixed(3)+'" height="'+(p.height*scale).toFixed(3)+
+      '" fill="var(--danger)" fill-opacity=".65" stroke="var(--danger)" stroke-width=".8"/>';
+  }).join("");
+  const zAxis=sy(section.zNeutral);
+  return '<svg class="hull-fem-section-sketch" viewBox="0 0 '+width+' '+height+'" role="img" '+
+    'aria-label="Declared structural cross-section in Y Z coordinates, with elastic neutral axis">'+
+    '<rect width="'+width+'" height="'+height+'" fill="var(--surface-sunk)"/>'+
+    parts+
+    '<path d="M22 '+zAxis.toFixed(3)+'H'+(width-22)+
+      '" stroke="var(--ink)" stroke-dasharray="5 4" stroke-width="1.5"/>'+
+    '<text x="24" y="'+Math.max(15,zAxis-7).toFixed(3)+
+      '" font-size="12" fill="var(--ink)">Elastic NA, Z = '+fmt(section.zNeutral,3)+' m</text>'+
+    '<text x="25" y="'+(height-11)+'" fill="var(--ink-2)" font-size="11">Y → · m</text>'+
+    '<text x="'+(width-27)+'" y="18" text-anchor="end" fill="var(--ink-2)" font-size="11">Z ↑ · m</text>'+
+    '</svg>';
 }
 export function hullGirderPanelHTML({caseInput={},result=null,error="",modelName="",bounds}={}){
   const values={
