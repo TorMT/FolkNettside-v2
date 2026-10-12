@@ -79,7 +79,6 @@ import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,in
 import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignUp,folkSignOut} from "./platform/folkside-auth.js";
 import {probeFolkCoreBackend} from "./platform/folkside-cloud.js";
 import {createFolkAppearanceBackup} from "./platform/folkside-preferences.js";
-import {createFolkAppearanceBackup} from "./platform/folkside-preferences.js";
 
 initSettings();
 initGoogleSession();
@@ -1078,39 +1077,6 @@ function settingsPage(){
     resetSpaceMouseSettings();
     settingsPage();
   });
-
-  let appearanceRevision=null;
-  const appearanceAction=async restore=>{
-    const status=app.querySelector("[data-folk-appearance-status]");
-    const buttons=app.querySelectorAll("[data-folk-appearance-save],[data-folk-appearance-restore]");
-    buttons.forEach(b=>b.disabled=true);
-    if(status)status.textContent="Checking private Appearance backup…";
-    try{
-      const response=await fetch("./data/folkside-auth.json",{cache:"no-store"});
-      if(!response.ok)throw Error("FolkNet cloud configuration unavailable");
-      const config=await response.json();
-      const backup=createFolkAppearanceBackup({config});
-      const current=await backup.read();
-      appearanceRevision=current?.revision??null;
-      if(restore){
-        if(!current)throw Error("No cloud Appearance backup exists yet.");
-        if(!confirm("Replace this browser's five Appearance preferences with your private cloud backup?"))
-          throw Error("Restore cancelled.");
-        for(const [key,value] of Object.entries(current.settings))setSetting(key,value);
-        if(status)status.textContent="Appearance restored from revision "+current.revision+".";
-        // Keep user on the same Settings page and show current controls.
-        if(route().startsWith("/settings"))settingsPage();
-      }else{
-        const saved=await backup.save(getSettings(),{expectedRevision:appearanceRevision});
-        appearanceRevision=saved.revision;
-        if(status)status.textContent="Appearance saved privately, revision "+saved.revision+".";
-      }
-    }catch(error){
-      if(status)status.textContent=String(error?.message||"Appearance backup failed");
-    }finally{buttons.forEach(b=>{if(b.isConnected)b.disabled=false})}
-  };
-  app.querySelector("[data-folk-appearance-save]")?.addEventListener("click",()=>void appearanceAction(false));
-  app.querySelector("[data-folk-appearance-restore]")?.addEventListener("click",()=>void appearanceAction(true));
 
   const analyticsToggle=app.querySelector("#settings-analytics-toggle");
   if(analyticsToggle){
