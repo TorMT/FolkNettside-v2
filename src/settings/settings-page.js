@@ -1,4 +1,4 @@
-import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=9b3f94a8201e36d764f7f15b7ffd7380b1addadb";
+import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=468cf42af4c1c5caa1a94dfe6479885dd70b7773";
 const SECTIONS=[
   ["appearance","Appearance"],
   ["connections","Account & connections"],
@@ -170,6 +170,17 @@ function privacyHTML(){
   return `
     <h1>Privacy & data</h1>
     <p class="muted">Study progress and UI preferences are stored locally in this browser. No course login is required.</p>
+    <div class="settings-card">
+      <div class="setting-row"><div><strong>FolkNet Appearance backup</strong>
+        <small>Optional: save or restore only the five Appearance preferences from your signed-in FolkNet account.
+        No automatic sync, and no medical or other personal records.</small></div>
+        <div class="settings-connection-actions">
+          <button class="btn" type="button" data-folk-appearance-save>Save appearance</button>
+          <button class="btn" type="button" data-folk-appearance-restore>Restore appearance</button>
+        </div>
+      </div>
+      <p class="settings-feedback" data-folk-appearance-status role="status" aria-live="polite"></p>
+    </div>
     <div class="settings-card">
       <div class="setting-row"><div><strong>Google Analytics (optional)</strong><small>Same GA4 property as the original website, with V2-only page categories. Google tag script loads with consent denied; GA4 page-view measurement starts only after opt-in. Statistics are visible only in the owner's Google account; personal and health-related tools are excluded from page tracking. You can revoke consent here at any time.</small><small data-analytics-status role="status">Off by default</small></div><button class="btn" id="settings-analytics-toggle" type="button">Enable analytics</button></div>
       <div class="setting-row"><div><strong>Study progress</strong><small>Quiz attempts and video resume/watched state.</small></div><button class="btn" id="settings-clear-study-progress">Clear progress</button></div>
