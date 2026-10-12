@@ -1,4 +1,4 @@
-import {onNTNUHost,loadNTNUCatalog} from "./courses/ntnu-catalog.js?v=acc72226fb6382002d92080427a699bd021eb8ca";
+import {onNTNUHost,loadNTNUCatalog} from "./courses/ntnu-catalog.js?v=ccb01e36b0dd56a31421fd58f7574cc2834b2148";
 
 let cache;
 

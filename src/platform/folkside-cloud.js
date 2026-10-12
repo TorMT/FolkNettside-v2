@@ -1,5 +1,5 @@
 import {getFolkAccessToken,getFolkAccountSnapshot,validateFolkAuthConfig}
-  from "./folkside-auth.js?v=acc72226fb6382002d92080427a699bd021eb8ca";
+  from "./folkside-auth.js?v=ccb01e36b0dd56a31421fd58f7574cc2834b2148";
 
 /**
  * Check a Supabase-authenticated account against our deployed folk-core

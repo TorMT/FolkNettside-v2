@@ -1,6 +1,6 @@
-import {parseCADBuffer} from "../../model/parsers/cad-runtime.js?v=acc72226fb6382002d92080427a699bd021eb8ca";
-import {renderModelWorkbench} from "../model-workbench.js?v=acc72226fb6382002d92080427a699bd021eb8ca";
-import {extension} from "../utils.js?v=acc72226fb6382002d92080427a699bd021eb8ca";
+import {parseCADBuffer} from "../../model/parsers/cad-runtime.js?v=ccb01e36b0dd56a31421fd58f7574cc2834b2148";
+import {renderModelWorkbench} from "../model-workbench.js?v=ccb01e36b0dd56a31421fd58f7574cc2834b2148";
+import {extension} from "../utils.js?v=ccb01e36b0dd56a31421fd58f7574cc2834b2148";
 export async function render(container,resource){
  const source=resource.path||resource.url;
  const kind=extension(source||resource.name);
