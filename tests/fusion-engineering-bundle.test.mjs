@@ -100,3 +100,46 @@ test("unqualified bounds and surface-area values are rejected rather than render
  assert.ok(!Object.hasOwn(minimal.total,"boundsM"));
  assert.ok(!Object.hasOwn(minimal.total,"surfaceAreaM2"));
 });
+
+test("SI world moments and principal moments survive import and are shown with provenance",()=>{
+ const world={xx:40,yy:50,zz:60,xy:-5,yz:2,xz:-3};
+ const extended={...fixture,
+   properties:{...fixture.properties,inertiaUnit:"kg*m2",
+     inertiaWorldReference:"Fusion world-coordinate system"},
+   total:{...fixture.total,inertiaWorldKgM2:world,
+     principalMomentsKgM2:[30,50,70]},
+   occurrences:[{...fixture.occurrences[0],inertiaWorldKgM2:world}]
+ };
+ const result=validateFusionEngineeringManifest(extended);
+ assert.deepEqual(result.total.inertiaWorldKgM2,world);
+ assert.deepEqual(result.total.principalMomentsKgM2,[30,50,70]);
+ assert.deepEqual(result.occurrences[0].inertiaWorldKgM2,world);
+ const html=fusionEngineeringReportHTML(result);
+ assert.match(html,/moments of inertia/);
+ assert.match(html,/40 \/ 50 \/ 60/);
+ assert.match(html,/-5 \/ 2 \/ -3/);
+ assert.match(html,/30 \/ 50 \/ 70/);
+ assert.match(html,/tensor off-diagonal signs depend on convention/);
+});
+
+test("Fusion inertia is optional for pre-existing bundles but strict if present",()=>{
+ const older=validateFusionEngineeringManifest(fixture);
+ assert.equal(older.total.inertiaWorldKgM2,undefined);
+ const withMoments={...fixture,total:{...fixture.total,
+   inertiaWorldKgM2:{xx:1,yy:2,zz:3,xy:0,yz:0,xz:0}}};
+ assert.throws(()=>validateFusionEngineeringManifest(withMoments),/explicit kg\*m2/);
+ const qualified={...withMoments,
+   properties:{...fixture.properties,inertiaUnit:"kg*m2"}};
+ assert.doesNotThrow(()=>validateFusionEngineeringManifest(qualified));
+ for(const bad of [
+   {...qualified,total:{...qualified.total,
+     inertiaWorldKgM2:{...qualified.total.inertiaWorldKgM2,yy:-1}}},
+   {...qualified,total:{...qualified.total,principalMomentsKgM2:[1,2,-3]}},
+   {...qualified,total:{...qualified.total,principalMomentsKgM2:[1,2]}},
+   {...qualified,total:{...qualified.total,
+     inertiaWorldKgM2:{xx:1,yy:2,zz:3,xy:NaN,yz:0,xz:0}}},
+   {...qualified,properties:{...qualified.properties,inertiaUnit:"kg*cm2"}}
+ ]){
+   assert.throws(()=>validateFusionEngineeringManifest(bad),/inertia|moments/);
+ }
+});
