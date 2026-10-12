@@ -100,9 +100,11 @@ try{
  drag(mid,mid);
  assert(host.querySelector("[data-section-warning]").hidden===false,
    "Overlapping structural metal should be prominently flagged");
- assert.throws(()=>deriveLongitudinalSections(parseStructuralMembers(textarea.value),{
-   xMin:0,xMax:10
- }),/overlap/);
+ let overlapBlocked=false;
+ try{
+   deriveLongitudinalSections(parseStructuralMembers(textarea.value),{xMin:0,xMax:10});
+ }catch(error){overlapBlocked=/overlap/.test(String(error.message))}
+ assert(overlapBlocked,"Overlapping material was not blocked by the structural solver");
  host.querySelector("[data-section-undo]").click();
  assert(host.querySelector("[data-section-warning]").hidden===true,
    "Undo should clear overlap warning and restore safe geometry");
