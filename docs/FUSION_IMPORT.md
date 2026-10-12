@@ -1,5 +1,77 @@
 # Fusion / F3Z / F3D import contract
 
+## Fusion Hub cloud browsing through APS
+
+The Autodesk Data Management API supports the user-authorized hierarchy
+hub → project → top-level folders → folder contents (folders/items) →
+item versions. It uses three-legged OAuth with the `data:read` scope.
+This is distinct from extracting CAD solids, STEP or physical properties.
+
+### Implementation state
+
+V2 now includes a **Fusion Hub** browser in Engineering → CAD with navigation,
+breadcrumbs, pagination, version information and links to allowlisted Autodesk
+web views. It is **read-only**: no uploads, edits, file deletion or background
+download jobs. The browser does **not** ask for or store Autodesk access
+tokens. A separately authenticated backend must be configured first.
+
+**The live Autodesk login/backend is not yet deployed in this repo.**
+Google sign-in does not grant Fusion cloud access. The UI displays an
+unconfigured state until the operator supplies a public backend URL at
+`data/autodesk-hub.json`; see `data/autodesk-hub.example.json` for the
+public JSON shape. Never place APS secrets or user tokens there.
+
+### Required first-party backend contract
+
+The backend must implement these read-only endpoints with one OAuth
+session per authorized Autodesk user:
+
+| Frontend call | Autodesk API |
+| --- | --- |
+| GET /api/autodesk/session | Return connected status and optional display name |
+| GET /api/autodesk/catalog?level=hubs | GET /project/v1/hubs |
+| GET /api/autodesk/catalog?level=projects&hubId=... | GET hub projects |
+| GET /api/autodesk/catalog?level=topFolders&hubId=...&projectId=... | GET project top folders |
+| GET /api/autodesk/catalog?level=contents&projectId=...&folderId=... | GET folder contents |
+| GET /api/autodesk/catalog?level=versions&projectId=...&itemId=... | GET item versions |
+| GET /api/autodesk/login?returnTo=... | Backend-led Autodesk OAuth sign-in |
+
+Catalog response:
+`{entries:[{id,name,type,versionNumber?,modifiedAt?,webUrl?}],nextCursor?:string|null}`
+where type is hub/project/folder/item/version. Backend pagination cursors
+must be opaque and validated, and every requested hub/project/folder/item
+must be checked against the current authenticated user's permissions.
+
+Autodesk explicitly notes that some APS APIs restrict direct browser
+cross-origin calls. For reliability use a trusted backend rather than
+putting the Fusion OAuth access token into browser code. Implement OAuth
+state/PKCE validation, short-lived secure HttpOnly session cookies,
+server-side encrypted refresh tokens, strict callback/return URL allowlists,
+rate limits, account isolation and exact-origin CORS. Avoid broad
+data:write permissions for this read-only phase.
+
+### Version downloads and actual structural analysis
+
+Autodesk has documented a separate Data Management download workflow to
+request a Fusion F3Z archive for certain file versions, potentially
+including related referenced designs. This workflow requires a backend,
+format availability checks and additional authorized job operations; it
+is **not currently implemented** by the read-only hub browser.
+
+Even with hub file access, proprietary F3D/F3Z bytes are not a qualified
+external hull, a STEP model, or a reliable source of section EI.
+Geometry/material-property conversion remains a separate stage, as
+documented below in the Fusion Engineering Bundle workflow.
+
+Tests:
+- `tests/autodesk-hub-client.test.mjs`: strict data types, URLs,
+  API endpoints, pagination, no browser bearer token and auth errors.
+- `tests/browser/autodesk-hub-browser-smoke.html`: mock-backend
+  browsing through hubs, projects, folders and versions, with pagination,
+  back navigation and unconfigured state.
+
+Neither test proves connectivity to your personal Autodesk hub.
+
 ## Practical Fusion → FolkNet engineering workflow
 
 The recommended input for an entire Fusion design is a **Fusion Engineering
