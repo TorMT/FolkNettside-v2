@@ -20,6 +20,11 @@ export function fusionEngineeringReportHTML(info){
   '<div class="fusion-engineering-numbers">'+
   '<div><span>Assembly mass (Fusion materials)</span><strong>'+fmt(t.massKg,3)+' kg</strong></div>'+
   '<div><span>Solid material volume</span><strong>'+fmt(t.solidVolumeM3,6)+' m³</strong></div>'+
+  (Number.isFinite(t.surfaceAreaM2)?
+    '<div><span>CAD body surface area</span><strong>'+fmt(t.surfaceAreaM2,3)+' m²</strong></div>':"")+
+  (t.boundsM?'<div><span>Model XYZ envelope (axis-aligned)</span><strong>'+
+    t.boundsM.min.map((n,i)=>fmt(t.boundsM.max[i]-n,3)).join(' × ')+
+    ' m</strong></div>':"")+
   '<div><span>Center of mass X / Y / Z</span><strong>'+com.map(c=>fmt(c,3)).join(' / ')+' m</strong></div>'+
   '<div><span>Assembly occurrences</span><strong>'+info.occurrences.length+'</strong></div></div>'+
   '<p class="fusion-data-scope"><strong>Measured in Fusion, not calculated from STEP triangles.</strong> '+
