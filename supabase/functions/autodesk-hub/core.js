@@ -61,10 +61,10 @@ export async function encodeCursor(data,secret){
  return b64url(msg)+"."+b64url(new Uint8Array(sig));
 }
 export async function decodeCursor(cursor,secret){
- if(!maxText(cursor,2500)||!/^[-_a-zA-Z0-9]+\.[-_a-zA-Z0-9]+$/.test(cursor))
+ if(!maxText(cursor,6000)||!/^[-_a-zA-Z0-9]+\.[-_a-zA-Z0-9]+$/.test(cursor))
    throw Error("Invalid catalog cursor");
  const [m,s]=cursor.split("."),msg=fromB64(m);
- if(msg.length>1600||!await crypto.subtle.verify("HMAC",await cursorKey(secret),
+ if(msg.length>4500||!await crypto.subtle.verify("HMAC",await cursorKey(secret),
      fromB64(s),msg))throw Error("Invalid catalog cursor signature");
  return JSON.parse(decoder.decode(msg));
 }
