@@ -1,6 +1,6 @@
 import {escapeHTML,fetchJSON} from "../utils.js";
 import {
-  answerQuestion,createQuizAttempt,normalizeQuiz,quizScore,quizChapterView,quizChapterStorageKey,sanitizeQuizAttempt
+  answerQuestion,answerMatches,quizImageURL,createQuizAttempt,normalizeQuiz,quizScore,quizChapterView,quizChapterStorageKey,sanitizeQuizAttempt
 } from "../quiz-core.js";
 import {mistakeQuestions,recordQuizChoice,clearMistakeBank} from "../quiz-mistake-bank.js";
 
@@ -24,6 +24,8 @@ export async function render(container,resource){
   let attempt=loadAttempt(storageKey,quiz);
   let review=false;
   let mistakeMode=false;
+  // Unsaved multi-select drafts live only in memory until "Check answers".
+  const drafts=new Map();
 
   const persist=()=>saveAttempt(storageKey,attempt);
   const score=()=>quizScore(quiz,attempt);
@@ -103,7 +105,9 @@ export async function render(container,resource){
     const q=quiz.questions[index];
     const selected=attempt.answers[index];
     const answered=selected!==null;
-    const correct=Number(q.answer);
+    const draft=q.multiple?(answered?selected:(drafts.get(index)||[])):[];
+    const correct=answerMatches(q,selected);
+    const illustration=quizImageURL(resource,q.image);
     return `<div class="quiz-view">
       <div class="quiz-topline">
         <div><span class="project-kicker">${review?"Review":"Course quiz"}</span><h2>${escapeHTML(quiz.title)}</h2></div>
@@ -112,24 +116,31 @@ export async function render(container,resource){
       ${chaptersHTML()}
       ${progressHTML()}
       <div class="quiz-question-nav" aria-label="Quiz questions">
-        ${quiz.questions.map((_,i)=>{
+        ${quiz.questions.map((question,i)=>{
           const a=attempt.answers[i];
-          const state=a===null?"pending":a===quiz.questions[i].answer?"correct":"wrong";
+          const state=a===null?"pending":answerMatches(question,a)?"correct":"wrong";
           return `<button data-quiz-jump="${i}" data-state="${state}" class="${i===index?"active":""}" aria-label="Question ${i+1}">${i+1}</button>`;
         }).join("")}
       </div>
-      <div class="muted">Question ${index+1} of ${quiz.questions.length}</div>
+      <div class="muted">Question ${index+1} of ${quiz.questions.length}${q.multiple?" · Select all correct options":""}</div>
       <h3 class="quiz-prompt">${escapeHTML(q.prompt)}</h3>
+      ${illustration?`<figure class="quiz-illustration"><img src="${escapeHTML(illustration)}" alt="Illustration for question ${index+1}" loading="lazy"></figure>`:""}
       <div class="quiz-options">
         ${q.choices.map((choice,i)=>{
           const classes=[];
-          if(answered&&i===correct)classes.push('data-correct="true"');
-          if(answered&&i===selected&&i!==correct)classes.push('data-wrong="true"');
-          return `<button class="quiz-option" data-choice="${i}" ${answered?"disabled":""} ${classes.join(" ")}><span class="quiz-choice-key">${i+1}</span><span>${escapeHTML(choice)}</span></button>`;
+          if(answered&&q.correctAnswers.includes(i))classes.push('data-correct="true"');
+          const chosen=q.multiple?draft.includes(i):selected===i;
+          if(answered&&chosen&&!q.correctAnswers.includes(i))classes.push('data-wrong="true"');
+          return `<button class="quiz-option" data-choice="${i}" ${answered?"disabled":""}
+            ${q.multiple?`aria-pressed="${chosen}"`:""} ${classes.join(" ")}>
+            <span class="quiz-choice-key">${i+1}</span><span>${escapeHTML(choice)}</span></button>`;
         }).join("")}
       </div>
+      ${q.multiple&&!answered&&!review?`<div class="quiz-nav-actions">
+        <button class="btn primary" id="quiz-submit-multiple" type="button" ${!draft.length?"disabled":""}>Check answers</button>
+      </div>`:""}
       <div id="quiz-feedback">
-        ${answered?`<div class="quiz-feedback ${selected===correct?"correct":"wrong"}"><strong>${selected===correct?"Correct":"Not quite"}</strong><p>${escapeHTML(q.explanation||"")}</p></div>`:""}
+        ${answered?`<div class="quiz-feedback ${correct?"correct":"wrong"}"><strong>${correct?"Correct":"Not quite"}</strong><p>${escapeHTML(q.explanation||"")}</p></div>`:""}
       </div>
       <div class="quiz-nav-actions">
         <button class="btn" id="quiz-prev" ${index===0?"disabled":""}>Previous</button>
@@ -137,7 +148,7 @@ export async function render(container,resource){
         ${answered&&index+1<quiz.questions.length?`<button class="btn primary" id="quiz-next">Next</button>`:""}
         ${answered&&index+1===quiz.questions.length?`<button class="btn primary" id="quiz-finish">Results</button>`:""}
       </div>
-      <p class="quiz-shortcuts muted">Keys 1–9 answer · ←/→ navigate · Enter continues after answering</p>
+      <p class="quiz-shortcuts muted">Keys 1–9 answer or toggle · ←/→ navigate · Enter submits/continues</p>
     </div>`;
   }
 
@@ -171,14 +182,30 @@ export async function render(container,resource){
     const index=attempt.current;
     const answered=attempt.answers[index]!==null;
 
+    const submitMultiple=()=>{
+      if(review||attempt.answers[index]!==null)return;
+      const chosen=drafts.get(index)||[];
+      if(!chosen.length)return;
+      attempt=answerQuestion(quiz,attempt,index,chosen);
+      recordQuizChoice(resource,quiz.questions[index],chosen);
+      drafts.delete(index);
+      persist();draw();
+    };
     container.querySelectorAll("[data-choice]").forEach(button=>button.addEventListener("click",()=>{
       if(review||attempt.answers[index]!==null)return;
       const choice=Number(button.dataset.choice);
+      if(quiz.questions[index].multiple){
+        const selected=new Set(drafts.get(index)||[]);
+        if(selected.has(choice))selected.delete(choice);else selected.add(choice);
+        drafts.set(index,[...selected].sort((a,b)=>a-b));
+        draw();
+        return;
+      }
       attempt=answerQuestion(quiz,attempt,index,choice);
       recordQuizChoice(resource,quiz.questions[index],choice);
-      persist();
-      draw();
+      persist();draw();
     }));
+    container.querySelector("#quiz-submit-multiple")?.addEventListener("click",submitMultiple);
 
     container.querySelectorAll("[data-quiz-jump]").forEach(button=>button.addEventListener("click",()=>{
       attempt.current=Number(button.dataset.quizJump);
@@ -218,9 +245,15 @@ export async function render(container,resource){
       const choice=Number(event.key)-1;
       if(choice<quiz.questions[index].choices.length){
         event.preventDefault();
-        attempt=answerQuestion(quiz,attempt,index,choice);
-        recordQuizChoice(resource,quiz.questions[index],choice);
-        persist();
+        if(quiz.questions[index].multiple){
+          const values=new Set(drafts.get(index)||[]);
+          if(values.has(choice))values.delete(choice);else values.add(choice);
+          drafts.set(index,[...values].sort((a,b)=>a-b));
+        }else{
+          attempt=answerQuestion(quiz,attempt,index,choice);
+          recordQuizChoice(resource,quiz.questions[index],choice);
+          persist();
+        }
         draw();
       }
       return;
@@ -229,6 +262,13 @@ export async function render(container,resource){
       event.preventDefault();attempt.current=index-1;persist();draw();
     }else if(event.key==="ArrowRight"&&index+1<quiz.questions.length){
       event.preventDefault();attempt.current=index+1;persist();draw();
+    }else if(event.key==="Enter"&&attempt.answers[index]===null&&
+        !review&&quiz.questions[index].multiple&&(drafts.get(index)||[]).length){
+      event.preventDefault();
+      const chosen=drafts.get(index);
+      attempt=answerQuestion(quiz,attempt,index,chosen);
+      recordQuizChoice(resource,quiz.questions[index],chosen);
+      drafts.delete(index);persist();draw();
     }else if(event.key==="Enter"&&attempt.answers[index]!==null){
       event.preventDefault();
       if(index+1<quiz.questions.length){attempt.current=index+1;persist();draw()}
