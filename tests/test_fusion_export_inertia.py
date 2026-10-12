@@ -49,6 +49,35 @@ class FusionExporterTests(unittest.TestCase):
     def setUp(self):
         self.exporter = load_exporter()
 
+    def test_zip_writer_is_exclusive_and_preserves_existing_exports(self):
+        import tempfile
+        import zipfile
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory) / "model.zip"
+            step = Path(directory) / "assembly.step"
+            meta = Path(directory) / "folknet-fusion.json"
+            step.write_bytes(b"ISO-10303-21;")
+            meta.write_text('{"schema":"folknet-fusion-v1"}', encoding="utf-8")
+            self.exporter._write_bundle_zip(str(out), str(step), str(meta))
+            before = out.read_bytes()
+            with zipfile.ZipFile(out) as bundle:
+                self.assertIn("assembly.step", bundle.namelist())
+                self.assertIn("folknet-fusion.json", bundle.namelist())
+            with self.assertRaises(FileExistsError):
+                self.exporter._write_bundle_zip(str(out), str(step), str(meta))
+            self.assertEqual(out.read_bytes(), before)
+
+    def test_zip_writer_removes_only_its_own_incomplete_file(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory) / "broken.zip"
+            nonexistent = Path(directory) / "missing.step"
+            meta = Path(directory) / "manifest.json"
+            meta.write_text("{}", encoding="utf-8")
+            with self.assertRaises(FileNotFoundError):
+                self.exporter._write_bundle_zip(str(out), str(nonexistent), str(meta))
+            self.assertFalse(out.exists())
+
     def test_world_products_and_principal_moments_convert_cm2_to_m2(self):
         result = self.exporter._optional_inertia(PhysicalProperties())
         self.assertEqual(result["inertiaWorldKgM2"], {
