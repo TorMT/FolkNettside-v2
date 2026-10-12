@@ -1,4 +1,4 @@
-import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=5e47924d6f048707c5a3d870121cf70c2cc9c6fc";
+import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=29e3b3f6ed3a036f034be18f1316ae4c1c952efd";
 const SECTIONS=[
   ["appearance","Appearance"],
   ["connections","Account & connections"],
@@ -83,6 +83,11 @@ function connectionsHTML(account={},folkAccount={}){
       <div class="setting-row"><div><strong>Google / Drive</strong><small>${googleDescription}</small></div>${googleControl}</div>
       <div class="setting-row"><div><strong>FolkNet private cloud / Supabase</strong>
         <small>${folkDescription}</small></div><div>${folkControl}</div></div>
+      ${folkSigned?`<div class="setting-row"><div><strong>Verify private cloud</strong>
+        <small>Check the deployed Supabase backend against your current FolkNet identity.
+        This test does not upload files or change account data.</small></div>
+        <button class="btn" type="button" data-folk-probe>Check backend</button></div>
+        <div class="settings-feedback" data-folk-probe-result role="status" aria-live="polite"></div>`:""}
       <div class="setting-row"><div><strong>Autodesk / APS</strong><small>Optional future native F3D/F3Z conversion path. Embedded 3MF/STL F3Z remains local.</small></div><span class="settings-status planned">Not configured</span></div>
     </div>
     ${account?.error?`<div class="settings-note"><strong>Google status</strong><span>${esc(account.error)}</span></div>`:""}
