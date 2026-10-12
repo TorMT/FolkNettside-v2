@@ -1,4 +1,4 @@
-import {ittc1957,resistanceCurve,knots} from "../resistance/ittc1957.js?v=d6a52c819161b70263a3229136a2315c3bf243ce";
+import {ittc1957,resistanceCurve,knots} from "../resistance/ittc1957.js?v=219793135ebba981835f3ef4debffda2fcc20f69";
 
 let fixturePromise;
 function esc(value){

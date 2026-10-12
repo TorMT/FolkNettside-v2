@@ -1,5 +1,5 @@
-import {escapeHTML} from "./utils.js?v=d6a52c819161b70263a3229136a2315c3bf243ce";
-import {pythonHighlightedLines} from "./python-syntax.js?v=d6a52c819161b70263a3229136a2315c3bf243ce";
+import {escapeHTML} from "./utils.js?v=219793135ebba981835f3ef4debffda2fcc20f69";
+import {pythonHighlightedLines} from "./python-syntax.js?v=219793135ebba981835f3ef4debffda2fcc20f69";
 
 function renderInline(text){
  const parts=String(text).split(/(\u0060[^\u0060\n]+\u0060)/g);
