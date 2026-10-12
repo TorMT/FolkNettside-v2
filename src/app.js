@@ -76,6 +76,7 @@ import {configuredMatprisEndpoint} from "./diverse/matpris-api.js";
 import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js";
 import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js";
 import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js";
+import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignUp,folkSignOut} from "./platform/folkside-auth.js";
 
 initSettings();
 initGoogleSession();
@@ -957,7 +958,7 @@ function settingsPage(){
     models:engineeringModels.length
   };
   document.documentElement.dataset.lens="study";
-  app.innerHTML=top("")+settingsPageHTML({settings,section:settingsSection,stats,account:getGoogleSessionSnapshot()});
+  app.innerHTML=top("")+settingsPageHTML({settings,section:settingsSection,stats,account:getGoogleSessionSnapshot(),folkAccount:getFolkAccountSnapshot()});
   bindNav();
 
   app.querySelectorAll("[data-settings-section]").forEach(button=>button.addEventListener("click",()=>{
@@ -978,6 +979,31 @@ function settingsPage(){
   app.querySelector("[data-google-disconnect]")?.addEventListener("click",()=>{
     disconnectGoogleSession();
     settingsPage();
+  });
+  const folkAuthForm=app.querySelector("[data-folk-auth-form]");
+  const folkCredentials=()=>({
+    email:folkAuthForm?.querySelector('[name="folk-email"]')?.value||"",
+    password:folkAuthForm?.querySelector('[name="folk-password"]')?.value||""
+  });
+  const folkAction=async (action)=>{
+    if(!folkAuthForm)return;
+    const buttons=folkAuthForm.querySelectorAll("button");
+    buttons.forEach(b=>b.disabled=true);
+    try{
+      const credentials=folkCredentials();
+      if(action==="signup")await folkSignUp(credentials);
+      else await folkSignIn(credentials);
+    }catch{ /* Auth status is rendered from the shared account state. */ }
+    if(route().startsWith("/settings")&&settingsSection==="connections")settingsPage();
+  };
+  folkAuthForm?.addEventListener("submit",event=>{
+    event.preventDefault();
+    void folkAction("login");
+  });
+  app.querySelector("[data-folk-signup]")?.addEventListener("click",()=>void folkAction("signup"));
+  app.querySelector("[data-folk-signout]")?.addEventListener("click",async()=>{
+    await folkSignOut();
+    if(route().startsWith("/settings")&&settingsSection==="connections")settingsPage();
   });
 
   app.querySelectorAll("[data-spacemouse-setting]").forEach(input=>{
@@ -2263,3 +2289,7 @@ async function render(){const currentPath=route();if(currentPath!=="/tools/pytho
 }
 if(path==="/engineering/kisssoft"){document.documentElement.dataset.lens="workspace";app.innerHTML=top("engineering")+kisssoftPageHTML();bindNav();kisssoftCleanup=mountKisssoft(app);return;}if(path==="/tools")return toolsPage();if(path==="/tools/vault")return vaultToolPage();if(path==="/tools/python")return pythonToolPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/model-inspector")return modelInspectorPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings/theme-studio/manual")return themeStudioPage("manual");if(path==="/settings/theme-studio/image")return themeStudioPage("image");const settingsMatch=path.match(/^\/settings(?:\/(appearance|connections|courses|engineering|privacy|advanced))?$/);if(settingsMatch){settingsSection=settingsMatch[1]||"appearance";return settingsPage();}const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
 window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();globalSearch.open()}});window.addEventListener("hashchange",render);render();
+initializeFolkAccount().then(()=>{
+  if(route()==="/settings/connections"&&settingsSection==="connections")settingsPage();
+}).catch(()=>{});
+
