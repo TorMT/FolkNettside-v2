@@ -1,4 +1,4 @@
-import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=90f5115b462587fcc181c99a266af1e4c6f8e905";
+import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=3f5675e920938ba29b8f09b2c8ed5613e7f3dbed";
 const SECTIONS=[
   ["appearance","Appearance"],
   ["connections","Account & connections"],
@@ -44,7 +44,7 @@ function appearanceHTML(settings){
     </div>`;
 }
 
-function connectionsHTML(account={}){
+function connectionsHTML(account={},folkAccount={}){
   const signedIn=account?.status==="signed-in";
   const connecting=account?.status==="connecting"||account?.status==="loading";
   const profile=account?.profile||{};
@@ -52,6 +52,27 @@ function connectionsHTML(account={}){
   const googleControl=signedIn
     ? `<div class="settings-connection-actions"><span class="settings-status ready">Connected</span><button class="btn" data-google-disconnect>Sign out</button></div>`
     : `<div class="settings-connection-actions"><span class="settings-status ${account?.status==="unavailable"?"planned":"ready"}">${connecting?"Loading":account?.status==="unavailable"?"Unavailable":"Signed out"}</span><button class="btn" data-google-connect ${connecting?"disabled":""}>Sign in with Google</button></div>`;
+  const folkSigned=folkAccount?.status==="signed-in";
+  const folkBusy=folkAccount?.status==="loading"||folkAccount?.status==="connecting";
+  const folkDescription=folkSigned
+    ? "Private cloud identity: "+esc(folkAccount.user?.email||"Authenticated user")+
+      ". This is separate from the existing Google Drive session."
+    : "Optional private account for FolkNettside. Google Drive retains its own connection; nothing is migrated automatically.";
+  const folkControl=folkSigned
+    ? `<div class="settings-connection-actions"><span class="settings-status ready">Connected</span>
+        <button type="button" class="btn" data-folk-signout>Sign out of FolkNet</button></div>`
+    : `<form data-folk-auth-form class="folk-auth-form" autocomplete="on">
+         <label>Email <input type="email" name="folk-email" required maxlength="254"
+           autocomplete="email" placeholder="name@example.com"></label>
+         <label>Password <input type="password" name="folk-password" required minlength="6"
+           autocomplete="current-password" placeholder="FolkNet password"></label>
+         <div class="settings-connection-actions">
+          <button class="btn" type="submit" data-folk-login ${folkBusy?"disabled":""}>Sign in</button>
+          <button class="btn" type="button" data-folk-signup ${folkBusy?"disabled":""}>Create account</button>
+         </div>
+         <small>Creating an account requires a password of at least 10 characters.
+         You may need to confirm your email before signing in.</small>
+       </form>`;
   const googleDescription=signedIn
     ? `${esc(accountLabel)}${profile.email&&profile.email!==accountLabel?` · ${esc(profile.email)}`:""}. This one site-level session is reused by Brewing and Dive log.`
     : "Optional site-level sign-in. Brewing and Dive log stay local and never open their own Google prompt while you are signed out.";
@@ -60,9 +81,13 @@ function connectionsHTML(account={}){
     <p class="muted">The public site and local engineering/study tools do not require authentication. Sign-in is only used for account-backed features.</p>
     <div class="settings-card">
       <div class="setting-row"><div><strong>Google / Drive</strong><small>${googleDescription}</small></div>${googleControl}</div>
+      <div class="setting-row"><div><strong>FolkNet private cloud / Supabase</strong>
+        <small>${folkDescription}</small></div><div>${folkControl}</div></div>
       <div class="setting-row"><div><strong>Autodesk / APS</strong><small>Optional future native F3D/F3Z conversion path. Embedded 3MF/STL F3Z remains local.</small></div><span class="settings-status planned">Not configured</span></div>
     </div>
     ${account?.error?`<div class="settings-note"><strong>Google status</strong><span>${esc(account.error)}</span></div>`:""}
+    ${folkAccount?.error?`<div class="settings-note"><strong>FolkNet account</strong><span>${esc(folkAccount.error)}</span></div>`:""}
+    <div class="settings-note"><strong>Private account scope</strong><span>Signing in prepares access to private storage; it does not import previous Drive data or connect Autodesk automatically. Account tokens are held in this tab only.</span></div>
     <div class="settings-note"><strong>Local-first rule</strong><span>Features remain usable without an account whenever the underlying format can be handled locally.</span></div>`;
 }
 function coursesHTML(stats){
@@ -151,11 +176,11 @@ function advancedHTML(){
     </div>`;
 }
 
-export function settingsPageHTML({settings,section="appearance",stats={},account={}}={}){
+export function settingsPageHTML({settings,section="appearance",stats={},account={},folkAccount={}}={}){
   const active=SECTIONS.some(([id])=>id===section)?section:"appearance";
   const bodies={
     appearance:()=>appearanceHTML(settings||{}),
-    connections:()=>connectionsHTML(account||{}),
+    connections:()=>connectionsHTML(account||{},folkAccount||{}),
     courses:()=>coursesHTML(stats),
     engineering:()=>engineeringHTML(stats),
     privacy:privacyHTML,
