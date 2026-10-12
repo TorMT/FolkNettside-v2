@@ -41,3 +41,11 @@ test("header distinguishes FolkNet account from independent Google Drive session
  assert.match(guest,/Sign in/);
  assert.doesNotMatch(guest,/account-chip signed-in/);
 });
+
+test("account chip escapes untrusted identity text in both initial and accessible label",()=>{
+ const html=renderTopShell("portfolio",{
+   folkAccount:{status:"signed-in",user:{email:'<img src=x onerror="alert(1)">' }}
+ });
+ assert.doesNotMatch(html,/<img/);
+ assert.match(html,/&lt;img/);
+});
