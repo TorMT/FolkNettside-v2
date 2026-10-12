@@ -1,4 +1,4 @@
-import {escapeHTML} from "../viewers/utils.js?v=b12f77bd9f5bfbfaefe3e9fabba6a393250ab995";
+import {escapeHTML} from "../viewers/utils.js?v=44d6ae2823eb8c178ddddc808cb9f5f49befe266";
 export const PRIMARY_NAV=[
   {id:"portfolio",label:"Projects",route:"/portfolio"},
   {id:"engineering",label:"Engineering",route:"/engineering"},

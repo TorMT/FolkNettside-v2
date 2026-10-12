@@ -1,4 +1,4 @@
-import {extension,escapeHTML} from "../utils.js?v=b12f77bd9f5bfbfaefe3e9fabba6a393250ab995";
+import {extension,escapeHTML} from "../utils.js?v=44d6ae2823eb8c178ddddc808cb9f5f49befe266";
 export const formatGuidance=ext=>{
  const e=String(ext).toLowerCase();
  if(["step","stp","iges","igs","sat","x_t","x_b","sldprt","sldasm","ipt","iam","catpart","catproduct","fbm","blend","skp","dwg","dxf"].includes(e))
