@@ -151,6 +151,28 @@ No existing module is automatically migrated. This keeps independent
 Drive, medicine and study data intact while the private account layer is
 qualified.
 
+### Opt-in Appearance backup in the live site
+
+V2 now offers **Save appearance** and **Restore appearance** under
+Settings → Privacy & data. These actions use the signed-in FolkNet
+Supabase identity, `folk_user_settings` and its per-user RLS policy.
+Only the five validated keys (mode, accent, density, motion and contrast)
+can be transmitted. The site does not send medicine, study files or Google
+Drive credentials through this small settings table.
+
+- Saving is manual, not a background sync. First save uses INSERT only;
+  an existing remote row produces a conflict rather than being overwritten.
+- Subsequent saves use a compare-and-update `revision` filter and reject
+  an out-of-date write rather than silently replacing another device.
+- Restoring requires explicit user confirmation before overwriting the
+  five local Appearance settings.
+- The account must be signed in; anonymous use remains local-first.
+- This currently implements a safe first module, not general cloud backup.
+
+`src/platform/folkside-preferences.js` contains the scoped REST client,
+with unit tests in `tests/folkside-preferences.test.mjs`.
+The first real signed-in two-device acceptance test is still required.
+
 ## Intended migration sequence
 
 1. Configure Supabase Auth provider(s), allowlisted callback URLs and
