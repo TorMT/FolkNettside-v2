@@ -1,20 +1,28 @@
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=372fc0b23ecbcfb72b8ab7f0ecfb2a8de7627cd9";
-import {parseSTL} from "../model/parsers/stl.js?v=372fc0b23ecbcfb72b8ab7f0ecfb2a8de7627cd9";
-import {parse3MF} from "../model/parsers/three-mf.js?v=372fc0b23ecbcfb72b8ab7f0ecfb2a8de7627cd9";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=372fc0b23ecbcfb72b8ab7f0ecfb2a8de7627cd9";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=372fc0b23ecbcfb72b8ab7f0ecfb2a8de7627cd9";
-import {createModelDocument} from "../model/model-document.js?v=372fc0b23ecbcfb72b8ab7f0ecfb2a8de7627cd9";
-import {boxMesh} from "../hydro/fixtures.js?v=372fc0b23ecbcfb72b8ab7f0ecfb2a8de7627cd9";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=a6ca7f53d6adedc3a76ee5380dfed47d3e2a459b";
+import {parseSTL} from "../model/parsers/stl.js?v=a6ca7f53d6adedc3a76ee5380dfed47d3e2a459b";
+import {parse3MF} from "../model/parsers/three-mf.js?v=a6ca7f53d6adedc3a76ee5380dfed47d3e2a459b";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=a6ca7f53d6adedc3a76ee5380dfed47d3e2a459b";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=a6ca7f53d6adedc3a76ee5380dfed47d3e2a459b";
+import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=a6ca7f53d6adedc3a76ee5380dfed47d3e2a459b";
+import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=a6ca7f53d6adedc3a76ee5380dfed47d3e2a459b";
+import {createModelDocument} from "../model/model-document.js?v=a6ca7f53d6adedc3a76ee5380dfed47d3e2a459b";
+import {boxMesh} from "../hydro/fixtures.js?v=a6ca7f53d6adedc3a76ee5380dfed47d3e2a459b";
 
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
  <p class="crumbs">Engineering / CAD</p><h1>CAD workbench</h1>
- <p>Open STEP/STP, IGES/IGS, BREP, STL, 3MF or native Fusion F3D/F3Z archives locally. OpenCascade converts
+ <p>Open STEP/STP, IGES/IGS, BREP, STL, 3MF, Fusion F3D/F3Z archives or a Fusion engineering ZIP locally. OpenCascade converts
  exact CAD surfaces to a <strong>tessellated visual mesh</strong> in a browser worker;
  measurements and exports are therefore approximate, not a substitute for CAD inspection in your authoring tool.</p>
+ <p class="muted"><strong>Fusion assembly workflow:</strong> native F3Z uploads show designs and saved previews,
+ but native F3D solids cannot be decoded to engineering geometry in a static browser.
+ To extract mass, volume, center of mass and actual 3D STEP geometry, run
+ <a href="./scripts/fusion_export_folknet.py" download>Fusion-to-FolkNet Python script</a>
+ inside Fusion's Scripts and Add-ins. It creates one engineering ZIP to upload here;
+ keep the original F3Z separately. Fusion's internal centimeters are converted to metres.</p>
  <div class="cad-import-bar">
    <label>Model file <input id="cad-import-file" type="file"
-     accept=".step,.stp,.iges,.igs,.brep,.stl,.3mf,.f3d,.f3z"></label>
+     accept=".step,.stp,.iges,.igs,.brep,.stl,.3mf,.f3d,.f3z,.zip"></label>
    <label>BREP units (if no metadata)
     <select id="cad-brep-units"><option value="millimeter">mm</option><option value="meter">m</option><option value="inch">in</option><option value="centimeter">cm</option></select>
    </label>
@@ -85,6 +93,24 @@ export function mountCADTool(root){
      if(file.size>(fusion?55:25)*1024*1024)throw Error("File exceeds safe import size limit");
      const buffer=await file.arrayBuffer();
      if(current!==request||disposed)return;
+     if(ext==="zip"){
+       status.textContent="Reading Fusion Engineering ZIP: validating provenance and STEP geometry…";
+       const documentModel=await parseFusionEngineeringBundle(buffer,file.name,{
+         signal:controller.signal
+       });
+       if(current!==request||disposed)return;
+       const report=document.createElement("div");
+       report.innerHTML=fusionEngineeringReportHTML(documentModel.fusionEngineering);
+       const viewer=document.createElement("div");
+       stage.replaceChildren(report,viewer);
+       const result=await renderModelWorkbench(viewer,documentModel);
+       if(current!==request||disposed){result?.cleanup?.();return}
+       cleanup=result?.cleanup||(()=>{});
+       status.textContent="Fusion API properties loaded · "+
+         documentModel.components.filter(c=>c.geometry).length+
+         " visual STEP components. Verify model coordinates and hull eligibility.";
+       return;
+     }
      if(fusion){
        status.textContent="Inspecting Fusion archive and nested designs locally…";
        const preview=await renderFusionPackage(stage,buffer,file.name);
