@@ -63,9 +63,11 @@ export async function encodeCursor(data,secret){
 export async function decodeCursor(cursor,secret){
  if(!maxText(cursor,6000)||!/^[-_a-zA-Z0-9]+\.[-_a-zA-Z0-9]+$/.test(cursor))
    throw Error("Invalid catalog cursor");
- const [m,s]=cursor.split("."),msg=fromB64(m);
- if(msg.length>4500||!await crypto.subtle.verify("HMAC",await cursorKey(secret),
-     fromB64(s),msg))throw Error("Invalid catalog cursor signature");
+ const [m,s]=cursor.split("."),msg=fromB64(m),signature=fromB64(s);
+ // Reject non-canonical base64url representations of the same bytes.
+ if(b64url(msg)!==m||b64url(signature)!==s||
+    msg.length>4500||!await crypto.subtle.verify("HMAC",await cursorKey(secret),
+     signature,msg))throw Error("Invalid catalog cursor signature");
  return JSON.parse(decoder.decode(msg));
 }
 export function apsAuthorizationURL({clientId,redirectUri,state,challenge}){
