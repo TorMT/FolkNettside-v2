@@ -1,8 +1,8 @@
-import {normaliseWaveCase,waveObservationsCSV} from "./wave-core.js?v=7ee86019f1e9b68eeba453bde0b80597c74bc725";
-import {parseMotionRAOCSV} from "./motion-rao.js?v=7ee86019f1e9b68eeba453bde0b80597c74bc725";
-import {legacyAddedWaveResistance,legacyMorisonWaveForce} from "./wave-concept-estimates.js?v=7ee86019f1e9b68eeba453bde0b80597c74bc725";
+import {normaliseWaveCase,waveObservationsCSV} from "./wave-core.js?v=c314d33bbaad672fe8cee5ba13143c9415125fb5";
+import {parseMotionRAOCSV} from "./motion-rao.js?v=c314d33bbaad672fe8cee5ba13143c9415125fb5";
+import {legacyAddedWaveResistance,legacyMorisonWaveForce} from "./wave-concept-estimates.js?v=c314d33bbaad672fe8cee5ba13143c9415125fb5";
 import {appendWaveRecord,importWaveCSV,readWaveCollection,
-  sampleWaveRecord,writeWaveCollection,importWaveCollectionJSON} from "./wave-collection.js?v=7ee86019f1e9b68eeba453bde0b80597c74bc725";
+  sampleWaveRecord,writeWaveCollection,importWaveCollectionJSON} from "./wave-collection.js?v=c314d33bbaad672fe8cee5ba13143c9415125fb5";
 
 export function waveTraceSVG(points){
   if(!Array.isArray(points)||!points.length)return "<span>No observations</span>";
