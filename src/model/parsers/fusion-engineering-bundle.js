@@ -108,7 +108,8 @@ export async function parseFusionEngineeringBundle(buffer,name="Fusion engineeri
  if(step.byteLength>MAX_STEP)throw Error("Fusion STEP exceeds size limit");
  // The existing conversion worker is responsible for real CAD surface
  // tessellation. Do not treat raw ZIP or a thumbnail as mesh geometry.
- const model=await parseCADBuffer(step,manifest.title,{
+ const converter=options.cadParser||parseCADBuffer;
+ const model=await converter(step,manifest.title,{
    format:"step",signal:options.signal,timeoutMs:options.timeoutMs
  });
  model.source={
