@@ -107,9 +107,9 @@ export function createAutodeskHubClient(config,{
    if(response.status===401||response.status===403)
      throw Object.assign(Error("Autodesk authorization required"),{status:response.status});
    if(!response.ok)throw Error("Autodesk backend error: HTTP "+response.status);
-   const body=await response.json();
-   if(!body||typeof body!=="object")throw Error("Invalid Autodesk backend response");
-   return body;
+   const result=await response.json();
+   if(!result||typeof result!=="object")throw Error("Invalid Autodesk backend response");
+   return result;
  };
  return {
    async session({signal}={}){
