@@ -2,6 +2,7 @@ import {solveFrame2D} from "./frame2d.js";
 import {combineHullLoading} from "../hydro/hull-loading.js";
 import {auditGirderReactions,hermiteDeflectionExtrema} from "./girder-equilibrium.js";
 import {validateGirderProfile,girderProfileAt,baselineMassAudit} from "./girder-profiles.js";
+import {stressFromSectionMoment} from "./girder-section-properties.js";
 
 const G=9.80665;
 const number=(value,name)=>{
@@ -22,7 +23,7 @@ export function solveHullGirder({
   xMin=0,xMax, hullMassTonnes,hullCG=[0,0,0],
   pointWeights=[],areaLoads=[],
   E, I, extremeFiberM,segments=20,
-  stiffnessStations=null,massStations=null,
+  stiffnessStations=null,massStations=null,sectionModel=null,
   buoyancyTransfer=null,supportModel="pinned-roller"
 }={}){
   const a=number(xMin,"Hull xMin"),b=number(xMax,"Hull xMax");
@@ -34,7 +35,12 @@ export function solveHullGirder({
     throw new Error("Hull girder needs xMax>xMin, positive E/I/c and 2–50 elements");
   const loading=combineHullLoading({hullMassTonnes,hullCG,pointWeights,areaLoads});
   const span=b-a,tol=1e-8*span;
-  const EIStations=validateGirderProfile(stiffnessStations,{
+  if(sectionModel&&(stiffnessStations?.length))
+    throw new Error("Choose either calculated structural cross-sections or manual EI stations, not both");
+  if(sectionModel&&(!Array.isArray(sectionModel.sections)||!sectionModel.sections.length||
+    sectionModel.sections.some(p=>!Array.isArray(p.stressFibers)||!(p.EI>0))))
+    throw new Error("Calculated structural sections are invalid");
+  const EIStations=validateGirderProfile(sectionModel?.sections??stiffnessStations,{
     xMin:a,xMax:b,kind:"stiffness"
   });
   const baselineStations=validateGirderProfile(massStations,{
@@ -165,9 +171,14 @@ export function solveHullGirder({
       const critical=-actions[1]/q;
       if(critical>0&&critical<L)candidates.push(critical);
     }
+    const section=girderProfileAt(sectionModel?.sections,(xs[i]+xs[i+1])/2);
+    const stressAt=M=>section?
+      stressFromSectionMoment(section,M):
+      {stressPa:M*c/elements[i].I,memberIndex:null,z:null};
     for(const d of candidates){
-      const value=moment(d);
-      moments.push({x:xs[i]+d,value,stressPa:value*c/elements[i].I,elementId:elements[i].id});
+      const value=moment(d),fiber=stressAt(value);
+      moments.push({x:xs[i]+d,value,stressPa:fiber.stressPa,
+        memberIndex:fiber.memberIndex,z:fiber.z,elementId:elements[i].id});
     }
     shears.push({x:xs[i],value:actions[1]},{x:xs[i+1],value:actions[1]+q*L});
     const [v1,t1,,v2,t2]=[
@@ -186,7 +197,7 @@ export function solveHullGirder({
         +L*(-t2x+t3x)*t2;
       const localX=tau*L,M=moment(localX);
       sampleResults.push({x:xs[i]+localX,deflectionM:w,momentNm:M,
-        stressPa:M*c/elements[i].I,shearN:actions[1]+q*localX});
+        stressPa:stressAt(M).stressPa,shearN:actions[1]+q*localX});
     }
   }
   const peak= moments.reduce((top,entry)=>
@@ -215,7 +226,7 @@ export function solveHullGirder({
   return {method:buoyancyTransfer?"Euler-Bernoulli beam with integrated hydrostatic station forces":"Euler-Bernoulli simply-supported hull girder (global beam proxy)",
     loading,frame,analysis,reactions,lineLoads,moments,shears,field:sampleResults,
     equilibriumAudit,
-    baselineAudit,stiffnessStations:EIStations,
+    baselineAudit,stiffnessStations:EIStations,sectionModel,
     buoyancyTransfer,supportModel,gravityForceN:gravityN,buoyancyForceN:qBuoyancy+nodeBuoyancy,
     netFirstMomentXN,netBeamMomentNm,pitchCoupleNm,projectedForceErrorN:buoyancyTransfer?
       qBuoyancy+nodeBuoyancy-buoyancyTransfer.totalForceN:null,
@@ -224,6 +235,8 @@ export function solveHullGirder({
     maxStressPa:Math.abs(peakStress.stressPa),
     maxStressX:peakStress.x,
     peakStressElement:peakStress.elementId,
+    peakStressMember:peakStress.memberIndex,
+    peakStressZ:peakStress.z,
     maxDeflectionM:Math.abs(peakDeflectionExact.deflectionM),
     peakDeflectionX:peakDeflectionExact.x,
     peakDeflectionSignedM:peakDeflectionExact.deflectionM,
