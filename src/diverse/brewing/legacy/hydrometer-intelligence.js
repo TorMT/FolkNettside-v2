@@ -548,6 +548,82 @@
     ].filter(Boolean).join(' ');
   }
 
+  /**
+   * Observed plateau is NOT the same as a predicted end time. Compare recent
+   * hydrometer SG readings over >=36h, then use target FG only if known.
+   * Use measurement timestamps, never claim the batch stopped on "today".
+   */
+  function assessFermentationPlateau(rows, styleMatch, parseGravityToSpecific) {
+    const parse = parseGravityToSpecific || defaultParseGravityToSpecific;
+    if (!Array.isArray(rows) || rows.length < 4) return {status: 'insufficient'};
+    const samples = rows.map(function (row) {
+      return {
+        time: new Date(row && row.createdOn || '').getTime(),
+        sg: parse(row && row.gravity)
+      };
+    }).filter(function (v) {
+      return Number.isFinite(v.time) && Number.isFinite(v.sg) &&
+        v.sg > 0.95 && v.sg < 1.2;
+    }).sort(function (a, b) { return a.time - b.time; });
+    if (samples.length < 4) return {status: 'insufficient'};
+    // Ignore duplicate timestamps; their apparent sample count is misleading.
+    const distinct = samples.filter(function (v, i) {
+      return !i || v.time > samples[i - 1].time;
+    });
+    if (distinct.length < 4) return {status: 'insufficient'};
+    const latest = distinct[distinct.length - 1];
+    const recent = distinct.filter(function (v) {
+      return v.time >= latest.time - (72 * 36e5);
+    });
+    if (recent.length < 4) return {status: 'insufficient'};
+    const hours = (latest.time - recent[0].time) / 36e5;
+    if (hours < 36) return {status: 'insufficient'};
+    const values = recent.map(function (r) { return r.sg; });
+    const range = Math.max.apply(null, values) - Math.min.apply(null, values);
+    const delta = recent[0].sg - latest.sg;
+    if (range > 0.0015 || Math.abs(delta) > 0.0015) {
+      return {status: 'active-or-variable',observedAt: new Date(latest.time).toISOString(),
+        spanHours: hours};
+    }
+    const observedAt = new Date(latest.time).toISOString();
+    const meta = {observedAt: observedAt, spanHours: hours,
+      changeSg: delta, currentSg: latest.sg};
+    const target = styleMatch && Array.isArray(styleMatch.fgRange) ?
+      styleMatch.fgRange : null;
+    if (!target || target.length !== 2 ||
+        !Number.isFinite(target[0]) || !Number.isFinite(target[1]) ||
+        target[0] > target[1]) {
+      return {...meta,status: 'stable-unknown-target'};
+    }
+    if (latest.sg > target[1] + 0.002) {
+      return {...meta,status: 'stalled-above-target'};
+    }
+    if (latest.sg < target[0] - 0.008) {
+      return {...meta,status: 'out-of-range'};
+    }
+    return {...meta,status: 'stable-near-target'};
+  }
+
+  function plateauForecastText(plateau, styleMatch, fmtSg) {
+    const sg = typeof fmtSg === 'function' ? fmtSg : formatSg;
+    const date = plateau.observedAt ? new Date(plateau.observedAt).toLocaleDateString('nb-NO') : 'siste måling';
+    const intro = 'Siste tilgjengelige måleserie (' + date +
+      ') viser omtrent uendret gravity over ' +
+      plateau.spanHours.toFixed(0) + ' timer, rundt ' +
+      sg(plateau.currentSg) + '. ';
+    if (plateau.status === 'stalled-above-target') {
+      return intro + 'Gravity ligger fortsatt over forventet sluttområde for ' +
+        styleMatch.name + '. Dette kan tyde på stoppet eller treg gjæring, ' +
+        'ikke ferdig gjæring. Kontroller ny måling, temperatur og gjærforhold før videre tiltak.';
+    }
+    if (plateau.status === 'stable-near-target') {
+      return intro + 'Dette er forenlig med at hovedgjæringen kan være ferdig, ' +
+        'men bekreft med en ny, uavhengig SG-måling. Ingen ny sluttdato legges til etter at kurven flatet ut.';
+    }
+    return intro + 'Det finnes ikke en pålitelig målverdi for sluttgravity, ' +
+      'så en flat kurve alene kan ikke avgjøre om gjæringen er ferdig eller har stoppet for tidlig.';
+  }
+
   function buildForecast(options) {
     const rows = Array.isArray(options && options.rows) ? options.rows : [];
     const styleMatch = options && options.styleMatch;
@@ -556,6 +632,12 @@
     const calculateSlopePerHour = helpers.calculateSlopePerHour || defaultSlopePerHour;
     const average = helpers.average || defaultAverage;
     const fmtSg = helpers.fmtSg || formatSg;
+    const plateau = assessFermentationPlateau(rows, styleMatch, parseGravityToSpecific);
+    if (plateau.status === 'stable-near-target' ||
+        plateau.status === 'stalled-above-target' ||
+        plateau.status === 'stable-unknown-target') {
+      return plateauForecastText(plateau, styleMatch, fmtSg);
+    }
 
     if (rows.length < 6) {
       return buildStyleFallbackForecast(options);
@@ -584,7 +666,10 @@
       fgFloor = clamp(fgFloor, styleFgRange[0] - 0.002, styleFgRange[1] + 0.003);
     }
 
-    if (!Number.isFinite(recentSlopeSgPerHour) || recentSlopeSgPerHour >= -0.0002) {
+    // 0.0002 SG/hour means ~4.8 SG points/day and mislabeled many
+    // genuinely active fermentations as stable. Only use a much smaller
+    // threshold; the 36h plateau test above is the primary completion gate.
+    if (!Number.isFinite(recentSlopeSgPerHour) || recentSlopeSgPerHour >= -0.00002) {
       if (styleMatch && Number.isFinite(styleFgMid) && currentGravity <= styleFgRange[1] + 0.002) {
         return 'Den modulare fermenteringsmodellen leser forløpet som nær praktisk stabilt. Gravityen ligger allerede tett på et normalt sluttområde for ' + styleMatch.name + ', så videre endring ventes å bli beskjeden uten et nytt temperatur- eller gjærskifte.';
       }
@@ -814,6 +899,7 @@
     inferProcessContext,
     buildStyleAssessment,
     buildStyleFallbackForecast,
+    assessFermentationPlateau,
     buildForecast,
     buildAlerts,
     SOURCE_LIBRARY
