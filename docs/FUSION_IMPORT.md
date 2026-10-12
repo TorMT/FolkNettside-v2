@@ -51,6 +51,7 @@ The helper uses Fusion's high-accuracy physical-properties API to write:
 - Whole-assembly **CAD material mass (kg)**, as determined by assigned
   materials and physical-property computation.
 - Whole-assembly **solid material volume (m³)**.
+- CAD body **surface area (m²)** and an **axis-aligned XYZ envelope (m)**, where Fusion can provide them. Neither is a hydrostatic wetted-area calculation.
 - Whole-assembly **center of mass (X, Y, Z in metres)** in Fusion's design
   frame.
 - A descriptive inventory of named occurrences, their assembly path,
