@@ -14,6 +14,8 @@
  * All remote fields are treated as untrusted. The backend must authenticate
  * the user, authorize each ID against Autodesk, and prevent open redirects.
  */
+import {getFolkAccessToken} from "./folkside-auth.js";
+
 const LEVELS=new Set(["hubs","projects","topFolders","contents","versions"]);
 const FIELDS={hubs:[],projects:["hubId"],topFolders:["hubId","projectId"],
   contents:["projectId","folderId"],versions:["projectId","itemId"]};
@@ -32,7 +34,12 @@ export function validateHubConfig(input,{origin}={}){
  if(url.username||url.password||url.hash||url.search)
    throw Error("Autodesk backend URL cannot contain credentials, query or fragment");
  if(!url.pathname.endsWith("/"))url.pathname+="/";
- return {enabled:true,apiBase:url.toString(),reason:""};
+ const authMode=input.authMode==="folknet"?"folknet":"cookie";
+ // A FolkNet Supabase JWT is sensitive: never send it to a configurable URL.
+ if(authMode==="folknet"&&(url.origin!=="https://glfuvfmppkjmarujjqwg.supabase.co"||
+   url.pathname!=="/functions/v1/autodesk-hub/"))
+   throw Error("FolkNet bearer auth requires the exact first-party Supabase function");
+ return {enabled:true,apiBase:url.toString(),authMode,reason:""};
 }
 export function normalizeHubEntry(entry){
  if(!entry||!id(entry.id)||!["hub","project","folder","item","version"].includes(entry.type))
@@ -78,13 +85,25 @@ export function catalogRequestURL(base,level,ids={},cursor=null){
  }
  return u.toString();
 }
-export function createAutodeskHubClient(config,{fetchImpl=fetch}={}){
+export function createAutodeskHubClient(config,{
+ fetchImpl=fetch,tokenProvider=getFolkAccessToken
+}={}){
  const settings=validateHubConfig(config,{origin:
    typeof location==="undefined"?"https://tormt.github.io":location.origin});
  if(!settings.enabled)throw Error(settings.reason);
- const getJSON=async(url,{signal}={})=>{
-   const response=await fetchImpl(url,{method:"GET",mode:"cors",credentials:"include",
-     headers:{Accept:"application/json"},cache:"no-store",signal});
+ const getJSON=async(url,{signal,method="GET",body}={})=>{
+   const headers={Accept:"application/json"};
+   if(settings.authMode==="folknet"){
+     const token=await tokenProvider();
+     if(typeof token!=="string"||token.length<20)
+       throw Error("Sign in to FolkNet before connecting Autodesk");
+     headers.Authorization="Bearer "+token;
+   }
+   if(body)headers["Content-Type"]="application/json";
+   const response=await fetchImpl(url,{method,mode:"cors",
+     ...(settings.authMode==="cookie"?{credentials:"include"}:{credentials:"omit"}),
+     headers,cache:"no-store",signal,
+     ...(body?{body:JSON.stringify(body)}:{})});
    if(response.status===401||response.status===403)
      throw Object.assign(Error("Autodesk authorization required"),{status:response.status});
    if(!response.ok)throw Error("Autodesk backend error: HTTP "+response.status);
@@ -95,7 +114,9 @@ export function createAutodeskHubClient(config,{fetchImpl=fetch}={}){
  return {
    async session({signal}={}){
      const result=await getJSON(settings.apiBase+"session",{signal});
-     return {connected:result.connected===true,displayName:safeText(result.displayName)};
+     return {connected:result.connected===true,
+       configured:result.configured!==false,
+       displayName:safeText(result.displayName)};
    },
    async catalog(level,ids={}, {cursor=null,signal}={}){
      return parseCatalogResponse(await getJSON(
@@ -108,6 +129,20 @@ export function createAutodeskHubClient(config,{fetchImpl=fetch}={}){
      if(typeof location!=="undefined")
        url.searchParams.set("returnTo",location.origin+location.pathname+
          (location.hash||"#/engineering/cad"));
+     return url.toString();
+   },
+   async startAuthorization({signal,returnTo}={}){
+     if(settings.authMode!=="folknet")return this.loginURL();
+     const target=returnTo||(typeof location==="undefined"?
+       "https://tormt.github.io/FolkNettside-v2/":
+       location.origin+location.pathname+(location.hash||""));
+     const result=await getJSON(settings.apiBase+"authorize",{
+       signal,method:"POST",body:{returnTo:target}
+     });
+     const url=new URL(String(result.authorizationUrl||""));
+     if(url.origin!=="https://developer.api.autodesk.com"||
+        url.pathname!=="/authentication/v2/authorize")
+       throw Error("Autodesk authorization URL rejected");
      return url.toString();
    },
    get base(){return settings.apiBase}
