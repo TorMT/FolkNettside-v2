@@ -6,8 +6,8 @@
  * Do NOT confuse Fusion solid volume (material) with displaced hull volume.
  * There is no automatic hull tagging, hydro enablement, or derived EI.
  */
-import {getJSZip} from "../../vendor/jszip.js?v=c069d06605336ec6b20a55d0b13a48d9b985e62a";
-import {parseCADBuffer} from "./cad-runtime.js?v=c069d06605336ec6b20a55d0b13a48d9b985e62a";
+import {getJSZip} from "../../vendor/jszip.js?v=3f1c541799b268cb69f60484e17f788050c1cb27";
+import {parseCADBuffer} from "./cad-runtime.js?v=3f1c541799b268cb69f60484e17f788050c1cb27";
 
 const MAX_ARCHIVE=55*1024*1024, MAX_STEP=25*1024*1024;
 const MAX_JSON=1024*1024, MAX_ENTRIES=30;
@@ -17,6 +17,26 @@ const plausiblePath=path=>typeof path==="string"&&path.length>0&&path.length<180
 const finite=n=>typeof n==="number"&&Number.isFinite(n);
 const vec3=arr=>Array.isArray(arr)&&arr.length===3&&arr.every(finite);
 const limited=s=>String(s??"").slice(0,300);
+const INERTIA_KEYS=["xx","yy","zz","xy","yz","xz"];
+/** Optional Fusion-measured inertia. Values are kg*m²; no tensor-sign inference. */
+function readInertia(physical,label){
+ const extra={};
+ if(physical.inertiaWorldKgM2!==undefined){
+   const x=physical.inertiaWorldKgM2;
+   if(!x||typeof x!=="object"||Array.isArray(x)||
+      !INERTIA_KEYS.every(k=>finite(x[k]))||
+      ["xx","yy","zz"].some(k=>x[k]<0))
+     throw Error("Invalid Fusion world inertia for "+label);
+   extra.inertiaWorldKgM2=Object.fromEntries(INERTIA_KEYS.map(k=>[k,x[k]]));
+ }
+ if(physical.principalMomentsKgM2!==undefined){
+   const values=physical.principalMomentsKgM2;
+   if(!vec3(values)||values.some(v=>v<0))
+     throw Error("Invalid Fusion principal moments for "+label);
+   extra.principalMomentsKgM2=values.slice();
+ }
+ return extra;
+}
 
 export function validateFusionEngineeringManifest(raw){
  if(!raw||typeof raw!=="object"||Array.isArray(raw)||
@@ -31,6 +51,13 @@ export function validateFusionEngineeringManifest(raw){
    raw.properties?.massUnit!=="kg"||raw.properties?.centerUnit!=="m")
    throw Error("Fusion engineering measurements must explicitly use SI units");
  const total=raw.total||{};
+ if(raw.properties?.inertiaUnit!==undefined&&raw.properties.inertiaUnit!=="kg*m2")
+   throw Error("Fusion inertia units must be kg*m2");
+ const hasInertia=[total,...(Array.isArray(raw.occurrences)?raw.occurrences:[])]
+   .some(x=>x&&(x.inertiaWorldKgM2!==undefined||
+     x.principalMomentsKgM2!==undefined));
+ if(hasInertia&&raw.properties?.inertiaUnit!=="kg*m2")
+   throw Error("Fusion inertia measurements require explicit kg*m2 units");
  if(!finite(total.massKg)||total.massKg<0||
    !finite(total.solidVolumeM3)||total.solidVolumeM3<0||
    !vec3(total.centerOfMassM))
@@ -54,6 +81,7 @@ export function validateFusionEngineeringManifest(raw){
    return {name:limited(occ.name),fullPath:limited(occ.fullPath),
      massKg:occ.massKg,solidVolumeM3:occ.solidVolumeM3,
      centerOfMassM:occ.centerOfMassM.slice(),
+     ...readInertia(occ,"occurrence "+(i+1)),
      material:limited(occ.material||""),
      isOccurrenceAggregate:true};
  });
@@ -68,6 +96,7 @@ export function validateFusionEngineeringManifest(raw){
    total:{
      massKg:total.massKg,solidVolumeM3:total.solidVolumeM3,
      centerOfMassM:total.centerOfMassM.slice(),
+     ...readInertia(total,"assembly"),
      ...(total.surfaceAreaM2===undefined?{}:{surfaceAreaM2:total.surfaceAreaM2}),
      ...(total.boundsM===undefined?{}:{boundsM:{min:total.boundsM.min.slice(),max:total.boundsM.max.slice()}}),
      // Fusion body/assembly physical properties are independent of Hydro.
