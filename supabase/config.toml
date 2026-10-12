@@ -5,3 +5,8 @@ project_id = "glfuvfmppkjmarujjqwg"
 
 [functions.folk-core]
 verify_jwt = false
+
+# Callback must accept Autodesk's redirect without an Authorization header.
+# Every non-callback route validates a Supabase Auth bearer in its own code.
+[functions.autodesk-hub]
+verify_jwt = false
