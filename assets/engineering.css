@@ -351,3 +351,34 @@
   background:var(--surface-sunk);border:1px solid var(--line);border-radius:9px}
 @media(max-width:760px){.hull-girder-profiles{padding:9px}
   .hull-girder-profiles textarea{font-size:12px;min-height:110px}}
+
+/* Explicit marine cross-sections: no inferred shell thickness or automatic weight ledger. */
+.hull-girder-section-editor{padding:11px;margin:12px 0;border:1px solid var(--line);
+  border-radius:10px;background:var(--surface-sunk);min-width:0}
+.hull-girder-section-editor summary{cursor:pointer;font-size:12px;font-weight:650;color:var(--ink)}
+.hull-girder-section-editor[open] summary{padding-bottom:9px;border-bottom:1px solid var(--line)}
+.hull-girder-section-editor .field{margin:10px 0 6px}
+.hull-girder-section-editor textarea{width:100%;min-width:0;box-sizing:border-box;
+  min-height:150px;resize:vertical;border:1px solid var(--line);border-radius:8px;
+  background:var(--surface);color:var(--ink);padding:10px;
+  font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
+.hull-girder-section-editor select{width:100%;min-width:0;box-sizing:border-box;
+  border:1px solid var(--line);border-radius:7px;color:var(--ink);background:var(--surface);
+  padding:8px;font-size:12px}
+.hull-girder-section-editor small{display:block;font-size:10px;line-height:1.6;
+  white-space:normal;overflow-wrap:anywhere;color:var(--ink-2);margin:5px 0}
+.hull-girder-section-editor code{overflow-wrap:anywhere;white-space:normal}
+.hull-girder-section-editor .muted{font-size:10px;line-height:1.5}
+.hull-fem-section-results{border:1px solid var(--line);border-radius:9px;
+  padding:10px;min-width:0;margin:13px 0;background:var(--surface-sunk)}
+.hull-fem-section-results summary{cursor:pointer;font-weight:600;font-size:12px}
+.hull-fem-section-results>.muted{font-size:10px;line-height:1.55}
+.hull-fem-section-sketch{display:block;width:100%;height:auto;max-height:315px;
+  border:1px solid var(--line);border-radius:9px}
+.hull-fem-section-results .hydro-force-table-wrap{overflow:auto}
+.hull-fem-section-results table{width:100%;min-width:410px;border-collapse:collapse;font-size:10px}
+.hull-fem-section-results th,.hull-fem-section-results td{padding:7px;text-align:left;
+  border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+@media(max-width:700px){.hull-girder-section-editor{padding:9px}
+  .hull-fem-section-results{padding:8px}
+  .hull-girder-section-editor textarea{min-height:200px}}
