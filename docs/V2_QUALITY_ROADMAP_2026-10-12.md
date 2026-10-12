@@ -19,7 +19,7 @@ Evidens: [paritetsregister](PRODUCTION_PARITY_GAP_REGISTER.md), [verktøykontrak
 | Kursoversikt S1–S5 | B | Same-origin NTNU-indeksleser + originale filbaner, ingen kopiering til GitHub, sikker filtrering; **ikke prøvd i ekte NTNU V2** |
 | Filbrowser, søk, nested stier | B | ViewerShell, kode/Python/Office/PDF, tryggere import og Chrome-regresjon; må testes på hundrevis av ekte filer, store mapper og æøå |
 | Quiz fra NTNU | B | Støtte for V1 text/options/answer[] og multiple, bilder og stabilt valgt antall (PR #69). Live NTNU quiz og leaderboard gjenstår |
-| Python/Jupyter code viewer | B | Pyodide Worker, syntax/edit/run/reset, notebook/cell, plot/eksport. Automatisk discovery av sibling imports, stdin-dialoger og bred pakkeparitet mangler |
+| Python/Jupyter code viewer | B | Pyodide Worker, syntax/edit/run/reset, notebook/cell, plot/eksport og begrenset on-demand same-origin sibling import. Unicode-filanavn for norske mapper styrket i PR #74. Full automatisk dependency-skann, stdin-dialoger, tredjepartspakker og ekte NTNU-filtester gjenstår |
 | PDF, CSV, HTML, tekst, video, LaTeX | B | Egne adaptere med funksjonelle browser-smokes; avanserte formater og store ekte filer trenger egen matrise |
 | Office (DOCX/XLSX/PPTX) | B | Lokal OOXML-preview, Excel/formeltester; ikke full Microsoft Office-layout, makroer, animasjon eller eldre binære Office-filer |
 | STL/3MF/OBJ/GLB/F3Z, modellscene | B | 3D-viewport, grupper, CAD import, alignment, clipping, måling, waterline; store modeller, geometri-validering og realfiler mangler |
@@ -34,7 +34,7 @@ Evidens: [paritetsregister](PRODUCTION_PARITY_GAP_REGISTER.md), [verktøykontrak
 | Tema-/bildefarger/kontrast | B | Theme Studio med Settings som eier, bilde-ekstraksjon/lagring. Visuell konsistens og kontrast-/tastaturmatrise mangler |
 | Diverses: LAOS, AndreKokSider, LeseRavnen | B | Native eller godkjent ekstern lenke. Må sjekke lenkehelse, mobil og data; LeseRavnen holdes separat |
 | Dykkerkart og dykkelogg | B/C | Kart, lokale funksjoner og konto-/kryptert Drive-adapter finnes, men geo/verifikasjon og faktisk Drive-synk/to enheter mangler |
-| Brygging, RAPT, logg og lager | C | Lokal råvareadministrasjon og legacy innbygging; API, hydrometerhistorikk, sikker serveradgang og end-to-end dataparitet mangler |
+| Brygging, RAPT, logg og lager | C | Lokal råvareadministrasjon, legacy innbygging og forbedret SG-platå-prognose (PR #71, CI). Reell RAPT API, hydrometerhistorikk, sikker serveradgang og end-to-end dataparitet mangler |
 | MedisinTimer | B/C | Timer, lokal historikk, AES-256-GCM-kryptert backup og manuell Drive-synk. **Ikke** atombeskyttet konkurrerende writes eller fullfysiske varsler på mobil; sensitiv reell enhetstest kreves |
 | FolkNet/Supabase Auth & skyinnstillinger | B/D | Email/PW-klient, RLS, privat bucket, opt-in appearance backup; reell konto/RLS 2 brukere og Google-identitetskobling ikke bevist |
 | Google-konto/Drive på tvers av moduler | D | Egne klientlag og hensyn til scopes. Produksjons-OAuth, 2 kontoer × 2 enheter, token-fornyelse og konflikter utestet |
@@ -61,6 +61,10 @@ ressurser. Beskyttede kataloger skal utelates fra denne opptellingen.
 | 5 | 5 | 30 | 0 | 14 PY, 9 PDF |
 | **Sum** | **24** | **478** | **67** | PDF, Python og notebook dominerer |
 
+**Formatfordeling (fem semesterindekser):** 283 PDF, 94 PY og 42 IPYNB
+utgjør samlet **419 av 478**, cirka 88 % av de oppførte filene.
+Det gir tydelig grunnlag for å prioritere disse viserne først.
+
 Tallene er fra offentlige **indeksoppføringer**, ikke fra en HTTP-`HEAD`
 eller opplastings-/innholdstest for hver fil. De beviser ikke at alle
 lenkene faktisk virker. Et eget `scripts/audit_ntnu_catalog.mjs --live`
@@ -79,7 +83,7 @@ kurs speiler formatfordelingen.
 
 1. **Ekte NTNU-ressurser.** Katalogen leser indekser, men vi trenger en scriptdrevet *metadata-only* audit av faktiske filnavn, mime/forventet viewer, tilgjengelighet og beskyttede kataloger, inkludert nested stier. Skjermbildet må vise delvis indekstilgang, ikke syntetiske ressurslister.
 2. **Quiz og forelesningslister.** Alle faktiske NTNU-varianter må sjekkes: V1 single/multiple, random select, bilder, kapitler, lokale forsøk og video-/visningstilstand. Ingen leaderboard skrives mot V1 uten godkjent backend.
-3. **Brygging.** Prognose ved null/stagnert SG i flere døgn må skille **ferdig**, **sannsynlig ferdig**, **stoppet for tidlig** og **utilstrekkelig data**; aldri bare legge `+N døgn` på siste datapunkt. Test stigende, fallende og sensorstøy. RAPT og oppskrifts-API separat.
+3. **Brygging.** PR #71 har CI-testet klassifisering av flat SG nær forventet FG, mulig stall langt over FG og flat SG uten kjent sluttverdi, og sluttet å legge ny ETA på en allerede flat kurve. **Åpen oppgave:** kalibrer terskler med anonymiserte, faktiske RAPT-måleserier; modell for aktiv gjæring, sensordrift, offline-data og usikkerhet. RAPT og oppskrifts-API testes separat.
 4. **Private data.** Ekte to-enhets konfliktkontroll og restore for MedisinTimer og dykkelogg før en eventuell automatisk synk. Ikke gjett to brukeres datatilstand.
 5. **Backend-autentisering.** Autodesk er valgfri; prioriter kun nettleser-/serverfunksjoner som ikke bryter uten Google/APS. Hold Google Drive og FolkNet ID adskilt inntil eksplisitt link-flow er verifisert.
 
