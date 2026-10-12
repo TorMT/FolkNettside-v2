@@ -51,7 +51,9 @@ test("AES-GCM binds encrypted tokens to purpose/user and cursors are signed",asy
  const cursor=await encodeCursor({userId:user,pageUrl:"https://example.test"},secret);
  assert.deepEqual(await decodeCursor(cursor,secret),
    {userId:user,pageUrl:"https://example.test"});
- await assert.rejects(decodeCursor(cursor.replace(/.$/,"A"),secret));
+ const [payload,signature]=cursor.split(".");
+ const modified=(payload.startsWith("A")?"B":"A")+payload.slice(1)+"."+signature;
+ await assert.rejects(decodeCursor(modified,secret));
 });
 test("return URL cannot be an open redirect or escape V2 preview",()=>{
  assert.equal(safeReturnTo(SITE),SITE);
@@ -117,7 +119,7 @@ test("read-only catalog is account-bound, uses signed cursors and returns no tok
    "catalog?level=projects&hubId=h&cursor="+encodeURIComponent(first.nextCursor)),api);
  assert.equal(invalid.status,400);
  const forged=await handleAutodeskHubRequest(request("catalog?level=hubs&cursor="+
-   encodeURIComponent(first.nextCursor.slice(0,-1)+"x")),api);
+   encodeURIComponent((first.nextCursor.startsWith("A")?"B":"A")+first.nextCursor.slice(1))),api);
  assert.equal(forged.status,400);
  const forbidden=await handleAutodeskHubRequest(request("catalog?level=contents&projectId=p"),api);
  assert.equal(forbidden.status,400);
