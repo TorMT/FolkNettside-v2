@@ -14,6 +14,17 @@ already enabled. Do **not** copy the example hub config into
 `data/autodesk-hub.json` until the correct Edge Function is deployed,
 credentials have been provisioned and two-account access tests have passed.
 
+## Legacy compatibility note
+
+The frozen V1 repository's `includes/aps/api/common.php` obtains APS
+`client_credentials` (**two-legged**) tokens with `data:read` /
+`viewables:read` for its PHP proxy workflow. Such a token does **not**
+establish the signed-in FolkNet user's personal Fusion Hub authorization.
+V2 intentionally uses a separate three-legged, user-consent OAuth flow.
+An existing APS app registration may be reused only if it is configured
+for the correct confidential OAuth redirect; never copy the V1 local
+secret file into GitHub or browser JSON.
+
 ## Configuration (operator only)
 
 - Target: Supabase project `glfuvfmppkjmarujjqwg` only. Never target LeseRavnen.
