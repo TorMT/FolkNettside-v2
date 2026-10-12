@@ -154,7 +154,7 @@ qualified.
 ### Opt-in Appearance backup in the live site
 
 V2 now offers **Save appearance** and **Restore appearance** under
-Settings → Privacy & data. These actions use the signed-in FolkNet
+Settings → Account & connections. These actions use the signed-in FolkNet
 Supabase identity, `folk_user_settings` and its per-user RLS policy.
 Only the five validated keys (mode, accent, density, motion and contrast)
 can be transmitted. The site does not send medicine, study files or Google
