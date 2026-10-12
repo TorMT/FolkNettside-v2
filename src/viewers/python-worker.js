@@ -25,13 +25,24 @@ function setSourceBase(url){
     sourceBase=new URL(".",target);
   }catch{sourceBase=null}
 }
-function loadSiblingFile(relative){
-  if(!sourceBase||fetchAttempts>=100)return false;
-  if(typeof relative!=="string"||relative.length>300)return false;
+// Filenames from NTNU can contain Æ/Ø/Å or other Unicode letters. They
+// must remain round-trip safe while rejecting traversal, hidden paths,
+// embedded escapes, control characters and URL syntax.
+function safeSiblingRelativePath(relative){
+  if(typeof relative!=="string"||relative.length>300)return null;
   const path=relative.replace(/\\/g,"/");
   const parts=path.split("/");
-  if(!parts.length||parts.some(part=>!part||part==="."||part===".."||part.startsWith(".")))return false;
-  if(!/^[a-zA-Z0-9_() +.\-]+$/.test(parts.join("")))return false;
+  if(!parts.length||parts.length>12||
+     parts.some(part=>!part||part==="."||part===".."||part.startsWith(".")||
+       part.length>140||!/^[\\p{L}\\p{M}\\p{N}_() +.\\-]+$/u.test(part)))
+    return null;
+  return path;
+}
+function loadSiblingFile(relative){
+  if(!sourceBase||fetchAttempts>=100)return false;
+  const path=safeSiblingRelativePath(relative);
+  if(!path)return false;
+  const parts=path.split("/");
   if(missingFiles.has(path))return false;
   if(uploadedFiles.has(path)||fetchedFiles.has(path))return true;
   try{
@@ -90,9 +101,9 @@ function safeMountPath(name){
   const segments=value.split("/");
   if(!segments.length||segments.length>12||value.length>500||
      segments.some(part=>!part||part==="."||part===".."||
-       part.startsWith(".")||!/[a-zA-Z0-9]/.test(part)))
+       part.startsWith(".")||!/[\\p{L}\\p{N}]/u.test(part)))
     throw new Error("Invalid Python workspace path");
-  return segments.map(part=>part.replace(/[^a-zA-Z0-9_.() +\-]/g,"_").slice(0,140)).join("/");
+  return segments.map(part=>part.replace(/[^\\p{L}\\p{M}\\p{N}_.() +\\-]/gu,"_").slice(0,140)).join("/");
 }
 function prepareMountFiles(files){
   if(!Array.isArray(files)||files.length>40)
