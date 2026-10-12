@@ -2,7 +2,7 @@
 
 **Status:** 2026-10-10. Dette er et arbeidsregister, **ikke en godkjenning av produksjonsmigrering**. Basert på de to GitHub-repoenes `main`-trær, V2-testene og de eksisterende migreringsmatrisene. En tilgjengelig kildekodefil eller bestått isolert test beviser ikke at live NTNU-funksjonalitet, brukerdata og API-er er likeverdige.
 
-**Avgjørende funn:** `TorMT/FolkNettside` har ingen `semestre/`-mappe i GitHub-treet som ble undersøkt. V1 beskriver kursfiler på NTNU webedit/folk; dette produksjonsområdet er ikke omfattet av repository-inventaret. V2 har per nå `data/content-manifest.json` med **ett syntetisk/eksempelbasert kurs: semester 5 / TMR4182**. Ingen kursmigrering kan erklæres komplett før en faktisk, godkjent webedit-backup foreligger og er sammenlignet.
+**Avgjørende funn:** `TorMT/FolkNettside` har ingen `semestre/`-mappe i GitHub-treet som ble undersøkt. V1 beskriver kursfiler på NTNU webedit/folk; dette produksjonsområdet er ikke omfattet av repository-inventaret. V2 har per nå `data/content-manifest.json` med **ett syntetisk/eksempelbasert kurs: semester 5 / TMR4182**. **Arkitekturvalg 12.10.2026:** Ingen kursfiler migreres til GitHub. V2-koden leser de eksisterende NTNU-indeksene og peker på originalfilene via samme origin når V2 publiseres på NTNU. Backup av V1 er fortsatt nødvendig ved en eventuell fremtidig overtakelse av rotforsiden, men ikke for å vise kursfilene i V2.
 
 **Ny offentlig V1-verifikasjon:** `https://tormt.folk.ntnu.no/includes/navbar.html` oppgir **24 kurslenker** fordelt på semester 1–5; den offentlige `/semestre/index.json` viser også enkelte mapper med navneledd `(beskyttet)`. Et NAVBAR-mappenavn er ikke nødvendigvis en faktisk NTNU-emnekode. Se [detaljert V1-kursinventar](PUBLIC_V1_COURSE_INVENTORY_2026-10-10.md) og [mapping-forslag](../data/migration-course-map.example.json). Ikke overfør slike beskyttede ressurser til offentlige V2.
 
@@ -17,7 +17,7 @@
 
 | Nr. | Funksjon/kilde i V1 | V2 / kilde | Dekning | Gjenstående produksjonsport |
 |---:|---|---|---|---|
-| 01 | NTNUs `semestre/<semester>/<kurs>/filer` og indekser | `site-content/semesters` + `data/content-manifest.json` | **mangler data** | Ta komplett produksjonsbackup, fil-/størrelses-/hashinventar, verifiser alle fag og alle offentlige ressurser, nested struktur |
+| 01 | NTNUs `semestre/<semester>/<kurs>/filer` og indekser | Dynamisk samme-origin NTNU `index.json` i `src/courses/ntnu-catalog.js`; GitHub-preview beholder testdata | **implementert / krever live test** | Test `v2-staging` på NTNU med semester 1–5, nestede filer og beskyttede mapper. Ingen kursflytting til GitHub |
 | 02 | `SiteUpdater3.py` (recursive `index.json`, valg av velkomstbilde, quiz-bilder) | `scripts/update_site.py` (manifest, målrettede oppdateringer, dry-run) | delvis | Kartlegg forskjeller, verifiser målrettet oppdatering av faktisk kursmateriale, behold bruker- og bilde­metadata |
 | 03 | `navbarupdater.py`, HTML-maler, sidebars, globalt søk | V2 shell, semesterkort, course navigation, search | CI-dekning | Side-for-side navigasjons- og lenkeaudit på ekte semesterkatalog |
 | 04 | Studiequiz, navigasjon, forsøk, `Quiz/leaderboard.php` | Quiz/kapitteløvinger og lokal progresjon | delvis | Verifiser bildebaner, quizinnhold, persistens og eventuell **serverbasert leaderboard** |
@@ -41,9 +41,9 @@
 | 22 | Google Analytics/Looker Studio | Samme GA4 ID, V2 private reporting | delvis | GA4 Realtime, fagdimensjon, samtykke/personvern, ingen offentlig Looker-embed |
 | 23 | `includes/aps/api/*`, `includes/brewing/api/*`, `includes/rapt/api/*` | Uavklart backend eller serviceadapter | **ikke migrert som backend** | Velg serverplattform, secrets store, service health checks, autentisering |
 | 24 | V1 PHP leaderboard | Ingen bevist tilsvarende serverlagring | ikke bevist | Sammenlign brukstilfeller, implementer/avtal serveralternativ |
-| 25 | V1 eksport-/webedit-deploy | V2 GitHub Pages preview | **ikke produksjonsflyttet** | Ta backup av live webedit, eksakt pathsjekk, cutover/redirects/rollback |
+| 25 | V1 eksport-/webedit-deploy | GitHub som kodekilde + trygg kode-only webedit-publisering i `v2-staging/` | **implementert / krever manuell verifikasjon** | Verifiser webedit-path, publiser staging uten sletting; senere V1-forside-cutover er separat godkjenning |
 | 26 | V1 GitHub-historikk | V2 egen repo-historikk | to forskjellige kilder | Arkiver V1 som full Git mirror/bundle, aldri rewrite eller slett |
-| 27 | V1 offentlige/private kursfiler og leserettigheter | V2 GitHub Pages public-by-default | **kritisk gap** | Klassifiser offentlig vs beskyttet. Private filer aldri i public build, også ved utilgjengelige lenker |
+| 27 | V1 offentlige/private kursfiler og leserettigheter | Eksisterende NTNU-server forblir datakilden. V2 skjuler beskyttede katalogoppføringer, men er ingen autentiseringsmekanisme | **tilgangsverifikasjon nødvendig** | Direkte URL-er til privat materiale må sikres på NTNU med Apache/NTNU-regler. Ingen private filer kopieres til GitHub |
 | 28 | Lokal lagring av kurs-/video-/quizprogresjon | V2 egne klientlagre | delvis | Eksport/oversettelse av eksisterende data; unngå stille tap |
 | 29 | APS/OpenRouter, server API-tokens og integrasjoner | V2 statisk klient + manglende backend | **kritisk gap** | Secret manager, least privilege, CORS, miljøer og live funksjonell verifikasjon |
 | 30 | Bølgeteori/3D-fartøyrespons | V2 visualisering og kompleks 6-DOF RAO-import | V2 utvidet | Import er ikke RAO-solver; krever eksternt beregnede data og verifiserte referansesystem |
