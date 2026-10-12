@@ -5,6 +5,7 @@ import {renderModelWorkbench} from "../viewers/model-workbench.js";
 import {renderFusionPackage} from "../viewers/fusion-package-view.js";
 import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js";
 import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js";
+import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js";
 import {createModelDocument} from "../model/model-document.js";
 import {boxMesh} from "../hydro/fixtures.js";
 
@@ -20,6 +21,7 @@ export function cadToolHTML(){
  <a href="./scripts/fusion_export_folknet.py" download>Fusion-to-FolkNet Python script</a>
  inside Fusion's Scripts and Add-ins. It creates one engineering ZIP to upload here;
  keep the original F3Z separately. Fusion's internal centimeters are converted to metres.</p>
+ <div id="cad-fusion-hub-browser" class="cad-hub-section"></div>
  <div class="cad-import-bar">
    <label>Model file <input id="cad-import-file" type="file"
      accept=".step,.stp,.iges,.igs,.brep,.stl,.3mf,.f3d,.f3z,.zip"></label>
@@ -37,6 +39,7 @@ export function mountCADTool(root){
  const cancel=root.querySelector("#cad-import-cancel"),status=root.querySelector("#cad-import-status");
  if(!picker||!stage)return ()=>{};
  let controller=null,cleanup=()=>{},request=0,disposed=false;
+ const stopHubBrowser=mountAutodeskHubBrowser(root.querySelector("#cad-fusion-hub-browser"));
  function showEmpty(message="Inspect assemblies using orbit, pan, Fit and the component tree."){
    stage.replaceChildren();
    const box=document.createElement("div");
@@ -138,5 +141,5 @@ export function mountCADTool(root){
  };
  showEmpty();
  picker.addEventListener("change",onChange);
- return ()=>{disposed=true;request++;stop();picker.removeEventListener("change",onChange);cancel.removeEventListener("click",onCancel)};
+ return ()=>{disposed=true;request++;stop();stopHubBrowser();picker.removeEventListener("change",onChange);cancel.removeEventListener("click",onCancel)};
 }
