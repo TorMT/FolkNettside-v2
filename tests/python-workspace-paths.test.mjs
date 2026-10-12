@@ -39,3 +39,41 @@ test("NTNU sibling importer rejects traversal, hidden, encoded and cross-folder 
     assert.equal(sibling(path),null,path);
   assert.equal(sibling("a\\x.py"),"a/x.py");
 });
+
+test("on-demand worker fetches same-origin Unicode sibling module and mounts exact path",()=>{
+  const received=[],mounted=[];
+  class XHR {
+    open(method,url,async){received.push({method,url,async})}
+    set responseType(value){assert.equal(value,"arraybuffer")}
+    send(){this.status=200;this.response=new Uint8Array([35,32,111,107]).buffer}
+  }
+  const context={self:{
+    location:{href:"https://example.org/src/viewers/python-worker.js",origin:"https://example.org"},
+    postMessage(){}},URL,XMLHttpRequest:XHR,Uint8Array};
+  vm.runInNewContext(source+`
+    self.testImport=(url,relative)=>{
+      runtime={FS:{
+        mkdirTree:p=>self.fsMkdir(p),
+        writeFile:(p,bytes)=>self.fsWrite(p,bytes)
+      }};
+      setSourceBase(url);
+      return loadSiblingFile(relative);
+    };`,context);
+  context.self.fsMkdir=p=>mounted.push(["mkdir",p]);
+  context.self.fsWrite=(p,bytes)=>mounted.push(["write",p,bytes.length]);
+  const current="https://example.org/semestre/3/Fluid/filer/%C3%98ving%201/main.py";
+  assert.equal(context.self.testImport(current,"måling.py"),true);
+  assert.equal(received.length,1);
+  assert.deepEqual(received[0],{
+    method:"GET",
+    url:"https://example.org/semestre/3/Fluid/filer/%C3%98ving%201/m%C3%A5ling.py",
+    async:false
+  });
+  assert.ok(mounted.some(x=>x[0]==="write"&&
+    x[1]==="/home/pyodide/workspace/måling.py"));
+  // Cached, no second network request.
+  assert.equal(context.self.testImport(current,"måling.py"),true);
+  assert.equal(received.length,1);
+  assert.equal(context.self.testImport("https://evil.example/secret.py","module.py"),false);
+  assert.equal(received.length,1);
+});
