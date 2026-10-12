@@ -78,6 +78,7 @@ import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js";
 import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js";
 import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignUp,folkSignOut} from "./platform/folkside-auth.js";
 import {probeFolkCoreBackend} from "./platform/folkside-cloud.js";
+import {createFolkAppearanceBackup} from "./platform/folkside-preferences.js";
 
 initSettings();
 initGoogleSession();
@@ -1006,6 +1007,45 @@ function settingsPage(){
     await folkSignOut();
     if(route().startsWith("/settings")&&settingsSection==="connections")settingsPage();
   });
+  async function appearanceCloud(action,button){
+    const feedback=app.querySelector("[data-folk-backup-status]");
+    if(!feedback)return;
+    button.disabled=true;
+    feedback.textContent="Checking private cloud backup…";
+    try{
+      const response=await fetch("./data/folkside-auth.json",{cache:"no-store"});
+      if(!response.ok)throw Error("FolkNet cloud is not configured");
+      const backup=createFolkAppearanceBackup({config:await response.json()});
+      const existing=await backup.read();
+      if(action==="restore"){
+        if(!existing){
+          feedback.textContent="No saved cloud appearance backup was found.";
+          return;
+        }
+        if(!window.confirm("Replace this browser's Appearance settings with the cloud backup?"))
+          {feedback.textContent="Restore cancelled.";return}
+        for(const [key,value] of Object.entries(existing.settings))setSetting(key,value);
+        settingsPage();
+        const restored=app.querySelector("[data-folk-backup-status]");
+        if(restored)restored.textContent="Appearance restored from private cloud.";
+        return;
+      }
+      if(existing&&!window.confirm(
+        "Replace the existing private cloud Appearance backup with this browser's current settings?"))
+        {feedback.textContent="Backup cancelled.";return}
+      const result=await backup.save(getSettings(),{
+        expectedRevision:existing?.revision??null
+      });
+      feedback.textContent="Saved Appearance to private cloud (revision "+result.revision+").";
+    }catch(error){feedback.textContent=String(error?.message||"Cloud backup failed")}
+    finally{if(button.isConnected)button.disabled=false}
+  }
+  for(const [selector,action] of [
+    ["[data-folk-backup]","backup"],["[data-folk-restore]","restore"]
+  ]){
+    app.querySelector(selector)?.addEventListener("click",event=>
+      void appearanceCloud(action,event.currentTarget));
+  }
   app.querySelector("[data-folk-probe]")?.addEventListener("click",async event=>{
     const button=event.currentTarget;
     const feedback=app.querySelector("[data-folk-probe-result]");
