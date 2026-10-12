@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/engineering.css">
+<link rel="stylesheet" href="../../assets/viewer-enhancements.css">
+<title>Fusion Engineering Bundle STEP and physical properties smoke</title></head>
+<body data-status="running"><div id="host"></div><pre id="result">Running...</pre>
+<script type="module">
+import {getJSZip} from "../../src/vendor/jszip.js";
+import {parseFusionEngineeringBundle} from "../../src/model/parsers/fusion-engineering-bundle.js";
+import {fusionEngineeringReportHTML} from "../../src/engineering/fusion-engineering-report.js";
+import {cadToolHTML} from "../../src/engineering/cad-tool.js";
+const check=(cond,msg)=>{if(!cond)throw Error(msg)};
+try{
+ const response=await fetch("./fixtures/occt-cube.stp");
+ check(response.ok,"STEP fixture unavailable");
+ const step=await response.arrayBuffer();
+ const manifest={
+   schema:"folknet-fusion-v1",title:"Cube CAD",
+   sourceFile:"Cube Fusion design",exportedAt:"2026-10-12T11:00:00Z",
+   geometry:{path:"assembly.step",units:"millimeter"},
+   properties:{lengthUnit:"m",massUnit:"kg",volumeUnit:"m3",centerUnit:"m"},
+   total:{massKg:212,solidVolumeM3:.027,centerOfMassM:[.15,.15,.15]},
+   occurrences:[{name:"Solid cube",fullPath:"Cube:1",massKg:212,
+     solidVolumeM3:.027,centerOfMassM:[.15,.15,.15]}]
+ };
+ const Zip=await getJSZip(),bundle=new Zip();
+ bundle.file("folknet-fusion.json",JSON.stringify(manifest));
+ bundle.file("assembly.step",step);
+ const buffer=await bundle.generateAsync({type:"arraybuffer"});
+ const model=await parseFusionEngineeringBundle(buffer,"cube-fusion.zip");
+ check(model.format==="FUSION_BUNDLE","Incorrect format");
+ check(model.fusionEngineering.total.massKg===212,"Metadata dropped");
+ check(model.source.conversion==="fusion-step-with-qualified-api-properties","Provenance missing");
+ check(model.components.some(c=>c.geometry),"STEP geometry missing");
+ check(model.components.every(c=>c.metadata.hydro===false&&c.metadata.uncertified===true),
+   "Unsafe unverified hydro flags after STEP conversion");
+ const mesh=model.components.filter(c=>c.geometry);
+ const coords=mesh.flatMap(c=>c.geometry.positions);
+ const ranges=[0,1,2].map(axis=>{
+   const values=coords.filter((_,i)=>i%3===axis);
+   return Math.max(...values)-Math.min(...values);
+ });
+ check(ranges.every(x=>Math.abs(x-300)<.5),"Expected 300mm STEP cube, got "+ranges);
+ const host=document.querySelector("#host");
+ host.innerHTML=cadToolHTML();
+ check(host.querySelector("#cad-import-file").accept.includes(".zip"),
+   "Engineering ZIP not accepted in CAD workbench");
+ const report=fusionEngineeringReportHTML(model.fusionEngineering);
+ check(report.includes("212 kg"),"Measured CAD mass missing");
+ check(report.includes("NOT the"),"Unsafe solid/water displacement conflation");
+ check(report.includes("do not sum nested aggregates"),"Nested occurrence hazard not disclosed");
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent=
+   "PASS: Fusion ZIP -> real STEP -> preserved source mass/COM and hydro unqualified";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>
