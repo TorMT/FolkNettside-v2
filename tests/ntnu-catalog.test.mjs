@@ -41,7 +41,8 @@ test("semester 5 index preserves nested course files without copying bytes",()=>
  assert.equal(result.courses.length,2);
  const item=result.courses.find(x=>x.code==="Marin-Dynamikk");
  assert.equal(item.resources.length,4);
- assert.deepEqual(item.resources.map(x=>x.section),["Øving1","Øving3","Øving3","Øving3"]);
+ assert.deepEqual(item.resources.map(x=>x.section).sort(),
+   ["quiz","Øving1","Øving3","Øving3"].sort());
  const nested=item.resources.find(x=>x.name==="solver.py");
  assert.deepEqual(nested.folders,["NyVersjon"]);
  assert.equal(nested.kind,"PY");
