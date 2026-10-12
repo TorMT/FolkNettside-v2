@@ -131,21 +131,28 @@ def rollback(release_dir: Path, *, apply: bool = False) -> dict:
     for entry in rows:
         path = _safe_record_path(entry, target)
         backup_file = release / "originals" / entry["path"]
-        if path.exists():
-            if not path.is_file() or sha256(path) != entry.get("after"):
-                # A later deployment/manual edit exists. Never destroy it.
-                raise ValueError("Rollback conflict: deployed file changed: " + entry["path"])
-        elif entry.get("existed"):
-            raise ValueError("Rollback conflict: an original file disappeared")
+        current = sha256(path) if path.is_file() and not path.is_symlink() else None
+        valid = {entry.get("after")}
+        if record["status"] in {"partial", "prepared"}:
+            # Failed deployments can have a mixture of original and new
+            # assets. A rollback must permit either known SHA, never unknown
+            # manual edits or a symlink.
+            valid.add(entry.get("before"))
+        if (path.is_symlink() or (path.exists() and not path.is_file()) or
+            current not in valid):
+            raise ValueError("Rollback conflict: deployed file changed: " + entry["path"])
         if entry.get("existed"):
             if (not backup_file.is_file() or backup_file.is_symlink() or
                 sha256(backup_file) != entry.get("before")):
                 raise ValueError("Missing or modified rollback backup: " + entry["path"])
-        operations.append((path, backup_file, bool(entry.get("existed"))))
+        operations.append((path, backup_file, bool(entry.get("existed")),
+                           current, entry.get("before")))
     if apply:
         # Reverse apply order, restoring index.html first to stop new traffic
         # using code about to be rolled back.
-        for dest, backup_file, existed in reversed(operations):
+        for dest, backup_file, existed, current, before in reversed(operations):
+            if current == before and record["status"] in {"partial", "prepared"}:
+                continue  # Never overwrite an already intact original.
             if existed:
                 _atomic_copy(backup_file, dest)
             elif dest.exists():
