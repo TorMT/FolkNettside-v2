@@ -48,6 +48,7 @@ import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-p
 import {mountFrame3D} from "./engineering/frame-3d.js";
 import {solveHullGirder} from "./structure/hull-girder.js";
 import {parseGirderStations} from "./structure/girder-profiles.js";
+import {parseStructuralMembers,deriveLongitudinalSections} from "./structure/girder-section-properties.js";
 import {girderResponseCSV,girderLoadsCSV,girderReactionsCSV,girderSectionsCSV} from "./structure/girder-export.js";
 import {projectPressureToBeam} from "./structure/hydro-beam-transfer.js";
 import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js";
@@ -122,7 +123,8 @@ let girderRunRequested=false;
 let girderForm={hullMassTonnes:"",cg:[0,0,0],pointText:"",areaText:"",
   eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false,
   loadingMode:"gravity-only",supportModel:"pinned-roller",pressureDraft:null,
-  pressureDensity:null,pressureSections:12,stiffnessText:"",massProfileText:""};
+  pressureDensity:null,pressureSections:12,stiffnessText:"",massProfileText:"",
+  sectionText:"",sectionMassMode:"independent"};
 let girderComputeError="";
 let structureLoadKn=-20;
 let structureLoadPosition=3;
@@ -227,7 +229,8 @@ function selectEngineeringModel(id){
   girderForm={hullMassTonnes:"",cg:[0,0,0],pointText:"",areaText:"",
     eGpa:210,iM4:"",extremeFiberM:"",neutralZ:0,segments:12,axisConfirmed:false,
      loadingMode:"gravity-only",supportModel:"pinned-roller",pressureDraft:null,
-     pressureDensity:null,pressureSections:12,stiffnessText:"",massProfileText:""};
+     pressureDensity:null,pressureSections:12,stiffnessText:"",massProfileText:"",
+  sectionText:"",sectionMassMode:"independent"};
   return true;
 }
 
@@ -1086,6 +1089,18 @@ async function engineeringPage(){
               xMin:bounds.min[0],xMax:bounds.max[0]
             });
           }
+          const structuralMembers=parseStructuralMembers(derived.sectionText);
+          const sectionModel=deriveLongitudinalSections(structuralMembers,{
+            xMin:bounds.min[0],xMax:bounds.max[0],
+            referenceE:Number(derived.eGpa)*1e9
+          });
+          if(sectionModel&&String(derived.stiffnessText).trim())
+            throw new Error("Choose structural cross-section members OR the manual EI table, not both");
+          if(derived.sectionMassMode==="derived"&&!sectionModel)
+            throw new Error("Derived structural baseline mass requires entered plate/stiffener members");
+          if(derived.sectionMassMode==="derived"&&String(derived.massProfileText).trim())
+            throw new Error("Choose derived structural baseline mass OR manual baseline mass stations, not both");
+          const sectionMass=derived.sectionMassMode==="derived"?sectionModel?.massStations:null;
           girder=solveHullGirder({
             buoyancyTransfer,
             supportModel:derived.loadingMode==="pressure-gravity"?derived.supportModel:"pinned-roller",
@@ -1094,10 +1109,12 @@ async function engineeringPage(){
             pointWeights:pointWeightsFromLines(derived.pointText),
             areaLoads:areaLoadsFromLines(derived.areaText),
             E:Number(derived.eGpa)*1e9,
-            I:Number(derived.iM4),extremeFiberM:Number(derived.extremeFiberM),
+            I:sectionModel?.sections[0].I??Number(derived.iM4),
+            extremeFiberM:sectionModel?.sections[0].extremeFiberM??Number(derived.extremeFiberM),
+            sectionModel,
             segments:Number(derived.segments),
-            stiffnessStations:parseGirderStations(derived.stiffnessText,{kind:"stiffness"}),
-            massStations:parseGirderStations(derived.massProfileText,{kind:"mass"})
+            stiffnessStations:sectionModel?null:parseGirderStations(derived.stiffnessText,{kind:"stiffness"}),
+            massStations:sectionMass??parseGirderStations(derived.massProfileText,{kind:"mass"})
           });
           girderComputeError="";
         }catch(error){
@@ -1158,7 +1175,8 @@ async function engineeringPage(){
           "pressure derived from validated external wetted hull and mapped to Euler beam":"no hydrostatic buoyancy applied",
           girder.supportModel==="floating-equilibrium"?"numerical supports remove rigid-body modes and must have zero reactions":
             "pin/roller external reactions are allowed and do not represent floating equilibrium",
-          "manual E/I/neutral axis","uniform hull mass per beam length"]
+          girder.sectionModel?"gross composite cross-sections entered by engineer":"manual EI profile or constant E/I",
+          girder.baselineAudit?.isExplicit?"audited nonuniform baseline mass ledger":"uniform hull mass per beam length"]
       }):null;
       bindEngineeringCaseExport(report);
       if(girder){
@@ -1186,6 +1204,8 @@ async function engineeringPage(){
           areaText:app.querySelector("#girder-areas").value,
           stiffnessText:app.querySelector("#girder-stiffness-profile").value,
           massProfileText:app.querySelector("#girder-mass-profile").value,
+          sectionText:app.querySelector("#girder-section-members").value,
+          sectionMassMode:app.querySelector("#girder-section-mass-mode").value,
           eGpa:app.querySelector("#girder-e").value,
           iM4:app.querySelector("#girder-i").value,
           extremeFiberM:app.querySelector("#girder-c").value,
