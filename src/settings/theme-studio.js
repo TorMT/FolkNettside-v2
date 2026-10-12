@@ -1,7 +1,7 @@
 import {
   THEME_ROLES,autoAssignTheme,kMeansPalette,normalizeTheme,
   themeCss,themeJSON,themeRegistrySnippet
-} from "./theme-studio-core.js?v=722842f9f49e1f04b018fca938159df83a3a8ca3";
+} from "./theme-studio-core.js?v=34c1fc539fc56b9104d34c148e499ce0513cbce2";
 
 const ROLE_LABELS={
   primary:"Primary",

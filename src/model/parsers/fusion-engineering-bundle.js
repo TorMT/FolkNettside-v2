@@ -6,8 +6,8 @@
  * Do NOT confuse Fusion solid volume (material) with displaced hull volume.
  * There is no automatic hull tagging, hydro enablement, or derived EI.
  */
-import {getJSZip} from "../../vendor/jszip.js?v=722842f9f49e1f04b018fca938159df83a3a8ca3";
-import {parseCADBuffer} from "./cad-runtime.js?v=722842f9f49e1f04b018fca938159df83a3a8ca3";
+import {getJSZip} from "../../vendor/jszip.js?v=34c1fc539fc56b9104d34c148e499ce0513cbce2";
+import {parseCADBuffer} from "./cad-runtime.js?v=34c1fc539fc56b9104d34c148e499ce0513cbce2";
 
 const MAX_ARCHIVE=55*1024*1024, MAX_STEP=25*1024*1024;
 const MAX_JSON=1024*1024, MAX_ENTRIES=30;
@@ -108,7 +108,8 @@ export async function parseFusionEngineeringBundle(buffer,name="Fusion engineeri
  if(step.byteLength>MAX_STEP)throw Error("Fusion STEP exceeds size limit");
  // The existing conversion worker is responsible for real CAD surface
  // tessellation. Do not treat raw ZIP or a thumbnail as mesh geometry.
- const model=await parseCADBuffer(step,manifest.title,{
+ const converter=options.cadParser||parseCADBuffer;
+ const model=await converter(step,manifest.title,{
    format:"step",signal:options.signal,timeoutMs:options.timeoutMs
  });
  model.source={
