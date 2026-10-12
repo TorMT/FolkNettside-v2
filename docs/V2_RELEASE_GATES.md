@@ -1,5 +1,14 @@
 # V2 release gates (no production cutover)
 
+**Architecture update (12 October 2026):** There is NO semester-file
+migration to GitHub. Existing NTNU `/semestre/` remains the authoritative
+course archive. V2 code may be staged in `/v2-staging/` via
+`Oppdater-FolkNettside.ps1`, with protected-file filtering and external
+backups/rollback. A full offline backup is still necessary before a
+**future V1 homepage/root replacement**, not for showing existing NTNU
+semester files in a separate staging path. See
+[Codex webedit handoff](CODEX_NTNU_RELEASE_HANDOFF.md).
+
 Production FolkNettside must remain unchanged. GitHub is the intended source of truth for the eventual deployment; do not set up reverse sync or delete/move legacy files before a separate, approved migration pass.
 
 **2026-10-10 migration evidence:** The public V1 navbar lists 24 legacy
