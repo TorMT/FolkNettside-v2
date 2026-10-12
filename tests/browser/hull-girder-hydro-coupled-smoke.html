@@ -93,10 +93,10 @@ try{
   for(const id of ["girder-export-response","girder-export-loads","girder-export-reactions"]){
     check(document.getElementById(id),"Missing structural CSV action "+id);
   }
-  check(document.querySelector("#girder-stiffness-profile").value===stiffnessText,
-    "Structural EI profile input is not preserved");
-  check(document.querySelector("#girder-mass-profile").value===massProfileText,
-    "Baseline mass profile input is not preserved");
+  check(document.querySelector("#girder-stiffness-profile").value==="",
+    "Manual EI profile should remain empty when derived structural sections are chosen");
+  check(document.querySelector("#girder-mass-profile").value==="",
+    "Manual baseline mass profile should remain empty in independent structural member mode");
   check(document.querySelector("#girder-section-members").value===sectionText,
     "Structural member rows not preserved in editor");
   check(document.querySelector("#girder-section-mass-mode").value==="independent",
