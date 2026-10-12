@@ -31,17 +31,22 @@ See `docs/AUTODESK_HUB_BACKEND.md` for operational details.
 ### Required first-party backend contract
 
 The backend must implement these read-only endpoints with one OAuth
-session per authorized Autodesk user:
+session per authorized Autodesk user. The implemented API base is
+`https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/`.
+The browser sends its **FolkNet Supabase Auth bearer** only to that exact
+backend, never an Autodesk token or a Google Drive token.
 
-| Frontend call | Autodesk API |
+| Backend endpoint | Behavior |
 | --- | --- |
-| GET /api/autodesk/session | Return connected status and optional display name |
-| GET /api/autodesk/catalog?level=hubs | GET /project/v1/hubs |
-| GET /api/autodesk/catalog?level=projects&hubId=... | GET hub projects |
-| GET /api/autodesk/catalog?level=topFolders&hubId=...&projectId=... | GET project top folders |
-| GET /api/autodesk/catalog?level=contents&projectId=...&folderId=... | GET folder contents |
-| GET /api/autodesk/catalog?level=versions&projectId=...&itemId=... | GET item versions |
-| GET /api/autodesk/login?returnTo=... | Backend-led Autodesk OAuth sign-in |
+| GET session | Report user-bound Autodesk connection status |
+| POST authorize | Store expiring OAuth state/PKCE; return APS authorization URL |
+| GET callback | Autodesk redirect, one-time state redemption and encrypted token storage |
+| GET catalog?level=hubs | GET Autodesk /project/v1/hubs |
+| GET catalog?level=projects&hubId=... | GET hub projects |
+| GET catalog?level=topFolders&hubId=...&projectId=... | GET project top folders |
+| GET catalog?level=contents&projectId=...&folderId=... | GET folder contents |
+| GET catalog?level=versions&projectId=...&itemId=... | GET item versions |
+| DELETE session | Revoke local FolkNet connection record |
 
 Catalog response:
 `{entries:[{id,name,type,versionNumber?,modifiedAt?,webUrl?}],nextCursor?:string|null}`
@@ -50,12 +55,13 @@ must be opaque and validated, and every requested hub/project/folder/item
 must be checked against the current authenticated user's permissions.
 
 Autodesk explicitly notes that some APS APIs restrict direct browser
-cross-origin calls. For reliability use a trusted backend rather than
-putting the Fusion OAuth access token into browser code. Implement OAuth
-state/PKCE validation, short-lived secure HttpOnly session cookies,
-server-side encrypted refresh tokens, strict callback/return URL allowlists,
-rate limits, account isolation and exact-origin CORS. Avoid broad
-data:write permissions for this read-only phase.
+cross-origin calls. The implemented Edge Function therefore keeps APS
+access/refresh tokens server-side under AES-GCM, enforces state/PKCE,
+expires one-time states and signed pagination cursors, and verifies the
+Supabase Auth user for every protected route. No separate HttpOnly cookie
+is used; the site has a short-lived Supabase bearer session in
+`sessionStorage`. Live rate-limit and cross-account acceptance tests still
+remain. Only the read-only `data:read` Autodesk scope is requested.
 
 ### Version downloads and actual structural analysis
 
