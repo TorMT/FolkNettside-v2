@@ -1053,7 +1053,7 @@ function settingsPage(){
     if(feedback)feedback.textContent="Checking your Supabase account and private backend…";
     try{
       const result=await probeFolkCoreBackend();
-      if(feedback)feedback.textContent="Verified: Supabase account and private storage are available. "+
+      if(feedback)feedback.textContent="Verified: Supabase backend identity matches this account. Private bucket is configured; actual upload/download is not yet tested. "+
         (result.autodeskConnected?"Autodesk connected.":"Autodesk authorization is not connected yet.");
     }catch(error){
       if(feedback)feedback.textContent=String(error?.message||"Backend verification failed");
