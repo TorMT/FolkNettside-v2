@@ -15,10 +15,15 @@ from proprietary F3D binaries.
 1. In Fusion, open the saved top-level assembly in **Design**.
 2. Download the standalone Python script at
    `scripts/fusion_export_folknet.py` from this repository.
-3. In Fusion's **Utilities → Scripts and Add-ins**, add/run this local
-   Python script. It requires Fusion's own `adsk` API and **cannot** be run
-   with system Python. The script reads the active design; it does not modify
-   the Fusion file or make a network request.
+3. In Fusion choose **Utilities → Scripts and Add-ins → Create** and
+   create a **Python Script** named `FolkNetFusion`. Fusion creates its
+   required named script folder, Python file and matching manifest. Select
+   **Edit** and replace the generated `FolkNetFusion.py` contents with
+   the downloaded script, then choose **Run**. This follows Autodesk's
+   published script-folder/manifest convention. The script requires
+   Fusion's own `adsk` API and **cannot** be run with system Python.
+   It reads the active design; it does not modify the source design or
+   make a network request.
 4. The script exports a `FolkNet_Fusion_<design>.zip` file to
    `~/Documents/FolkNet_Fusion_Exports/` containing `assembly.step`,
    `folknet-fusion.json` and a readme. Keep the original `.f3z` archive
@@ -95,11 +100,14 @@ canonical editable design and regenerate the bundle when the design changes.
 | Fusion engineering ZIP | Real STEP model **plus** source-reported CAD material mass, solid volume, COM, and occurrence inventory |
 
 For direct *unmodified* F3Z upload with fully automatic native assembly
-and physical-property extraction, the next engineering step is an
-authenticated Autodesk Platform Services / Fusion conversion integration,
-subject to account permissions, conversion services and cost. This is
-**not connected yet** and should not be described as an available
-one-click native geometry solution.
+and physical-property extraction, a future solution requires an authenticated
+Fusion/Autodesk service able to reconstruct the referenced F3D designs.
+The APS Model Derivative published formats list documents F3D translation,
+but not a direct F3Z-to-STEP conversion contract; therefore a one-call APS
+F3Z translation must **not** be assumed. Assembly reconstruction and
+physical-property reporting would need separate validation, permissions
+and potentially service costs. This is **not connected yet** and should
+not be described as a working one-click native geometry solution.
 
 
 
