@@ -18,7 +18,10 @@ export function summarizeSemester(id,source){
     privateDirectories++;
     continue; // do not touch or count protected file metadata
   }
-  if(Array.isArray(record.files))sourceCount+=record.files.length;
+  const indexed=Array.isArray(record.files)?record.files:[];
+  sourceCount+=indexed.length;
+  // This V1 quiz is a separately indexed resource, not in files[].
+  if(typeof record.quiz==="string"&&!indexed.includes(record.quiz))sourceCount++;
   if(!catalog.courses.some(x=>x.code===slug))excludedCourses++;
  }
  const resources=catalog.courses.flatMap(c=>c.resources);

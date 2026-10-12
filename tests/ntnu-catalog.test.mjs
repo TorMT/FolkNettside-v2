@@ -59,6 +59,42 @@ test("semester 5 index preserves nested course files without copying bytes",()=>
  assert.ok(!JSON.stringify(result).includes("Private notes"));
  assert.ok(!JSON.stringify(result).includes("Secret.zip"));
 });
+test("real NTNU quiz metadata outside files becomes a QUIZ resource once",()=>{
+ const source={
+  exphil:{
+   dir:"exphil",beskyttet:false,files:["filer/kapittel.pdf"],
+   quiz:"quiz/quiz.json",welcome:"/img/welcome-generic.svg"
+  },
+  itgk:{
+   dir:"itgk",beskyttet:false,
+   files:["filer/svar.py","quiz/quiz.json"],
+   quiz:"quiz/quiz.json"
+  },
+  fromQuizOnly:{
+   dir:"fromQuizOnly",beskyttet:false,quiz:"quiz/quiz.json"
+  },
+  blocked:{
+   dir:"blocked",beskyttet:true,
+   files:["filer/hidden.pdf"],quiz:"quiz/quiz.json"
+  },
+  hostile:{
+   dir:"hostile",beskyttet:false,
+   files:[],quiz:"quiz/../../hidden.json"
+  }
+ };
+ const result=parseNTNUSemesterIndex(1,source);
+ const by=code=>result.courses.find(c=>c.code===code)?.resources||[];
+ assert.equal(by("exphil").length,2);
+ assert.equal(by("exphil").filter(x=>x.kind==="QUIZ").length,1);
+ assert.equal(by("itgk").length,2,"Duplicate quiz references must collapse");
+ assert.equal(by("fromQuizOnly").length,1);
+ assert.equal(by("fromQuizOnly")[0].kind,"QUIZ");
+ assert.equal(by("blocked").length,0);
+ assert.equal(by("hostile").length,0);
+ assert.equal(by("exphil").find(x=>x.kind==="QUIZ").path,
+  "/semestre/1/exphil/quiz/quiz.json");
+});
+
 test("public navbar labels can be supplied without changing stable route slugs",()=>{
  const result=parseNTNUSemesterIndex(5,{
    "marin-teknikk-4-propulsjon":{dir:"marin-teknikk-4-propulsjon",

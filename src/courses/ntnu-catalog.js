@@ -66,11 +66,17 @@ export function parseNTNUSemesterIndex(semesterId,raw,{titles=new Map(),origin=N
    if(slug==="welcome"||!safePiece(slug)||!object(record)||
       record.beskyttet===true)continue;
    if(record.dir!==undefined&&record.dir!==slug)continue;
-   if(!Array.isArray(record.files))continue;
-   if(record.files.length>20_000)throw Error("NTNU course index has excessive entries");
+   const indexed=Array.isArray(record.files)?record.files:[];
+   const quizRef=typeof record.quiz==="string"?record.quiz:null;
+   if(!Array.isArray(record.files)&&!quizRef)continue;
+   if(indexed.length>20_000)throw Error("NTNU course index has excessive entries");
+   // Legacy NTNU indexes register the interactive quiz separately as
+   // record.quiz = "quiz/quiz.json", not inside record.files.
+   // Keep one combined resource list, without touching quiz content here.
+   const referenced=quizRef?[...indexed,quizRef]:indexed;
    const resources=[];
    const seen=new Set();
-   for(const file of record.files){
+   for(const file of referenced){
      const parts=segments(file);
      if(!parts||seen.has(file))continue;
      seen.add(file);
