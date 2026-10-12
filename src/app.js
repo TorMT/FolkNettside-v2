@@ -404,7 +404,7 @@ function viewerRoute(semester,code,index){return `/viewer/${semester}/${encodeUR
 function engineeringModeRoute(mode){return `/engineering/${String(mode).toLowerCase()}`}
 
 function top(active){
-  return renderTopShell(active,{coursesLabel:navLabels.courses,account:getGoogleSessionSnapshot(),courseUpdates:courseNotices.total});
+  return renderTopShell(active,{coursesLabel:navLabels.courses,account:getGoogleSessionSnapshot(),folkAccount:getFolkAccountSnapshot(),courseUpdates:courseNotices.total});
 }
 
 function bindNav(){
