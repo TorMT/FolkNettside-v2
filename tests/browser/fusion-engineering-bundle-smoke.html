@@ -10,11 +10,13 @@ import {getJSZip} from "../../src/vendor/jszip.js";
 import {parseFusionEngineeringBundle} from "../../src/model/parsers/fusion-engineering-bundle.js";
 import {fusionEngineeringReportHTML} from "../../src/engineering/fusion-engineering-report.js";
 import {cadToolHTML} from "../../src/engineering/cad-tool.js";
+import {boxMesh} from "../../src/hydro/fixtures.js";
+import {createModelDocument} from "../../src/model/model-document.js";
 const check=(cond,msg)=>{if(!cond)throw Error(msg)};
 try{
- const response=await fetch("./fixtures/occt-cube.stp");
- check(response.ok,"STEP fixture unavailable");
- const step=await response.arrayBuffer();
+ // A source-neutral STEP payload is deliberately passed to an injected
+ // deterministic CAD converter. This tests bundle/provenance, not OpenCascade.
+ const step=new TextEncoder().encode("ISO-10303-21; synthetic test marker").buffer;
  const manifest={
    schema:"folknet-fusion-v1",title:"Cube CAD",
    sourceFile:"Cube Fusion design",exportedAt:"2026-10-12T11:00:00Z",
@@ -28,7 +30,16 @@ try{
  bundle.file("folknet-fusion.json",JSON.stringify(manifest));
  bundle.file("assembly.step",step);
  const buffer=await bundle.generateAsync({type:"arraybuffer"});
- const model=await parseFusionEngineeringBundle(buffer,"cube-fusion.zip");
+ const model=await parseFusionEngineeringBundle(buffer,"cube-fusion.zip",{
+   cadParser:async (payload,title,{format})=>{
+     check(format==="step","ZIP did not request STEP decoding");
+     check(new TextDecoder().decode(payload).startsWith("ISO-10303-21;"),
+       "STEP payload was not extracted correctly");
+     return createModelDocument({name:title,format:"STEP",unit:"millimeter",
+       components:[{id:"cube",name:"Synthetic STEP geometry placeholder",
+         geometry:boxMesh({L:300,B:300,H:300})}]});
+   }
+ });
  check(model.format==="FUSION_BUNDLE","Incorrect format");
  check(model.fusionEngineering.total.massKg===212,"Metadata dropped");
  check(model.source.conversion==="fusion-step-with-qualified-api-properties","Provenance missing");
@@ -52,7 +63,7 @@ try{
  check(report.includes("do not sum nested aggregates"),"Nested occurrence hazard not disclosed");
  document.body.dataset.status="pass";
  document.querySelector("#result").textContent=
-   "PASS: Fusion ZIP -> real STEP -> preserved source mass/COM and hydro unqualified";
+   "PASS: Fusion ZIP manifest + STEP bytes, converter boundary, source mass/COM and Hydro unqualified";
 }catch(error){
  document.body.dataset.status="fail";
  document.querySelector("#result").textContent=String(error?.stack||error);
