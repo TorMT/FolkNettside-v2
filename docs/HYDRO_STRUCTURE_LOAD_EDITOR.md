@@ -394,6 +394,14 @@ Applying changes only affects the structural solver after the user chooses
 The diagram uses the actual declared Y/Z coordinate system, not a guessed
 section extracted from an external visual hull. The selected longitudinal
 station is **explicit**, allowing different plate arrangements along X.
+Each valid selected station now displays a **live, calculated elastic neutral
+axis**, dashed in its Y/Z diagram, together with composite `EI`, gross
+member area, and material mass per metre. These readouts update immediately
+when member coordinates, material or thickness are edited, but do **not**
+silently run or replace the full structural FEM calculation. Where member
+footprints intersect, this preview is blocked until the geometry is fixed.
+All physical assumptions and mesh qualification requirements above still
+apply.
 Inputs and edit tools remain usable by touch/mouse and numeric entry.
 
 `src/structure/girder-section-geometry.js` builds the true in-plane
