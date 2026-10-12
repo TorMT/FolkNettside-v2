@@ -135,9 +135,7 @@ export function createAutodeskHubClient(config,{
    },
    async startAuthorization({signal,returnTo}={}){
      if(settings.authMode!=="folknet")return this.loginURL();
-     const target=returnTo||(typeof location==="undefined"?
-       "https://tormt.github.io/FolkNettside-v2/":
-       location.origin+location.pathname+(location.hash||""));
+     const target=returnTo||"https://tormt.github.io/FolkNettside-v2/#/engineering/cad";
      const result=await getJSON(settings.apiBase+"authorize",{
        signal,method:"POST",body:{returnTo:target}
      });
