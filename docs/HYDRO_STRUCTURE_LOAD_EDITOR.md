@@ -353,9 +353,13 @@ rather than the global manual (c/I) law.
 ### Important engineering limits
 
 This is a **gross structural-section** idealisation, not a scantling
-verification or full ship stiffness model. It does **not** detect or
-subtract overlapping web/flange areas, penetrations, corrosion deductions,
-effective breadth, shear lag or member instability. It assumes that
+verification or full ship stiffness model. It **detects finite overlap**
+between explicitly entered plate/stiffener material footprints in each
+intersecting X interval and **blocks the structural solve** to avoid double
+counting gross metal area, mass and EI. Shared edges or touching plates are
+not double-counted. It does **not automatically subtract** overlapping areas
+or represent penetrations, corrosion deductions, effective breadth,
+shear lag or member instability. It assumes that
 members act together in longitudinal bending and that the relevant joints
 transfer shear. No torsional warping, transverse hull stress, fatigue,
 wave-induced dynamic load or regulatory class-rules assessment is made.
@@ -373,6 +377,45 @@ computed sectional EI and material fibre stresses are actually used by
 the existing structural FEM, including the explicit baseline-weight gate.
 The coupled Hydro/Structure browser smoke additionally checks UI fields
 and the structural Y/Z preview.
+
+## Visual Y/Z structural member editor and collision diagnostics
+
+The **Structural cross-sections** inspector now includes a **Y/Z
+drawing editor** adjacent to the human-editable CSV input. You can select an
+existing X interval, or enter new X station bounds; draw a plate by dragging
+between two Y/Z points; place a rectangular longitudinal stiffener; select
+and drag an existing member; update member coordinates, thickness, E and
+material density numerically; remove one member; or undo the latest
+diagram change. CSV is still authoritative: the sketch preserves unrelated
+rows, explicit material data, human comments and existing line endings.
+Applying changes only affects the structural solver after the user chooses
+**Calculate hull girder FEM**.
+
+The diagram uses the actual declared Y/Z coordinate system, not a guessed
+section extracted from an external visual hull. The selected longitudinal
+station is **explicit**, allowing different plate arrangements along X.
+Inputs and edit tools remain usable by touch/mouse and numeric entry.
+
+`src/structure/girder-section-geometry.js` builds the true in-plane
+rectangles for finite-thickness plates and rectangular stiffeners. Convex
+polygon clipping calculates pairwise intersection area across overlapping
+X intervals. Positive metal overlap is displayed as an explicit editor
+warning, and the derived structural EI/mass computation is blocked until
+the collision is fixed; zero-area edge contacts are permitted.
+
+This is intentionally a **fail-closed gross area model** rather than
+silently deducting arbitrary joints. In actual ship sections, welded
+intersecting web/flange members must be represented without overlapping
+rectangle footprints (e.g. trim the web endpoint to the flange surface).
+Openings, cutouts, frames at discrete X stations, finite-length brackets,
+weld behavior, local stiffness and buckling still require separate
+structural modeling.
+
+The new tests `tests/girder-section-geometry.test.mjs` and
+`tests/section-sketch-core.test.mjs` cover plate-stiffener intersection,
+plate contact, safe text edits, section insertion and coordinate mapping.
+`tests/browser/section-sketch-smoke.html` covers actual pointer drawing,
+dragging, editing, undo and visual collision warnings in headless Chrome.
 
 ## Regression and CI
 
