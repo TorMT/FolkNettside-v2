@@ -382,3 +382,40 @@
 @media(max-width:700px){.hull-girder-section-editor{padding:9px}
   .hull-fem-section-results{padding:8px}
   .hull-girder-section-editor textarea{min-height:200px}}
+
+/* Interactive marine Y/Z section drawing; authoritative CSV remains visible. */
+.section-sketch{display:grid;gap:9px;min-width:0;margin:11px 0;padding:10px;
+  border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.section-sketch-toolbar{display:flex;flex-wrap:wrap;gap:6px}
+.section-sketch-toolbar .btn{flex:1 1 auto;min-height:34px;white-space:normal;font-size:11px}
+.section-sketch-toolbar [aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 -2px var(--accent)}
+.section-sketch-toolbar button:disabled{opacity:.45;cursor:not-allowed}
+.section-sketch-settings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.section-sketch-settings label,.section-sketch-fields label{font-size:10px;color:var(--ink-2);
+  display:grid;gap:4px;min-width:0}
+.section-sketch-settings input,.section-sketch-settings select,
+.section-sketch-fields input{width:100%;min-width:0;box-sizing:border-box;
+  padding:7px;border:1px solid var(--line);border-radius:6px;
+  background:var(--surface-sunk);color:var(--ink);font-size:11px}
+.section-sketch-canvas{border:1px solid var(--line);border-radius:8px;overflow:hidden;
+  background:var(--surface-sunk)}
+.section-sketch-canvas svg{display:block;width:100%;height:auto;max-height:340px;touch-action:none;cursor:crosshair}
+.section-sketch-canvas svg [data-section-member]{cursor:move}
+.section-sketch-selected{display:flex;flex-wrap:wrap;gap:7px;align-items:center;
+  padding:9px;border:1px solid var(--line);border-radius:7px;background:var(--surface-sunk)}
+.section-sketch-selected[hidden],.section-sketch-warning[hidden]{display:none}
+.section-sketch-selected strong{flex:1 1 100%;font-size:11px}
+.section-sketch-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;
+  flex:1 1 100%;min-width:0}
+.section-sketch-selected .btn{min-height:32px;font-size:11px}
+.section-sketch-selected [data-section-delete]{color:var(--danger)}
+.section-sketch-warning{font-size:11px;color:var(--danger);margin:0;
+  padding:8px;border-left:3px solid var(--danger);background:var(--surface-sunk)}
+.section-sketch-status{font-size:11px;color:var(--ink-2);margin:0}
+.section-sketch>small{font-size:10px;color:var(--ink-3);line-height:1.5}
+@media(max-width:600px){
+ .section-sketch{padding:8px}
+ .section-sketch-settings{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .section-sketch-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .section-sketch-toolbar .btn{font-size:10px}
+}
