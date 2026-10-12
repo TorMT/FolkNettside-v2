@@ -108,7 +108,8 @@ from proprietary F3D binaries.
    hull** before attempting Hydro. Structural section properties still
    require scantlings/material definitions or a dedicated structural import.
 
-The export script is Python-syntax-checked, but must still be tested against
+The export script is Python-syntax-checked and its SI inertia conversions
+are tested against mocked Fusion API responses, but must still be tested against
 your installed Fusion version and a real user assembly. The new ZIP browser
 test exercises a **real ZIP archive, manifest and STEP byte extraction** with
 a deterministic injected CAD converter; it does **not** claim to exercise
@@ -126,6 +127,14 @@ The helper uses Fusion's high-accuracy physical-properties API to write:
 - CAD body **surface area (m²)** and an **axis-aligned XYZ envelope (m)**, where Fusion can provide them. Neither is a hydrostatic wetted-area calculation.
 - Whole-assembly **center of mass (X, Y, Z in metres)** in Fusion's design
   frame.
+- **World-axis mass moments and products of inertia** `xx, yy, zz, xy, yz, xz`,
+  if Fusion's API provides valid values; conversion from kg·cm² to
+  **kg·m²**. They are reported in Fusion's world reference, not inferred
+  from the STEP mesh. Products are labeled explicitly because the
+  off-diagonal signs in a conventional inertia tensor can differ.
+- **Principal mass moments of inertia** `i1, i2, i3` in kg·m², when
+  available. Do not assume the same reference origin as the world moments
+  without checking the source model and its axis definition.
 - A descriptive inventory of named occurrences, their assembly path,
   and their reported mass/solid volume/COM when Fusion can calculate them.
   **Nested occurrence properties overlap and are never summed** to obtain
@@ -133,9 +142,11 @@ The helper uses Fusion's high-accuracy physical-properties API to write:
 - A **STEP** representation of the root design for 3D visualization and
   subsequent separate model verification.
 
-Fusion uses centimetres and cubic centimetres for internal geometry and
-kilograms for mass, so its values are explicitly converted to SI for the
-report. STEP in this workflow is handled as **millimetres** by V2's
+Fusion uses centimetres, cubic centimetres and kg·cm² for internal
+geometry and inertial quantities, and kilograms for mass, so its values
+are explicitly converted to SI for the report. Older engineering bundles
+without inertia fields remain supported. Malformed inertia data or
+unlabeled inertia units are rejected instead of guessed. STEP in this workflow is handled as **millimetres** by V2's
 OpenCascade importer; check a known dimension after import. An STL thumbnail,
 native archive preview, Fusion solid-material volume, or unverified mesh is
 not automatically accepted as a hydrostatic immersed hull.
