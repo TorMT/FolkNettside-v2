@@ -89,7 +89,7 @@ export function mountCADTool(root){
    controller=new AbortController();cancel.disabled=false;
    status.textContent="Reading "+file.name+" locally…";
    try{
-     const fusion=ext==="f3d"||ext==="f3z";
+     const fusion=ext==="f3d"||ext==="f3z"||ext==="zip";
      if(file.size>(fusion?55:25)*1024*1024)throw Error("File exceeds safe import size limit");
      const buffer=await file.arrayBuffer();
      if(current!==request||disposed)return;
