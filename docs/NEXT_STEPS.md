@@ -1,4 +1,21 @@
-# Prioritert videreføring av FolkNettside V2 — 2026-10-10
+# Prioritert videreføring av FolkNettside V2 — 2026-10-12
+
+**Nåværende fase: funksjonskvalitet og forbedringer; ikke utrulling.**
+Vi fortsetter utvikling og reell fil-/UI-testing før vi tar stilling til
+publisering om én–to måneder. NTNU V1 og kursarkivet forblir urørt.
+
+Full kvalitet, evidens per modul og anbefalt rekkefølge er kartlagt i
+[V2-kvalitetskartet](V2_QUALITY_ROADMAP_2026-10-12.md).
+
+**Arbeidsrekkefølge:** (1) data-/resultatkorrekthet: NTNUs ekte filer,
+quiz og gjæringsprognose; (2) nested viewere og mobil; (3) Fusion,
+KISSsoft, Hydro/FEM og CoolProp numerikk; (4) valgfri ekstern
+konto-/Drive-/RAPT-synk; (5) konsekvent UI/tilgjengelighet; (6) først
+til slutt staging og produksjonskontroll.
+
+**Evidensregel:** Bruk `implementert`, `CI-testet`, `Chrome-testet`,
+`testet med ekte data` og `testet med ekstern konto` separat.
+Aldri kall en integrasjon ferdig når bare mock eller eksempeldata virker.
 
 Dette er arbeidslisten for V2 **preview**, ikke en erklæring om paritet med NTNUs live V1. Ikke flytt produksjonsadresser eller publiser beskyttede kursdata. Detaljerte produksjonsporter finnes i [paritetsregisteret](PRODUCTION_PARITY_GAP_REGISTER.md).
 

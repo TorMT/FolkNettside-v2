@@ -1,6 +1,6 @@
 # V1 → V2: dokumentert funksjonsparitet og åpne gap
 
-**Status:** 2026-10-10. Dette er et arbeidsregister, **ikke en godkjenning av produksjonsmigrering**. Basert på de to GitHub-repoenes `main`-trær, V2-testene og de eksisterende migreringsmatrisene. En tilgjengelig kildekodefil eller bestått isolert test beviser ikke at live NTNU-funksjonalitet, brukerdata og API-er er likeverdige.
+**Status:** 2026-10-12. Dette er et arbeidsregister, **ikke en godkjenning av produksjonsmigrering**. Basert på de to GitHub-repoenes `main`-trær, V2-testene og de eksisterende migreringsmatrisene. En tilgjengelig kildekodefil eller bestått isolert test beviser ikke at live NTNU-funksjonalitet, brukerdata og API-er er likeverdige.
 
 **Avgjørende funn:** `TorMT/FolkNettside` har ingen `semestre/`-mappe i GitHub-treet som ble undersøkt. V1 beskriver kursfiler på NTNU webedit/folk; dette produksjonsområdet er ikke omfattet av repository-inventaret. V2 har per nå `data/content-manifest.json` med **ett syntetisk/eksempelbasert kurs: semester 5 / TMR4182**. **Arkitekturvalg 12.10.2026:** Ingen kursfiler migreres til GitHub. V2-koden leser de eksisterende NTNU-indeksene og peker på originalfilene via samme origin når V2 publiseres på NTNU. Backup av V1 er fortsatt nødvendig ved en eventuell fremtidig overtakelse av rotforsiden, men ikke for å vise kursfilene i V2.
 
@@ -48,9 +48,17 @@
 | 29 | APS/OpenRouter, server API-tokens og integrasjoner | V2 statisk klient + manglende backend | **kritisk gap** | Secret manager, least privilege, CORS, miljøer og live funksjonell verifikasjon |
 | 30 | Bølgeteori/3D-fartøyrespons | V2 visualisering og kompleks 6-DOF RAO-import | V2 utvidet | Import er ikke RAO-solver; krever eksternt beregnede data og verifiserte referansesystem |
 
+## Arbeidsmodus i oktober–desember 2026
+
+Dette registeret er nå en **funksjons- og kvalitetsbacklog**, ikke en
+liste over migreringskopier. Se [full kvalitetsmatrise og prioriterte
+forbedringer](V2_QUALITY_ROADMAP_2026-10-12.md). Vi prioriterer realistiske
+testdata og bedre funksjonsoppførsel; NTNU-publisering skjer senere og
+må besluttes separat.
+
 ## Foreløpig konklusjon
 
-**Ikke full funksjonsparitet.** Minst kursmigreringen, PHP/RAPT/Brewing, Autodesk native F3D, OAuth livekontoer, visse video-/studieautomatiseringer, leaderboard og private data må utredes eller ferdigstilles. Gamle statiske ressursvisere og flere Engineering Tools har solide automatiserte tester, men trenger side-ved-side med faktiske V1-filer.
+**Ikke full funksjonsparitet.** **Kursfilmigrering til GitHub er bevisst avlyst:** NTNU beholder originalene, og den samme-origin V2-katalogen leser offentlige indekser. Ekte `v2-staging`-visning av disse indeksene må fortsatt testes. PHP/RAPT/Brewing, ekte OAuth-kontoer, video-/studieautomatiseringer, leaderboard og privat to-enhets synk må fortsatt forbedres eller verifiseres. Lokal Fusion-import prioriteres foran valgfri Autodesk Hub-native F3D. Gamle statiske ressursvisere og flere Engineering Tools har solide automatiserte tester, men trenger side-ved-side med faktiske V1-filer.
 
 **Enheten som må godkjennes er et brukertilfelle, ikke bare en menyknapp.** For hvert punkt: kilde-URL og skjermbilde, inputfiler, forventet resultat, datalagring, feilsituasjoner, mobil/desktop, konto/offline, personvern, testlenke og godkjenner. Marker `PASS`, `FAIL`, `WAIVED` (eksplisitt samtykke) eller `UNKNOWN`. `UNKNOWN` er blokkering, ikke godkjent.
 
