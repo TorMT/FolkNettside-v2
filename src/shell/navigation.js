@@ -1,4 +1,4 @@
-import {escapeHTML} from "../viewers/utils.js?v=170408c684c2a559bce2f17060d632aa89defe06";
+import {escapeHTML} from "../viewers/utils.js?v=9b3f94a8201e36d764f7f15b7ffd7380b1addadb";
 export const PRIMARY_NAV=[
   {id:"portfolio",label:"Projects",route:"/portfolio"},
   {id:"engineering",label:"Engineering",route:"/engineering"},
@@ -48,7 +48,7 @@ export function renderTopShell(active,{coursesLabel="Courses",account={},folkAcc
     folkConnected?(folkAccount.user?.email||"FolkNet account"):
     googleConnected?(account?.profile?.name||account?.profile?.email||"Google"):"Sign in";
   const accountName=escapeHTML(text);
-  const accountInitial=signedIn?String(text).trim().slice(0,1).toUpperCase():"○";
+  const accountInitial=signedIn?escapeHTML(String(text).trim().slice(0,1).toUpperCase()):"○";
 
   return `<header class="topbar">
     <div class="brand" id="home"><span class="brand-mark"></span>FolkNettside</div>
