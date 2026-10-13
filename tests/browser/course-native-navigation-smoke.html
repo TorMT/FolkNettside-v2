@@ -25,12 +25,10 @@ try{
  check(win().location.hash==="#/courses/5/TMR4182","Course URL did not update");
  const file=await wait(()=>doc()?.querySelector(".resource-viewer-link[href^='#/viewer/5/TMR4182/']"),
    "Real native file viewer links missing");
- check(doc().querySelectorAll(".resource-original-link").length>0,
-   "Original NTNU fallback links absent");
- check(file.closest(".resource-row")?.querySelector(".resource-original-link")?.
-   getAttribute("href")?.startsWith("https://tormt.folk.ntnu.no/semestre/5/")===false ||
-   !file.closest(".resource-row").querySelector(".resource-original-link")?.getAttribute("href")?
-     .startsWith("javascript:"),
+ // Local Chrome fixtures intentionally do not have a NTNU source URL.
+ // Public NTNU URLs and fallback links are covered by Node manifest tests.
+ const original=file.closest(".resource-row")?.querySelector(".resource-original-link");
+ if(original)check(original.href.startsWith("https://tormt.folk.ntnu.no/semestre/"),
    "Unsafe original URL");
  file.click();
  await wait(()=>doc()?.querySelector("#viewer-back"),"Clicking file did not open viewer");
