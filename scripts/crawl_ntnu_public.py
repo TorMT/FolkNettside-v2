@@ -72,8 +72,8 @@ def safe_piece(s):
 
 
 def public_path(semester, slug, parts):
-    return ("/semestre/" + str(semester) + "/" + quote(slug, safe="") +
-            "/" + "/".join(quote(p, safe="") for p in parts))
+    return ("/semestre/" + str(semester) + "/" + quote(slug, safe="!\u0027()*") +
+            "/" + "/".join(quote(p, safe="!\u0027()*") for p in parts))
 
 
 def fetch_public(url):

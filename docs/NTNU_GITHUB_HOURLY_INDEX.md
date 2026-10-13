@@ -18,7 +18,7 @@ kjøre et script på montert webedit, bruker vi GitHub Actions:
 5. GitHub Pages leser den nye katalogen, mens NTNU fortsatt lagrer alt.
 
 Kilder til kontroll: config/ntnu-public-courses.json er en gjennomgått
-liste over 24 offentlig deklarerte fag. Hver kjøring kontrollerer på nytt
+liste over 24 offentlig deklarerte fag, inkludert tre opprinnelig tomme\nsemester 5-fag. **Alle 32 eksisterende offentlige `filer/`- og `quiz/`-mapper\ner nå inkludert.** Hver kjøring kontrollerer på nytt
 at fag er markert beskyttet:false. Den følger ingen private mapper,
 symbolske lenker eller tredjepartsdomener og nekter å erstatte katalogen
 ved utilgjengelige mapper eller uforklarlige større filreduksjoner.
