@@ -149,8 +149,8 @@ def build_catalog(webroot: Path, allowlist: dict):
                 if total > MAX_FILES:
                     raise ValueError("Public catalog exceeds global file budget")
                 relative = source.relative_to(course_dir)
-                path = "/semestre/" + str(sid) + "/" + quote(slug, safe="") + "/" + "/".join(
-                    quote(component, safe="") for component in relative.parts)
+                path = "/semestre/" + str(sid) + "/" + quote(slug, safe="!\u0027()*") + "/" + "/".join(
+                    quote(component, safe="!\u0027()*") for component in relative.parts)
                 folders = list(relative.parts[1:-1])
                 item = {
                     "source":"ntnu", "name":source.name,
