@@ -30,7 +30,8 @@ KINDS = {
     ".mov":"VIDEO",".zip":"ZIP",".stl":"STL",".3mf":"3MF",
     ".glb":"GLB",".obj":"OBJ",".f3z":"F3Z",".f3d":"F3D",
     ".step":"STEP",".stp":"STEP",".iges":"IGES",".igs":"IGES",
-    ".z012rs":"Z012RS",".z014rs":"Z014RS",".w10":"W10"
+    ".z012rs":"Z012RS",".z014rs":"Z014RS",".w10":"W10",
+    ".fbm":"FILE"  # DELFTship / other legacy source file: download-only
 }
 SKIP = {"index.html","index.htm","index.php","index.json","thumbs.db"}
 
