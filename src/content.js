@@ -1,10 +1,10 @@
 import {onNTNUHost} from "./courses/ntnu-catalog.js";
-import {loadNTNUAutoCatalog} from "./courses/ntnu-autocatalog.js";
-import {loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js";
+import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
-   /^\\/FolkNettside-v2(?:\\/|$)/.test(String(pathname||""));
+   (String(pathname||"")==="/FolkNettside-v2"||
+    String(pathname||"").startsWith("/FolkNettside-v2/"));
 }
 
 /** Remap file-byte URLs to original NTNU on Pages, not Pages /semestre. */
