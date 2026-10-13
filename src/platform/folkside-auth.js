@@ -204,6 +204,23 @@ export async function getFolkAccountUser(){
    throw Error("Account identity verification failed.");
  return copyUser(result);
 }
+/** Read verified provider identities from the authenticated Supabase user.
+ *  This is not a Google Drive token, login or an account-linking action.
+ */
+export async function getFolkLinkedProviders(){
+ const token=await getFolkAccessToken();
+ const result=await request("user",{token});
+ if(!result?.id||result.id!==auth?.session?.user?.id)
+   throw Error("Account identity verification failed.");
+ if(!Array.isArray(result.identities))
+   return {available:false,providers:[],googleLinked:false};
+ const providers=[...new Set(result.identities
+   .filter(x=>x&&typeof x==="object"&&
+     ["email","google"].includes(x.provider))
+   .map(x=>x.provider))].sort();
+ return {available:true,providers,googleLinked:providers.includes("google")};
+}
+
 export async function folkSignOut(){
  revision++;
  const token=auth?.session?.access_token;
