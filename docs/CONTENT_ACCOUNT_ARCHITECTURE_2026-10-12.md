@@ -3,6 +3,24 @@
 **Date:** 2026-10-12  
 **Status:** Proposed development direction; no NTNU file moves, V1 edits, changes to existing user data or real OAuth configuration have been authorized.
 
+## Revised implementation direction — 13 October 2026
+
+We confirmed **public Apache directory listings** at NTNU for approved
+course subdirectories. Unlike the original local-only design, a scheduled
+GitHub Actions runner can discover *new public files* without webedit access.
+The owner has proposed GitHub Pages as the V2 frontend and NTNU as a
+file-only host. See [hourly GitHub catalog plan](NTNU_GITHUB_HOURLY_INDEX.md).
+
+The former same-origin recommendation still applies to **full interactive
+viewer compatibility**: the GitHub Pages solution needs one-time CORS
+acceptance or restricted public CORS headers on NTNU. A root-index redirect
+alone does not grant browser JavaScript cross-origin file access. The
+non-deployed redirect draft must remain separate until this is verified.
+
+The local-webedit scanner is now an **optional fallback**, not a requirement
+for day-to-day upload. Supabase still handles identities and private
+progress; it is not used for public file indexing.
+
 ## Executive decision
 
 - **NTNU = original course file store**; GitHub = application source and automated CI; Supabase = identities and **per-user** app data.
