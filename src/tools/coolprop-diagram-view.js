@@ -1,5 +1,5 @@
-import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js?v=5c34cd9839c43dc87281643c6b62b9c37893ec50";
-import {zoomDiagramViewport} from "./coolprop-diagram-viewport.js?v=5c34cd9839c43dc87281643c6b62b9c37893ec50";
+import {dataBounds,diagramDatasets,diagramType} from "./coolprop-diagram-core.js?v=6d607086d97957cd2aad874d59cc9c70ebaac62b";
+import {zoomDiagramViewport} from "./coolprop-diagram-viewport.js?v=6d607086d97957cd2aad874d59cc9c70ebaac62b";
 
 function css(name,fallback){
   const value=getComputedStyle(document.documentElement).getPropertyValue(name).trim();

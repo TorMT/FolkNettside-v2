@@ -1,8 +1,8 @@
-import {escapeHTML,fetchText} from "../utils.js?v=5c34cd9839c43dc87281643c6b62b9c37893ec50";
-import {getKaTeX} from "../../vendor/katex.js?v=5c34cd9839c43dc87281643c6b62b9c37893ec50";
-import {createDomFinder} from "../dom-search.js?v=5c34cd9839c43dc87281643c6b62b9c37893ec50";
-import {latexBlocks,latexSectionTitle} from "../latex-core.js?v=5c34cd9839c43dc87281643c6b62b9c37893ec50";
-import {simpleLatexMathHTML} from "../latex-native.js?v=5c34cd9839c43dc87281643c6b62b9c37893ec50";
+import {escapeHTML,fetchText} from "../utils.js?v=6d607086d97957cd2aad874d59cc9c70ebaac62b";
+import {getKaTeX} from "../../vendor/katex.js?v=6d607086d97957cd2aad874d59cc9c70ebaac62b";
+import {createDomFinder} from "../dom-search.js?v=6d607086d97957cd2aad874d59cc9c70ebaac62b";
+import {latexBlocks,latexSectionTitle} from "../latex-core.js?v=6d607086d97957cd2aad874d59cc9c70ebaac62b";
+import {simpleLatexMathHTML} from "../latex-native.js?v=6d607086d97957cd2aad874d59cc9c70ebaac62b";
 
 function textNodes(input){
  return input.split(/\n/).map(line=>{
