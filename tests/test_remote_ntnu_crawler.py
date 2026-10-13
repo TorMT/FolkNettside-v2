@@ -69,6 +69,19 @@ class RemoteCatalogTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"Apache directory listing"):
             crawler.crawl(self.config,fetch=self.fetch)
 
+
+    def test_url_encoding_matches_browser_generated_catalog_for_parentheses(self):
+        url=crawler.public_path(5,"Marin-Dynamikk",[
+            "filer","Øving (1)","Beregningsark (2).py"
+        ])
+        self.assertEqual(url,"/semestre/5/Marin-Dynamikk/filer/"
+                         "%C3%98ving%20(1)/Beregningsark%20(2).py")
+        self.pages[self.directory]=listing("Beregningsark%20%282%29.py")
+        record=crawler.crawl(self.config,fetch=self.fetch)[
+            "semesters"][0]["courses"][0]["resources"][0]
+        self.assertEqual(record["path"],"/semestre/5/Marin-Dynamikk/"
+                         "filer/Beregningsark%20(2).py")
+
     def test_no_cross_origin_directory_escape_or_encoded_paths(self):
         entries=crawler.links_in_directory(listing(
             "https://evil.example/secret.pdf","../private.pdf","%2e%2e/",
