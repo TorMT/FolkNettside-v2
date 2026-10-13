@@ -60,8 +60,14 @@ class ApacheListing(HTMLParser):
         if self.in_heading:
             self.heading.append(data)
 
-    def valid(self):
-        return bool(re.search(r"Index of /", " ".join(self.heading), re.I))
+    def valid(self, document):
+        # NTNU's public Apache listing may place its index heading outside
+        # the h1/title tags; do not require one specific HTML template.
+        # Still demand a public semester index title, parent link and anchors.
+        heading=" ".join(self.heading)
+        return bool(self.links and "Parent Directory" in document and
+                    (re.search(r"Index\s+of\s+/semestre/", heading, re.I)
+                     or re.search(r"Index\s+of\s+/semestre/", document, re.I)))
 
 
 def safe_piece(s):
@@ -102,7 +108,7 @@ def fetch_public(url):
 def links_in_directory(html, directory):
     listing = ApacheListing()
     listing.feed(html)
-    if not listing.valid():
+    if not listing.valid(html):
         raise ValueError("Expected Apache directory listing on approved public directory")
     base = urlsplit(directory)
     if not base.path.endswith("/"):
@@ -175,7 +181,11 @@ def crawl(config, *, fetch=fetch_public):
                 if directories>MAX_DIRECTORIES or len(parts)>12:
                     raise ValueError("Directory budget exceeded")
                 directory = ORIGIN+public_path(sid,slug,parts)+"/"
-                children = links_in_directory(fetch(directory),directory)
+                try:
+                    children = links_in_directory(fetch(directory),directory)
+                except ValueError as error:
+                    raise ValueError("Public NTNU directory could not be indexed: "
+                                     + directory) from error
                 for name,is_directory in children:
                     next_parts = parts+[name]
                     if is_directory:
