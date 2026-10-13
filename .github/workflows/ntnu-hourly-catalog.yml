@@ -4,6 +4,14 @@ on:
     # GitHub schedules are approximate; the runner need not execute at :17.
     - cron: '17 * * * *'
   workflow_dispatch:
+  # Bootstrap promptly when the scanner, its reviewed allowlist or this
+  # workflow is updated. Catalog-only bot commits never trigger this again.
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ntnu-hourly-catalog.yml"
+      - "config/ntnu-public-courses.json"
+      - "scripts/crawl_ntnu_public.py"
 
 permissions:
   contents: write
