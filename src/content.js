@@ -1,5 +1,6 @@
 import {onNTNUHost} from "./courses/ntnu-catalog.js";
 import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js";
+import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
@@ -81,6 +82,17 @@ export async function loadContent() {
       // hourly scan; never invent a live NTNU course.
       courseSource={mode:"preview",status:"demo",
         failedSemesters:[],catalogSource:"example"};
+    }
+  }
+
+  // Friendly labels are independent of original NTNU filenames and URLs.
+  // A malformed optional alias file never hides approved public subjects.
+  if(courseSource.mode==="ntnu"||courseSource.mode==="github-ntnu"){
+    try{
+      const aliases=await readJSON("./config/ntnu-display-names.json");
+      manifest=applyNTNUDisplayNames(manifest,aliases);
+    }catch(error){
+      console.warn("NTNU display names unavailable; original labels are retained.",error);
     }
   }
 
