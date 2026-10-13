@@ -579,7 +579,9 @@ function coursesPage(requestedSemester){
       </div>
       ${semester.courses.length
         ?`<div class="course-grid">${courseCards}</div>`
-        :'<div class="course-header"><h3>Ingen eksempeldata i dette semesteret ennå.</h3><p>Legg inn en fagmappe og kjør <code>python scripts/update_site.py</code>.</p></div>'}
+        :courseSource?.mode==="github-ntnu"||courseSource?.mode==="ntnu"
+          ?'<div class="course-header"><h3>Ingen offentlige fag registrert i dette semesteret ennå.</h3><p>Når det opprettes og godkjennes offentlige fag på NTNU, kan de vises her uten å kopiere kursfilene til GitHub.</p></div>'
+          :'<div class="course-header"><h3>Ingen eksempeldata i dette semesteret ennå.</h3><p>Forhåndsvisningen inneholder bare et begrenset utvalg av testressurser.</p></div>'}
     </section>
   </main><div class="preview-badge">Courses exposes Kok; Portfolio does not</div>`;
 
