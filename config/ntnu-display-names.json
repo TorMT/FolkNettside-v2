@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Kun visningsnavn i FolkNettside V2. Nøkler er opprinnelig semester/fagmappe/filbane på NTNU. Ikke flytt eller gi nytt navn til originalfiler. For å endre visningsnavn for alle: rediger denne JSON-filen på GitHub, og la Pages deploye.",
+  "courses": {
+    "1/exphil": {
+      "title": "Ex.phil."
+    },
+    "1/genkjemi": {
+      "title": "Generell kjemi"
+    },
+    "1/itgk": {
+      "title": "Informasjonsteknologi, grunnkurs"
+    },
+    "2/fysikk": {
+      "title": "Fysikk"
+    },
+    "2/mekanikk2": {
+      "title": "Mekanikk 2"
+    },
+    "2/prosessteknikk": {
+      "title": "Prosessteknikk"
+    },
+    "2/statistikk": {
+      "title": "Statistikk"
+    },
+    "2/UorgKjemi": {
+      "title": "Uorganisk kjemi"
+    },
+    "3/Fluid": {
+      "title": "Fluidmekanikk"
+    },
+    "3/marin-intro": {
+      "title": "Marin teknikk 1 – Introduksjon"
+    },
+    "3/marine-konstruksjoner": {
+      "title": "Marine konstruksjoner"
+    },
+    "3/Matte3": {
+      "title": "Matematikk 3"
+    },
+    "3/mekanikk1": {
+      "title": "Mekanikk 1"
+    },
+    "3/organisk-kjemi": {
+      "title": "Organisk kjemi"
+    },
+    "4/FysikalskKjemi": {
+      "title": "Fysikalsk kjemi"
+    },
+    "4/marin-Hydro": {
+      "title": "Marin hydrodynamikk"
+    },
+    "4/MaterialTeknikk": {
+      "title": "Materialteknikk"
+    },
+    "4/Strømming": {
+      "title": "Strømming"
+    },
+    "4/TermoDynamikk": {
+      "title": "Termodynamikk"
+    },
+    "5/Marin-Dynamikk": {
+      "title": "Marin dynamikk"
+    },
+    "5/marin-maskineri": {
+      "title": "Marint maskineri"
+    },
+    "5/marin-teknikk-4-propulsjon": {
+      "title": "Marin teknikk 4 – Propulsjon"
+    },
+    "5/teknologiledelse": {
+      "title": "Teknologiledelse"
+    },
+    "5/marin-machinery-design-and-condition-monitoring": {
+      "title": "Marine maskineri – design og tilstandsovervåking"
+    }
+  },
+  "sections": {
+    "5/Marin-Dynamikk/Øving1": "Øving 1",
+    "5/Marin-Dynamikk/Øving3": "Øving 3",
+    "5/Marin-Dynamikk/Filer og ressurser": "Andre filer",
+    "1/exphil/Quiz": "Quiz",
+    "4/marin-Hydro/Øving7": "Øving 7 – Lab og etterbehandling"
+  },
+  "folders": {
+    "4/marin-Hydro/filer/Øving3/oppgave1": "Oppgave 1",
+    "4/marin-Hydro/filer/Øving3/oppgave2": "Oppgave 2",
+    "4/marin-Hydro/filer/Øving3/plott": "Plott"
+  },
+  "files": {
+    "5/Marin-Dynamikk/filer/Øving1/Forarbeid.pdf": "Forarbeid – Lab 1",
+    "5/Marin-Dynamikk/filer/Øving3/const_avg_acc.py": "Konstant gjennomsnittsakselerasjon",
+    "5/Marin-Dynamikk/filer/Øving3/runge_kutta4.py": "Runge–Kutta 4",
+    "5/Marin-Dynamikk/filer/Øving3/dis_state_space.py": "Diskret tilstandsrom",
+    "5/Marin-Dynamikk/filer/Øving3/tmr4182_ex9_calling.py": "Kjøreprogram – Øving 3",
+    "4/marin-Hydro/filer/Øving7/postprocessing.py": "Etterbehandling – Lab",
+    "1/exphil/quiz/quiz.json": "Øvingsquiz i ex.phil."
+  }
+}

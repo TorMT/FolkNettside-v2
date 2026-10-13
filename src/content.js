@@ -1,5 +1,6 @@
-import {onNTNUHost} from "./courses/ntnu-catalog.js?v=049c8c57c897de04c69668ecf1b175c29f8b840a";
-import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=049c8c57c897de04c69668ecf1b175c29f8b840a";
+import {onNTNUHost} from "./courses/ntnu-catalog.js?v=c66930ad66a4c14777ba380d7dc50b8985b74d2f";
+import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=c66930ad66a4c14777ba380d7dc50b8985b74d2f";
+import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=c66930ad66a4c14777ba380d7dc50b8985b74d2f";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
@@ -81,6 +82,17 @@ export async function loadContent() {
       // hourly scan; never invent a live NTNU course.
       courseSource={mode:"preview",status:"demo",
         failedSemesters:[],catalogSource:"example"};
+    }
+  }
+
+  // Friendly labels are independent of original NTNU filenames and URLs.
+  // A malformed optional alias file never hides approved public subjects.
+  if(courseSource.mode==="ntnu"||courseSource.mode==="github-ntnu"){
+    try{
+      const aliases=await readJSON("./config/ntnu-display-names.json");
+      manifest=applyNTNUDisplayNames(manifest,aliases);
+    }catch(error){
+      console.warn("NTNU display names unavailable; original labels are retained.",error);
     }
   }
 

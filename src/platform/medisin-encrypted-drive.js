@@ -3,9 +3,9 @@
  * Drive sees only opaque ciphertext; does not read/replace legacy plaintext
  * folk-medisin-v2.json. Scoped to a deterministic account vault name.
  */
-import {getGoogleAccessToken,getGoogleSessionSnapshot} from "./google-session.js?v=049c8c57c897de04c69668ecf1b175c29f8b840a";
-import {validateMedisinBackup} from "./medisin-drive.js?v=049c8c57c897de04c69668ecf1b175c29f8b840a";
-import {encryptMedisinVault,decryptMedisinVault,medisinVaultFileName} from "./medisin-vault.js?v=049c8c57c897de04c69668ecf1b175c29f8b840a";
+import {getGoogleAccessToken,getGoogleSessionSnapshot} from "./google-session.js?v=c66930ad66a4c14777ba380d7dc50b8985b74d2f";
+import {validateMedisinBackup} from "./medisin-drive.js?v=c66930ad66a4c14777ba380d7dc50b8985b74d2f";
+import {encryptMedisinVault,decryptMedisinVault,medisinVaultFileName} from "./medisin-vault.js?v=c66930ad66a4c14777ba380d7dc50b8985b74d2f";
 
 const API="https://www.googleapis.com/drive/v3/files";
 const UPLOAD="https://www.googleapis.com/upload/drive/v3/files";
