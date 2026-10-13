@@ -182,7 +182,7 @@ export function quizStorageKey(resource={}){
   // NTNU's relativePath is only "quiz/quiz.json" and repeats across
   // courses. Scope progress to the full original URL on that host.
   const identity=resource.source==="ntnu"
-    ?(resource.path||resource.url||resource.relativePath||resource.name)
+    ?(resource.originalPath||resource.path||resource.url||resource.relativePath||resource.name)
     :(resource.relativePath||resource.path||resource.url||resource.name||resource.label||"quiz");
   return `folknet:quiz:${String(identity)}`;
 }
