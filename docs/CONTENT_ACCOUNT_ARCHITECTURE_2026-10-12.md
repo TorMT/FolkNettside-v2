@@ -108,6 +108,22 @@ Never expose the Supabase service-role key to the browser. Before live
 deployment: test two unrelated accounts, two devices and lost-password/
 expired-token, concurrent change, import, deletion and restore.
 
+### Implemented intermediate identity status (13 October 2026)
+
+Settings now exposes a **read-only** action to check whether the signed-in
+FolkNet Supabase user already has a verified Google sign-in identity.
+It uses the existing authenticated `/auth/v1/user` response, verifies that
+its UUID matches the current FolkNet session and returns only provider
+names, not tokens, identity IDs or profile details.
+
+This **does not link accounts**, change Google Drive authorization, create
+a Google OAuth session or merge legacy Google-sub/local data. Manual
+Google identity linking is still pending an owner-configured Supabase
+Google provider, approved redirect URL and secure OAuth callback handling.
+Supabase's standard `linkIdentity({provider:"google"})` path can be used
+once those prerequisites are met, rather than treating an existing
+`drive.file` token as an authentication credential.
+
 ## 3. Automatic indexing (recommended)
 
 The user should upload a document into `semestre/N/<course>/filer/...`
