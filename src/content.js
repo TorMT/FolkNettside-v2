@@ -1,6 +1,7 @@
-import {onNTNUHost} from "./courses/ntnu-catalog.js?v=602370baadd79971cc3da5fd5d7fa1f9c9d34319";
-import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=602370baadd79971cc3da5fd5d7fa1f9c9d34319";
-import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=602370baadd79971cc3da5fd5d7fa1f9c9d34319";
+import {onNTNUHost} from "./courses/ntnu-catalog.js?v=613f1bf06f03c71e4e3782328409464d1ab91dac";
+import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=613f1bf06f03c71e4e3782328409464d1ab91dac";
+import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=613f1bf06f03c71e4e3782328409464d1ab91dac";
+import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=613f1bf06f03c71e4e3782328409464d1ab91dac";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
@@ -93,6 +94,15 @@ export async function loadContent() {
       manifest=applyNTNUDisplayNames(manifest,aliases);
     }catch(error){
       console.warn("NTNU display names unavailable; original labels are retained.",error);
+    }
+  }
+
+  if(courseSource.mode==="ntnu"||courseSource.mode==="github-ntnu"){
+    try{
+      const visibility=await readJSON("./config/ntnu-course-visibility.json");
+      manifest=applyNTNUCourseVisibility(manifest,visibility);
+    }catch(error){
+      console.warn("Optional V2 course visibility settings unavailable.",error);
     }
   }
 
