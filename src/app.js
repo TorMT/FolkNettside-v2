@@ -546,7 +546,9 @@ function coursesPage(requestedSemester){
   }).join("");
 
   app.innerHTML=top("courses")+`<main class="study courses-overview">
-    ${courseSource?.mode==="ntnu"&&courseSource.status==="auto"?
+    ${courseSource?.mode==="github-ntnu"?
+      '<p class="course-source-status" role="status">Kursreferanser oppdateres automatisk fra offentlige NTNU-mapper omtrent hver time. Originalfilene ligger på NTNU. PDF og mediefiler kan åpnes direkte; enkelte interaktive visere trenger CORS-tillatelse fra NTNU og har foreløpig lenke til originalen.</p>':
+      courseSource?.mode==="ntnu"&&courseSource.status==="auto"?
       '<p class="course-source-status" role="status">Kursoversikten er oppdatert fra NTNUs automatiske katalog. Filene ligger fortsatt på NTNU.</p>':
       courseSource?.mode==="ntnu"&&courseSource.status==="live"?
       '<p class="course-source-status" role="status">Originale kursfiler leses fra NTNUs eksisterende indekser'+(courseSource.fallback?' (automatisk katalog er ennå ikke tilgjengelig)':'')+'.</p>':

@@ -1,0 +1,79 @@
+name: hourly-ntnu-public-course-index
+on:
+  schedule:
+    # GitHub schedules are approximate; the runner need not execute at :17.
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: folk-v2-ntnu-catalog-index
+  cancel-in-progress: false
+
+jobs:
+  refresh-public-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test safe crawler before network operations
+        run: python -m unittest discover -s tests -p test_remote_ntnu_crawler.py -v
+      - name: Scan only reviewed public NTNU directory indexes
+        run: |
+          python scripts/crawl_ntnu_public.py \
+            --config config/ntnu-public-courses.json \
+            --output data/ntnu-autocatalog.json
+      - name: Report whether interactive Pages viewers have public CORS access
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import urllib.request
+          target="https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/%C3%98ving3/const_avg_acc.py"
+          request=urllib.request.Request(target,method="HEAD",headers={
+              "Origin":"https://tormt.github.io"
+          })
+          try:
+              with urllib.request.urlopen(request,timeout=15) as response:
+                  cors=response.headers.get("Access-Control-Allow-Origin","")
+              if cors not in ("*","https://tormt.github.io"):
+                  print("::warning::NTNU public files lack confirmed Pages CORS; interactive remote viewers need one-time public-only configuration")
+              else:
+                  print("Public Python resource advertises Pages CORS origin:",cors)
+          except Exception as error:
+              print("::warning::Unable to verify CORS on a public Python file:",type(error).__name__)
+          PY
+      - name: Commit changed references only (never file bytes)
+        id: index
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- data/ntnu-autocatalog.json
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes in public file list."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(ntnu): refresh public file references [skip ci]"
+          # No history rewriting or changes to V1; fail on concurrent main pushes.
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+      - name: Explicitly dispatch Pages build for the new catalog
+        if: steps.index.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # GITHUB_TOKEN pushes do not start normal 'push' workflows.
+          # workflow_dispatch is explicitly allowed and publishes the new JSON.
+          gh api -X POST "repos/$GITHUB_REPOSITORY/actions/workflows/pages.yml/dispatches" \
+            -f ref=main

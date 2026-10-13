@@ -1,0 +1,29 @@
+{
+  "_comment":"Only courses explicitly marked beskyttet:false in the current public NTNU semester indexes. Curated 2026-10-13. New courses require review; files inside these public sections are discovered hourly.",
+  "publicCourses":[
+    {"semester":1,"slug":"exphil","sections":["filer","quiz"]},
+    {"semester":1,"slug":"genkjemi","sections":["filer","quiz"]},
+    {"semester":1,"slug":"itgk","sections":["filer","quiz"]},
+    {"semester":2,"slug":"fysikk","sections":["filer","quiz"]},
+    {"semester":2,"slug":"mekanikk2","sections":["filer"]},
+    {"semester":2,"slug":"prosessteknikk","sections":["filer"]},
+    {"semester":2,"slug":"statistikk","sections":["filer"]},
+    {"semester":2,"slug":"UorgKjemi","sections":["filer"]},
+    {"semester":3,"slug":"Fluid","sections":["filer"]},
+    {"semester":3,"slug":"marin-intro","sections":["filer"]},
+    {"semester":3,"slug":"marine-konstruksjoner","sections":["filer"]},
+    {"semester":3,"slug":"Matte3","sections":["filer","quiz"]},
+    {"semester":3,"slug":"mekanikk1","sections":["filer"]},
+    {"semester":3,"slug":"organisk-kjemi","sections":["filer","quiz"]},
+    {"semester":4,"slug":"FysikalskKjemi","sections":["filer"]},
+    {"semester":4,"slug":"marin-Hydro","sections":["filer"]},
+    {"semester":4,"slug":"MaterialTeknikk","sections":["filer","quiz"]},
+    {"semester":4,"slug":"Strømming","sections":["filer","quiz"]},
+    {"semester":4,"slug":"TermoDynamikk","sections":["filer"]},
+    {"semester":5,"slug":"Marin-Dynamikk","sections":["filer"]},
+    {"semester":5,"slug":"marin-maskineri","sections":[]},
+    {"semester":5,"slug":"marin-teknikk-4-propulsjon","sections":["filer"]},
+    {"semester":5,"slug":"teknologiledelse","sections":[]},
+    {"semester":5,"slug":"marin-machinery-design-and-condition-monitoring","sections":[]}
+  ]
+}
