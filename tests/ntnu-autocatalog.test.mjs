@@ -55,7 +55,7 @@ test("legacy filenames with parentheses match the generated Python catalog URLs"
  file.path="/semestre/5/Marin-Dynamikk/filer/%C3%98ving%20(1)/Beregningsark%20(2).py";
  file.url=NTNU_ORIGIN+file.path;
  const parsed=validateNTNUAutoCatalog(manifest);
- assert.equal(parsed.semesters[0].courses[0].resources[0].url,file.url);
+ assert.equal(parsed.semesters[0].courses[0].resources.find(x=>x.name==="Beregningsark (2).py")?.url,file.url);
 });
 
 test("reject protected, escaping, remote and untrusted generated catalog entries",()=>{
