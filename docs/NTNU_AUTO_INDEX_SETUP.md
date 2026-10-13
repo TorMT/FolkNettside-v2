@@ -48,6 +48,33 @@ deletions require independent inspection and explicit
 `--allow-removals` along with `--apply`; a completely empty replacement
 of previously indexed course data is always rejected.
 
+## Faster Windows / VS Code command
+
+The same safe publisher is now wrapped by `Update-Kursindeks.ps1` in
+the V2 repo root. After you've verified the mounted webedit location
+and created your own private allowlist (NOT the sample file as a blanket
+permission), run this **once**:
+
+```powershell
+.\Update-Kursindeks.ps1 -Configure `
+  -WebRoot "<verified NTNU webedit root>" `
+  -Allowlist "$env:USERPROFILE\Documents\ntnu-public-courses.json" `
+  -BackupRoot "$env:USERPROFILE\Documents\FolkNetV2-CatalogBackups"
+```
+
+It stores the reviewed paths outside both GitHub and webedit, under
+`%APPDATA%\FolkNettsideV2`. Afterwards, from VS Code:
+
+```powershell
+.\Update-Kursindeks.ps1          # dry-run: no webedit writes
+.\Update-Kursindeks.ps1 -Apply   # only after review; writes V2 JSON
+```
+
+Neither command performs `git pull` or changes the live NTNU homepage,
+and both require the isolated V2 staging to exist first. A risky
+deletion of more than 25% of resources requires manual investigation;
+`-AllowRemovals -Apply` is an explicit exception, never a default.
+
 ## Hourly updates — later, only with owner permission
 
 The publishing command is safe to run periodically **after** real staging
