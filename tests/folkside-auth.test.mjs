@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
  validateFolkAuthConfig,initializeFolkAccount,getFolkAccountSnapshot,
- folkSignIn,folkSignUp,getFolkAccessToken,getFolkAccountUser,folkSignOut,
+ folkSignIn,folkSignUp,getFolkAccessToken,getFolkAccountUser,getFolkLinkedProviders,folkSignOut,
  resetFolkAccountForTests
 } from "../src/platform/folkside-auth.js";
 const url="https://glfuvfmppkjmarujjqwg.supabase.co";
@@ -88,4 +88,32 @@ test("auth failures do not reveal server internals or invent identities",async()
  await assert.rejects(folkSignIn({email:user.email,password:"abcdefghij"}),/Invalid login/);
  assert.equal(getFolkAccountSnapshot().user,null);
  await assert.rejects(folkSignIn({email:"bad",password:"abcdefghij"}),/valid email/);
+});
+
+test("linked Google login status uses verified FolkNet identities, never Drive tokens",async()=>{
+ let userResponse={...user,identities:[
+   {provider:"email",identity_id:"id-email",identity_data:{email:user.email}},
+   {provider:"google",identity_id:"id-google",identity_data:{email:user.email,access_token:"do-not-echo"}},
+   {provider:"google",identity_id:"duplicate"},
+   {provider:"unknown-provider",identity_id:"other"}
+ ]};
+ await withAuth(async(address)=>{
+   if(address.includes("grant_type=password"))return reply(session);
+   if(address.endsWith("/user"))return reply(userResponse);
+   throw Error("Unexpected auth request");
+ });
+ await folkSignIn({email:user.email,password:"abcdefghij"});
+ const result=await getFolkLinkedProviders();
+ assert.equal(result.available,true);
+ assert.equal(result.googleLinked,true);
+ assert.deepEqual(result.providers,["email","google"]);
+ assert.equal(JSON.stringify(result).includes("do-not-echo"),false);
+ userResponse={...user,identities:[{provider:"email",identity_id:"e"}]};
+ const onlyEmail=await getFolkLinkedProviders();
+ assert.equal(onlyEmail.googleLinked,false);
+ userResponse={...user};
+ const unknown=await getFolkLinkedProviders();
+ assert.equal(unknown.available,false);
+ userResponse={...user,id:"different-user",identities:[{provider:"google"}]};
+ await assert.rejects(getFolkLinkedProviders(),/identity verification/);
 });

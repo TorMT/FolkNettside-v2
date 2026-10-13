@@ -76,7 +76,7 @@ import {configuredMatprisEndpoint} from "./diverse/matpris-api.js";
 import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js";
 import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js";
 import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js";
-import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignUp,folkSignOut} from "./platform/folkside-auth.js";
+import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignUp,folkSignOut,getFolkLinkedProviders} from "./platform/folkside-auth.js";
 import {probeFolkCoreBackend} from "./platform/folkside-cloud.js";
 import {createFolkAppearanceBackup} from "./platform/folkside-preferences.js";
 
@@ -1064,6 +1064,23 @@ function settingsPage(){
         (result.autodeskConnected?"Autodesk connected.":"Autodesk authorization is not connected yet.");
     }catch(error){
       if(feedback)feedback.textContent=String(error?.message||"Backend verification failed");
+    }finally{if(button.isConnected)button.disabled=false}
+  });
+
+  app.querySelector("[data-folk-identities]")?.addEventListener("click",async event=>{
+    const button=event.currentTarget;
+    const feedback=app.querySelector("[data-folk-identities-result]");
+    button.disabled=true;
+    if(feedback)feedback.textContent="Checking linked providers in FolkNet…";
+    try{
+      const linked=await getFolkLinkedProviders();
+      if(feedback)feedback.textContent=!linked.available?
+        "Provider details are not available from this account session.":
+        linked.googleLinked?
+        "Google is linked as a FolkNet sign-in method. Google Drive storage is a separate permission.":
+        "No Google sign-in identity is currently linked to this FolkNet account. Google Drive sign-in does not automatically link it.";
+    }catch(error){
+      if(feedback)feedback.textContent=String(error?.message||"Could not verify account providers.");
     }finally{if(button.isConnected)button.disabled=false}
   });
 
