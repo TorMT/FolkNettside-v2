@@ -610,7 +610,8 @@ function coursePage(semesterId,code){
     return groups;
   },Object.create(null));
   const sections=course.sections
-    .map((label,index)=>({label,index,items:grouped[label]||[]}))
+    .map((label,index)=>({label,index,items:grouped[label]||[],
+      originalLabel:grouped[label]?.[0]?.originalSection||label}))
     .filter(section=>section.items.length);
   const karakterwebHref=karakterwebUrl(course.code);
   const resourceCount=course.resources.length;
@@ -637,7 +638,7 @@ function coursePage(semesterId,code){
       </header>
       ${newResourcesHTML}
       ${sections.map(section=>`<section class="resource-section" id="course-section-${section.index}" data-course-section="section-${section.index}">
-        <div class="resource-section-head"><h2>${escCourse(section.label)}</h2><span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
+        <div class="resource-section-head"><h2>${escCourse(section.label)}</h2>${section.originalLabel!==section.label?`<small class="muted">NTNU: ${escCourse(section.originalLabel)}</small>`:""}<span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
         <div class="resource-list">${renderResourceTree(section.items,item=>course.resources.indexOf(item))}</div>
       </section>`).join("")}
       <section class="resource-section" id="course-karakterweb" data-course-section="karakterweb">
