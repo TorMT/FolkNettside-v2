@@ -1,6 +1,7 @@
 import {onNTNUHost} from "./courses/ntnu-catalog.js";
 import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js";
 import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js";
+import {applyNTNUCourseVisibility} from "./courses/course-visibility.js";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
@@ -93,6 +94,15 @@ export async function loadContent() {
       manifest=applyNTNUDisplayNames(manifest,aliases);
     }catch(error){
       console.warn("NTNU display names unavailable; original labels are retained.",error);
+    }
+  }
+
+  if(courseSource.mode==="ntnu"||courseSource.mode==="github-ntnu"){
+    try{
+      const visibility=await readJSON("./config/ntnu-course-visibility.json");
+      manifest=applyNTNUCourseVisibility(manifest,visibility);
+    }catch(error){
+      console.warn("Optional V2 course visibility settings unavailable.",error);
     }
   }
 
