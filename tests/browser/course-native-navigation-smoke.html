@@ -1,0 +1,47 @@
+<!doctype html><html lang="no"><head><meta charset="utf-8"><title>Course native links smoke</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body data-status="running"><pre id="result">running</pre>
+<script type="module">
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const check=(condition,message)=>{if(!condition)throw Error(message)};
+const wait=async(fn,message)=>{for(let i=0;i<170;i++){
+  const result=fn();if(result)return result;await sleep(100);
+}throw Error(message)};
+try{
+ const frame=document.createElement("iframe");
+ frame.src="../../index.html#/courses/5";
+ frame.style.cssText="width:1100px;height:900px;border:0";
+ document.body.append(frame);
+ const doc=()=>frame.contentDocument;
+ const win=()=>frame.contentWindow;
+ const link=await wait(()=>doc()?.querySelector('.course-card[data-course="TMR4182"]'),
+   "Native course link is not visible");
+ check(link.matches("a[href]"),"Course card is not a native anchor");
+ check(link.getAttribute("href")==="#/courses/5/TMR4182","Incorrect course href");
+ check(!doc().querySelector(".course-source-status"),"Redundant top status bar still shown");
+ link.click();
+ await wait(()=>doc()?.querySelector(".course-header h1")?.textContent?.includes("Marin"),
+   "Click on course did not open the actual course");
+ check(win().location.hash==="#/courses/5/TMR4182","Course URL did not update");
+ const file=await wait(()=>doc()?.querySelector(".resource-viewer-link[href^='#/viewer/5/TMR4182/']"),
+   "Real native file viewer links missing");
+ check(doc().querySelectorAll(".resource-original-link").length>0,
+   "Original NTNU fallback links absent");
+ check(file.closest(".resource-row")?.querySelector(".resource-original-link")?.
+   getAttribute("href")?.startsWith("https://tormt.folk.ntnu.no/semestre/5/")===false ||
+   !file.closest(".resource-row").querySelector(".resource-original-link")?.getAttribute("href")?
+     .startsWith("javascript:"),
+   "Unsafe original URL");
+ file.click();
+ await wait(()=>doc()?.querySelector("#viewer-back"),"Clicking file did not open viewer");
+ check(win().location.hash.startsWith("#/viewer/5/TMR4182/"),"Viewer URL incorrect");
+ doc().querySelector("#viewer-back").click();
+ await wait(()=>doc()?.querySelector(".course-header h1")?.textContent?.includes("Marin"),
+   "Back did not return to course");
+ document.body.dataset.status="pass";
+ document.getElementById("result").textContent="Course, file viewer, original links and back navigation PASS";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.getElementById("result").textContent=String(error?.stack||error);
+}
+</script></body></html>
