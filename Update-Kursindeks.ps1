@@ -74,14 +74,14 @@ if ($Configure) {
 if (-not (Test-Path -LiteralPath $BackupRoot -PathType Container) -and $Apply) {
     throw "External backup folder missing. Run -Configure first."
 }
-$args = @((Join-Path $Root "scripts/publish_ntnu_autocatalog.py"),
+$pythonArgs = @((Join-Path $Root "scripts/publish_ntnu_autocatalog.py"),
     "--webroot", $WebRoot, "--allowlist", $Allowlist, "--backup-root", $BackupRoot)
-if ($Apply) { $args += "--apply" }
+if ($Apply) { $pythonArgs += "--apply" }
 if ($AllowRemovals) {
     if (-not $Apply) { throw "Mass-removal override requires explicit -Apply." }
-    $args += "--allow-removals"
+    $pythonArgs += "--allow-removals"
 }
-Invoke-Python $args
+Invoke-Python $pythonArgs
 if ($Apply) {
     Write-Host "V2 catalog checked. Refresh the future NTNU V2 staging page to see changes."
 } else {
