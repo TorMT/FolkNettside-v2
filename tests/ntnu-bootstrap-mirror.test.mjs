@@ -39,7 +39,7 @@ test("no protected or hidden V1 content can leak into Pages public references",(
     assert.equal(r.url,"https://tormt.folk.ntnu.no"+r.path);
     assert.equal(r.relativePath.startsWith("filer/")||
       r.relativePath.startsWith("quiz/"),true);
-    assert.equal(r.path.includes(".."),false);
+    assert.equal(r.path.split("/").some(piece=>piece==="."||piece===".."),false);
    }
   }
  }
