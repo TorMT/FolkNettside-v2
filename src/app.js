@@ -546,11 +546,13 @@ function coursesPage(requestedSemester){
   }).join("");
 
   app.innerHTML=top("courses")+`<main class="study courses-overview">
-    ${courseSource?.mode==="ntnu"&&courseSource.status==="live"?
-      '<p class="course-source-status" role="status">Originale kursfiler leses direkte fra NTNU-serveren · ingen kopiering til GitHub.</p>':
+    ${courseSource?.mode==="ntnu"&&courseSource.status==="auto"?
+      '<p class="course-source-status" role="status">Kursoversikten er oppdatert fra NTNUs automatiske katalog. Filene ligger fortsatt på NTNU.</p>':
+      courseSource?.mode==="ntnu"&&courseSource.status==="live"?
+      '<p class="course-source-status" role="status">Originale kursfiler leses fra NTNUs eksisterende indekser'+(courseSource.fallback?' (automatisk katalog er ennå ikke tilgjengelig)':'')+'.</p>':
       courseSource?.mode==="ntnu"?
-      '<p class="course-source-warning" role="alert">Kun deler av NTNU-kursindeksen er tilgjengelig, eller indeksene kunne ikke leses. Eksisterende filer på NTNU er ikke endret. '+(courseSource.failedSemesters?.length?'Feil ved semester '+courseSource.failedSemesters.join(", ")+'.':'')+'</p>':
-      '<p class="course-source-status" role="status">GitHub-forhåndsvisning viser kun testressurser. Hele kursarkivet ligger på NTNU-serveren.</p>'}
+      '<p class="course-source-warning" role="alert">Bare deler av NTNUs kursindekser kan leses, eller de er utilgjengelige. Eksisterende filer er ikke endret. '+(courseSource.failedSemesters?.length?'Feil ved semester '+courseSource.failedSemesters.join(", ")+'.':'')+'</p>':
+      '<p class="course-source-status" role="status">GitHub-forhåndsvisning viser bare testressurser. Hele kursarkivet ligger på NTNU-serveren.</p>'}
     <section class="study-hero courses-hero">
       <div>
         <span class="project-kicker">Study archive</span>
