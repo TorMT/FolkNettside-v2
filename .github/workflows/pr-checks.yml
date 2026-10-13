@@ -76,6 +76,7 @@ jobs:
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4227/tests/browser/course-updates-smoke.html 35 1440,900
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4227/tests/browser/course-native-navigation-smoke.html 35 1440,900
 
       - name: Mobile navigation About CV Contact and overflow browser regression
         run: |
