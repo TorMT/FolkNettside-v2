@@ -27,6 +27,7 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_publish_ntnu_autocatalog.py' -v
           python3 -m py_compile scripts/verify_ntnu_staging.py
           pwsh -NoProfile -Command '$tokens=$null; $errors=$null; [System.Management.Automation.Language.Parser]::ParseFile("Oppdater-FolkNettside.ps1",[ref]$tokens,[ref]$errors) | Out-Null; if($errors.Count -gt 0){ $errors | ForEach-Object { Write-Error $_ }; exit 1 }'
+          pwsh -NoProfile -Command '$tokens=$null; $errors=$null; [System.Management.Automation.Language.Parser]::ParseFile("Update-Kursindeks.ps1",[ref]$tokens,[ref]$errors) | Out-Null; if($errors.Count -gt 0){ $errors | ForEach-Object { Write-Error $_ }; exit 1 }'
           temp="$(mktemp -d)"
           python3 scripts/build_ntnu_staging.py --version "$GITHUB_SHA" --output "$temp/v2-staging"
           test -f "$temp/v2-staging/index.html"
