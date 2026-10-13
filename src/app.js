@@ -523,15 +523,15 @@ function coursesPage(requestedSemester){
   document.documentElement.dataset.lens="study";
   const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;
   const semester=getSemester(semesterId)||semesters[0];
-  const semesterTabs=semesters.map(s=>`<button class="${Number(s.id)===Number(semester.id)?"active":""}" data-semester="${s.id}" aria-label="${escCourse(s.label)}" title="${escCourse(s.label)}">
+  const semesterTabs=semesters.map(s=>`<a class="${Number(s.id)===Number(semester.id)?"active":""}" href="#/courses/${s.id}" data-semester="${s.id}" ${Number(s.id)===Number(semester.id)?'aria-current="page"':""} aria-label="${escCourse(s.label)}" title="${escCourse(s.label)}">
     <span class="semester-label-long">${escCourse(s.label)}</span>
     <span class="semester-label-short">S${s.id}</span>
-  </button>`).join("");
+  </a>`).join("");
   const courseCards=semester.courses.map(course=>{
     const resourceCount=course.resources?.length||0;
     const sectionCount=course.sections?.length||0;
     const newCount=courseNotices.count(semester.id,course.code);
-    return `<article class="course-card" data-course="${escCourse(course.code)}" tabindex="0">
+    return `<a class="course-card" href="#${courseRoute(semester.id,course.code)}" data-course="${escCourse(course.code)}" aria-label="Åpne ${escCourse(course.title)}">
       <div class="course-card-top">
         <span class="course-code">${escCourse(course.code)}</span>${newCount?`<span class="course-update-pill">${newCount} nye</span>`:""}
         <span class="course-count">${resourceCount} ressurs${resourceCount===1?"":"er"}</span>
@@ -542,19 +542,12 @@ function coursesPage(requestedSemester){
         <div class="tags">${(course.tags||[]).slice(0,3).map(tag=>`<span class="tag">${escCourse(tag)}</span>`).join("")}</div>
         <span class="course-sections">${sectionCount} seksjon${sectionCount===1?"":"er"} <span aria-hidden="true">→</span></span>
       </div>
-    </article>`;
+    </a>`;
   }).join("");
 
   app.innerHTML=top("courses")+`<main class="study courses-overview">
-    ${courseSource?.mode==="github-ntnu"?
-      '<p class="course-source-status" role="status">Kursreferanser oppdateres automatisk fra offentlige NTNU-mapper omtrent hver time. Originalfilene ligger på NTNU. PDF og mediefiler kan åpnes direkte; enkelte interaktive visere trenger CORS-tillatelse fra NTNU og har foreløpig lenke til originalen.</p>':
-      courseSource?.mode==="ntnu"&&courseSource.status==="auto"?
-      '<p class="course-source-status" role="status">Kursoversikten er oppdatert fra NTNUs automatiske katalog. Filene ligger fortsatt på NTNU.</p>':
-      courseSource?.mode==="ntnu"&&courseSource.status==="live"?
-      '<p class="course-source-status" role="status">Originale kursfiler leses fra NTNUs eksisterende indekser'+(courseSource.fallback?' (automatisk katalog er ennå ikke tilgjengelig)':'')+'.</p>':
-      courseSource?.mode==="ntnu"?
-      '<p class="course-source-warning" role="alert">Bare deler av NTNUs kursindekser kan leses, eller de er utilgjengelige. Eksisterende filer er ikke endret. '+(courseSource.failedSemesters?.length?'Feil ved semester '+courseSource.failedSemesters.join(", ")+'.':'')+'</p>':
-      '<p class="course-source-status" role="status">GitHub-forhåndsvisning viser bare testressurser. Hele kursarkivet ligger på NTNU-serveren.</p>'}
+    ${courseSource?.mode==="ntnu"&&!["auto","live"].includes(courseSource.status)?
+      '<p class="course-source-warning" role="alert">NTNUs kursoversikt er delvis utilgjengelig. Eksisterende filer er ikke endret.</p>':""}
     <section class="study-hero courses-hero">
       <div>
         <span class="project-kicker">Study archive</span>
@@ -594,14 +587,8 @@ function coursesPage(requestedSemester){
     courseNotices.acknowledge();
     coursesPage(semester.id);
   });
-  app.querySelectorAll("[data-semester]").forEach(button=>button.onclick=()=>go("/courses/"+button.dataset.semester));
   const activeSemester=app.querySelector(".semester-tabs .active");
   activeSemester?.scrollIntoView?.({behavior:"instant",block:"nearest",inline:"center"});
-  app.querySelectorAll("[data-course]").forEach(card=>{
-    const open=()=>go(courseRoute(semester.id,card.dataset.course));
-    card.onclick=open;
-    card.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();open()}};
-  });
 }
 
 function coursePage(semesterId,code){
