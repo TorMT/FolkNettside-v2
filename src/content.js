@@ -1,4 +1,5 @@
-import {onNTNUHost,loadNTNUCatalog} from "./courses/ntnu-catalog.js";
+import {onNTNUHost} from "./courses/ntnu-catalog.js";
+import {loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js";
 
 let cache;
 
@@ -38,8 +39,10 @@ export async function loadContent() {
         });
         if(response.ok)navbarHtml=(await response.text()).slice(0,250_000);
       }catch{ /* Course labels fall back to NTNU directory names. */ }
-      manifest=await loadNTNUCatalog({navbarHtml});
+      const catalog=await loadPreferredNTNUCatalog({navbarHtml});
+      manifest=catalog.manifest;
       courseSource={mode:"ntnu",status:manifest.status,
+        catalogSource:catalog.source,fallback:catalog.fallback,
         failedSemesters:manifest.failedSemesters};
     }catch{
       // A tiny synthetic GitHub demo must never masquerade as the NTNU archive.
