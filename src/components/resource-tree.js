@@ -30,14 +30,14 @@ function renderNode(node,indexOfResource,depth=0,routeForResource=null){
     .map(item=>{
       const index=indexOfResource(item);
       const href=routeForResource?.(index,item);
-      if(href&&/^#\\/viewer\\/\\d+\\/[^#?]+\\/\\d+$/.test(href)){
+      if(href&&/^#\/viewer\/\\d+\/[^#?]+\/\\d+$/.test(href)){
         // Two independent real links: V2 preview and original NTNU resource.
         // Never nest anchors or rely on JavaScript-only click handlers.
         let original="";
         try{
           const url=new URL(item.url||item.path, "https://tormt.folk.ntnu.no");
           if(item.source==="ntnu"&&url.origin==="https://tormt.folk.ntnu.no"&&
-             /^\\/semestre\\/\\d+\\//.test(url.pathname)&&!url.search&&!url.hash)
+             /^\/semestre\/\\d+\//.test(url.pathname)&&!url.search&&!url.hash)
             original=`<a class="resource-original-link" href="${escapeHTML(url.href)}" target="_blank" rel="noopener noreferrer" aria-label="Åpne originalfilen ${escapeHTML(item.name)} på NTNU">NTNU ↗</a>`;
         }catch{}
         return `<div class="resource-row resource-row-links">
