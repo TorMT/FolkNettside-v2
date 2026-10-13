@@ -630,7 +630,9 @@ function coursePage(semesterId,code){
       ${newResourcesHTML}
       ${sections.map(section=>`<section class="resource-section" id="course-section-${section.index}" data-course-section="section-${section.index}">
         <div class="resource-section-head"><h2>${escCourse(section.label)}</h2>${section.originalLabel!==section.label?`<small class="muted">NTNU: ${escCourse(section.originalLabel)}</small>`:""}<span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
-        <div class="resource-list">${renderResourceTree(section.items,item=>course.resources.indexOf(item))}</div>
+        <div class="resource-list">${renderResourceTree(section.items,item=>course.resources.indexOf(item),{
+          routeForResource:index=>"#"+viewerRoute(semesterId,course.code,index)
+        })}</div>
       </section>`).join("")}
       <section class="resource-section" id="course-karakterweb" data-course-section="karakterweb">
         <div class="resource-section-head"><h2>Karakterweb</h2><span>external course statistics</span></div>
@@ -647,6 +649,8 @@ function coursePage(semesterId,code){
 
   bindNav();
   app.querySelectorAll("[data-resource]").forEach(element=>{
+    // Native file links survive refresh, copied URLs and new-tab navigation.
+    if(element.matches("a[href]"))return;
     element.onclick=()=>go(viewerRoute(semesterId,course.code,element.dataset.resource));
     element.onkeydown=event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();element.click();}};
   });
