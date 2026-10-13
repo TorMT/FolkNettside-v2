@@ -32,6 +32,25 @@ jobs:
           python scripts/crawl_ntnu_public.py \
             --config config/ntnu-public-courses.json \
             --output data/ntnu-autocatalog.json
+      - name: Report whether interactive Pages viewers have public CORS access
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import urllib.request
+          target="https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/%C3%98ving3/const_avg_acc.py"
+          request=urllib.request.Request(target,method="HEAD",headers={
+              "Origin":"https://tormt.github.io"
+          })
+          try:
+              with urllib.request.urlopen(request,timeout=15) as response:
+                  cors=response.headers.get("Access-Control-Allow-Origin","")
+              if cors not in ("*","https://tormt.github.io"):
+                  print("::warning::NTNU public files lack confirmed Pages CORS; interactive remote viewers need one-time public-only configuration")
+              else:
+                  print("Public Python resource advertises Pages CORS origin:",cors)
+          except Exception as error:
+              print("::warning::Unable to verify CORS on a public Python file:",type(error).__name__)
+          PY
       - name: Commit changed references only (never file bytes)
         id: index
         shell: bash
