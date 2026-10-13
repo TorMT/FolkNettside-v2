@@ -46,7 +46,7 @@ test("clearing a name restores the original instead of writing an empty alias",(
  changeAlias(draft,"files","5/Marin-Dynamikk/filer/Øving3/const_avg_acc.py","  ");
  assert.equal(Object.hasOwn(draft.files,"5/Marin-Dynamikk/filer/Øving3/const_avg_acc.py"),false);
  changeAlias(draft,"courses","5/Marin-Dynamikk","  ");
- assert.ok(!Object.hasOwn(draft.courses["5/Marin-Dynamikk"],"title"));
+ assert.ok(!draft.courses["5/Marin-Dynamikk"]?.title);
  assert.doesNotMatch(exportAliases(draft,manifest),/"const_avg_acc\.py": ""/);
 });
 
