@@ -25,6 +25,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Test safe crawler before network operations
         run: python -m unittest discover -s tests -p test_remote_ntnu_crawler.py -v
       - name: Scan only reviewed public NTNU directory indexes
@@ -32,6 +35,22 @@ jobs:
           python scripts/crawl_ntnu_public.py \
             --config config/ntnu-public-courses.json \
             --output data/ntnu-autocatalog.json
+      - name: Verify scanner output with the actual V2 browser catalog parser
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from "node:fs";
+          import {validateNTNUAutoCatalog} from "./src/courses/ntnu-autocatalog.js";
+          const raw=JSON.parse(readFileSync("data/ntnu-autocatalog.json","utf8"));
+          const catalog=validateNTNUAutoCatalog(raw);
+          const courses=catalog.semesters.reduce((n,s)=>n+s.courses.length,0);
+          const files=catalog.semesters.reduce((n,s)=>n+s.courses.reduce(
+            (count,c)=>count+c.resources.length,0),0);
+          if(courses!==24||catalog.semesters.length!==5){
+            throw Error("Unexpected missing legacy courses/semesters in public index");
+          }
+          console.log("Validated NTNU semesters:",catalog.semesters.length,
+            "courses:",courses,"public file references:",files);
+          JS
       - name: Report whether interactive Pages viewers have public CORS access
         continue-on-error: true
         run: |
