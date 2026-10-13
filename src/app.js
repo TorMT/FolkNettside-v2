@@ -561,7 +561,11 @@ function coursesPage(requestedSemester){
         <h1>Courses</h1>
         <p>Fag, ressurser, Kok, øvinger, videoer, quiz og verktøy — organisert per semester.</p>
       </div>
-      <button class="btn dark courses-tools-button" data-go="/tools">Open Tools</button>
+      <div class="courses-hero-actions">
+        ${courseSource?.mode==="github-ntnu"||courseSource?.mode==="ntnu"?
+          '<a class="btn courses-name-editor" href="./src/courses/name-editor.html" title="Endre visningsnavn uten å flytte NTNU-filer">Tilpass navn på fag og filer ↗</a>':""}
+        <button class="btn dark courses-tools-button" data-go="/tools">Open Tools</button>
+      </div>
     </section>
 
     <div class="semester-navigation">
