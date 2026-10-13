@@ -1,0 +1,38 @@
+:root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#102433;color:#e5edf4}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(145deg,#173247,#102433 38%,#0c1c2c)}
+.layout{max-width:1060px;margin:0 auto;padding:34px 22px 85px}
+h1{font-size:clamp(1.8rem,4vw,2.7rem);margin:.3rem 0 1rem}
+h2{font-size:1.15rem;margin:0 0 14px}
+p{line-height:1.58}
+.kicker{color:#f658aa;letter-spacing:.07em;text-transform:uppercase;font-weight:700;font-size:.8rem}
+.page-head{margin-bottom:25px}
+.page-head p{color:#b7cad8}
+a{color:#81cbf1}
+.back{display:inline-block;margin-bottom:24px}
+.notice,.card{background:#1a3448;border:1px solid #33516a;border-radius:14px;padding:22px;margin-bottom:18px}
+.notice{background:#132b3e;border-left:4px solid #e83196}
+.notice p{max-width:900px}
+.toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:14px;margin:26px 0}
+label{display:grid;gap:6px;color:#dbe5f0;font-size:.92rem;font-weight:600;min-width:0}
+input,select{font:inherit;color:#fff;background:#0e2434;border:1px solid #506b7b;border-radius:9px;padding:10px 12px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #e83196;outline-offset:2px}
+input::placeholder{color:#8aa9bd}
+.fields{display:grid;gap:12px}
+.field{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:center;border-bottom:1px solid #315067;padding-bottom:12px}
+.field:last-child{border-bottom:0;padding-bottom:0}
+.original{min-width:0}
+.original strong,.original code{display:block;overflow-wrap:anywhere}
+.original code{font-size:.76rem;color:#9fbdd0;margin-top:5px}
+.original strong{font-size:.92rem}
+.help{font-size:.85rem;color:#acc3d2;margin:0 0 15px}
+.search-label{margin-bottom:10px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:25px 0 15px}
+button{font:inherit;color:#dbe8f2;background:#23445c;border:1px solid #44657c;border-radius:8px;padding:11px 17px;cursor:pointer}
+button:hover{background:#315872}
+button.primary{background:#bd1379;border-color:#cc2388;color:#fff;font-weight:700}
+button.primary:hover{background:#d22191}
+button:disabled{opacity:.55;cursor:wait}
+#editor-status{padding:10px 0;color:#b8cfdd}
+@media(max-width:640px){.layout{padding:18px 12px 70px}.notice,.card{padding:16px}.field,.toolbar{grid-template-columns:1fr}.actions button{width:100%}}
+@media(prefers-reduced-motion:no-preference){button,input,select{transition:background .15s ease,border-color .15s ease}}
