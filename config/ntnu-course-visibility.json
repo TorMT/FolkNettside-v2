@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Skjuler fag i V2-grensesnittet uten å slette filer eller endre NTNU-katalogen. Hver nøkkel er semesternummer/opprinnelig fagmappenavn.",
+  "hiddenCourses": [
+    "5/marin-maskineri"
+  ]
+}
