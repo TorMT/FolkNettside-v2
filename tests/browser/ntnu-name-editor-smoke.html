@@ -11,14 +11,15 @@ const frame=document.querySelector("#editor");
 const assert=(ok,message)=>{if(!ok)throw Error(message)};
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function run(){
- await new Promise((resolve,reject)=>{
-   if(frame.contentDocument?.readyState==="complete")return resolve();
-   frame.addEventListener("load",resolve,{once:true});
-   frame.addEventListener("error",()=>reject(Error("Alias editor failed to load")),{once:true});
- });
- const doc=frame.contentDocument;
- assert(doc,"Editor not same-origin");
- for(let i=0;i<80&&doc.querySelector("#editor")?.hidden;i++)await delay(100);
+ let doc;
+ for(let i=0;i<100;i++){
+   doc=frame.contentDocument;
+   if(doc?.location?.pathname.endsWith("/src/courses/name-editor.html")&&
+      doc.querySelector("#editor"))break;
+   await delay(100);
+ }
+ assert(doc?.querySelector("#editor"),"Editor document did not load");
+ for(let i=0;i<80&&doc.querySelector("#editor").hidden;i++)await delay(100);
  assert(doc.querySelector("#editor")&&!doc.querySelector("#editor").hidden,
   "Editor never initialized: "+doc.querySelector("#editor-status")?.textContent);
  const sem=doc.querySelector("#semester");
