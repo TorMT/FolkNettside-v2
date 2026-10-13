@@ -1,4 +1,4 @@
-import {createModelDocument} from "../model-document.js?v=beaeb2e206df47a1e4b682cf783ef701ba5390f4";
+import {createModelDocument} from "../model-document.js?v=5c34cd9839c43dc87281643c6b62b9c37893ec50";
 
 export const CAD_EXTENSIONS=["step","stp","iges","igs","brep"];
 const MAX_TRIANGLES=1_500_000;

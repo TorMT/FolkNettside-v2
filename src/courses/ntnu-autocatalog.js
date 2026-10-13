@@ -1,0 +1,116 @@
+/**
+ * Opt-in V2 public catalog, produced locally from reviewed NTNU folders.
+ * Never substitutes GitHub fixtures for actual NTNU courses.
+ * Invalid/unavailable auto-index -> existing per-semester public JSON indexes.
+ */
+import {NTNU_ORIGIN,parseNTNUSemesterIndex,loadNTNUCatalog} from "./ntnu-catalog.js?v=5c34cd9839c43dc87281643c6b62b9c37893ec50";
+
+const LIMIT_BYTES=4_000_000;
+const MAX_FILES=25_000;
+const object=value=>value!==null&&typeof value==="object"&&!Array.isArray(value);
+const safeSlug=s=>typeof s==="string"&&s.length>0&&s.length<=210&&
+ !s.startsWith(".")&&!s.startsWith("~$")&&!/(?:beskyttet|protected|private|privat|restricted|hemmelig|secret|credential|passord)/i.test(s)&&
+ !/[\\/%?#\u0000-\u001f\u007f]/.test(s)&&s!==".."&&s!==".";
+const expectedPath=(id,slug,relative)=>{
+ if(typeof relative!=="string"||relative.length>1400)return null;
+ const parts=relative.split("/");
+ if(parts.length<2||!["filer","quiz"].includes(parts[0])||
+    parts.some(x=>!safeSlug(x)))return null;
+ return "/semestre/"+id+"/"+encodeURIComponent(slug)+"/"+
+   parts.map(encodeURIComponent).join("/");
+};
+
+/** Re-normalize all incoming paths through the legacy NTNU safety parser. */
+export function validateNTNUAutoCatalog(raw,{origin=NTNU_ORIGIN}={}){
+ if(origin!==NTNU_ORIGIN||!object(raw)||raw.schemaVersion!==2||
+    raw.source!=="ntnu-auto-preview"||!Array.isArray(raw.semesters)||
+    raw.semesters.length<1||raw.semesters.length>20)
+   throw Error("Unrecognized auto-index schema or origin");
+ const ids=new Set(),semesters=[];
+ let total=0;
+ for(const semester of raw.semesters){
+   const id=semester?.id;
+   if(!Number.isInteger(id)||id<1||id>20||ids.has(id)||
+       !Array.isArray(semester.courses)||semester.courses.length>500)
+     throw Error("Invalid auto-index semester");
+   ids.add(id);
+   const records=Object.create(null),titles=new Map(),sizes=new Map();
+   for(const course of semester.courses){
+     const slug=course?.code;
+     if(!safeSlug(slug)||Object.hasOwn(records,slug)||
+       course.semester!==id||!Array.isArray(course.resources)||
+       course.resources.length>MAX_FILES||
+       typeof course.title!=="string"||!course.title.trim()||
+       course.title.length>130)
+       throw Error("Invalid auto-index course");
+     const seen=new Set(),files=[];
+     for(const file of course.resources){
+       total++;
+       if(total>MAX_FILES||!object(file))throw Error("Auto-index resource limit");
+       const relative=file.relativePath;
+       const path=expectedPath(id,slug,relative);
+       if(!path||file.path!==path||file.url!==origin+path||
+          file.source!=="ntnu"||seen.has(relative))
+         throw Error("Unsafe or duplicate auto-index path");
+       seen.add(relative);
+       if(!Number.isSafeInteger(file.size)||file.size<0||
+          !Number.isSafeInteger(file.modified)||file.modified<0)
+         throw Error("Invalid public resource metadata");
+       files.push(relative);
+       sizes.set(id+":"+slug+":"+relative,{size:file.size,modified:file.modified});
+     }
+     records[slug]={dir:slug,beskyttet:false,files};
+     titles.set(id+":"+slug,course.title.trim());
+   }
+   const checked=parseNTNUSemesterIndex(id,records,{origin,titles});
+   if(checked.courses.length!==semester.courses.length)
+     throw Error("Unsafe auto-index course was dropped");
+   for(const course of checked.courses){
+     const source=records[course.code];
+     if(course.resources.length!==source.files.length)
+       throw Error("Unsafe auto-index resource was dropped");
+     course.resources=course.resources.map(item=>({
+       ...item,...sizes.get(id+":"+course.code+":"+item.relativePath)
+     }));
+   }
+   semesters.push(checked);
+ }
+ semesters.sort((a,b)=>a.id-b.id);
+ return {schemaVersion:2,source:"ntnu-auto-validated",
+   semesters,status:"auto",failedSemesters:[]};
+}
+
+export async function loadNTNUAutoCatalog({
+ fetchImpl=fetch,origin=NTNU_ORIGIN
+}={}){
+ if(origin!==NTNU_ORIGIN)throw Error("Unexpected NTNU origin");
+ // Relative to the V2 app directory, never the existing V1 semester root.
+ const response=await fetchImpl("./data/ntnu-autocatalog.json",{
+   cache:"no-store",credentials:"same-origin",mode:"same-origin",
+   redirect:"error",headers:{Accept:"application/json"}
+ });
+ if(!response.ok)throw Error("Auto-index unavailable HTTP "+response.status);
+ const length=Number(response.headers?.get?.("content-length"));
+ if(Number.isFinite(length)&&length>LIMIT_BYTES)
+   throw Error("Auto-index exceeds size limit");
+ const content=await response.text();
+ if(content.length>LIMIT_BYTES)throw Error("Auto-index exceeds size limit");
+ let parsed;
+ try{parsed=JSON.parse(content)}catch{throw Error("Auto-index invalid JSON")}
+ return validateNTNUAutoCatalog(parsed,{origin});
+}
+
+/** Missing/invalid V2 catalog never prevents use of the existing V1 indexes. */
+export async function loadPreferredNTNUCatalog({
+ fetchImpl=fetch,origin=NTNU_ORIGIN,navbarHtml=""
+}={}){
+ try{
+   const manifest=await loadNTNUAutoCatalog({fetchImpl,origin});
+   return {manifest,source:"auto",fallback:false};
+ }catch(error){
+   // Protect against accidental cross-origin use, not a recoverable error.
+   if(origin!==NTNU_ORIGIN)throw error;
+   const manifest=await loadNTNUCatalog({fetchImpl,origin,navbarHtml});
+   return {manifest,source:"legacy",fallback:true};
+ }
+}
