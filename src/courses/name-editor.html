@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Navneoppsett – FolkNettside V2</title>
+<link rel="stylesheet" href="./name-editor.css">
+</head>
+<body>
+<main class="layout">
+  <header class="page-head">
+    <a class="back" href="../../index.html#/courses/1">← Tilbake til Courses</a>
+    <p class="kicker">FolkNettside V2 · Administrasjon av visningsnavn</p>
+    <h1>Gi kurs og filer egne navn</h1>
+    <p>Endre navn slik de vises i V2. <strong>NTNU-mapper, originale filnavn, lenker og filinnhold endres aldri.</strong></p>
+  </header>
+  <section class="notice" aria-label="Slik publiseres navnene">
+    <h2>Slik virker det</h2>
+    <p>Velg fag, skriv inn ønsket norsk navn og last ned oppdatert JSON. For at alle skal se navnene,
+      erstatter du <code>config/ntnu-display-names.json</code> i V2-repositoriet og publiserer den via GitHub.
+      Redigering her påvirker bare forhåndsvisningen inntil filen er committet.</p>
+    <a href="https://github.com/TorMT/FolkNettside-v2/edit/main/config/ntnu-display-names.json"
+       target="_blank" rel="noopener noreferrer">Åpne felles navnefil på GitHub ↗</a>
+  </section>
+  <div id="editor-status" role="status" aria-live="polite">Laster den offentlige kurskatalogen …</div>
+  <section id="editor" hidden>
+    <div class="toolbar">
+      <label>Semester
+        <select id="semester" aria-label="Velg semester"></select>
+      </label>
+      <label>Fag
+        <select id="course" aria-label="Velg fag"></select>
+      </label>
+    </div>
+    <section class="card">
+      <h2>Fagets visningsnavn</h2>
+      <div class="fields" id="course-fields"></div>
+    </section>
+    <section class="card">
+      <h2>Seksjoner</h2>
+      <p class="help">Oversett «Øving3», «Filer og ressurser» osv. Original seksjon vises fortsatt i kurset.</p>
+      <div class="fields" id="section-fields"></div>
+    </section>
+    <section class="card">
+      <h2>Undermapper</h2>
+      <p class="help">Bruk eksisterende mapper som nøkkel. Du endrer bare teksten, ikke mappenavnet på NTNU.</p>
+      <div class="fields" id="folder-fields"></div>
+    </section>
+    <section class="card">
+      <h2>Filer</h2>
+      <p class="help">Søk blant alle offentlige filer i faget. Originalt navn og full relativ filsti beholdes.</p>
+      <label class="search-label">Finn en fil
+        <input id="file-search" type="search" placeholder="Søk etter navn, øving, filtype …">
+      </label>
+      <p id="file-count" class="help"></p>
+      <div class="fields" id="file-fields"></div>
+    </section>
+    <div class="actions">
+      <button id="download" type="button" class="primary">Last ned felles navnefil (JSON)</button>
+      <button id="copy" type="button">Kopier JSON</button>
+      <button id="reset" type="button">Forkast lokale endringer</button>
+    </div>
+    <p class="help">Ingen automatisk commit skjer fra dette verktøyet. GitHub krever din vanlige tilgang før endringer blir synlige for alle.</p>
+  </section>
+</main>
+<script type="module" src="./name-editor.js"></script>
+</body>
+</html>
