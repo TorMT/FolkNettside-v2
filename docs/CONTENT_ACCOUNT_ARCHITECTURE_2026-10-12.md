@@ -191,9 +191,18 @@ are considered. Review the generated candidate before adding a V2
 consumer or scheduled publishing. Tests:
 `tests/test_ntnu_autocatalog.py`.
 
-**Not implemented yet:** schedule, writing live/staging catalog, browser
-consumer/fallback, Google↔Folk identity linking, and Supabase
-per-user course/dive progress migration. Do not imply they work
+**Current reader implementation (13 October 2026):** V2 now attempts
+`./data/ntnu-autocatalog.json` **only when served from the exact NTNU
+origin**, strictly checks schema, course/resource paths, same-origin URLs,
+size/modification metadata and privacy path filters, and re-normalizes
+through the existing safe NTNU parser. If absent or malformed it falls
+back to the old `/semestre/N/index.json` readers without showing GitHub
+demo data as real courses. This remains opt-in: the scanner only writes a
+preview outside NTNU, and no generated catalog is deployed yet.
+
+**Not implemented yet:** schedule or writing the catalog to webedit,
+Google↔Folk identity linking, and Supabase per-user course/dive progress
+migration. Do not imply they work
 from the existence of the scanner.
 
 ## 4. Implementation sequence while V2 remains in development
