@@ -9,7 +9,9 @@ export function applyNTNUCourseVisibility(manifest,raw){
    throw Error("Invalid course visibility configuration");
  const hidden=new Set();
  for(const key of raw.hiddenCourses){
+   const slug=typeof key==="string"?key.split("/")[1]:"";
    if(typeof key!=="string"||!/^([1-9]|1[0-9]|20)\/[A-Za-z0-9_\p{L}\p{N} .()\-]{1,210}$/u.test(key)||
+      !slug||slug.startsWith(".")||slug.startsWith("~$")||
       /(?:beskyttet|protected|private|privat|secret|passord)/i.test(key)||
       hidden.has(key))
      throw Error("Invalid hidden course identifier");
