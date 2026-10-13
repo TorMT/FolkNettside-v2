@@ -56,6 +56,17 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_public_asset_audit.py' -v
           python3 scripts/audit_public_assets.py
 
+      - name: V2 original NTNU filename alias editor browser smoke
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4255 --bind 127.0.0.1 >/tmp/ntnu-names-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/ntnu-names-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py \
+            http://127.0.0.1:4255/tests/browser/ntnu-name-editor-smoke.html 90 1400,900
+
       - name: Courses new-file notices and XSS-safe routes browser regression
         run: |
           command -v chromedriver

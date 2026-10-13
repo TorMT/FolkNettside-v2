@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="no">
+<head><meta charset="utf-8"><title>NTNU alias editor browser smoke</title></head>
+<body data-status="running">
+<iframe id="editor" title="Navneoppsett" src="../../src/courses/name-editor.html"
+ style="width:1200px;height:750px"></iframe>
+<pre id="result">running</pre>
+<script type="module">
+const result=document.querySelector("#result");
+const frame=document.querySelector("#editor");
+const assert=(ok,message)=>{if(!ok)throw Error(message)};
+const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function run(){
+ let doc;
+ for(let i=0;i<100;i++){
+   doc=frame.contentDocument;
+   if(doc?.location?.pathname.endsWith("/src/courses/name-editor.html")&&
+      doc.querySelector("#editor"))break;
+   await delay(100);
+ }
+ assert(doc?.querySelector("#editor"),"Editor document did not load");
+ for(let i=0;i<80&&doc.querySelector("#editor").hidden;i++)await delay(100);
+ assert(doc.querySelector("#editor")&&!doc.querySelector("#editor").hidden,
+  "Editor never initialized: "+doc.querySelector("#editor-status")?.textContent);
+ const sem=doc.querySelector("#semester");
+ assert(sem.options.length===5,"Expected five mirrored semesters");
+ sem.value="5";
+ sem.dispatchEvent(new Event("change",{bubbles:true}));
+ const course=doc.querySelector("#course");
+ assert(course.options.length===5,"Expected 5 public semester-5 subjects");
+ course.value="Marin-Dynamikk";
+ course.dispatchEvent(new Event("change",{bubbles:true}));
+ const title=doc.querySelector("#course-fields input");
+ assert(title?.value==="Marin dynamikk","Expected current friendly course title");
+ const fileRows=[...doc.querySelectorAll("#file-fields .field")];
+ const fileRow=fileRows.find(row=>row.querySelector("code")?.textContent===
+  "filer/Øving3/const_avg_acc.py");
+ assert(fileRow,"Original file missing from editor");
+ assert(fileRow.querySelector("input")?.value==="Konstant gjennomsnittsakselerasjon",
+  "Expected existing file alias");
+ const field=fileRow.querySelector("input");
+ field.value="Gjennomsnittsakselerasjon – øving 3";
+ field.dispatchEvent(new Event("input",{bubbles:true}));
+ assert(doc.querySelector("#editor-status").textContent.includes("lokale"),
+  "Editor did not register unsaved changes");
+ const search=doc.querySelector("#file-search");
+ search.value="const_avg_acc.py";
+ search.dispatchEvent(new Event("input",{bubbles:true}));
+ assert(doc.querySelectorAll("#file-fields .field").length===1,
+  "Filename filter should locate only one real NTNU resource");
+ assert(doc.querySelector("#file-fields input").value==="Gjennomsnittsakselerasjon – øving 3",
+  "Typed alias lost during search rerender");
+ frame.contentWindow.confirm=()=>true;
+ doc.querySelector("#reset").click();
+ assert(doc.querySelector("#file-fields input").value===
+  "Konstant gjennomsnittsakselerasjon","Reset did not restore shared names");
+ assert(doc.querySelector("#editor-status").textContent.includes("tilbakestilt"),
+  "Reset acknowledgement missing");
+ assert(doc.querySelector("a[href*='github.com/TorMT/FolkNettside-v2/edit']"),
+  "Shared GitHub config publication link missing");
+ assert(!doc.querySelector("input[name='file-path']"),
+  "Original NTNU source paths must never be editable");
+}
+try{
+ await run();
+ document.body.dataset.status="pass";
+ result.textContent="NTNU name-editor smoke: pass";
+}catch(error){
+ document.body.dataset.status="fail";
+ result.textContent=String(error?.stack||error);
+}
+</script>
+</body>
+</html>
