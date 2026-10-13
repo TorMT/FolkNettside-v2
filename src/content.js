@@ -1,5 +1,24 @@
 import {onNTNUHost} from "./courses/ntnu-catalog.js";
+import {loadNTNUAutoCatalog} from "./courses/ntnu-autocatalog.js";
 import {loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js";
+
+export function onGithubPagesArchive(hostname,pathname){
+ return String(hostname||"").toLowerCase()==="tormt.github.io"&&
+   /^\\/FolkNettside-v2(?:\\/|$)/.test(String(pathname||""));
+}
+
+/** Remap file-byte URLs to original NTNU on Pages, not Pages /semestre. */
+export function asRemoteNTNUManifest(manifest){
+ return {...manifest,source:"ntnu-github-pages-references",
+   semesters:manifest.semesters.map(semester=>({...semester,
+     courses:semester.courses.map(course=>({...course,
+       resources:course.resources.map(resource=>({
+         ...resource,originalPath:resource.path,
+         path:resource.url,remoteArchive:true
+       }))
+     }))
+   }))};
+}
 
 let cache;
 
@@ -50,6 +69,21 @@ export async function loadContent() {
       courseSource={mode:"ntnu",status:"unavailable",failedSemesters:[]};
     }
   }
+  if(onGithubPagesArchive(globalThis.location?.hostname,
+    globalThis.location?.pathname)){
+    try{
+      const live=await loadNTNUAutoCatalog();
+      manifest=asRemoteNTNUManifest(live);
+      courseSource={mode:"github-ntnu",status:"remote",
+        failedSemesters:[],catalogSource:"github-scheduled"};
+    }catch{
+      // Preview remains clearly labelled fixture data until first successful
+      // hourly scan; never invent a live NTNU course.
+      courseSource={mode:"preview",status:"demo",
+        failedSemesters:[],catalogSource:"example"};
+    }
+  }
+
   const models=[
     {id:model.id||"fixture",label:model.label||model.name,...model},
     {id:gunnerusModel.id||"gunnerus",label:gunnerusModel.label||gunnerusModel.name,...gunnerusModel}
