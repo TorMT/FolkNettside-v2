@@ -1,4 +1,4 @@
-import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=4ac28c6ea1cbe04a96e79bab0cf270d33945f140";
+import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=85cd920917fca991a1df160957191fe10ca2d915";
 const SECTIONS=[
   ["appearance","Appearance"],
   ["connections","Account & connections"],
