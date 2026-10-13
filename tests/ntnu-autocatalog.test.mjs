@@ -48,6 +48,16 @@ test("V2 generated catalog reuses safe NTNU parser, preserving nested Norwegian 
  assert.equal(course.resources.find(x=>x.kind==="QUIZ").name,"quiz.json");
 });
 
+test("legacy filenames with parentheses match the generated Python catalog URLs",()=>{
+ const manifest=sample(),file=manifest.semesters[0].courses[0].resources[0];
+ file.relativePath="filer/Øving (1)/Beregningsark (2).py";
+ file.name="Beregningsark (2).py";
+ file.path="/semestre/5/Marin-Dynamikk/filer/%C3%98ving%20(1)/Beregningsark%20(2).py";
+ file.url=NTNU_ORIGIN+file.path;
+ const parsed=validateNTNUAutoCatalog(manifest);
+ assert.equal(parsed.semesters[0].courses[0].resources[0].url,file.url);
+});
+
 test("reject protected, escaping, remote and untrusted generated catalog entries",()=>{
  const mutate=(fn,pattern)=>{
   const data=sample();fn(data);
