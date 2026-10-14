@@ -17,13 +17,20 @@
   </header>
   <section class="notice" aria-label="Slik publiseres navnene">
     <h2>Slik virker det</h2>
-    <p>Velg fag, skriv inn ønsket norsk navn og last ned oppdatert JSON. For at alle skal se navnene,
-      erstatter du <code>config/ntnu-display-names.json</code> i V2-repositoriet og publiserer den via GitHub.
-      Redigering her påvirker bare forhåndsvisningen inntil filen er committet.</p>
-    <a href="https://github.com/TorMT/FolkNettside-v2/edit/main/config/ntnu-display-names.json"
-       target="_blank" rel="noopener noreferrer">Åpne felles navnefil på GitHub ↗</a>
+    <p>Logg inn som administrator og velg et fag. Endre visningsnavn og trykk <strong>Publiser navn</strong>.
+      Navnene lagres i FolkNet og vises på siden ved neste innlasting. Filstier og NTNU-originaler beholdes.
+      GitHub-filen brukes som reserve hvis databasen er utilgjengelig.</p>
   </section>
-  <div id="editor-status" role="status" aria-live="polite">Laster den offentlige kurskatalogen …</div>
+  <section class="card" id="admin-gate" aria-label="Administratorinnlogging">
+    <h2>Administratorinnlogging</h2>
+    <p class="help">Bruk e-postadressen til administratorbrukeren i FolkNet. Tilgang avgjøres av Supabase, ikke av passordkontroll i nettsiden.</p>
+    <form id="admin-login-form" class="admin-login">
+      <label>E-post <input name="email" type="email" autocomplete="username" required></label>
+      <label>Passord <input name="password" type="password" autocomplete="current-password" required></label>
+      <button type="submit" class="primary">Logg inn</button>
+    </form>
+  </section>
+  <div id="editor-status" role="status" aria-live="polite">Kontrollerer administratortilgang …</div>
   <section id="editor" hidden>
     <div class="toolbar">
       <label>Semester
@@ -57,11 +64,13 @@
       <div class="fields" id="file-fields"></div>
     </section>
     <div class="actions">
-      <button id="download" type="button" class="primary">Last ned felles navnefil (JSON)</button>
+      <button id="publish" type="button" class="primary">Publiser navn</button>
+      <button id="download" type="button">Last ned reservekopi (JSON)</button>
       <button id="copy" type="button">Kopier JSON</button>
       <button id="reset" type="button">Forkast lokale endringer</button>
+      <button id="admin-logout" type="button">Logg ut</button>
     </div>
-    <p class="help">Ingen automatisk commit skjer fra dette verktøyet. GitHub krever din vanlige tilgang før endringer blir synlige for alle.</p>
+    <p class="help">Publisering lagrer bare visningsnavn i FolkNet Supabase. NTNU-filer og GitHub-innhold endres ikke.</p>
   </section>
 </main>
 <script type="module" src="./name-editor.js"></script>
