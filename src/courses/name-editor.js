@@ -1,6 +1,10 @@
 import {validateNTNUAutoCatalog} from "./ntnu-autocatalog.js";
 import {applyNTNUDisplayNames,validateNTNUDisplayNames}
  from "./ntnu-display-names.js";
+import {loadCloudDisplayNames,isFolkCourseAdmin,saveCloudDisplayNames}
+ from "./cloud-display-names.js";
+import {initializeFolkAccount,folkSignIn,folkSignOut}
+ from "../platform/folkside-auth.js";
 
 /** Original V1 paths are the identifiers; any display labels are optional. */
 export function editorCandidates(course){
@@ -68,7 +72,13 @@ async function initializeEditor(){
  if(originalDocs.some(r=>!r.ok))throw Error("Finner ikke offentlig kurskatalog eller navnefil.");
  const [manifestRaw,namesRaw]=await Promise.all(originalDocs.map(r=>r.json()));
  const manifest=validateNTNUAutoCatalog(manifestRaw);
- const initial=namesRaw;
+ let initial=namesRaw;
+ try{
+   const live=await loadCloudDisplayNames();
+   if(live)initial=live;
+ }catch{
+   // The checked-in file is a valid offline recovery point.
+ }
  let draft=JSON.parse(exportAliases(initial,manifest));
  let dirty=false;
 
@@ -84,7 +94,7 @@ async function initializeEditor(){
  }
  function markDirty(){
    dirty=true;
-   status.textContent="Du har lokale navneendringer som ikke er publisert til GitHub.";
+   status.textContent="Du har upubliserte endringer. Trykk Publiser navn når du er ferdig.";
  }
  function inputRow(container,{key,original,path},type,field="title"){
    const row=document.createElement("div");row.className="field";
@@ -162,9 +172,24 @@ async function initializeEditor(){
  search.addEventListener("input",renderFileRows);
  async function getJSON(){
    const output=exportAliases(draft,manifest);
-   status.textContent="Navnefil validert. "+(dirty?"Publiser den til GitHub for å dele endringene.":"Ingen lokale endringer.");
+   status.textContent="Navnefil validert. "+(dirty?"Endringene er ikke publisert.":"Ingen lokale endringer.");
    return output;
  }
+ document.getElementById("publish").addEventListener("click",async event=>{
+   const button=event.currentTarget;
+   button.disabled=true;
+   status.textContent="Validerer og publiserer visningsnavn …";
+   try{
+     const aliases=JSON.parse(exportAliases(draft,manifest));
+     const saved=await saveCloudDisplayNames(aliases);
+     initial=saved;
+     draft=JSON.parse(exportAliases(saved,manifest));
+     dirty=false;
+     status.textContent="Publisert i FolkNet. Last inn kursoversikten på nytt for å se de nye navnene.";
+   }catch(error){
+     status.textContent="Publisering feilet: "+String(error?.message||error);
+   }finally{button.disabled=false}
+ });
  document.getElementById("download").addEventListener("click",async()=>{
    try{
      const blob=new Blob([await getJSON()],{type:"application/json;charset=utf-8"});
@@ -183,7 +208,7 @@ async function initializeEditor(){
  document.getElementById("reset").addEventListener("click",()=>{
    if(dirty&&!window.confirm("Forkaste alle lokale navneendringer?"))return;
    draft=JSON.parse(exportAliases(initial,manifest));
-   dirty=false;status.textContent="Navnene er tilbakestilt til GitHub-versjonen.";
+   dirty=false;status.textContent="Navnene er tilbakestilt til sist lastede/publiserte versjon.";
    renderCourses();
  });
  window.addEventListener("beforeunload",event=>{
@@ -194,12 +219,68 @@ async function initializeEditor(){
  root.hidden=false;
  renderCourses();
  status.textContent=manifest.semesters.reduce((n,s)=>n+s.courses.length,0)+
-   " offentlige fag lastet inn. Endringer lagres ikke før du publiserer JSON på GitHub.";
+   " offentlige fag lastet inn. Endringene publiseres til FolkNet Supabase.";
+}
+
+/**
+ * Never expose the editor based on a client-only flag. Only Supabase Auth
+ * plus the RLS-protected admin membership can unlock the controls.
+ */
+async function initializeAdminEditor(){
+ const gate=document.getElementById("admin-gate");
+ const status=document.getElementById("editor-status");
+ const form=document.getElementById("admin-login-form");
+ let mounted=false;
+ async function unlock(){
+   gate.hidden=true;
+   if(!mounted){mounted=true;await initializeEditor()}
+   else document.getElementById("editor").hidden=false;
+ }
+ async function check(){
+   status.textContent="Kontrollerer administratortilgang …";
+   try{
+     const account=await initializeFolkAccount();
+     if(account.status!=="signed-in"){
+       gate.hidden=false;
+       status.textContent="Logg inn med FolkNet-administratorkontoen.";
+       return;
+     }
+     if(!await isFolkCourseAdmin()){
+       gate.hidden=false;
+       status.textContent="Denne kontoen har ikke administratorrettigheter.";
+       return;
+     }
+     await unlock();
+   }catch(error){
+     gate.hidden=false;
+     status.textContent="Kunne ikke bekrefte administratortilgang: "+String(error?.message||error);
+   }
+ }
+ form.addEventListener("submit",async event=>{
+   event.preventDefault();
+   const button=form.querySelector("button");
+   button.disabled=true;
+   status.textContent="Logger inn …";
+   try{
+     await folkSignIn({email:form.elements.email.value,password:form.elements.password.value});
+     form.elements.password.value="";
+     await check();
+   }catch(error){
+     status.textContent="Innlogging feilet: "+String(error?.message||error);
+   }finally{button.disabled=false}
+ });
+ document.getElementById("admin-logout").addEventListener("click",async()=>{
+   document.getElementById("editor").hidden=true;
+   await folkSignOut();
+   gate.hidden=false;
+   status.textContent="Du er logget ut.";
+ });
+ await check();
 }
 
 if(typeof document!=="undefined"&&document.getElementById("editor")){
- initializeEditor().catch(error=>{
+ initializeAdminEditor().catch(error=>{
    document.getElementById("editor-status").textContent=
-     "Kunne ikke laste navneeditor: "+String(error?.message||error);
+     "Kunne ikke starte navneeditor: "+String(error?.message||error);
  });
 }
