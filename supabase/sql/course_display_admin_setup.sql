@@ -27,7 +27,7 @@ create table if not exists public.course_display_config (
 alter table public.course_display_config enable row level security;
 revoke all on public.course_display_config from anon, authenticated;
 grant select on public.course_display_config to anon, authenticated;
-grant insert (id, aliases), update (aliases) on public.course_display_config to authenticated;
+grant insert (id, aliases), update (id, aliases) on public.course_display_config to authenticated;
 
 drop policy if exists "everyone can read public course labels" on public.course_display_config;
 create policy "everyone can read public course labels"
