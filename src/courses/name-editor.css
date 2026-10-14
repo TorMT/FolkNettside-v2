@@ -36,3 +36,9 @@ button:disabled{opacity:.55;cursor:wait}
 #editor-status{padding:10px 0;color:#b8cfdd}
 @media(max-width:640px){.layout{padding:18px 12px 70px}.notice,.card{padding:16px}.field,.toolbar{grid-template-columns:1fr}.actions button{width:100%}}
 @media(prefers-reduced-motion:no-preference){button,input,select{transition:background .15s ease,border-color .15s ease}}
+
+
+.admin-login{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:12px}
+.admin-login button{white-space:nowrap}
+[hidden]{display:none!important}
+@media(max-width:640px){.admin-login{grid-template-columns:1fr}.admin-login button{width:100%}}
