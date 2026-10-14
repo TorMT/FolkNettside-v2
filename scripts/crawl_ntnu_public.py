@@ -224,6 +224,8 @@ def crawl(config, *, fetch=fetch_public, previous=None):
                         raise ValueError(
                             "Public NTNU listing unavailable at "+directory+
                             " ("+("HTTP "+str(error.code) if isinstance(error,HTTPError)
+                                   else "Expected Apache directory listing"
+                                   if is_missing_listing(error)
                                    else type(error).__name__)+")"
                         ) from error
                     print("::warning::Previously empty, reviewed public "+
