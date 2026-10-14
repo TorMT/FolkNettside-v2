@@ -1,5 +1,5 @@
 import {loadAdapter,viewerKind} from "./registry.js";
-import {escapeHTML} from "./utils.js";
+import {escapeHTML,safeOriginalFileURL} from "./utils.js";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the
@@ -10,6 +10,7 @@ export async function mountViewer(root,resource,onBack){
   root.__viewerCleanup=null;
 
   const isQuiz=viewerKind(resource)==="quiz";
+  const originalURL=safeOriginalFileURL(resource);
   root.innerHTML=`<main class="viewer ${isQuiz?"viewer--quiz":""}">
     <header class="viewer-head">
       <div>
@@ -18,7 +19,7 @@ export async function mountViewer(root,resource,onBack){
       </div>
       <div>
         ${isQuiz?'<button class="btn" id="viewer-quiz-info" aria-pressed="false">File info</button>':""}
-        <button class="btn" id="open-original">Open original</button>
+        ${originalURL?`<a class="btn" id="open-original" href="${escapeHTML(originalURL)}" target="_blank" rel="noopener noreferrer">Åpne original ↗</a>`:""}
         <button class="btn" id="viewer-back">Back</button>
       </div>
     </header>
@@ -106,7 +107,6 @@ export async function mountViewer(root,resource,onBack){
     root.__viewerCleanup=null;
     onBack();
   };
-  root.querySelector("#open-original").onclick=()=>window.open(resource.url||resource.path,"_blank","noopener");
   root.querySelector("#viewer-full").onclick=()=>canvas.requestFullscreen?.();
 
   try{
@@ -175,16 +175,21 @@ export async function mountViewer(root,resource,onBack){
     if(!active())return;
     const remote=resource.remoteArchive===true&&typeof resource.url==="string"&&
       resource.url.startsWith("https://tormt.folk.ntnu.no/semestre/");
+    const detail=String(error?.message||error||"").slice(0,240);
     const message=remote
-      ?"Forhåndsvisning på GitHub Pages kan være blokkert av NTNUs CORS-regler. Originalfilen kan åpnes direkte på NTNU."
-      :escapeHTML(error?.message||error);
+      ?/HTTP 404|HTTP 410/i.test(detail)
+        ?"Filen ble ikke funnet på NTNU. Katalogen kan være utdatert. Prøv originaladressen og meld fra dersom filen er flyttet."
+        :/HTTP 401|HTTP 403/i.test(detail)
+          ?"NTNU krever tilgang til denne filen. V2 omgår aldri adgangskontroll. Åpne originalen og logg inn dersom du har tilgang."
+          :"Forhåndsvisningen får ikke lest filen. NTNUs CORS-regler, nettverk eller filformat kan være årsaken. Prøv originalfilen direkte."
+      :escapeHTML(detail);
     canvas.innerHTML=`<div class="viewer-error">
       <span class="project-kicker">Viewer error</span>
       <h2>Could not render this resource</h2>
       <p>${message}</p>
       <div class="viewer-error-actions">
         <button class="btn primary" id="viewer-retry">Retry</button>
-        <a class="btn" id="viewer-error-original" target="_blank" rel="noopener noreferrer" href="${escapeHTML(resource.url||resource.path||"#")}">Åpne original på NTNU ↗</a>
+        ${originalURL?`<a class="btn" id="viewer-error-original" target="_blank" rel="noopener noreferrer" href="${escapeHTML(originalURL)}">Åpne originalfil ↗</a>`:""}
       </div>
     </div>`;
     status.textContent="Error";
