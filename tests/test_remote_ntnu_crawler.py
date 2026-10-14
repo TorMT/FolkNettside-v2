@@ -103,6 +103,52 @@ class RemoteCatalogTests(unittest.TestCase):
                 crawler.scan_and_write(self.config,path,fetch=self.fetch)
             self.assertEqual(path.read_bytes(),before)
 
+    def test_custom_index_html_carries_only_previous_vetted_files(self):
+        self.pages[self.directory]=listing("public/")
+        child=self.directory+"public/"
+        self.pages[child]=listing("old.pdf","notebook.py")
+        with tempfile.TemporaryDirectory() as root:
+            output=Path(root)/"catalog.json"
+            crawler.scan_and_write(self.config,output,fetch=self.fetch)
+            old=output.read_bytes()
+            self.pages[child]='<html><title>Custom course page</title>' + (
+                '<a href="new-unreviewed.pdf">new</a>'
+                '<a href="private-secret.pdf">secret</a>'
+                '<a href="https://evil.example/steal.pdf">external</a></html>'
+            )
+            result=crawler.scan_and_write(self.config,output,fetch=self.fetch)
+            self.assertFalse(result["changed"])
+            self.assertEqual(output.read_bytes(),old)
+            # With no previously approved snapshot, an arbitrary landing
+            # page is still strictly rejected, regardless of its links.
+            with self.assertRaisesRegex(ValueError,"Public NTNU listing unavailable"):
+                crawler.crawl(self.config,fetch=self.fetch)
+            self.assertNotIn("new-unreviewed",output.read_text())
+            self.assertNotIn("private-secret",output.read_text())
+            # A truly missing folder (HTTP 404) must never reuse old links.
+            def missing(url):
+                if url==child:
+                    raise HTTPError(url,404,"Not Found",None,None)
+                return self.fetch(url)
+            with self.assertRaisesRegex(ValueError,"HTTP 404"):
+                crawler.scan_and_write(self.config,output,fetch=missing)
+
+    def test_corrupted_previous_references_are_not_republished(self):
+        self.pages[self.directory]=listing("example/")
+        child=self.directory+"example/"
+        self.pages[child]=listing("lecture.py")
+        with tempfile.TemporaryDirectory() as root:
+            output=Path(root)/"catalog.json"
+            crawler.scan_and_write(self.config,output,fetch=self.fetch)
+            data=json.loads(output.read_text())
+            data["semesters"][0]["courses"][0]["resources"][0]["url"] = (
+                "https://evil.example/private"
+            )
+            output.write_text(json.dumps(data))
+            self.pages[child]="<html><title>Some page</title></html>"
+            with self.assertRaisesRegex(ValueError,"Invalid previously published"):
+                crawler.scan_and_write(self.config,output,fetch=self.fetch)
+
     def test_optional_missing_public_root_preserves_previously_empty_catalog(self):
         config={"publicCourses":[{
             "semester":5,"slug":"Marin-Dynamikk","sections":["filer"],
