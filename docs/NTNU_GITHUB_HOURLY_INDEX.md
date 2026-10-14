@@ -55,6 +55,29 @@ Ved annen feil stopper vakten med den godkjente offentlige mappestien
 i feilmeldingen. Det gjør neste feil diagnostiserbar uten å logge
 responsinnhold, passord eller private mapper.
 
+## Egne index.html-sider inne i offentlige mapper
+
+En reell kjøring 14.10.2026 identifiserte en annen feil enn den
+manglende tomme mappen: `semester 1 / itgk / filer / Øving4`
+viser en egendefinert HTML-side i stedet for Apache AutoIndex.
+Direkte kontroll bekreftet tilsvarende sider i Øving5 og Øving7.
+
+Ved en slik side er det **ikke trygt å anta** at alle lenker i HTML
+er en komplett offentlig filfortegnelse. Crawleren:
+- fortsetter å kreve at selve faget er offentlig i semesterindeksen;
+- gjenbruker kun tidligere indekserte URL-er som matcher riktig
+  semester, fag, undermappe, tillatte filtyper og NTNU-origin;
+- rapporterer en GitHub Actions-advarsel om mappen;
+- tar ikke inn nye lenker fra HTML-siden, sletter ingen gamle filer,
+  og åpner ikke andre mapper basert på sidens lenker;
+- stanser fortsatt ved HTTP 404/410, private mapper, ugyldig tidligere
+  katalog eller ukjente mapper uten tidligere godkjente referanser.
+
+**Begrensning:** Nye filer i en mappe med egendefinert
+`index.html` blir ikke automatisk oppdaget uten en autorisert,
+maskinlesbar indeks eller en gjenopprettet Apache DirectoryIndex.
+De øvrige mappene indekseres normalt.
+
 ## CORS — kontroll før root-redirect
 
 GitHub Pages på tormt.github.io og NTNU på tormt.folk.ntnu.no er
