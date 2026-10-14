@@ -71,9 +71,9 @@ test("HTML editor now gates publication behind Supabase auth and keeps offline e
  assert.match(html,/id="publish"/);
  assert.match(html,/Last ned reservekopi/);
  assert.match(html,/NTNU-mapper, originale filnavn, lenker og filinnhold endres aldri/);
- assert.match(code,/Blob\\(/);
+ assert.ok(code.includes("Blob("));
  assert.match(code,/validateNTNUDisplayNames/);
  assert.match(code,/isFolkCourseAdmin/);
  assert.match(code,/saveCloudDisplayNames/);
- assert.doesNotMatch(code,/github\\.com\\/TorMT\\/FolkNettside-v2\\/edit/);
+ assert.equal(code.includes("github.com/TorMT/FolkNettside-v2/edit"),false);
 });
