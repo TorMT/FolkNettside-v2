@@ -173,18 +173,22 @@ export async function mountViewer(root,resource,onBack){
     }
   }catch(error){
     if(!active())return;
-    const message=escapeHTML(error?.message||error);
+    const remote=resource.remoteArchive===true&&typeof resource.url==="string"&&
+      resource.url.startsWith("https://tormt.folk.ntnu.no/semestre/");
+    const message=remote
+      ?"Forhåndsvisning på GitHub Pages kan være blokkert av NTNUs CORS-regler. Originalfilen kan åpnes direkte på NTNU."
+      :escapeHTML(error?.message||error);
     canvas.innerHTML=`<div class="viewer-error">
       <span class="project-kicker">Viewer error</span>
       <h2>Could not render this resource</h2>
       <p>${message}</p>
       <div class="viewer-error-actions">
         <button class="btn primary" id="viewer-retry">Retry</button>
-        <button class="btn" id="viewer-error-original">Open original</button>
+        <a class="btn" id="viewer-error-original" target="_blank" rel="noopener noreferrer" href="${escapeHTML(resource.url||resource.path||"#")}">Åpne original på NTNU ↗</a>
       </div>
     </div>`;
     status.textContent="Error";
     canvas.querySelector("#viewer-retry")?.addEventListener("click",()=>mountViewer(root,resource,onBack));
-    canvas.querySelector("#viewer-error-original")?.addEventListener("click",()=>window.open(resource.url||resource.path,"_blank","noopener"));
+
   }
 }

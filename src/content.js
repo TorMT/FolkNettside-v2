@@ -111,6 +111,14 @@ export async function loadContent() {
     {id:gunnerusModel.id||"gunnerus",label:gunnerusModel.label||gunnerusModel.name,...gunnerusModel}
   ];
 
+  // Presentation-only exclusion requested for V2. Never remove any
+  // original NTNU folders, aliases, or auto-index data.
+  if(courseSource.mode==="github-ntnu"||courseSource.mode==="ntnu"){
+    manifest={...manifest,semesters:manifest.semesters.map(s=>({
+      ...s,courses:s.courses.filter(c=>!(Number(s.id)===5&&c.code==="marin-maskineri"))
+    }))};
+  }
+
   const manifestBySemester = new Map(manifest.semesters.map(s => [Number(s.id), s]));
   const semesters = site.semesterOrder.map(id => {
     const found = manifestBySemester.get(Number(id));
