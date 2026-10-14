@@ -1,4 +1,4 @@
-import {createModelDocument} from "../model/model-document.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
+import {createModelDocument} from "../model/model-document.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
 /**
  * Convert a THREE scene (glTF/OBJ) to the existing, read-only ModelDocument.
  * Apply each object's full world matrix before passing coordinates to the

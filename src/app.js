@@ -1,84 +1,84 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {writeSpaceMouseSettings,resetSpaceMouseSettings} from "./model/spacemouse-settings.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {mountViewer} from "./viewer.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {render as renderPythonWorkbench} from "./viewers/adapters/python.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {loadContent} from "./content.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {kisssoftPageHTML,mountKisssoft} from "./engineering/kisssoft-tool.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {cadToolHTML,mountCADTool} from "./engineering/cad-tool.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {renderResourceTree} from "./components/resource-tree.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {karakterwebUrl} from "./courses/external-links.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {bindCourseNavigation} from "./courses/course-navigation.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {createResourceNotices} from "./courses/resource-updates.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {escapeHTML as escCourse} from "./viewers/utils.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {hydroPressureResultHTML} from "./engineering/hydro-pressure-panel.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {hydrostaticParticulars} from "./hydro/stability.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {createHydroInclude} from "./hydro/hydro-selection.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {prepareHydroModel} from "./hydro/hydrostatics.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {sectionalAreaCurve,sacCSV} from "./hydro/sac-curve.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {sacCurvePanelHTML} from "./engineering/sac-panel.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {buildSearchIndex} from "./search/search-index.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {createSearchController} from "./components/search-dialog.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {staticVaultPageHTML,bindStaticVaultPage} from "./tools/static-vault-page.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {activeTools} from "./tools/tool-registry.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {loadModelDocument} from "./model/load-model.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {parseModelBuffer} from "./tools/model-inspector-core.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {UNIT_SCALE_TO_METERS} from "./model/model-document.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {validateHydroModel} from "./model/hull-surface-validator.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {mountModelScene} from "./model/model-scene.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {mountWaveControls} from "./model/model-wave-controls.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {integrateHullPressureAsync,analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {mountFrame3D} from "./engineering/frame-3d.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {solveHullGirder} from "./structure/hull-girder.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {parseGirderStations} from "./structure/girder-profiles.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {parseStructuralMembers,deriveLongitudinalSections} from "./structure/girder-section-properties.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {mountSectionSketch} from "./engineering/section-sketch.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {girderResponseCSV,girderLoadsCSV,girderReactionsCSV,girderSectionsCSV} from "./structure/girder-export.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {projectPressureToBeam} from "./structure/hydro-beam-transfer.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {mountLoadSketch} from "./engineering/load-sketch.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {portfolioInfoPageHTML,loadCV} from "./portfolio/profile-pages.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {analyticsConsent,analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent,registerAnalyticsCourses} from "./platform/analytics.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {mountAnalyticsNotice} from "./platform/analytics-notice.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {diversePageHTML} from "./diverse/diverse-page.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {DIVERSE_MODULES} from "./diverse/diverse-registry.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {diveMapHTML,mountDiveMap} from "./diverse/dive-map.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {sandalenPageHTML} from "./diverse/sandalen-page.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {studyCatalogPageHTML,mountStudyCatalog} from "./diverse/study-catalog-pages.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {matprisPageHTML,mountMatpris} from "./diverse/matpris-page.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {configuredMatprisEndpoint} from "./diverse/matpris-api.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignUp,folkSignOut,getFolkLinkedProviders} from "./platform/folkside-auth.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {probeFolkCoreBackend} from "./platform/folkside-cloud.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
-import {createFolkAppearanceBackup} from "./platform/folkside-preferences.js?v=d65ba3e41a01cf5123f9dcfe43581940e13ec73a";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {writeSpaceMouseSettings,resetSpaceMouseSettings} from "./model/spacemouse-settings.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {mountViewer} from "./viewer.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {render as renderPythonWorkbench} from "./viewers/adapters/python.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {loadContent} from "./content.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {kisssoftPageHTML,mountKisssoft} from "./engineering/kisssoft-tool.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {cadToolHTML,mountCADTool} from "./engineering/cad-tool.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {renderResourceTree} from "./components/resource-tree.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {karakterwebUrl} from "./courses/external-links.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {bindCourseNavigation} from "./courses/course-navigation.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {createResourceNotices} from "./courses/resource-updates.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {escapeHTML as escCourse} from "./viewers/utils.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {hydroPressureResultHTML} from "./engineering/hydro-pressure-panel.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {hydrostaticParticulars} from "./hydro/stability.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {createHydroInclude} from "./hydro/hydro-selection.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {prepareHydroModel} from "./hydro/hydrostatics.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {sectionalAreaCurve,sacCSV} from "./hydro/sac-curve.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {sacCurvePanelHTML} from "./engineering/sac-panel.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {buildSearchIndex} from "./search/search-index.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {createSearchController} from "./components/search-dialog.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {staticVaultPageHTML,bindStaticVaultPage} from "./tools/static-vault-page.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {activeTools} from "./tools/tool-registry.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {loadModelDocument} from "./model/load-model.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {parseModelBuffer} from "./tools/model-inspector-core.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {UNIT_SCALE_TO_METERS} from "./model/model-document.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {validateHydroModel} from "./model/hull-surface-validator.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {mountModelScene} from "./model/model-scene.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {mountWaveControls} from "./model/model-wave-controls.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {integrateHullPressureAsync,analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {mountFrame3D} from "./engineering/frame-3d.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {solveHullGirder} from "./structure/hull-girder.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {parseGirderStations} from "./structure/girder-profiles.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {parseStructuralMembers,deriveLongitudinalSections} from "./structure/girder-section-properties.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {mountSectionSketch} from "./engineering/section-sketch.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {girderResponseCSV,girderLoadsCSV,girderReactionsCSV,girderSectionsCSV} from "./structure/girder-export.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {projectPressureToBeam} from "./structure/hydro-beam-transfer.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {mountLoadSketch} from "./engineering/load-sketch.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {portfolioInfoPageHTML,loadCV} from "./portfolio/profile-pages.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {analyticsConsent,analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent,registerAnalyticsCourses} from "./platform/analytics.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {mountAnalyticsNotice} from "./platform/analytics-notice.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {diversePageHTML} from "./diverse/diverse-page.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {DIVERSE_MODULES} from "./diverse/diverse-registry.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {diveMapHTML,mountDiveMap} from "./diverse/dive-map.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {sandalenPageHTML} from "./diverse/sandalen-page.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {studyCatalogPageHTML,mountStudyCatalog} from "./diverse/study-catalog-pages.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {matprisPageHTML,mountMatpris} from "./diverse/matpris-page.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {configuredMatprisEndpoint} from "./diverse/matpris-api.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignUp,folkSignOut,getFolkLinkedProviders} from "./platform/folkside-auth.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {probeFolkCoreBackend} from "./platform/folkside-cloud.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
+import {createFolkAppearanceBackup} from "./platform/folkside-preferences.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a";
 
 initSettings();
 initGoogleSession();
@@ -401,6 +401,12 @@ function getSemester(id){return semesters.find(s=>Number(s.id)===Number(id))}
 function getCourse(semesterId,code){return getSemester(semesterId)?.courses.find(c=>c.code.toLowerCase()===String(code).toLowerCase())}
 function courseRoute(semester,code){return `/courses/${semester}/${encodeURIComponent(code)}`}
 function viewerRoute(semester,code,index){return `/viewer/${semester}/${encodeURIComponent(code)}/${index}`}
+function originalNTNUCourseURL(semester,code){
+  const sid=Number(semester);
+  if(!Number.isInteger(sid)||sid<1||sid>20||
+     typeof code!=="string"||!code||/[\\/%?#]/.test(code))return null;
+  return `https://tormt.folk.ntnu.no/semestre/${sid}/${encodeURIComponent(code)}/index.html`;
+}
 function engineeringModeRoute(mode){return `/engineering/${String(mode).toLowerCase()}`}
 
 function top(active){
@@ -606,6 +612,8 @@ function coursePage(semesterId,code){
     .filter(section=>section.items.length);
   const karakterwebHref=karakterwebUrl(course.code);
   const resourceCount=course.resources.length;
+  const originalCourseURL=(courseSource.mode==="ntnu"||courseSource.mode==="github-ntnu")
+    ?originalNTNUCourseURL(semesterId,course.code):null;
   const newResources=courseNotices.newResources(semesterId,course.code);
   const newResourcesHTML=newResources.length?`<aside class="course-updates-banner" role="status">
     <strong>${newResources.length} nye ressurser i dette faget</strong>
@@ -621,12 +629,19 @@ function coursePage(semesterId,code){
       <button data-course-nav="karakterweb"><span>Karakterweb</span><small>external ↗</small></button>
     </aside>
     <section class="content">
-      <div class="crumbs">Courses / ${escCourse(getSemester(semesterId).label)} / ${escCourse(course.code)}</div>
+      <nav class="crumbs" aria-label="Brødsmulesti"><a href="#/courses/${Number(semesterId)}">← ${escCourse(getSemester(semesterId).label)}</a> <span aria-hidden="true">/</span> ${escCourse(course.code)}</nav>
       <header class="course-header" id="course-overview">
         <div class="course-header-meta"><span class="course-code">${escCourse(course.code)}</span><span>${resourceCount} resources · ${sections.length} sections</span></div>
         <h1>${escCourse(course.title)}</h1>
         <p>${escCourse(course.description)}</p>
+        ${originalCourseURL?`<div class="course-action-links">
+          <a class="btn primary" href="${escCourse(originalCourseURL)}" target="_blank" rel="noopener noreferrer">Åpne original fagside på NTNU ↗</a>
+          <span class="muted">Ressursene vises nedenfor. Filer som krever CORS åpnes direkte på NTNU.</span>
+        </div>`:""}
       </header>
+      ${resourceCount===0?`<section class="course-empty-resources"><h2>Ingen offentlige filer registrert</h2>
+          <p>Faget finnes i NTNUs kursoversikt, men har foreløpig ingen indekserte filer i V2.
+          ${originalCourseURL?"Originalfagsiden kan fortsatt ha innhold.":""}</p></section>`:""}
       ${newResourcesHTML}
       ${sections.map(section=>`<section class="resource-section" id="course-section-${section.index}" data-course-section="section-${section.index}">
         <div class="resource-section-head"><h2>${escCourse(section.label)}</h2>${section.originalLabel!==section.label?`<small class="muted">NTNU: ${escCourse(section.originalLabel)}</small>`:""}<span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
