@@ -1,7 +1,7 @@
-import {onNTNUHost} from "./courses/ntnu-catalog.js?v=613f1bf06f03c71e4e3782328409464d1ab91dac";
-import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=613f1bf06f03c71e4e3782328409464d1ab91dac";
-import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=613f1bf06f03c71e4e3782328409464d1ab91dac";
-import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=613f1bf06f03c71e4e3782328409464d1ab91dac";
+import {onNTNUHost} from "./courses/ntnu-catalog.js?v=5720acd5be726fd5bdd846a15604e9a058389473";
+import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=5720acd5be726fd5bdd846a15604e9a058389473";
+import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=5720acd5be726fd5bdd846a15604e9a058389473";
+import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=5720acd5be726fd5bdd846a15604e9a058389473";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
@@ -110,6 +110,14 @@ export async function loadContent() {
     {id:model.id||"fixture",label:model.label||model.name,...model},
     {id:gunnerusModel.id||"gunnerus",label:gunnerusModel.label||gunnerusModel.name,...gunnerusModel}
   ];
+
+  // Presentation-only exclusion requested for V2. Never remove any
+  // original NTNU folders, aliases, or auto-index data.
+  if(courseSource.mode==="github-ntnu"||courseSource.mode==="ntnu"){
+    manifest={...manifest,semesters:manifest.semesters.map(s=>({
+      ...s,courses:s.courses.filter(c=>!(Number(s.id)===5&&c.code==="marin-maskineri"))
+    }))};
+  }
 
   const manifestBySemester = new Map(manifest.semesters.map(s => [Number(s.id), s]));
   const semesters = site.semesterOrder.map(id => {

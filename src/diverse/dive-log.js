@@ -1,6 +1,6 @@
-import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=613f1bf06f03c71e4e3782328409464d1ab91dac";
-import {readAccountVault,writeAccountVault,encryptAccountVault,decryptAccountVault,validateAccountVaultFolder} from "../platform/account-vault-sync.js?v=613f1bf06f03c71e4e3782328409464d1ab91dac";
-import {addDiveEntry,createDiveEntry,deleteDiveEntry,mergeDiveLogs,newDiveLog,validateDiveLog,visibleDiveEntries} from "./dive-log-model.js?v=613f1bf06f03c71e4e3782328409464d1ab91dac";
+import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=5720acd5be726fd5bdd846a15604e9a058389473";
+import {readAccountVault,writeAccountVault,encryptAccountVault,decryptAccountVault,validateAccountVaultFolder} from "../platform/account-vault-sync.js?v=5720acd5be726fd5bdd846a15604e9a058389473";
+import {addDiveEntry,createDiveEntry,deleteDiveEntry,mergeDiveLogs,newDiveLog,validateDiveLog,visibleDiveEntries} from "./dive-log-model.js?v=5720acd5be726fd5bdd846a15604e9a058389473";
 
 const PURPOSE="dive-log";
 const STORAGE="folk-v2-dive-log-v1";
