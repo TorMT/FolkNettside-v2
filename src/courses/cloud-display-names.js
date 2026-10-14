@@ -7,7 +7,7 @@ import {validateFolkAuthConfig,initializeFolkAccount,getFolkAccountUser,
   getFolkAccessToken} from "../platform/folkside-auth.js";
 import {validateNTNUDisplayNames} from "./ntnu-display-names.js";
 
-const CONFIG="./data/folkside-auth.json";
+const CONFIG=new URL("../../data/folkside-auth.json",import.meta.url).href;
 const TABLE="course_display_config";
 const jsonHeaders=key=>({apikey:key,Accept:"application/json"});
 async function configFor(fetchImpl,configLoader){
