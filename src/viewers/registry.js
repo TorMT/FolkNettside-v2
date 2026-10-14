@@ -1,4 +1,4 @@
-import {extension} from "./utils.js?v=86f8fa322926f91794fed377d73ff22673a8eabf";
+import {extension} from "./utils.js?v=bcbda2770f311c5ecf06e6b0fcbdc44951da6c2e";
 
 /**
  * Single dispatch table for every file in the Courses library. Unknown

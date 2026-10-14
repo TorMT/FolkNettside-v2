@@ -1,4 +1,4 @@
-import {solveFrame2D} from "../structure/frame2d.js?v=86f8fa322926f91794fed377d73ff22673a8eabf";
+import {solveFrame2D} from "../structure/frame2d.js?v=bcbda2770f311c5ecf06e6b0fcbdc44951da6c2e";
 
 const fixturePromises=new Map();
 

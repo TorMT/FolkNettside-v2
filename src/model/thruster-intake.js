@@ -1,5 +1,5 @@
-import {componentSemantic} from "./semantic-assembly.js?v=86f8fa322926f91794fed377d73ff22673a8eabf";
-import {transformPoint,transformDirection} from "../propulsion/thruster-system.js?v=86f8fa322926f91794fed377d73ff22673a8eabf";
+import {componentSemantic} from "./semantic-assembly.js?v=bcbda2770f311c5ecf06e6b0fcbdc44951da6c2e";
+import {transformPoint,transformDirection} from "../propulsion/thruster-system.js?v=bcbda2770f311c5ecf06e6b0fcbdc44951da6c2e";
 
 const finite3=v=>Array.isArray(v)&&v.length===3&&v.every(Number.isFinite);
 function normalized(v){
