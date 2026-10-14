@@ -2,6 +2,7 @@ import importlib.util
 import json
 import tempfile
 import unittest
+from urllib.error import HTTPError
 from pathlib import Path
 
 spec=importlib.util.spec_from_file_location(
@@ -101,6 +102,80 @@ class RemoteCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"Unexpected resource loss"):
                 crawler.scan_and_write(self.config,path,fetch=self.fetch)
             self.assertEqual(path.read_bytes(),before)
+
+    def test_optional_missing_public_root_preserves_previously_empty_catalog(self):
+        config={"publicCourses":[{
+            "semester":5,"slug":"Marin-Dynamikk","sections":["filer"],
+            "allowMissingEmptySections":["filer"]
+        }]}
+        self.pages[self.directory]=listing("index.json")
+        with tempfile.TemporaryDirectory() as root:
+            path=Path(root)/"catalog.json"
+            crawler.scan_and_write(config,path,fetch=self.fetch)
+            original=path.read_bytes()
+            def missing(url):
+                if url==self.directory:
+                    raise HTTPError(url,404,"Not Found",None,None)
+                return self.fetch(url)
+            self.assertFalse(crawler.scan_and_write(config,path,fetch=missing)["changed"])
+            self.assertEqual(path.read_bytes(),original)
+            self.assertEqual(crawler.crawl(config,fetch=self.fetch)["semesters"][0]
+                             ["courses"][0]["resources"],[])
+            # An HTTP 200 landing page in place of Apache listing is also
+            # missing; never parse arbitrary landing-page hyperlinks.
+            self.pages[self.directory]='<html><title>Course page</title><a href="private.pdf">private</a></html>'
+            self.assertFalse(crawler.scan_and_write(config,path,fetch=self.fetch)["changed"])
+            self.assertEqual(path.read_bytes(),original)
+            self.assertIn("allowMissingEmptySections",str(config))
+
+    def test_missing_root_must_fail_without_previous_or_if_files_were_indexed(self):
+        config={"publicCourses":[{
+            "semester":5,"slug":"Marin-Dynamikk","sections":["filer"],
+            "allowMissingEmptySections":["filer"]
+        }]}
+        def missing(url):
+            if url==self.directory:
+                raise HTTPError(url,404,"Not Found",None,None)
+            return self.fetch(url)
+        with self.assertRaisesRegex(ValueError,"Public NTNU listing unavailable"):
+            crawler.crawl(config,fetch=missing)
+        self.pages[self.directory]=listing("existing.pdf")
+        with tempfile.TemporaryDirectory() as root:
+            path=Path(root)/"catalog.json"
+            crawler.scan_and_write(config,path,fetch=self.fetch)
+            before=path.read_bytes()
+            with self.assertRaisesRegex(ValueError,"Public NTNU listing unavailable"):
+                crawler.scan_and_write(config,path,fetch=missing)
+            self.assertEqual(path.read_bytes(),before)
+
+    def test_missing_nested_listing_or_private_status_remains_fatal(self):
+        config={"publicCourses":[{
+            "semester":5,"slug":"Marin-Dynamikk","sections":["filer"],
+            "allowMissingEmptySections":["filer"]
+        }]}
+        self.pages[self.directory]=listing("newdir/")
+        self.pages[self.directory+"newdir/"]='<html>Not an Apache listing</html>'
+        with tempfile.TemporaryDirectory() as root:
+            path=Path(root)/"catalog.json"
+            # Seed previous catalog from a valid empty root.
+            self.pages[self.directory]=listing("index.json")
+            crawler.scan_and_write(config,path,fetch=self.fetch)
+            self.pages[self.directory]=listing("newdir/")
+            with self.assertRaisesRegex(ValueError,"newdir/"):
+                crawler.scan_and_write(config,path,fetch=self.fetch)
+        self.pages[crawler.ORIGIN+"/semestre/5/index.json"]=json.dumps({
+            "Marin-Dynamikk":{"dir":"Marin-Dynamikk","beskyttet":True}
+        })
+        with self.assertRaisesRegex(ValueError,"no longer explicitly public"):
+            crawler.crawl(config,fetch=self.fetch)
+
+    def test_optional_directory_markers_must_be_reviewed_subset(self):
+        config={"publicCourses":[{
+            "semester":5,"slug":"Marin-Dynamikk","sections":["filer"],
+            "allowMissingEmptySections":["quiz"]
+        }]}
+        with self.assertRaises(ValueError):
+            crawler.approved_courses(config)
 
     def test_disallow_hostile_course_slugs_without_network_calls(self):
         for slug in ("../secrets","private-stuff","a/b","..","hidden%2e"):

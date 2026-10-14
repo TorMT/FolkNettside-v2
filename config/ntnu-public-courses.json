@@ -21,7 +21,7 @@
     {"semester":4,"slug":"Strømming","sections":["filer","quiz"]},
     {"semester":4,"slug":"TermoDynamikk","sections":["filer"]},
     {"semester":5,"slug":"Marin-Dynamikk","sections":["filer"]},
-    {"semester":5,"slug":"marin-maskineri","sections":["filer"]},
+    {"semester":5,"slug":"marin-maskineri","sections":["filer"],"allowMissingEmptySections":["filer"]},
     {"semester":5,"slug":"marin-teknikk-4-propulsjon","sections":["filer"]},
     {"semester":5,"slug":"teknologiledelse","sections":["filer"]},
     {"semester":5,"slug":"marin-machinery-design-and-condition-monitoring","sections":["filer"]}

@@ -32,6 +32,29 @@ Kjøringen kan startes manuelt fra GitHub Actions →
 hourly-ntnu-public-course-index → Run workflow. GitHub Actions cron
 er omtrent hver time, ikke garantert på eksakt klokkeslett.
 
+## Håndtering av tomme og utilgjengelige mapper (14.10.2026)
+
+Kjøringene 13.–14. oktober feilet ved kontroll av Apache-listing.
+Direkte kontroll viser at
+`/semestre/5/marin-maskineri/filer/` svarer 404, mens fagets
+offentlige katalogreferanse er beholdt. Faget har ingen indekserte
+filer i sist fungerende V2-katalog.
+
+En enkelt, eksplisitt gjennomgått tom seksjon kan merkes med
+`allowMissingEmptySections` i `config/ntnu-public-courses.json`.
+Dette er **ikke** generell ignorering av feil. Crawleren krever:
+- At semesterets offentlige `index.json` fortsatt angir
+  `beskyttet: false` for faget.
+- At forrige publiserte katalog inneholder dette faget **uten**
+  registrerte filer i seksjonen.
+- At feilen gjelder **seksjonens rotmappe**, ikke en undermappe.
+- At svaret er en reell 404/410 eller mangler forventet
+  Apache-listing. 401/403, redirects og nettverksfeil er fortsatt feil.
+
+Ved annen feil stopper vakten med den godkjente offentlige mappestien
+i feilmeldingen. Det gjør neste feil diagnostiserbar uten å logge
+responsinnhold, passord eller private mapper.
+
 ## CORS — kontroll før root-redirect
 
 GitHub Pages på tormt.github.io og NTNU på tormt.folk.ntnu.no er
