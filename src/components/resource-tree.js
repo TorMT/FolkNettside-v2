@@ -40,6 +40,24 @@ function renderNode(node,indexOfResource,depth=0,routeForResource=null){
              /^\/semestre\/\d+\//.test(url.pathname)&&!url.search&&!url.hash)
             original=`<a class="resource-original-link" href="${escapeHTML(url.href)}" target="_blank" rel="noopener noreferrer" aria-label="Åpne originalfilen ${escapeHTML(item.name)} på NTNU">NTNU ↗</a>`;
         }catch{}
+        // Cross-origin file bytes cannot be read by GitHub Pages without
+        // NTNUs CORS permission. Opening the public original remains useful
+        // regardless of preview access, and must not be JavaScript-dependent.
+        const directFirst=item.remoteArchive===true&&Boolean(original)&&
+          !["PDF","IMAGE","VIDEO","AUDIO"].includes(String(item.kind||"").toUpperCase());
+        if(directFirst){
+          const originalURL=new URL(item.url);
+          return `<div class="resource-row resource-row-links resource-row-direct-first">
+            <a class="resource-source-primary" href="${escapeHTML(originalURL.href)}" target="_blank" rel="noopener noreferrer"
+               aria-label="Åpne ${escapeHTML(item.label||item.name)} på NTNU">
+              <span class="file-icon">${escapeHTML(item.kind)}</span>
+              <span><strong>${escapeHTML(item.label||item.name)}</strong><span class="muted resource-original-name">${escapeHTML(item.name)}</span></span>
+              <span class="muted">Åpne ↗</span>
+            </a>
+            <a class="resource-viewer-link resource-preview-alternate" data-resource="${index}" href="${escapeHTML(href)}"
+               aria-label="Prøv V2-viser for ${escapeHTML(item.label||item.name)}">V2-viser ›</a>
+          </div>`;
+        }
         return `<div class="resource-row resource-row-links">
           <a class="resource-viewer-link" data-resource="${index}" href="${escapeHTML(href)}" aria-label="Vis ${escapeHTML(item.label||item.name)} i V2">
             <span class="file-icon">${escapeHTML(item.kind)}</span>

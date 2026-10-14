@@ -43,8 +43,10 @@ test("file rows contain safe direct native hash navigation and separate original
  const html=renderResourceTree([item],()=>7,{
   routeForResource:index=>"#/viewer/5/Marin-Dynamikk/"+index
  });
- assert.match(html,/class="resource-viewer-link" data-resource="7" href="#\/viewer\/5\/Marin-Dynamikk\/7"/);
- assert.match(html,/class="resource-original-link" href="https:\/\/tormt\.folk\.ntnu\.no\/semestre\/5\/Marin-Dynamikk\//);
+ assert.match(html,/resource-source-primary/);
+ assert.match(html,/resource-preview-alternate/);
+ assert.match(html,/href="#\/viewer\/5\/Marin-Dynamikk\/7"/);
+ assert.match(html,/href="https:\/\/tormt\.folk\.ntnu\.no\/semestre\/5\/Marin-Dynamikk\//);
  assert.match(html,/target="_blank" rel="noopener noreferrer"/);
  assert.doesNotMatch(html,/role="button"/);
  assert.match(app,/href="#\$\{courseRoute\(semester\.id,course\.code\)\}"/);
