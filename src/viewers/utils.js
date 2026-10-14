@@ -20,7 +20,7 @@ function sizeLimit(maxBytes){
 }
 export async function fetchText(path,{maxBytes=DEFAULT_MAX_TEXT_BYTES}={}){
   const label=sizeLimit(maxBytes);
-  const response=await fetch(path);
+  const response=await fetch(path,viewerFetchOptions());
   if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${path}`);
   const size=Number(response.headers.get("content-length")||0);
   if(size>maxBytes){await response.body?.cancel?.();throw new Error(`Preview exceeds the ${label} limit; download the original instead.`);}
@@ -79,4 +79,28 @@ export async function fetchBoundedBuffer(path,{maxBytes=80_000_000}={}){
   let offset=0;
   for(const chunk of chunks){output.set(chunk,offset);offset+=chunk.length}
   return output.buffer;
+}
+
+/** Reject executable schemes and malformed remote-archive origins. */
+export function safeOriginalFileURL(resource={},base=globalThis.location?.href||
+  "https://tormt.github.io/FolkNettside-v2/"){
+ try{
+   const raw=resource.url||resource.path;
+   if(typeof raw!=="string"||!raw.trim())return null;
+   const target=new URL(raw,base);
+   if(target.protocol!=="https:"&&
+      !(target.protocol==="http:"&&["localhost","127.0.0.1"].includes(target.hostname)))
+     return null;
+   if(resource.remoteArchive===true&&
+      (target.origin!=="https://tormt.folk.ntnu.no"||
+       !/^\/semestre\/\d+\//.test(target.pathname)))
+     return null;
+   return target.href;
+ }catch{return null}
+}
+
+/** Bound slow remote fetches so a broken cross-origin preview cannot spin indefinitely. */
+function viewerFetchOptions(){
+ return typeof AbortSignal!=="undefined"&&typeof AbortSignal.timeout==="function"?
+   {signal:AbortSignal.timeout(25000)}:{};
 }

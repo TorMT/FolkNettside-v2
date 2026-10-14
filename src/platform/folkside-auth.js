@@ -7,7 +7,7 @@
  * The site does not store passwords, expose a service-role key, or interpret
  * a Google access token as a Supabase Auth identity.
  */
-const CONFIG_URL="./data/folkside-auth.json";
+const CONFIG_URL=new URL("../../data/folkside-auth.json",import.meta.url).href;
 const SESSION_KEY="folk:v2:supabase:session";
 const listeners=new Set();
 const copyUser=user=>user?{id:String(user.id||""),email:String(user.email||"")}:null;

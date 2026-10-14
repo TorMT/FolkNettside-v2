@@ -40,7 +40,7 @@ test("GitHub Pages renders courses 1-5 while hiding only the redundant Marint ma
 
 test("viewer provides an actual original-file link when remote preview cannot fetch",()=>{
  const text=readFileSync(new URL("../src/viewers/viewer-shell.js",import.meta.url),"utf8");
- assert.match(text,/Forhåndsvisning på GitHub Pages kan være blokkert/);
+ assert.match(text,/Forhåndsvisningen får ikke lest filen/);
  assert.match(text,/id="viewer-error-original" target="_blank" rel="noopener noreferrer" href=/);
  assert.doesNotMatch(text,/id="viewer-error-original"\)\?\.addEventListener/);
 });

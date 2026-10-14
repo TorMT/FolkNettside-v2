@@ -62,13 +62,18 @@ test("editor export refuses HTML injection and duplicate section labels",()=>{
  assert.throws(()=>exportAliases(draft,manifest),/Duplicate renamed section/);
 });
 
-test("HTML editor remains a local JSON export workflow, not unauthenticated GitHub writes",()=>{
+test("HTML editor now gates publication behind Supabase auth and keeps offline export",()=>{
  const html=readFileSync(new URL("../src/courses/name-editor.html",import.meta.url),"utf8");
  const code=readFileSync(new URL("../src/courses/name-editor.js",import.meta.url),"utf8");
- assert.match(html,/Last ned felles navnefil/);
+ assert.match(html,/id="admin-gate"/);
+ assert.match(html,/id="admin-login-form"/);
+ assert.match(html,/type="password"/);
+ assert.match(html,/id="publish"/);
+ assert.match(html,/Last ned reservekopi/);
  assert.match(html,/NTNU-mapper, originale filnavn, lenker og filinnhold endres aldri/);
- assert.match(html,/github\.com\/TorMT\/FolkNettside-v2\/edit\/main\/config\/ntnu-display-names\.json/);
- assert.match(code,/Blob\(/);
+ assert.ok(code.includes("Blob("));
  assert.match(code,/validateNTNUDisplayNames/);
- assert.doesNotMatch(code,/fetch\([^\n]+method:\s*["'](?:POST|PUT|PATCH)/);
+ assert.match(code,/isFolkCourseAdmin/);
+ assert.match(code,/saveCloudDisplayNames/);
+ assert.equal(code.includes("github.com/TorMT/FolkNettside-v2/edit"),false);
 });
