@@ -401,6 +401,12 @@ function getSemester(id){return semesters.find(s=>Number(s.id)===Number(id))}
 function getCourse(semesterId,code){return getSemester(semesterId)?.courses.find(c=>c.code.toLowerCase()===String(code).toLowerCase())}
 function courseRoute(semester,code){return `/courses/${semester}/${encodeURIComponent(code)}`}
 function viewerRoute(semester,code,index){return `/viewer/${semester}/${encodeURIComponent(code)}/${index}`}
+function originalNTNUCourseURL(semester,code){
+  const sid=Number(semester);
+  if(!Number.isInteger(sid)||sid<1||sid>20||
+     typeof code!=="string"||!code||/[\\/%?#]/.test(code))return null;
+  return `https://tormt.folk.ntnu.no/semestre/${sid}/${encodeURIComponent(code)}/index.html`;
+}
 function engineeringModeRoute(mode){return `/engineering/${String(mode).toLowerCase()}`}
 
 function top(active){
@@ -606,6 +612,8 @@ function coursePage(semesterId,code){
     .filter(section=>section.items.length);
   const karakterwebHref=karakterwebUrl(course.code);
   const resourceCount=course.resources.length;
+  const originalCourseURL=(courseSource.mode==="ntnu"||courseSource.mode==="github-ntnu")
+    ?originalNTNUCourseURL(semesterId,course.code):null;
   const newResources=courseNotices.newResources(semesterId,course.code);
   const newResourcesHTML=newResources.length?`<aside class="course-updates-banner" role="status">
     <strong>${newResources.length} nye ressurser i dette faget</strong>
@@ -621,12 +629,19 @@ function coursePage(semesterId,code){
       <button data-course-nav="karakterweb"><span>Karakterweb</span><small>external ↗</small></button>
     </aside>
     <section class="content">
-      <div class="crumbs">Courses / ${escCourse(getSemester(semesterId).label)} / ${escCourse(course.code)}</div>
+      <nav class="crumbs" aria-label="Brødsmulesti"><a href="#/courses/${Number(semesterId)}">← ${escCourse(getSemester(semesterId).label)}</a> <span aria-hidden="true">/</span> ${escCourse(course.code)}</nav>
       <header class="course-header" id="course-overview">
         <div class="course-header-meta"><span class="course-code">${escCourse(course.code)}</span><span>${resourceCount} resources · ${sections.length} sections</span></div>
         <h1>${escCourse(course.title)}</h1>
         <p>${escCourse(course.description)}</p>
+        ${originalCourseURL?`<div class="course-action-links">
+          <a class="btn primary" href="${escCourse(originalCourseURL)}" target="_blank" rel="noopener noreferrer">Åpne original fagside på NTNU ↗</a>
+          <span class="muted">Ressursene vises nedenfor. Filer som krever CORS åpnes direkte på NTNU.</span>
+        </div>`:""}
       </header>
+      ${resourceCount===0?`<section class="course-empty-resources"><h2>Ingen offentlige filer registrert</h2>
+          <p>Faget finnes i NTNUs kursoversikt, men har foreløpig ingen indekserte filer i V2.
+          ${originalCourseURL?"Originalfagsiden kan fortsatt ha innhold.":""}</p></section>`:""}
       ${newResourcesHTML}
       ${sections.map(section=>`<section class="resource-section" id="course-section-${section.index}" data-course-section="section-${section.index}">
         <div class="resource-section-head"><h2>${escCourse(section.label)}</h2>${section.originalLabel!==section.label?`<small class="muted">NTNU: ${escCourse(section.originalLabel)}</small>`:""}<span>${section.items.length} item${section.items.length===1?"":"s"}</span></div>
