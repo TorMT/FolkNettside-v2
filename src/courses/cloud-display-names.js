@@ -10,6 +10,8 @@ import {validateNTNUDisplayNames} from "./ntnu-display-names.js";
 const CONFIG=new URL("../../data/folkside-auth.json",import.meta.url).href;
 const TABLE="course_display_config";
 const jsonHeaders=key=>({apikey:key,Accept:"application/json"});
+const timeoutSignal=ms=>typeof AbortSignal!=="undefined"&&
+ typeof AbortSignal.timeout==="function"?AbortSignal.timeout(ms):undefined;
 async function configFor(fetchImpl,configLoader){
  const data=configLoader?await configLoader():
    await fetchImpl(CONFIG,{cache:"no-store"}).then(r=>r.ok?r.json():null);
@@ -31,7 +33,7 @@ async function readResponse(response){
 export async function loadCloudDisplayNames({fetchImpl=fetch,configLoader=null}={}){
  const {url,publishableKey}=await configFor(fetchImpl,configLoader);
  const response=await fetchImpl(url+"/rest/v1/"+TABLE+"?id=eq.main&select=aliases",{
-   cache:"no-store",headers:jsonHeaders(publishableKey)
+   cache:"no-store",signal:timeoutSignal(3500),headers:jsonHeaders(publishableKey)
  });
  const items=await readResponse(response);
  if(!Array.isArray(items)||!items.length)return null;
@@ -46,7 +48,7 @@ export async function isFolkCourseAdmin({fetchImpl=fetch,configLoader=null}={}){
  const {url,publishableKey}=await configFor(fetchImpl,configLoader);
  const response=await fetchImpl(url+"/rest/v1/folk_admins?user_id=eq."+
    encodeURIComponent(user.id)+"&select=user_id",{
-   cache:"no-store",
+   cache:"no-store",signal:timeoutSignal(15000),
    headers:{...jsonHeaders(publishableKey),Authorization:"Bearer "+token}
  });
  const items=await readResponse(response);
@@ -61,7 +63,7 @@ export async function saveCloudDisplayNames(names,{
  const token=await getFolkAccessToken();
  const {url,publishableKey}=await configFor(fetchImpl,configLoader);
  const response=await fetchImpl(url+"/rest/v1/"+TABLE+"?on_conflict=id",{
-   method:"POST",cache:"no-store",
+   method:"POST",cache:"no-store",signal:timeoutSignal(15000),
    headers:{...jsonHeaders(publishableKey),Authorization:"Bearer "+token,
      "Content-Type":"application/json",
      Prefer:"resolution=merge-duplicates,return=representation"},
