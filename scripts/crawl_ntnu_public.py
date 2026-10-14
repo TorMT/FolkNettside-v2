@@ -174,6 +174,38 @@ def previous_section_was_empty(previous, sid, slug, section):
     return False
 
 
+def previously_verified_references(previous, sid, slug, parts):
+    """Carry forward *only* already approved paths when Apache listing is
+    shadowed by a custom index.html. Never scrape arbitrary course HTML."""
+    if not isinstance(previous,dict) or previous.get("source") != "ntnu-auto-preview":
+        return []
+    prefix="/".join(parts)+"/"
+    for semester in previous.get("semesters",[]):
+        if semester.get("id") != sid:
+            continue
+        for course in semester.get("courses",[]):
+            if course.get("code") != slug:
+                continue
+            result=[]
+            for resource in course.get("resources",[]):
+                relative=resource.get("relativePath")
+                if not isinstance(relative,str) or not relative.startswith(prefix):
+                    continue
+                pieces=relative.split("/")
+                if len(pieces)<len(parts)+1 or not all(safe_piece(x) for x in pieces):
+                    raise ValueError("Unsafe previously published directory reference")
+                path=public_path(sid,slug,pieces)
+                if (resource.get("source")!="ntnu" or
+                        resource.get("path")!=path or
+                        resource.get("url")!=ORIGIN+path or
+                        resource.get("section")!=parts[0] or
+                        KINDS.get(Path(pieces[-1]).suffix.lower()) is None):
+                    raise ValueError("Invalid previously published directory reference")
+                result.append(resource)
+            return result
+    return []
+
+
 def is_missing_listing(error):
     return (isinstance(error,HTTPError) and error.code in (404,410)) or (
         type(error) is ValueError and str(error) ==
@@ -211,6 +243,29 @@ def crawl(config, *, fetch=fetch_public, previous=None):
                 try:
                     children = links_in_directory(fetch(directory),directory)
                 except (HTTPError,ValueError) as error:
+                    # A public directory may contain its own index.html. Do
+                    # not treat that unrelated HTML as Apache's file list.
+                    # Reuse existing vetted references only, with no new
+                    # links or file bytes and no deletions.
+                    if (type(error) is ValueError and is_missing_listing(error)):
+                        preserved=previously_verified_references(
+                            previous,sid,slug,parts
+                        )
+                        if preserved:
+                            for item in preserved:
+                                relative=item["relativePath"]
+                                if relative in seen:
+                                    raise ValueError("Duplicate preserved public reference")
+                                seen.add(relative)
+                                resources.append(item)
+                                count+=1
+                                if count>MAX_FILES:
+                                    raise ValueError("File limit exceeded")
+                            print("::warning::Apache listing replaced by custom page; "+
+                                  "retaining "+str(len(preserved))+
+                                  " previously reviewed file references at "+directory,
+                                  file=sys.stderr)
+                            continue
                     allow_absent = (
                         len(parts) == 1 and
                         (sid,slug,section) in reviewed_missing and
