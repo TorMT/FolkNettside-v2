@@ -10050,8 +10050,306 @@
         {
           "code": "marin-machinery-design-and-condition-monitoring",
           "description": "Originalfiler på NTNU",
-          "resources": [],
-          "sections": [],
+          "resources": [
+            {
+              "folders": [],
+              "kind": "PDF",
+              "label": "Lecture2",
+              "modified": 0,
+              "name": "Lecture2.pdf",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/Lecture2.pdf",
+              "relativePath": "filer/Lecture2.pdf",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/Lecture2.pdf"
+            },
+            {
+              "folders": [],
+              "kind": "PDF",
+              "label": "Lecture3",
+              "modified": 0,
+              "name": "Lecture3.pdf",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/Lecture3.pdf",
+              "relativePath": "filer/Lecture3.pdf",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/Lecture3.pdf"
+            },
+            {
+              "folders": [],
+              "kind": "PDF",
+              "label": "Lecture4",
+              "modified": 0,
+              "name": "Lecture4.pdf",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/Lecture4.pdf",
+              "relativePath": "filer/Lecture4.pdf",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/Lecture4.pdf"
+            },
+            {
+              "folders": [],
+              "kind": "PDF",
+              "label": "Lecture5",
+              "modified": 0,
+              "name": "Lecture5.pdf",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/Lecture5.pdf",
+              "relativePath": "filer/Lecture5.pdf",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/Lecture5.pdf"
+            },
+            {
+              "folders": [
+                "PitchSystem"
+              ],
+              "kind": "IMAGE",
+              "label": "dc727ba3 8648 4eb5 8705 4c96a4aef3f5",
+              "modified": 0,
+              "name": "dc727ba3-8648-4eb5-8705-4c96a4aef3f5.png",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/dc727ba3-8648-4eb5-8705-4c96a4aef3f5.png",
+              "relativePath": "filer/PitchSystem/dc727ba3-8648-4eb5-8705-4c96a4aef3f5.png",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/dc727ba3-8648-4eb5-8705-4c96a4aef3f5.png"
+            },
+            {
+              "folders": [
+                "PitchSystem"
+              ],
+              "kind": "IMAGE",
+              "label": "Innkjøpsdeler for pitch drive",
+              "modified": 0,
+              "name": "Innkjøpsdeler for pitch-drive.png",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Innkj%C3%B8psdeler%20for%20pitch-drive.png",
+              "relativePath": "filer/PitchSystem/Innkjøpsdeler for pitch-drive.png",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Innkj%C3%B8psdeler%20for%20pitch-drive.png"
+            },
+            {
+              "folders": [
+                "PitchSystem",
+                "KodeSomTilLavGradBleBrukt",
+                "PitchSystem"
+              ],
+              "kind": "PY",
+              "label": "bearing design",
+              "modified": 0,
+              "name": "bearing_design.py",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/bearing_design.py",
+              "relativePath": "filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/bearing_design.py",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/bearing_design.py"
+            },
+            {
+              "folders": [
+                "PitchSystem",
+                "KodeSomTilLavGradBleBrukt",
+                "PitchSystem"
+              ],
+              "kind": "PY",
+              "label": "design inputs",
+              "modified": 0,
+              "name": "design_inputs.py",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/design_inputs.py",
+              "relativePath": "filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/design_inputs.py",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/design_inputs.py"
+            },
+            {
+              "folders": [
+                "PitchSystem",
+                "KodeSomTilLavGradBleBrukt",
+                "PitchSystem"
+              ],
+              "kind": "PY",
+              "label": "extreme load",
+              "modified": 0,
+              "name": "extreme_load.py",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/extreme_load.py",
+              "relativePath": "filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/extreme_load.py",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/extreme_load.py"
+            },
+            {
+              "folders": [
+                "PitchSystem",
+                "KodeSomTilLavGradBleBrukt",
+                "PitchSystem"
+              ],
+              "kind": "PY",
+              "label": "gear design",
+              "modified": 0,
+              "name": "gear_design.py",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/gear_design.py",
+              "relativePath": "filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/gear_design.py",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/gear_design.py"
+            },
+            {
+              "folders": [
+                "PitchSystem",
+                "KodeSomTilLavGradBleBrukt",
+                "PitchSystem"
+              ],
+              "kind": "PY",
+              "label": "load path",
+              "modified": 0,
+              "name": "load_path.py",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/load_path.py",
+              "relativePath": "filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/load_path.py",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/load_path.py"
+            },
+            {
+              "folders": [
+                "PitchSystem",
+                "KodeSomTilLavGradBleBrukt",
+                "PitchSystem"
+              ],
+              "kind": "PY",
+              "label": "main",
+              "modified": 0,
+              "name": "main.py",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/main.py",
+              "relativePath": "filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/main.py",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/main.py"
+            },
+            {
+              "folders": [
+                "PitchSystem",
+                "KodeSomTilLavGradBleBrukt",
+                "PitchSystem"
+              ],
+              "kind": "PY",
+              "label": "motor design",
+              "modified": 0,
+              "name": "motor_design.py",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/motor_design.py",
+              "relativePath": "filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/motor_design.py",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/motor_design.py"
+            },
+            {
+              "folders": [
+                "PitchSystem",
+                "KodeSomTilLavGradBleBrukt",
+                "PitchSystem"
+              ],
+              "kind": "PY",
+              "label": "ring gear",
+              "modified": 0,
+              "name": "ring_gear.py",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/ring_gear.py",
+              "relativePath": "filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/ring_gear.py",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/ring_gear.py"
+            },
+            {
+              "folders": [
+                "PitchSystem",
+                "KodeSomTilLavGradBleBrukt",
+                "PitchSystem"
+              ],
+              "kind": "PY",
+              "label": "shaft design",
+              "modified": 0,
+              "name": "shaft_design.py",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/shaft_design.py",
+              "relativePath": "filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/shaft_design.py",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/KodeSomTilLavGradBleBrukt/PitchSystem/shaft_design.py"
+            },
+            {
+              "folders": [
+                "PitchSystem"
+              ],
+              "kind": "IMAGE",
+              "label": "Pitch drev for vindturbin – komponentoversikt",
+              "modified": 0,
+              "name": "Pitch-drev for vindturbin – komponentoversikt.png",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Pitch-drev%20for%20vindturbin%20%E2%80%93%20komponentoversikt.png",
+              "relativePath": "filer/PitchSystem/Pitch-drev for vindturbin – komponentoversikt.png",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Pitch-drev%20for%20vindturbin%20%E2%80%93%20komponentoversikt.png"
+            },
+            {
+              "folders": [
+                "PitchSystem"
+              ],
+              "kind": "IMAGE",
+              "label": "Planetgir  krefter og lagerreaksjon",
+              "modified": 0,
+              "name": "Planetgir_ krefter og lagerreaksjon.png",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Planetgir_%20krefter%20og%20lagerreaksjon.png",
+              "relativePath": "filer/PitchSystem/Planetgir_ krefter og lagerreaksjon.png",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Planetgir_%20krefter%20og%20lagerreaksjon.png"
+            },
+            {
+              "folders": [
+                "PitchSystem"
+              ],
+              "kind": "IMAGE",
+              "label": "Teknisk cutaway av planetgir og ringgir",
+              "modified": 0,
+              "name": "Teknisk cutaway av planetgir og ringgir.png",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Teknisk%20cutaway%20av%20planetgir%20og%20ringgir.png",
+              "relativePath": "filer/PitchSystem/Teknisk cutaway av planetgir og ringgir.png",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Teknisk%20cutaway%20av%20planetgir%20og%20ringgir.png"
+            },
+            {
+              "folders": [
+                "PitchSystem"
+              ],
+              "kind": "PPTX",
+              "label": "TMR4330 Pitch System V3 Cover And Components (2)",
+              "modified": 0,
+              "name": "TMR4330_Pitch_System_V3_Cover_And_Components (2).pptx",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/TMR4330_Pitch_System_V3_Cover_And_Components%20(2).pptx",
+              "relativePath": "filer/PitchSystem/TMR4330_Pitch_System_V3_Cover_And_Components (2).pptx",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/TMR4330_Pitch_System_V3_Cover_And_Components%20(2).pptx"
+            }
+          ],
+          "sections": [
+            "filer"
+          ],
           "semester": 5,
           "tags": [
             "NTNU"
