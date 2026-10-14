@@ -10,6 +10,8 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
+from urllib.error import HTTPError
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import quote, unquote, urljoin, urlsplit
@@ -143,9 +145,12 @@ def approved_courses(config):
             raise ValueError("Invalid public course entry")
         sid,slug,sections = (course.get("semester"),course.get("slug"),
                              course.get("sections",[]))
+        optional = course.get("allowMissingEmptySections", [])
         if (type(sid) is not int or sid<1 or sid>20 or not safe_piece(slug)
                 or not isinstance(sections,list) or len(set(sections)) != len(sections)
                 or any(s not in ("filer","quiz") for s in sections)
+                or not isinstance(optional,list) or len(set(optional)) != len(optional)
+                or any(s not in sections for s in optional)
                 or (sid,slug) in seen):
             raise ValueError("Unsafe/duplicate course allowlist entry")
         seen.add((sid,slug))
@@ -153,8 +158,36 @@ def approved_courses(config):
     return courses
 
 
-def crawl(config, *, fetch=fetch_public):
+def previous_section_was_empty(previous, sid, slug, section):
+    """Only a known empty public section may be temporarily unavailable."""
+    if not isinstance(previous,dict) or previous.get("source") != "ntnu-auto-preview":
+        return False
+    for semester in previous.get("semesters",[]):
+        if semester.get("id") != sid:
+            continue
+        for course in semester.get("courses",[]):
+            if course.get("code") == slug:
+                return not any(
+                    r.get("relativePath","").startswith(section+"/")
+                    for r in course.get("resources",[])
+                )
+    return False
+
+
+def is_missing_listing(error):
+    return (isinstance(error,HTTPError) and error.code in (404,410)) or (
+        type(error) is ValueError and str(error) ==
+        "Expected Apache directory listing on approved public directory"
+    )
+
+
+def crawl(config, *, fetch=fetch_public, previous=None):
     semesters, indexes = {}, {}
+    reviewed_missing = {
+        (row["semester"],row["slug"],section)
+        for row in config["publicCourses"]
+        for section in row.get("allowMissingEmptySections",[])
+    }
     count, directories = 0, 0
     for sid,slug,sections in approved_courses(config):
         if sid not in indexes:
@@ -175,7 +208,28 @@ def crawl(config, *, fetch=fetch_public):
                 if directories>MAX_DIRECTORIES or len(parts)>12:
                     raise ValueError("Directory budget exceeded")
                 directory = ORIGIN+public_path(sid,slug,parts)+"/"
-                children = links_in_directory(fetch(directory),directory)
+                try:
+                    children = links_in_directory(fetch(directory),directory)
+                except (HTTPError,ValueError) as error:
+                    allow_absent = (
+                        len(parts) == 1 and
+                        (sid,slug,section) in reviewed_missing and
+                        previous_section_was_empty(previous,sid,slug,section) and
+                        is_missing_listing(error)
+                    )
+                    if not allow_absent:
+                        # Include only the vetted public directory URL.
+                        # Do not log response HTML, authentication headers or
+                        # other untrusted server error text.
+                        raise ValueError(
+                            "Public NTNU listing unavailable at "+directory+
+                            " ("+("HTTP "+str(error.code) if isinstance(error,HTTPError)
+                                   else type(error).__name__)+")"
+                        ) from error
+                    print("::warning::Previously empty, reviewed public "+
+                          "section unavailable (not indexed): "+directory,
+                          file=sys.stderr)
+                    continue
                 for name,is_directory in children:
                     next_parts = parts+[name]
                     if is_directory:
@@ -230,16 +284,18 @@ def catalog_keys(doc):
 
 
 def scan_and_write(config, output, *, fetch=fetch_public, allow_removals=False):
-    doc=crawl(config,fetch=fetch)
+    previous_catalog=None
+    if output.exists():
+        previous_catalog=json.loads(output.read_text(encoding="utf-8"))
+        if previous_catalog.get("source") != "ntnu-auto-preview":
+            raise ValueError("Existing catalog has unknown schema")
+    doc=crawl(config,fetch=fetch,previous=previous_catalog)
     raw=json.dumps(doc,ensure_ascii=False,sort_keys=True,indent=2)+"\n"
     if len(raw.encode("utf-8")) > 4_000_000:
         raise ValueError("Catalog too large for browser")
     current=catalog_keys(doc)
-    if output.exists():
-        old=json.loads(output.read_text(encoding="utf-8"))
-        if old.get("source")!="ntnu-auto-preview":
-            raise ValueError("Existing catalog has unknown schema")
-        previous=catalog_keys(old)
+    if previous_catalog is not None:
+        previous=catalog_keys(previous_catalog)
         if previous and not current:
             raise ValueError("Refusing empty replacement")
         if (previous and (len(current)<.90*len(previous)
