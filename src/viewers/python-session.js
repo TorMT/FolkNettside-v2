@@ -3,7 +3,7 @@
  * Python globals; Stop destroys the Worker and therefore resets the session.
  */
 export function createPythonSession({workerFactory=()=>new Worker(
-  new URL("./python-worker.js?v=550c686e525379e56f097a44bdadbeaec2d9da0a",import.meta.url)
+  new URL("./python-worker.js?v=86f8fa322926f91794fed377d73ff22673a8eabf",import.meta.url)
 )}={}){
   let worker=null,seq=0,pending=new Map(),disposed=false;
   const init=()=>{

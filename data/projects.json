@@ -33,14 +33,27 @@
       "Approximately 11 minutes per print, including setup",
       "Reported total cost: 49 NOK, versus more than 400 NOK for the replacement strap"
     ],
-    "gallery": [],
-    "files": []
+    "gallery": [
+      {
+        "src": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/dive-computer-mount.png",
+        "alt": "Dykkecomputerfeste fra den eksisterende engineering-porteføljen",
+        "caption": "Dokumentert design og montering av 3D-printet dykkecomputerfeste"
+      }
+    ],
+    "files": [
+      {
+        "label": "Prosjektrapport (PDF)",
+        "url": "https://tormt.folk.ntnu.no/diverse/portfolio/files/dive-computer-mount.pdf"
+      }
+    ],
+    "coverImage": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/dive-computer-mount.png",
+    "sourceUrl": "https://tormt.folk.ntnu.no/diverse/portfolio/#panel-projects"
   },
   {
     "slug": "hydro-tool",
     "title": "Hull analysis tool",
     "type": "software",
-    "status": "in development",
+    "status": "prototype / active development",
     "year": 2026,
     "summary": "Component-aware 3D model viewer and hydrostatic analysis workspace.",
     "problem": "Engineering model viewers and analysis tools are often fragmented.",
@@ -66,7 +79,257 @@
       "Shared ModelDocument",
       "Analytic hydrostatics core"
     ],
-    "gallery": [],
-    "files": []
+    "gallery": [
+      {
+        "src": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/platform-home.png",
+        "alt": "Engineering-verktøyplattform med hydrostatikk- og modellvisningsfunksjoner",
+        "caption": "Engineering-plattformen som huser modell- og hydrostatikkverktøy"
+      }
+    ],
+    "files": [],
+    "coverImage": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/platform-home.png",
+    "sourceUrl": "https://tormt.folk.ntnu.no/diverse/portfolio/#panel-projects"
+  },
+  {
+    "slug": "dive-explorer",
+    "title": "Dive Explorer / Dykkekart",
+    "type": "software",
+    "status": "first release",
+    "year": 2026,
+    "summary": "Map-based catalogue for dive sites, wrecks and marine observations in Trondheimsfjorden.",
+    "problem": "Dive sites and observations are spread across separate lists and maps.",
+    "solution": "A source-aware geographic interface for exploring public sites, wrecks and observed wildlife.",
+    "skills": [
+      "GIS / Leaflet",
+      "Data modelling",
+      "JavaScript",
+      "Mapping"
+    ],
+    "tools": [
+      "Leaflet",
+      "GeoJSON",
+      "Google Drive"
+    ],
+    "materials": [],
+    "process": [
+      "Organize site and wreck references into structured location data",
+      "Build a searchable map with separate site categories and information panels",
+      "Support private dive-log workflows separately from public map data"
+    ],
+    "results": [
+      "Working dive-site explorer with curated geographic data",
+      "Public maps and personal data remain separate"
+    ],
+    "gallery": [
+      {
+        "src": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/dive-explorer.png",
+        "alt": "Kartgrensesnitt fra det eksisterende Dive Explorer-prosjektet",
+        "caption": "Dive Explorer: kart og filtrering av dykkesteder"
+      }
+    ],
+    "files": [],
+    "demoRoute": "/diverse/diving",
+    "coverImage": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/dive-explorer.png",
+    "sourceUrl": "https://tormt.folk.ntnu.no/diverse/portfolio/#panel-projects"
+  },
+  {
+    "slug": "code-file-viewers",
+    "title": "Engineering code and file viewers",
+    "type": "software",
+    "status": "active development",
+    "year": 2026,
+    "summary": "In-browser previews for code, Jupyter notebooks, documents and engineering files.",
+    "problem": "Technical files frequently require different desktop tools for quick inspection.",
+    "solution": "Route supported file types to specialized viewers and offer the original source as a fallback.",
+    "skills": [
+      "JavaScript",
+      "Code viewing",
+      "Jupyter notebooks",
+      "File formats"
+    ],
+    "tools": [
+      "JavaScript",
+      "HTML/CSS"
+    ],
+    "materials": [],
+    "process": [
+      "Identify file formats and safe preview limits",
+      "Build dedicated viewers for code and document types",
+      "Test source highlighting, notebook rendering and fallback links"
+    ],
+    "results": [
+      "Reusable file-preview components integrated into FolkNet",
+      "Direct original-file fallback when browser security blocks remote fetches"
+    ],
+    "gallery": [
+      {
+        "src": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/code-viewer.png",
+        "alt": "Kodeviser fra den opprinnelige engineering-porteføljen",
+        "caption": "Kode- og filvisning i nettleseren"
+      }
+    ],
+    "files": [],
+    "demoRoute": "/courses",
+    "coverImage": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/code-viewer.png",
+    "sourceUrl": "https://tormt.folk.ntnu.no/diverse/portfolio/#panel-projects"
+  },
+  {
+    "slug": "coolprop-workbench",
+    "title": "CoolProp thermodynamics workbench",
+    "type": "software",
+    "status": "prototype / active development",
+    "year": 2026,
+    "summary": "Thermodynamic property calculation and reference tools in the browser.",
+    "problem": "Repeated lookup of fluid properties and unit conversions interrupts technical calculations.",
+    "solution": "Bring common fluid properties, conversions and reference tables into one engineering workspace.",
+    "skills": [
+      "Thermodynamics",
+      "CoolProp",
+      "Numerical tools",
+      "WebAssembly"
+    ],
+    "tools": [
+      "JavaScript",
+      "CoolProp"
+    ],
+    "materials": [],
+    "process": [
+      "Implement property inputs and fluid selection",
+      "Integrate thermodynamic engine and reference tables",
+      "Add validation for physically invalid states and computed results"
+    ],
+    "results": [
+      "Interactive property calculation workspace",
+      "Reference and table tools for engineering study"
+    ],
+    "gallery": [
+      {
+        "src": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/coolprop-workbench.png",
+        "alt": "CoolProp-grensesnitt hentet fra den eksisterende engineering-porteføljen",
+        "caption": "CoolProp: fluiddata og termodynamiske egenskaper"
+      }
+    ],
+    "files": [],
+    "demoRoute": "/tools/coolprop",
+    "coverImage": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/coolprop-workbench.png",
+    "sourceUrl": "https://tormt.folk.ntnu.no/diverse/portfolio/#panel-projects"
+  },
+  {
+    "slug": "crystal-viewer",
+    "title": "Crystal structures 3D viewer",
+    "type": "software",
+    "status": "active",
+    "year": 2026,
+    "summary": "Interactive 3D visualization of common crystal structures and geometric relationships.",
+    "problem": "Crystal structures are hard to inspect from static textbook illustrations.",
+    "solution": "Interactive views with configurable structures and geometric inspections.",
+    "skills": [
+      "3D visualization",
+      "Materials",
+      "Chemistry",
+      "JavaScript"
+    ],
+    "tools": [
+      "WebGL",
+      "JavaScript"
+    ],
+    "materials": [],
+    "process": [
+      "Represent lattice arrangements parametrically",
+      "Build an interactive scene with camera controls",
+      "Add geometry and coordination tools"
+    ],
+    "results": [
+      "Interactive educational crystal-structure viewer"
+    ],
+    "gallery": [
+      {
+        "src": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/krystall-viewer.png",
+        "alt": "3D-krystallstrukturviewer fra engineering-porteføljen",
+        "caption": "Krystallstruktur: interaktiv tredimensjonal visualisering"
+      }
+    ],
+    "files": [],
+    "demoRoute": "/tools/crystal",
+    "coverImage": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/krystall-viewer.png",
+    "sourceUrl": "https://tormt.folk.ntnu.no/diverse/portfolio/#panel-projects"
+  },
+  {
+    "slug": "periodic-table",
+    "title": "Interactive periodic table",
+    "type": "software",
+    "status": "active",
+    "year": 2026,
+    "summary": "Responsive periodic table and element properties for engineering study.",
+    "problem": "Comparing elemental properties across sources is inefficient.",
+    "solution": "A filterable materials and chemistry reference interface with property lookups.",
+    "skills": [
+      "Chemistry",
+      "Materials",
+      "Data visualization",
+      "Frontend"
+    ],
+    "tools": [
+      "JavaScript",
+      "HTML/CSS"
+    ],
+    "materials": [],
+    "process": [
+      "Build a data-driven periodic table",
+      "Add filters and element detail views",
+      "Integrate reference properties into a responsive layout"
+    ],
+    "results": [
+      "Interactive periodic-table reference"
+    ],
+    "gallery": [
+      {
+        "src": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/periodic-table-viewer.png",
+        "alt": "Periodisk tabell fra engineering-porteføljen",
+        "caption": "Filtrerbar periodisk tabell"
+      }
+    ],
+    "files": [],
+    "demoRoute": "/tools/periodic",
+    "coverImage": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/periodic-table-viewer.png",
+    "sourceUrl": "https://tormt.folk.ntnu.no/diverse/portfolio/#panel-projects"
+  },
+  {
+    "slug": "quiz-module",
+    "title": "Quiz and study module",
+    "type": "software",
+    "status": "active development",
+    "year": 2026,
+    "summary": "Reusable quiz interface for course material, chapters and targeted review.",
+    "problem": "Students need to focus revision on the questions they have not mastered.",
+    "solution": "Study and practice modes with chapter filtering and wrong-answer review.",
+    "skills": [
+      "JavaScript",
+      "Data modelling",
+      "Educational tooling"
+    ],
+    "tools": [
+      "JavaScript",
+      "JSON"
+    ],
+    "materials": [],
+    "process": [
+      "Design reusable question data format",
+      "Build answer and chapter selection components",
+      "Add revision and wrong-answer workflows"
+    ],
+    "results": [
+      "Reusable quiz interface integrated into course workflows"
+    ],
+    "gallery": [
+      {
+        "src": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/quiz-module-demo.png",
+        "alt": "Quizmodulen fra den eksisterende engineering-porteføljen",
+        "caption": "Quizmodul med kapittelvalg og oppgavetrening"
+      }
+    ],
+    "files": [],
+    "coverImage": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/quiz-module-demo.png",
+    "sourceUrl": "https://tormt.folk.ntnu.no/diverse/portfolio/#panel-projects"
   }
 ]
