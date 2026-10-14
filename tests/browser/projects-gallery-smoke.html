@@ -1,0 +1,50 @@
+<!doctype html><html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V2 Projects media smoke</title></head>
+<body data-status="running"><pre id="result">running</pre>
+<script type="module">
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const check=(condition,message)=>{if(!condition)throw Error(message)};
+const wait=async(fn,message)=>{for(let i=0;i<180;i++){
+ const result=fn();if(result)return result;await sleep(100);
+}throw Error(message)};
+try{
+ const frame=document.createElement("iframe");
+ frame.src="../../index.html#/portfolio";
+ frame.style.cssText="width:100%;height:780px;border:0";
+ document.body.append(frame);
+ const doc=()=>frame.contentDocument;
+ const win=()=>frame.contentWindow;
+ const cards=await wait(()=>{
+   const items=doc()?.querySelectorAll(".project-row-link");
+   return items?.length>=7?items:null;
+ },"Project cards did not render from portfolio project data");
+ check([...cards].every(card=>card.matches('a[href^="#/projects/"]')),
+   "Project cards are not accessible native links");
+ check([...cards].every(card=>card.querySelector('img.project-card-image[alt][loading="lazy"]')),
+   "Project images or accessible alt labels are missing");
+ check([...cards].every(card=>card.querySelector("img").src.startsWith(
+   "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/")),
+   "Project images must come from verified NTNU portfolio source");
+ const first=doc().querySelector('.project-row[data-project="equipment-mount-fixture"]');
+ check(first,"Dive computer project not found");
+ first.click();
+ await wait(()=>doc()?.querySelector(".project-detail .project-gallery img"),
+   "Clicking Project card did not show an image gallery");
+ check(win().location.hash==="#/projects/equipment-mount-fixture",
+   "Project route did not navigate");
+ check(doc().querySelector('.project-detail a[href$="dive-computer-mount.pdf"]'),
+   "Existing project PDF unavailable");
+ check(doc().querySelector('.project-detail a[href^="https://tormt.folk.ntnu.no/diverse/portfolio/"]'),
+   "Source Engineering Portfolio link unavailable");
+ const back=doc().querySelector('.project-detail .crumbs a[href="#/portfolio"]');
+ check(back,"Project detail has no native Portfolio back link");
+ back.click();
+ await wait(()=>doc()?.querySelectorAll(".project-row-link").length>=7,
+   "Back to portfolio did not work");
+ document.body.dataset.status="pass";
+ document.getElementById("result").textContent="Projects: cards, images, details, links, and back navigation PASS";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.getElementById("result").textContent=String(error?.stack||error);
+}
+</script></body></html>
