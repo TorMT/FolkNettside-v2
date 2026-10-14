@@ -1,7 +1,7 @@
-import {onNTNUHost} from "./courses/ntnu-catalog.js?v=5720acd5be726fd5bdd846a15604e9a058389473";
-import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=5720acd5be726fd5bdd846a15604e9a058389473";
-import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=5720acd5be726fd5bdd846a15604e9a058389473";
-import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=5720acd5be726fd5bdd846a15604e9a058389473";
+import {onNTNUHost} from "./courses/ntnu-catalog.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
+import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
+import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
+import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
