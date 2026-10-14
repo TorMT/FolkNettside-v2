@@ -1,14 +1,14 @@
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
-import {parseSTL} from "../model/parsers/stl.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
-import {parse3MF} from "../model/parsers/three-mf.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
-import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
-import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
-import {downloadFusionScriptPackage} from "./fusion-installer.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
-import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
-import {createModelDocument} from "../model/model-document.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
-import {boxMesh} from "../hydro/fixtures.js?v=560d3200150b5bae6b37be7c40d161b2f3a0d34f";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=53b596ca51970a6e00d540ea88086fb2c15a8587";
+import {parseSTL} from "../model/parsers/stl.js?v=53b596ca51970a6e00d540ea88086fb2c15a8587";
+import {parse3MF} from "../model/parsers/three-mf.js?v=53b596ca51970a6e00d540ea88086fb2c15a8587";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=53b596ca51970a6e00d540ea88086fb2c15a8587";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=53b596ca51970a6e00d540ea88086fb2c15a8587";
+import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=53b596ca51970a6e00d540ea88086fb2c15a8587";
+import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=53b596ca51970a6e00d540ea88086fb2c15a8587";
+import {downloadFusionScriptPackage} from "./fusion-installer.js?v=53b596ca51970a6e00d540ea88086fb2c15a8587";
+import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=53b596ca51970a6e00d540ea88086fb2c15a8587";
+import {createModelDocument} from "../model/model-document.js?v=53b596ca51970a6e00d540ea88086fb2c15a8587";
+import {boxMesh} from "../hydro/fixtures.js?v=53b596ca51970a6e00d540ea88086fb2c15a8587";
 
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
