@@ -1,6 +1,7 @@
 import {onNTNUHost} from "./courses/ntnu-catalog.js";
 import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js";
 import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js";
+import {loadCloudDisplayNames} from "./courses/cloud-display-names.js";
 import {applyNTNUCourseVisibility} from "./courses/course-visibility.js";
 
 export function onGithubPagesArchive(hostname,pathname){
@@ -89,11 +90,19 @@ export async function loadContent() {
   // Friendly labels are independent of original NTNU filenames and URLs.
   // A malformed optional alias file never hides approved public subjects.
   if(courseSource.mode==="ntnu"||courseSource.mode==="github-ntnu"){
+    // The checked-in JSON is a safe offline fallback and editor seed.
+    // Live aliases are publicly readable but writable only by admins (RLS).
+    let aliases=null;
+    try{aliases=await readJSON("./config/ntnu-display-names.json")}catch{}
     try{
-      const aliases=await readJSON("./config/ntnu-display-names.json");
-      manifest=applyNTNUDisplayNames(manifest,aliases);
-    }catch(error){
-      console.warn("NTNU display names unavailable; original labels are retained.",error);
+      const cloud=await loadCloudDisplayNames();
+      if(cloud)aliases=cloud;
+    }catch{
+      // No cloud schema/connection must not break public course navigation.
+    }
+    if(aliases){
+      try{manifest=applyNTNUDisplayNames(manifest,aliases)}
+      catch(error){console.warn("NTNU aliases rejected; original names retained.",error)}
     }
   }
 
