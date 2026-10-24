@@ -32,6 +32,7 @@ Continue finishing **all existing V2 capabilities**, incrementally. **One indepe
 - PR #105: major mobile route matrix at 320/390/768, medisin navigation cleanup fix, KISSsoft, crystal, tablet navbar, touch targets, original file link.
 - PR #112: align public NTNU scanner and same-origin legacy course parser with existing V2 KISSsoft, CAD, media and structured-text viewer formats; no per-file `index.json` needed with approved Apache listing. CI green after rerun of unrelated ChromeDriver startup failure.
 - PR #113: downloadable-file fallback for CORS-blocked public NTNU viewers, with local-only browser `blob:` preview, filename/type/size constraints, cleanup and real Chrome regression. CI green; not a CORS/server fix.
+- PR #114: fix six original-URL-first viewer adapters to honor locally selected file data (Office/Fusion/archive/image/audio/video); extended Chrome test for actual DOCX local retry. CI green.
 
 ## Active backlog (status is deliberately conservative)
 
@@ -39,7 +40,7 @@ Continue finishing **all existing V2 capabilities**, incrementally. **One indepe
 | --- | --- | --- | --- | --- |
 | B01 | P0 | **One working admin**: Supabase `folk_site_admins` / `folk_course_labels` installed, seed verified owner UUID, RLS negative/positive tests, real cross-browser edit | UI + SQL **candidate**; PR #110 hardens label limits, REST timeouts, delete acknowledgment, and Settings admin entry. **Database still not installed** | Correct FolkNet Supabase project access and owner's verified Auth user needed |
 | B02 | P0 | NTNU catalog: approved new files automatically appear, no private disclosure, test with real nested files / custom pages / case variants and index guard | Scheduled crawler + safe ITGK fallback implemented; **PR #112** fixes silently skipped supported KISSsoft/CAD/media files (unit/Chrome CI green). Custom pages without approved metadata and real new-file acceptance remain | Public listing or independently refreshed public metadata required |
-| B03 | P0 | Fully usable file viewers for real NTNU PDF/IPYNB/PY/Office/F3Z with deep folders, import fallback, retries, mobile | Many adapters + CI; **PR #113** adds same-page preview after user manually downloads the matching public file, with Chrome proof; direct cross-origin JS reading still restricted | NTNUs CORS or a **separate approved V2 same-origin** staging |
+| B03 | P0 | Fully usable file viewers for real NTNU PDF/IPYNB/PY/Office/F3Z with deep folders, import fallback, retries, mobile | Many adapters + CI; **PRs #113–#114** add local downloaded-file retry and fix source precedence for Office/Fusion/archive/media (Python + real DOCX Chrome tests); **live CORS remains restricted** | NTNUs CORS or a **separate approved V2 same-origin** staging |
 | B04 | P0 | Identity: one account identity with Supabase login and optional explicit Google link. Verify token renewal, two accounts, no cross-user access | Client pieces only; live link unverified | Real OAuth config/consent, credentials, account |
 | B05 | P0 | Private storage: MedisinTimer/Brewing/Dive log use safe encrypted two-device synchronization with conflict protection and recovery | Local/Drive encryption code; no atomic concurrent CAS | Real two devices and backend/versioning |
 | B06 | P0 | Secure NTNU SiteUpdater: target semester/course, non-destructive indexes, files with/without index.json, safe rollbacks and real webedit acceptance | Scripts + tests; live acceptance missing | Mounted webedit and owner approval |
@@ -82,7 +83,7 @@ No representation that this project provides certified stability, exact shell/so
 - Before each merge, inspect **latest head SHA** and **latest-head passing CI**, not earlier green runs.
 - After merge, verify Pages deployment and (where possible) public test route. Record separately if browser/service cannot be verified.
 
-## Next executable work after PR #113
+## Next executable work after PR #114
 
 - **B09:** Run GitHub Actions → `Munin mobile GLB candidate (manual)`. It downloads only the explicitly owner-approved public Munin STEP. Retrieve/inspect the GLB artifact, compare dimensions and geometry with source, and add a lazy-loading model card only after visual/mobile acceptance. Do not claim conversion happened until the workflow generated an artifact.
 - **B01:** FolkNet Supabase `glfuvfmppkjmarujjqwg` is **not visible** to the currently connected Supabase tool (only unrelated LeseRavnen appears). Do not modify that project's data. Once access is corrected, apply candidate RLS schema to FolkNet, seed one verified admin Auth UUID, then test real browser user/non-admin access.
@@ -106,6 +107,7 @@ No representation that this project provides certified stability, exact shell/so
 | 2026-10-24 | Single-admin editor validation: per-field SQL limits, request timeout, confirmed delete, Settings entry | [#110](https://github.com/TorMT/FolkNettside-v2/pull/110), merge `adaf31ee0f1c2b0c71c1bde514746b5fbd3ee61d` | Latest-head CI success; Supabase installation **still blocked** |
 | 2026-10-24 | B02: include previously skipped public KISSsoft, CAD, audio/video and text formats in hourly NTNU index and live legacy parser | [#112](https://github.com/TorMT/FolkNettside-v2/pull/112), source `dbe1a40`, merge `89edd9aacc2e859a8494a2ef432a90ef9346c160` | Python/JS tests pass; full CI **success** on attempt 2 (attempt 1 ChromeDriver startup infrastructure error); no NTNU originals touched |
 | 2026-10-24 | B03: local-only retry for CORS-blocked public NTNU files in same viewer; preserve original URL and revoke blob after view | [#113](https://github.com/TorMT/FolkNettside-v2/pull/113), source `41ef1039`, merge `228b73eb14255367ff327e4fa097975410ecc9e5` | Node + browser simulation with locally selected `.py`, standard Chrome/mobile CI **success**. Real NTNU cross-origin fetch remains server-blocked |
+| 2026-10-24 | B03: fix original-first binary/media adapters to read local object URL and retain original NTNU address; Fusion type by original filename | [#114](https://github.com/TorMT/FolkNettside-v2/pull/114), source `0ceeac66`, merge `b9ae778ce3927c136b5fbeb8999faafd146d118f` | Node + real Chrome DOCX local retry; latest-head full CI **success**; no NTNU files or V1 altered |
 
 
 > **Agent instruction:** Add a row after each completed PR and update the matching B-number. Incomplete commits/branches also belong in the journal so a new session can resume rather than restart.
