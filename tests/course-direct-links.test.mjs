@@ -12,7 +12,7 @@ const publicManifest=asRemoteNTNUManifest(validateNTNUAutoCatalog(raw));
 test("real migrated course cards have stable navigable V2 course routes",()=>{
  const source=read("src/app.js");
  assert.match(source,/href="#\$\{courseRoute\(semester\.id,course\.code\)\}"/);
- assert.match(source,/if\(course\)return coursePage\(course\.semester,course\.code\)/);
+ assert.match(source,/if\(course\)return coursePage\(course\.semester,course\.code,course\.sectionIndex\)/);
  assert.match(source,/Åpne original fagside på NTNU/);
  assert.match(source,/href="#\/courses\/\$\{Number\(semesterId\)\}"/);
  assert.match(source,/Ingen offentlige filer registrert/);
