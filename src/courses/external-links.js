@@ -11,6 +11,11 @@ export function karakterwebUrl(courseCode){
   return `https://karakterweb.no/ntnu/${encodeURIComponent(code)}`;
 }
 
+/** A legacy NTNU folder slug is not necessarily a registered course code. */
+export function optionalKarakterwebUrl(courseCode){
+  try{return karakterwebUrl(courseCode)}catch{return null}
+}
+
 export function courseExternalLinks(courseCode){
   const code=normalizeCourseCode(courseCode);
   return [{

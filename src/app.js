@@ -7,7 +7,7 @@ import {loadContent} from "./content.js";
 import {kisssoftPageHTML,mountKisssoft} from "./engineering/kisssoft-tool.js";
 import {cadToolHTML,mountCADTool} from "./engineering/cad-tool.js";
 import {renderResourceTree} from "./components/resource-tree.js";
-import {karakterwebUrl} from "./courses/external-links.js";
+import {optionalKarakterwebUrl} from "./courses/external-links.js";
 import {bindCourseNavigation} from "./courses/course-navigation.js";
 import {createResourceNotices} from "./courses/resource-updates.js";
 import {escapeHTML as escCourse} from "./viewers/utils.js";
@@ -610,7 +610,7 @@ function coursePage(semesterId,code){
     .map((label,index)=>({label,index,items:grouped[label]||[],
       originalLabel:grouped[label]?.[0]?.originalSection||label}))
     .filter(section=>section.items.length);
-  const karakterwebHref=karakterwebUrl(course.code);
+  const karakterwebHref=optionalKarakterwebUrl(course.code);
   const resourceCount=course.resources.length;
   const originalCourseURL=(courseSource.mode==="ntnu"||courseSource.mode==="github-ntnu")
     ?originalNTNUCourseURL(semesterId,course.code):null;
@@ -626,7 +626,7 @@ function coursePage(semesterId,code){
       <div class="side-title">${escCourse(course.code)}</div>
       <button class="active" data-course-nav="overview"><span>Overview</span><small>${resourceCount} resources</small></button>
       ${sections.map(section=>`<button data-course-nav="section-${section.index}"><span>${escCourse(section.label)}</span><small>${section.items.length}</small></button>`).join("")}
-      <button data-course-nav="karakterweb"><span>Karakterweb</span><small>external ↗</small></button>
+      ${karakterwebHref?'<button data-course-nav="karakterweb"><span>Karakterweb</span><small>external ↗</small></button>':""}
     </aside>
     <section class="content">
       <nav class="crumbs" aria-label="Brødsmulesti"><a href="#/courses/${Number(semesterId)}">← ${escCourse(getSemester(semesterId).label)}</a> <span aria-hidden="true">/</span> ${escCourse(course.code)}</nav>
@@ -649,7 +649,7 @@ function coursePage(semesterId,code){
           routeForResource:index=>"#"+viewerRoute(semesterId,course.code,index)
         })}</div>
       </section>`).join("")}
-      <section class="resource-section" id="course-karakterweb" data-course-section="karakterweb">
+      ${karakterwebHref?`<section class="resource-section" id="course-karakterweb" data-course-section="karakterweb">
         <div class="resource-section-head"><h2>Karakterweb</h2><span>external course statistics</span></div>
         <div class="resource-list">
           <button class="resource-row resource-row-button" id="karakterweb">
@@ -658,7 +658,7 @@ function coursePage(semesterId,code){
             <span class="muted">Open ↗</span>
           </button>
         </div>
-      </section>
+      </section>`:""}
     </section>
   </main><div class="preview-badge">Manifest-driven course workspace</div>`;
 
@@ -680,7 +680,7 @@ function coursePage(semesterId,code){
   const observed=[
     {element:app.querySelector("#course-overview"),id:"overview"},
     ...sections.map(section=>({element:app.querySelector("#course-section-"+section.index),id:"section-"+section.index})),
-    {element:app.querySelector("#course-karakterweb"),id:"karakterweb"}
+    ...(karakterwebHref?[{element:app.querySelector("#course-karakterweb"),id:"karakterweb"}]:[])
   ].filter(item=>item.element);
   app.__courseObserver=bindCourseNavigation({
     sections:observed,
