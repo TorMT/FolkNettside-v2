@@ -43,7 +43,7 @@ Continue finishing **all existing V2 capabilities**, incrementally. **One indepe
 | B06 | P0 | Secure NTNU SiteUpdater: target semester/course, non-destructive indexes, files with/without index.json, safe rollbacks and real webedit acceptance | Scripts + tests; live acceptance missing | Mounted webedit and owner approval |
 | B07 | P1 | Quiz PHP leaderboard: same-origin PHP installed separately, server score verification, rate limits, real tests | **PR #106** adds real PHP HTTP integration CI; **PR #108** adds server-scored V1 random-subset rounds; backend still **disabled/uninstalled** | NTNU PHP staging or other secure same-origin backend |
 | B08 | P1 | Study progress: quiz/video local data and optional Supabase cloud summary, RLS, multi-device tests | Local + SQL candidate | FolkNet DB integration |
-| B09 | P1 | Munin **optimized GLB**, real skrog/thrusters, mobile direct preview with material/unit checks and fallback | **PR #109 open:** OCP STEP→GLB conversion script, synthetic test and manual artifact workflow. **No real Munin GLB generated/reviewed yet.** | Workflow run with actual approved STEP + visual/unit/mobile acceptance |
+| B09 | P1 | Munin **optimized GLB**, real skrog/thrusters, mobile direct preview with material/unit checks and fallback | **PR #109 merged:** OCP STEP→GLB script, synthetic test, manual artifact workflow and acceptance instructions in `docs/MUNIN_MOBILE_PREVIEW.md`. **No real Munin GLB generated/reviewed yet.** | Run manual workflow with real authorized STEP, inspect candidate and connect a lazy mobile preview via separate PR |
 | B10 | P1 | Autodesk Fusion local and optional Hub import + F3Z-to-neutral conversion and physical-properties report | Local scripts/edge scaffolding; real integration unverified | Real Fusion installation, APS consent/secrets |
 | B11 | P1 | KISSsoft true user file parser comparison and sign/helix/planetary controls | Parser/educational 3D CI; real comparison needed | Owner's genuine files/references |
 | B12 | P1 | Hydro/Structure/Gunnerus: real watertight hull, independent hydro/GZ/loads benchmarks and correct structural idealization | Strong numerical fixture tests; **no certified vessel validation** | Approved hull-only geometry, vessel mass/loading |
@@ -80,6 +80,13 @@ No representation that this project provides certified stability, exact shell/so
 - Before each merge, inspect **latest head SHA** and **latest-head passing CI**, not earlier green runs.
 - After merge, verify Pages deployment and (where possible) public test route. Record separately if browser/service cannot be verified.
 
+## Next executable work after PR #109
+
+- **B09:** Run GitHub Actions → `Munin mobile GLB candidate (manual)`. It downloads only the explicitly owner-approved public Munin STEP. Retrieve/inspect the GLB artifact, compare dimensions and geometry with source, and add a lazy-loading model card only after visual/mobile acceptance. Do not claim conversion happened until the workflow generated an artifact.
+- **B01:** FolkNet Supabase `glfuvfmppkjmarujjqwg` is **not visible** to the currently connected Supabase tool (only unrelated LeseRavnen appears). Do not modify that project's data. Once access is corrected, apply candidate RLS schema to FolkNet, seed one verified admin Auth UUID, then test real browser user/non-admin access.
+- **B07:** The PHP endpoint and V1 `select` subset scoring are CI-tested but **still disabled**. Real PHP hosting/staging and server environment configuration are a separate gate.
+- **B02/B03:** Audit real file accessibility on NTNU and browser CORS behavior, then fix only grounded errors. `index.json` is **not required per new file** where approved Apache directory listing works.
+
 ## Copy/paste kickoff for a NEW chat
 
 > Continue FolkNettside V2 from the GitHub repository `TorMT/FolkNettside-v2`. Read `AGENTS.md` and `docs/ACTIVE_WORK_HANDOFF.md` **first**. Inspect live `main`, PRs and CI; choose the highest-priority incomplete unblocked backlog item. Perform fixes **one independent commit/PR at a time**, add tests, wait for green CI and merge. Update the handoff file with exact SHAs, results and outstanding blockers before ending. Keep NTNU V1 and its files unchanged. Never invent live integration success; mobile-first 320/390/768 required. No need to repeat earlier conversation.
@@ -93,7 +100,7 @@ No representation that this project provides certified stability, exact shell/so
 | 2026-10-24 | Permanent open tracking issue for context recovery | [#107](https://github.com/TorMT/FolkNettside-v2/issues/107) | issue active |
 | 2026-10-24 | Isolated PHP HTTP tests, server recomputed scores, origin/storage/rate limits | [#106](https://github.com/TorMT/FolkNettside-v2/pull/106), `30d5bdf` | CI green, merged; live PHP disabled |
 | 2026-10-24 | Allow leaderboard of real NTNU `select:N` quiz rounds with PHP revalidation | [#108](https://github.com/TorMT/FolkNettside-v2/pull/108), `5768ea9` | CI green, merged; PHP deployment still blocked |
-| 2026-10-24 | Munin real STEP to GLB conversion candidate with isolated manual artifact workflow | [#109](https://github.com/TorMT/FolkNettside-v2/pull/109) | PR and CI pending; no actual model conversion yet |
+| 2026-10-24 | Munin real STEP to GLB conversion candidate with isolated manual artifact workflow | [#109](https://github.com/TorMT/FolkNettside-v2/pull/109), `cdc3b827` | CI green, merged; **workflow not run on real source** |
 
 
 > **Agent instruction:** Add a row after each completed PR and update the matching B-number. Incomplete commits/branches also belong in the journal so a new session can resume rather than restart.
