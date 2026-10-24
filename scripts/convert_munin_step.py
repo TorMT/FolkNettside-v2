@@ -69,7 +69,7 @@ def to_preview(source: Path, output: Path, *,
             face = TopoDS.Face_s(face_explorer.Current())
             location = TopLoc_Location()
             triangulation = BRep_Tool.Triangulation_s(face, location)
-            if not triangulation.IsNull():
+            if triangulation is not None and triangulation.NbTriangles() > 0:
                 offset = len(vertices)
                 transform = location.Transformation()
                 for i in range(1, triangulation.NbNodes() + 1):
