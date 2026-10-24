@@ -232,3 +232,11 @@
 .lecture-embed{width:100%;aspect-ratio:16/9;min-height:220px;border:0;border-radius:12px;background:#101827}
 .lecture-player .btn{justify-self:start}
 @media(max-width:600px){.lecture-library{padding:10px 8px;gap:12px}.lecture-controls>input,.lecture-controls>select{flex-basis:100%;width:100%}.lecture-entry{align-items:start}.lecture-watch{font-size:11px}}
+
+/* Optional, opt-in NTNU PHP quiz leaderboard. */
+.quiz-leaderboard{margin-top:1.5rem;border-top:1px solid var(--border,rgba(120,140,160,.25));padding-top:1rem}
+.quiz-leaderboard-list{list-style:decimal;margin:.75rem 0 1rem;padding-left:1.5rem;max-width:35rem}
+.quiz-leaderboard-list li{display:flex;justify-content:space-between;gap:1rem;padding:.45rem 0;border-bottom:1px solid var(--border,rgba(120,140,160,.12))}
+.quiz-leaderboard form{display:flex;align-items:end;gap:.65rem;flex-wrap:wrap}
+.quiz-leaderboard input{min-width:10rem;max-width:18rem;padding:.65rem;border:1px solid var(--border,rgba(120,140,160,.4));border-radius:.4rem;background:var(--surface,#fff);color:var(--text,#111)}
+.quiz-leaderboard form label{font-size:.875rem}
