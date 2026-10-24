@@ -10,6 +10,12 @@ import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js";
 import {createModelDocument} from "../model/model-document.js";
 import {boxMesh} from "../hydro/fixtures.js";
 
+/** Verified public originals on the NTNU file server; never mirrored to GitHub. */
+export const MUNIN_CAD_SOURCES=Object.freeze({
+ f3z:"https://tormt.folk.ntnu.no/diverse/Njord/filer/MuninTing/NJ26_MUN_HULL_ASM_MASTER.f3z",
+ step:"https://tormt.folk.ntnu.no/diverse/Njord/filer/MuninTing/NJ26_MUN_HULL_ASM_MASTER.step",
+ drawing:"https://tormt.folk.ntnu.no/diverse/Njord/filer/MuninTing/NJ26_MUN_HULL_ASM_MASTER%20Drawing%20v1.pdf"
+});
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
  <p class="crumbs">Engineering / CAD</p><h1>CAD workbench</h1>
@@ -33,6 +39,19 @@ export function cadToolHTML(){
      <a href="https://github.com/TorMT/FolkNettside-v2/blob/main/docs/FUSION_IMPORT.md" target="_blank" rel="noopener noreferrer">Import instructions</a>
    </p>
    <p data-cad-fusion-install-status role="status" aria-live="polite"></p>
+ </section>
+ <section class="cad-example-munin" aria-labelledby="cad-munin-heading">
+  <span class="project-kicker">Eget CAD-prosjekt · Njord / Munin</span>
+  <h2 id="cad-munin-heading">Munin – katamaran med thrusteroppsett</h2>
+  <p>Originalmodell og tilhørende tegning ligger på NTNU og kopieres ikke til GitHub Pages.</p>
+  <p class="muted">For interaktiv 3D her: last ned STEP-filen og åpne den med lokal import. Fusion-arkivet (.f3z) kan inspiseres, men proprietære solids krever STEP for full geometrivisning.</p>
+  <div class="cad-munin-actions">
+   <a class="btn primary" href="${MUNIN_CAD_SOURCES.step}" target="_blank" rel="noopener noreferrer">Hent Munin STEP (ca. 37 MB) ↗</a>
+   <a class="btn" href="${MUNIN_CAD_SOURCES.f3z}" target="_blank" rel="noopener noreferrer">Fusion-assembly (.f3z) ↗</a>
+   <a class="btn" href="${MUNIN_CAD_SOURCES.drawing}" target="_blank" rel="noopener noreferrer">Monteringstegning (PDF) ↗</a>
+   <button class="btn" data-cad-munin-choose type="button">Åpne nedlastet modell</button>
+  </div>
+  <p class="muted">På mobil anbefales PDF og F3Z som første kontroll. STEP-modellen er stor og kan kreve PC med mer ledig minne.</p>
  </section>
  <section class="cad-local-import" aria-labelledby="cad-import-heading">
   <header><div><h2 id="cad-import-heading">Open a model</h2>
@@ -66,6 +85,7 @@ export function mountCADTool(root){
  const cancel=root.querySelector("#cad-import-cancel"),status=root.querySelector("#cad-import-status");
  const dropZone=root.querySelector("#cad-drop-zone");
  const installer=root.querySelector("#cad-fusion-install");
+ const muninChoose=root.querySelector("[data-cad-munin-choose]");
  const installerStatus=root.querySelector("[data-cad-fusion-install-status]");
  if(!picker||!stage)return ()=>{};
  let controller=null,cleanup=()=>{},request=0,disposed=false;
@@ -94,7 +114,7 @@ export function mountCADTool(root){
  }
  async function presentModel(documentModel,current){
    if(current!==request||disposed)return;
-   const rendered=await renderModelWorkbench(stage,documentModel);
+   const rendered=await renderModelWorkbench(stage,documentModel,{mobileCompact:true});
    if(current!==request||disposed){rendered?.cleanup?.();return}
    cleanup=rendered?.cleanup||(()=>{});
  }
@@ -133,7 +153,7 @@ export function mountCADTool(root){
    status.textContent="Reading "+file.name+" locally…";
    try{
      const fusion=ext==="f3d"||ext==="f3z"||ext==="zip";
-     if(file.size>(fusion?55:25)*1024*1024)throw Error("File exceeds safe import size limit");
+     if(file.size>((fusion||isCADFile(file.name))?55:25)*1024*1024)throw Error("File exceeds safe import size limit");
      const buffer=await file.arrayBuffer();
      if(current!==request||disposed)return;
      if(ext==="zip"){
@@ -146,7 +166,7 @@ export function mountCADTool(root){
        report.innerHTML=fusionEngineeringReportHTML(documentModel.fusionEngineering);
        const viewer=document.createElement("div");
        stage.replaceChildren(report,viewer);
-       const result=await renderModelWorkbench(viewer,documentModel);
+       const result=await renderModelWorkbench(viewer,documentModel,{mobileCompact:true});
        if(current!==request||disposed){result?.cleanup?.();return}
        cleanup=result?.cleanup||(()=>{});
        status.textContent="Fusion API properties loaded · "+
@@ -211,6 +231,8 @@ export function mountCADTool(root){
    }finally{if(!disposed)installer.disabled=false}
  };
  showEmpty();
+ const onMuninChoose=()=>picker.click();
+ muninChoose?.addEventListener("click",onMuninChoose);
  picker.addEventListener("change",onChange);
  dropZone?.addEventListener("dragover",onDrag);
  dropZone?.addEventListener("dragleave",onDrag);
@@ -225,5 +247,6 @@ export function mountCADTool(root){
    dropZone?.removeEventListener("dragleave",onDrag);
    dropZone?.removeEventListener("drop",onDrop);
    installer?.removeEventListener("click",onInstall);
+   muninChoose?.removeEventListener("click",onMuninChoose);
  };
 }

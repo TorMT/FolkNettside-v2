@@ -149,6 +149,7 @@ jobs:
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html 60 1400,950
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html 70 390,844
 
       - name: Real STEP / OpenCascade WASM and browser 3D test
         run: |
