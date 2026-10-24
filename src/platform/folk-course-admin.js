@@ -3,8 +3,8 @@
  * Public read; only allowlisted Supabase Auth users can write, enforced by Postgres RLS.
  * NTNU files/paths are never modified by this module.
  */
-import {validateNTNUDisplayNames} from "../courses/ntnu-display-names.js?v=2431dc69726b5ee070d346ec2eaba1196510df35";
-import {validateFolkAuthConfig,getFolkAccessToken,getFolkAccountSnapshot} from "./folkside-auth.js?v=2431dc69726b5ee070d346ec2eaba1196510df35";
+import {validateNTNUDisplayNames} from "../courses/ntnu-display-names.js?v=adaf31ee0f1c2b0c71c1bde514746b5fbd3ee61d";
+import {validateFolkAuthConfig,getFolkAccessToken,getFolkAccountSnapshot} from "./folkside-auth.js?v=adaf31ee0f1c2b0c71c1bde514746b5fbd3ee61d";
 
 const KINDS=new Set(["course-title","course-description","section","file"]);
 const MAX_ROWS=5000;
@@ -47,7 +47,10 @@ async function setup({fetchImpl=fetch,configLoader=null}={}){
 }
 async function request(env,path,{token,method="GET",body,headers={}}={}){
   const response=await env.fetchImpl(env.config.url+"/rest/v1/"+path,{
-    method,cache:"no-store",headers:{
+    method,cache:"no-store",redirect:"error",
+    // Cloud metadata is optional; stalled connections must not lock the editor.
+    signal:globalThis.AbortSignal?.timeout?.(10000),
+    headers:{
       apikey:env.config.publishableKey,
       Accept:"application/json",...headers,
       ...(token?{Authorization:"Bearer "+token}:{}),
@@ -92,6 +95,11 @@ export async function deleteCourseLabel({kind,key},{fetchImpl=fetch,configLoader
   if(!await checkCourseAdmin({fetchImpl,configLoader}))throw Error("Admin access denied");
   const token=await getFolkAccessToken();
   const env=await setup({fetchImpl,configLoader});
-  await request(env,"folk_course_labels?kind=eq."+encodeURIComponent(kind)+
-    "&key=eq."+encodeURIComponent(key),{token,method:"DELETE"});
+  const removed=await request(env,"folk_course_labels?kind=eq."+encodeURIComponent(kind)+
+    "&key=eq."+encodeURIComponent(key),{
+      token,method:"DELETE",headers:{Prefer:"return=representation"}
+    });
+  if(!Array.isArray(removed)||removed.length!==1)
+    throw Error("No matching course-label override was removed");
+  return removed[0];
 }
