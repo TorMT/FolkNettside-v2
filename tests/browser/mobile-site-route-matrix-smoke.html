@@ -14,6 +14,11 @@ const check=(yes,msg)=>{if(!yes)throw Error(msg)};
 frame.style.width=width+"px";
 const win=()=>frame.contentWindow;
 const dom=()=>frame.contentDocument;
+const failures=[];
+frame.addEventListener("load",()=>{
+  frame.contentWindow?.addEventListener("error",e=>failures.push(String(e?.message||e)));
+  frame.contentWindow?.addEventListener("unhandledrejection",e=>failures.push(String(e?.reason||e)));
+});
 const routes=[
  ["/portfolio",".hero"],
  ["/about","main"],
@@ -55,7 +60,9 @@ async function until(predicate,label,max=120){
   if(yes)return;
   await sleep(90);
  }
- throw Error("Timed out: "+label);
+ throw Error("Timed out: "+label+" | current content="+
+  String(dom()?.querySelector("#app")?.innerHTML||"").slice(0,420)+
+  " | errors="+failures.slice(-5).join(" | "));
 }
 function auditLayout(route){
  const d=dom();
