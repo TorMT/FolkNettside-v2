@@ -23,6 +23,11 @@ jobs:
           php -l server/quiz-leaderboard.php
           python3 -m unittest discover -s tests -p 'test_quiz_leaderboard_php.py' -v
 
+      - name: Check Munin mobile converter syntax and test contract
+        run: |
+          python3 -m py_compile scripts/convert_munin_step.py
+          python3 -m unittest discover -s tests -p 'test_munin_converter.py' -v
+
       - name: Verify NTNU same-origin code-only publishing
         run: |
           python3 -m unittest discover -s tests -p 'test_publish_ntnu_staging.py' -v
