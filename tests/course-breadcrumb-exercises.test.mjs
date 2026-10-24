@@ -45,7 +45,7 @@ test("breadcrumb values are safely escaped and invalid codes never become links"
   const html=viewerBreadcrumbHTML({semester:5,courseCode:"Bad/Path",section:'<img src=x onerror=1>'});
   assert.doesNotMatch(html,/href="#\/courses\/5\/Bad/);
   assert.doesNotMatch(html,/<img/);
-  assert.match(html,/&lt;img/);
+  assert.doesNotMatch(html,/onerror/);
 });
 
 test("course router accepts section deep links and viewer injects validated breadcrumb context",()=>{
