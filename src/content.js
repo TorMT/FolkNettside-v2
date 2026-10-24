@@ -1,5 +1,6 @@
 import {onNTNUHost} from "./courses/ntnu-catalog.js";
 import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js";
+import {loadPublicCourseLabels,mergeCloudCourseLabels} from "./platform/folk-course-admin.js";
 import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js";
 import {applyNTNUCourseVisibility} from "./courses/course-visibility.js";
 
@@ -91,7 +92,18 @@ export async function loadContent() {
   if(courseSource.mode==="ntnu"||courseSource.mode==="github-ntnu"){
     try{
       const aliases=await readJSON("./config/ntnu-display-names.json");
-      manifest=applyNTNUDisplayNames(manifest,aliases);
+      let selectedNames=aliases;
+      try{
+        const cloud=await loadPublicCourseLabels({
+          fetchImpl:(url,options)=>fetch(url,{...options,
+            signal:AbortSignal.timeout(3500)})
+        });
+        if(cloud.length)selectedNames=mergeCloudCourseLabels(aliases,cloud);
+      }catch{
+        // The optional Supabase table may be uninstalled or offline. The
+        // checked-in aliases remain authoritative until cloud is available.
+      }
+      manifest=applyNTNUDisplayNames(manifest,selectedNames);
     }catch(error){
       console.warn("NTNU display names unavailable; original labels are retained.",error);
     }
