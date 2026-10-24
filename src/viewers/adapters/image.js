@@ -1,4 +1,4 @@
-import {escapeHTML} from "../utils.js?v=bcbda2770f311c5ecf06e6b0fcbdc44951da6c2e";
+import {escapeHTML} from "../utils.js?v=690036134e9b63ccd03c3d646140e5e77c7f7857";
 export async function render(container,resource){
   const path=resource.url||resource.path;
   if(!path)throw new Error("Image file has no source URL");
