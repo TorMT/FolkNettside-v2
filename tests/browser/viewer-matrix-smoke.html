@@ -181,7 +181,7 @@ try{
   const revoked=[];
   URL.revokeObjectURL=(url)=>{revoked.push(url);return originalRevoke.call(URL,url)};
   window.fetch=(input,options)=>{
-    if(String(input).includes("tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/CORS.py"))
+    if(/tormt\.folk\.ntnu\.no\/semestre\/5\/Marin-Dynamikk\/filer\/CORS\.(?:py|docx)/.test(String(input)))
       return Promise.reject(new TypeError("Blocked by CORS"));
     return originalFetch(input,options);
   };
@@ -204,6 +204,31 @@ try{
       "Original NTNU link was lost after local retry");
     ntRoot.__viewerCleanup?.();
     assert(revoked.some(url=>url.startsWith("blob:")),"Local object URL was not revoked");
+    // Office previously preferred resource.url over the local blob.
+    const fixture="../../examples/semesters/5/TMR4182/Filer%20og%20ressurser/Office/hydro-notes.docx";
+    const officeData=await (await originalFetch(fixture)).arrayBuffer();
+    const docxURL=ntURL.replace("CORS.py","CORS.docx");
+    const docxRoot=document.createElement("div");document.body.append(docxRoot);
+    try{
+      await mountViewer(docxRoot,{name:"CORS.docx",label:"DOCX local retry",kind:"DOCX",
+        section:"Filer",semester:5,courseCode:"Marin-Dynamikk",
+        source:"ntnu",remoteArchive:true,url:docxURL,path:docxURL},()=>{});
+      assert(docxRoot.querySelector("#viewer-choose-local"),"DOCX local retry control missing");
+      const localInput=docxRoot.querySelector("#viewer-local-file");
+      const selected=new DataTransfer();
+      selected.items.add(new File([officeData],"CORS.docx",{
+        type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      }));
+      localInput.files=selected.files;localInput.dispatchEvent(new Event("change",{bubbles:true}));
+      for(let i=0;i<80&&!docxRoot.querySelector(".office-doc");i++)
+        await new Promise(resolve=>setTimeout(resolve,35));
+      assert(docxRoot.querySelector(".office-doc"),"DOCX local retry still fetched remote NTNU URL");
+      assert(docxRoot.querySelector(".viewer-status")?.textContent.includes(docxURL),
+        "Original DOCX URL lost when local copy was opened");
+    }finally{
+      docxRoot.__viewerCleanup?.();docxRoot.remove();
+    }
+
   }finally{
     window.fetch=originalFetch;URL.revokeObjectURL=originalRevoke;
     ntRoot.__viewerCleanup?.();ntRoot.remove();
