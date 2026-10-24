@@ -3,6 +3,16 @@
 These rules apply to coding agents operating inside this repository, including
 local Codex on a workstation with the NTNU `webedit` share mounted.
 
+## Continuity across agent and chat sessions
+
+**Read [docs/ACTIVE_WORK_HANDOFF.md](docs/ACTIVE_WORK_HANDOFF.md) first.**
+This is the persistent current-task backlog, work journal and copy/paste
+kickoff for a new conversation. Read it together with this file, then check
+the repository's actual `main`, outstanding PRs and latest CI status.
+After each independently tested commit/PR, update the handoff to preserve
+completed work and the exact next step. Do not infer completion from the
+existence of an implementation or an outdated summary.
+
 ## Production and privacy invariants
 
 - **Do not edit V1 production or the existing Engineering Portfolio.** The
