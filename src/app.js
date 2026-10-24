@@ -2,6 +2,7 @@ import {initSettings,getSettings,setSetting} from "./settings.js";
 import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js";
 import {writeSpaceMouseSettings,resetSpaceMouseSettings} from "./model/spacemouse-settings.js";
 import {mountViewer} from "./viewer.js";
+import {courseViewerNeighbors} from "./viewers/course-file-navigation.js";
 import {render as renderPythonWorkbench} from "./viewers/adapters/python.js";
 import {loadContent} from "./content.js";
 import {kisssoftPageHTML,mountKisssoft} from "./engineering/kisssoft-tool.js";
@@ -2374,7 +2375,7 @@ async function engineeringPage(){
   });
 }
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+escCourse(message)+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
-async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code,courseTitle:course.title,sectionIndex:course.sections.indexOf(resource.section)},()=>go(courseRoute(info.semester,course.code)))}
+async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code,courseTitle:course.title,sectionIndex:course.sections.indexOf(resource.section),fileNavigation:courseViewerNeighbors({...course,semester:info.semester},info.resourceIndex)},()=>go(courseRoute(info.semester,course.code)))}
 
 async function render(){const currentPath=route();if(currentPath!=="/tools/python"){pythonToolCleanup?.();pythonToolCleanup=null;}if(currentPath!=="/tools/vault"){vaultToolCleanup?.();vaultToolCleanup=null;}app.__courseObserver?.disconnect();app.__courseObserver=null;const path=route();
   // Invalidate pending async engineering model loads when navigating to a

@@ -17,10 +17,17 @@ export async function mountViewer(root,resource,onBack){
         ${viewerBreadcrumbHTML(resource)}
         <strong>${escapeHTML(resource.label)}</strong>
       </div>
-      <div>
-        ${isQuiz?'<button class="btn" id="viewer-quiz-info" aria-pressed="false">File info</button>':""}
-        <button class="btn" id="open-original">Open original</button>
-        <button class="btn" id="viewer-back">Back</button>
+      <div class="viewer-head-actions">
+        ${resource.fileNavigation?.total>1?`<nav class="viewer-siblings" aria-label="Naviger mellom filer i seksjonen">
+          ${resource.fileNavigation.previous?`<a class="btn" href="${escapeHTML(resource.fileNavigation.previous.href)}" aria-label="Forrige fil: ${escapeHTML(resource.fileNavigation.previous.label)}">← Forrige fil</a>`:'<span class="viewer-sibling-placeholder" aria-hidden="true"></span>'}
+          <span class="viewer-sibling-count">${Number(resource.fileNavigation.position)} av ${Number(resource.fileNavigation.total)}</span>
+          ${resource.fileNavigation.next?`<a class="btn" href="${escapeHTML(resource.fileNavigation.next.href)}" aria-label="Neste fil: ${escapeHTML(resource.fileNavigation.next.label)}">Neste fil →</a>`:'<span class="viewer-sibling-placeholder" aria-hidden="true"></span>'}
+        </nav>`:""}
+        <div class="viewer-file-actions">
+          ${isQuiz?'<button class="btn" id="viewer-quiz-info" aria-pressed="false">File info</button>':""}
+          <button class="btn" id="open-original">Open original</button>
+          <button class="btn" id="viewer-back">Back</button>
+        </div>
       </div>
     </header>
     <div class="viewer-toolbar">
