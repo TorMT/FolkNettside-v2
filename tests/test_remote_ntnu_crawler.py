@@ -183,7 +183,7 @@ class RemoteCatalogTests(unittest.TestCase):
         names={x["relativePath"] for x in files}
         self.assertEqual(names,{"filer/Øving4/new-exercise.pdf",
                                 "filer/Øving4/nested/answer.py"})
-        self.assertEqual([x["kind"] for x in files],["PDF","PY"])
+        self.assertEqual(sorted(x["kind"] for x in files),["PDF","PY"])
         self.assertEqual(self.urls.count(inside),1)
         self.assertTrue(all(u.endswith("/") or u.endswith("/index.json")
                             for u in self.urls))
