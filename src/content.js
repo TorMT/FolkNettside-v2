@@ -1,7 +1,8 @@
-import {onNTNUHost} from "./courses/ntnu-catalog.js?v=b80d2d574b602cba398fff5f3b9fd89d5861e712";
-import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=b80d2d574b602cba398fff5f3b9fd89d5861e712";
-import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=b80d2d574b602cba398fff5f3b9fd89d5861e712";
-import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=b80d2d574b602cba398fff5f3b9fd89d5861e712";
+import {onNTNUHost} from "./courses/ntnu-catalog.js?v=4aa94acaeec75ab673386c3874388162ceb8bb15";
+import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=4aa94acaeec75ab673386c3874388162ceb8bb15";
+import {loadPublicCourseLabels,mergeCloudCourseLabels} from "./platform/folk-course-admin.js?v=4aa94acaeec75ab673386c3874388162ceb8bb15";
+import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=4aa94acaeec75ab673386c3874388162ceb8bb15";
+import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=4aa94acaeec75ab673386c3874388162ceb8bb15";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
@@ -91,7 +92,18 @@ export async function loadContent() {
   if(courseSource.mode==="ntnu"||courseSource.mode==="github-ntnu"){
     try{
       const aliases=await readJSON("./config/ntnu-display-names.json");
-      manifest=applyNTNUDisplayNames(manifest,aliases);
+      let selectedNames=aliases;
+      try{
+        const cloud=await loadPublicCourseLabels({
+          fetchImpl:(url,options)=>fetch(url,{...options,
+            signal:AbortSignal.timeout(3500)})
+        });
+        if(cloud.length)selectedNames=mergeCloudCourseLabels(aliases,cloud);
+      }catch{
+        // The optional Supabase table may be uninstalled or offline. The
+        // checked-in aliases remain authoritative until cloud is available.
+      }
+      manifest=applyNTNUDisplayNames(manifest,selectedNames);
     }catch(error){
       console.warn("NTNU display names unavailable; original labels are retained.",error);
     }

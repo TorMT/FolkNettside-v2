@@ -1227,3 +1227,13 @@ a.project-row:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
   .project-detail-links .btn{justify-content:center}
   .project-gallery{padding:15px}
 }
+
+/* Admin course labels use the same study design, without changing NTNU originals. */
+.course-admin-page .study-main{max-width:960px;margin:0 auto;padding:clamp(20px,3vw,48px)}
+.course-admin{display:grid;gap:.65rem;max-width:780px}
+.course-admin p{line-height:1.6}
+.course-admin label{font-weight:650;margin-top:.6rem}
+.course-admin select,.course-admin textarea{box-sizing:border-box;width:100%;padding:.8rem;border:1px solid var(--border,rgba(128,145,161,.38));border-radius:8px;background:var(--surface,#fff);color:var(--text,#12212c);font:inherit}
+.course-admin textarea{resize:vertical}
+.course-admin-actions{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1rem}
+#admin-status{min-height:1.5rem}
