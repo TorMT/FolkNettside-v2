@@ -58,7 +58,11 @@ async function until(predicate,label,max=120){
  throw Error("Timed out: "+label);
 }
 function auditLayout(route){
- const d=dom();const viewWidth=d.documentElement.clientWidth;
+ const d=dom();
+ // Chrome reserves ~15px for the vertical scrollbar inside desktop-sized
+ // iframe emulation; compare against the actual layout viewport, not its
+ // scrollbar-reduced documentElement.clientWidth.
+ const viewWidth=win().innerWidth;
  check(viewWidth>0&&Math.abs(viewWidth-width)<=4,route+" incorrect viewport "+viewWidth+"/"+width);
  const contentWidth=Math.max(d.documentElement.scrollWidth,d.body.scrollWidth);
  check(contentWidth<=viewWidth+9,route+" document horizontal overflow "+contentWidth+"/"+viewWidth);
