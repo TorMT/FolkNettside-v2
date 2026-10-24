@@ -3,6 +3,7 @@ import {
   answerQuestion,answerMatches,quizImageURL,selectQuizQuestions,createQuizAttempt,normalizeQuiz,quizScore,quizChapterView,quizChapterStorageKey,sanitizeQuizAttempt
 } from "../quiz-core.js";
 import {mistakeQuestions,recordQuizChoice,clearMistakeBank} from "../quiz-mistake-bank.js";
+import {mountQuizLeaderboard} from "../quiz-leaderboard.js";
 
 function loadAttempt(key,quiz){
   try{
@@ -98,6 +99,7 @@ export async function render(container,resource){
         ${!mistakeMode&&mistakeQuestions(wholeQuiz,resource).length?'<button class="btn" id="quiz-mistake-start" type="button">Øv på feil-svar ('+mistakeQuestions(wholeQuiz,resource).length+')</button>':""}
         ${mistakeMode?'<button class="btn" id="quiz-mistake-clear" type="button">Tøm feil-svar-bank</button>':""}
       </div>
+      <div id="quiz-leaderboard"></div>
     </div>`;
   }
 
@@ -159,6 +161,11 @@ export async function render(container,resource){
     if(attempt.completed&&!review){
      container.innerHTML=resultHTML();
       bindChapters();
+      if(!mistakeMode&&selectedChapter==="all"&&quiz.questions.length===catalogQuiz.questions.length){
+        void mountQuizLeaderboard(container.querySelector("#quiz-leaderboard"),{
+          resource,quiz,attempt,originalQuestionCount:catalogQuiz.questions.length
+        });
+      }
       container.querySelector("#quiz-review")?.addEventListener("click",()=>{
         review=true;
         attempt.current=0;
