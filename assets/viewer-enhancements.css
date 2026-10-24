@@ -281,6 +281,7 @@
 @media(max-width:900px){
  .engineering-cad-page{min-width:0;overflow-wrap:anywhere}
  .engineering-cad-page .cad-fusion-steps,.engineering-cad-page .cad-fusion-quickstart{min-width:0}
+ .cad-geometry-stage .cad-empty-state{min-height:350px;box-sizing:border-box}
  .cad-geometry-stage .model-viewer-mobile-compact{display:grid;grid-template-columns:minmax(0,1fr);min-width:0}
  .cad-geometry-stage .model-viewer-mobile-compact .model-viewer-stage{min-width:0}
  .cad-geometry-stage .model-viewer-mobile-compact .model-viewer-inspector{display:none;min-width:0}
