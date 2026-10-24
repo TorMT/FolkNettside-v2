@@ -1,0 +1,142 @@
+<!doctype html><html lang="no"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Whole-site mobile interaction and overflow audit</title>
+<style>body{margin:8px;font-family:system-ui}#site{height:820px;border:1px solid #b2c0cb;display:block;max-width:none}
+#result{white-space:pre-wrap;overflow-wrap:anywhere}</style></head>
+<body data-status="running"><iframe id="site" title="FolkNet mobile route audit" src="../../index.html#/portfolio"></iframe><pre id="result">running</pre>
+<script type="module">
+const params=new URLSearchParams(location.search);
+const width=Number(params.get("width")||390);
+const frame=document.querySelector("#site");
+const report=document.querySelector("#result");
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const check=(yes,msg)=>{if(!yes)throw Error(msg)};
+frame.style.width=width+"px";
+const win=()=>frame.contentWindow;
+const dom=()=>frame.contentDocument;
+const failures=[];
+frame.addEventListener("load",()=>{
+  frame.contentWindow?.addEventListener("error",e=>failures.push(String(e?.message||e)));
+  frame.contentWindow?.addEventListener("unhandledrejection",e=>failures.push(String(e?.reason||e)));
+});
+const routes=[
+ ["/portfolio",".hero"],
+ ["/about","main"],
+ ["/cv","main.cv-page"],
+ ["/contact","main"],
+ ["/courses",".course-grid"],
+ ["/courses/5",".course-card"],
+ ["/courses/5/TMR4182",".course-header"],
+ ["/admin/courses",".course-admin-page"],
+ ["/viewer/5/TMR4182/0",".viewer"],
+ ["/engineering",".workspace"],
+ ["/engineering/cad",".engineering-cad-page"],
+ ["/engineering/hydro",".workspace"],
+ ["/engineering/kisssoft",".kisssoft-page"],
+ ["/engineering/structure",".workspace"],
+ ["/engineering/propulsion",".workspace"],
+ ["/tools",".topbar"],
+ ["/tools/python",".python-workbench"],
+ ["/tools/coolprop",".topbar"],
+ ["/tools/model-inspector",".topbar"],
+ ["/tools/crystal",".topbar"],
+ ["/diverse",".diverse-page"],
+ ["/diverse/diving",".dive-page"],
+ ["/diverse/brewing",".topbar"],
+ ["/diverse/medisin",".topbar"],
+ ["/diverse/laos",".topbar"],
+ ["/settings",".settings"],
+ ["/settings/connections",".settings"],
+ ["/settings/courses",".settings"]
+];
+const tabletRoutes=[
+ "/portfolio","/courses","/courses/5/TMR4182","/viewer/5/TMR4182/0",
+ "/engineering/cad","/engineering/hydro","/diverse","/tools","/settings"
+];
+const selected=width>=760?routes.filter(([route])=>tabletRoutes.includes(route)):routes;
+async function until(predicate,label,max=120){
+ for(let i=0;i<max;i++){
+  let yes=false;try{yes=Boolean(predicate())}catch{}
+  if(yes)return;
+  await sleep(90);
+ }
+ throw Error("Timed out: "+label+" | current content="+
+  String(dom()?.querySelector("#app")?.innerHTML||"").slice(0,420)+
+  " | errors="+failures.slice(-5).join(" | "));
+}
+function auditLayout(route){
+ const d=dom();
+ // Chrome reserves ~15px for the vertical scrollbar inside desktop-sized
+ // iframe emulation; compare against the actual layout viewport, not its
+ // scrollbar-reduced documentElement.clientWidth.
+ const viewWidth=win().innerWidth;
+ check(viewWidth>0&&Math.abs(viewWidth-width)<=4,route+" incorrect viewport "+viewWidth+"/"+width);
+ const contentWidth=Math.max(d.documentElement.scrollWidth,d.body.scrollWidth);
+ check(contentWidth<=viewWidth+9,route+" document horizontal overflow "+contentWidth+"/"+viewWidth);
+ const nav=d.querySelector(".mobile-nav");
+ if(width<760){
+   check(nav&&getComputedStyle(nav).display!=="none",route+" mobile navigation unavailable");
+   const buttons=[...nav.querySelectorAll("button")].filter(el=>el.getBoundingClientRect().width>0);
+   check(buttons.length>=4,route+" too few navigable buttons");
+   for(const button of buttons){
+     const box=button.getBoundingClientRect();
+     check(box.width>=36&&box.height>=36,route+" small mobile-nav target "+box.width+"x"+box.height);
+   }
+ }
+ const main=d.querySelector("#app main, #app .workspace, #app .viewer, #app .layout");
+ check(Boolean(main),route+" missing rendered page");
+ const wrapper=main.getBoundingClientRect();
+ check(wrapper.width>210&&wrapper.left<viewWidth,route+" primary content collapsed");
+ const canvas=d.querySelector(".cad-geometry-stage .cad-empty-state");
+ if(route==="/engineering/cad"){
+   check(d.querySelector(".cad-example-munin"),"Munin example missing");
+   const links=d.querySelectorAll(".cad-munin-actions a");
+   check(links.length===3,"Munin source link count invalid");
+   check(d.querySelector("[data-cad-demo]"),"Local CAD demo missing");
+   check(canvas?.getBoundingClientRect().height>=300,route+" CAD preview collapsed");
+ }
+ if(route.startsWith("/viewer/")){
+   check(d.querySelector(".viewer-breadcrumb a[href='#/courses']"),route+" breadcrumb not clickable");
+   check(d.querySelector("#viewer-back"),route+" viewer return missing");
+   const original=d.querySelector("#open-original");
+   check(original&&getComputedStyle(original).display!=="none",
+      route+" direct NTNU original hidden on mobile");
+   check(d.querySelector(".viewer-canvas")?.getBoundingClientRect().height>=100,route+" viewer canvas collapsed");
+ }
+ if(route==="/courses/5/TMR4182"){
+   check(d.querySelector(".resource-viewer-link"),"Course resource links missing");
+ }
+}
+try{
+ await until(()=>dom()?.querySelector(".topbar"),"app initial load");
+ const checked=[];
+ const problems=[];
+ for(const [route,selector] of selected){
+   win().location.hash="#"+route;
+   await until(()=>win().location.hash==="#"+route&&dom()?.querySelector(selector),route+" "+selector);
+   await sleep(route==="/engineering/cad"?180:100);
+   try{auditLayout(route)}catch(error){problems.push(String(error.message||error))}
+   checked.push(route);
+ }
+ if(width<760){
+   win().location.hash="#/courses/5/TMR4182";
+   await until(()=>dom().querySelector(".resource-viewer-link"),"real course file link");
+   dom().querySelector(".resource-viewer-link").click();
+   await until(()=>dom().querySelector(".viewer-head"),"viewer opened from course");
+   check(win().location.hash.startsWith("#/viewer/5/TMR4182/"),"resource click failed");
+   try{auditLayout("/viewer/5/TMR4182/0")}catch(error){problems.push(String(error.message||error))}
+   const crumb=dom().querySelector(".viewer-breadcrumb a[href='#/courses/5']");
+   check(crumb,"Semester crumb is not a link");
+   crumb.click();
+   await until(()=>win().location.hash==="#/courses/5"&&dom().querySelector(".course-grid"),
+     "viewer breadcrumb return to semester");
+   try{auditLayout("/courses/5")}catch(error){problems.push(String(error.message||error))}
+ }
+ if(problems.length)throw Error("Mobile layout problems ("+width+"px): "+problems.join(" | "));
+ document.body.dataset.status="pass";
+ report.textContent=JSON.stringify({width,routeCount:checked.length,coursesAndViewerInteraction:width<760,checked});
+}catch(error){
+ document.body.dataset.status="fail";
+ report.textContent=String(error?.stack||error)+" | route="+win()?.location.hash;
+}
+</script></body></html>

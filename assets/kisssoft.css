@@ -15,3 +15,19 @@
 .kisssoft-assembly-controls input[type="range"]{width:110px;accent-color:var(--accent)}
 .kisssoft-assembly-controls input[type="checkbox"]{accent-color:var(--accent)}
 .kisssoft-3d-slot canvas{border-radius:12px 12px 0 0!important}
+
+/* Phone layout: long demonstration labels and gear tables must not widen document. */
+.kisssoft-page,.kisssoft-layout,.kisssoft-layout>*,
+.kisssoft-summary,.kisssoft-example,.kisssoft-example>div{min-width:0;max-width:100%}
+.kisssoft-summary{overflow-x:auto}
+@media(max-width:760px){
+ .kisssoft-page input[type=file]{max-width:100%;width:100%;box-sizing:border-box}
+ .kisssoft-example{gap:12px;padding:12px}
+ .kisssoft-example>div{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+ .kisssoft-example .btn{white-space:normal;overflow-wrap:anywhere;text-align:left;min-width:0;min-height:44px;max-width:100%}
+ .kisssoft-example a{overflow-wrap:anywhere;padding:7px 3px}
+ .kisssoft-summary{padding:12px}
+ .kisssoft-summary table{table-layout:fixed;width:100%}
+ .kisssoft-summary td,.kisssoft-summary th{overflow-wrap:anywhere;word-break:break-word}
+ .kisssoft-assembly-controls{min-width:0}
+}

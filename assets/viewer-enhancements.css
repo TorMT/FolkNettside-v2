@@ -307,3 +307,29 @@
  .cad-geometry-stage .model-viewer-mobile-compact .model-viewer-inspector{overflow-x:hidden}
  .cad-geometry-stage .model-viewer-mobile-compact .cad-group-tree button{min-height:44px}
 }
+
+/* Mobile file viewer: keep NTNU original reachable (critical when CORS blocks previews).
+   Preserve room for the resource, with actionable file controls in a compact two-row header. */
+@media(max-width:760px){
+ .viewer-head{align-items:stretch;flex-direction:column;gap:6px;padding:7px 11px}
+ .viewer-head>div:first-child{min-width:0;max-width:100%}
+ .viewer-head>div:first-child>strong{display:block;max-width:100%;
+   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+ .viewer-breadcrumb{min-width:0;max-width:100%;font-size:11px;gap:4px}
+ .viewer-head-actions{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%}
+ .viewer-file-actions{order:1;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+ .viewer-head #open-original{display:inline-flex!important}
+ .viewer-head-actions .btn{display:inline-flex;align-items:center;justify-content:center;
+   min-height:40px;padding:7px 10px;max-width:100%;text-decoration:none}
+ .viewer-siblings{order:2;display:flex;flex-wrap:nowrap;align-items:center;
+   justify-content:space-between;gap:5px;border:0;padding:0;min-width:0}
+ .viewer-siblings a{min-width:0;max-width:42%;overflow:hidden;text-overflow:ellipsis;
+   white-space:nowrap}
+ .viewer-sibling-count{flex:0 0 auto;font-size:11px}
+ .viewer-sibling-placeholder{flex:0 0 8px}
+}
+@media(max-width:360px){
+ .viewer-head{padding:6px 8px}
+ .viewer-head-actions .btn{font-size:11px;padding:7px 8px}
+ .viewer-toolbar{gap:5px}
+}
