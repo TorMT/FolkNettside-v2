@@ -261,3 +261,10 @@
  .viewer-file-actions{order:1}
  .viewer-siblings a{flex:0 0 auto}
 }
+
+/* Sandboxed read-only NTNU source when cross-origin JS preview cannot fetch. */
+.viewer-readonly-fallback{padding:clamp(14px,2vw,24px);background:var(--surface);border-bottom:1px solid var(--line);line-height:1.5}
+.viewer-readonly-fallback p{margin:.55rem 0;max-width:85ch}
+.viewer-readonly-fallback .viewer-error-actions{display:flex;flex-wrap:wrap;gap:8px}
+.viewer-remote-raw-frame{display:block;width:100%;height:max(55vh,460px);min-height:340px;border:0;background:#fff}
+@media(max-width:760px){.viewer-remote-raw-frame{height:64vh;min-height:300px}}

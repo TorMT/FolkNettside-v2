@@ -1,4 +1,4 @@
-import {escapeHTML} from "./utils.js?v=e68efebf91d8678aeef9244501fc709acb0bb3e2";
+import {escapeHTML} from "./utils.js?v=fc57b9fb5c8d851efa745399aed4d164f60e2c96";
 
 /** Links are derived exclusively from an already loaded/validated course. */
 export function viewerBreadcrumbHTML(resource={}){
