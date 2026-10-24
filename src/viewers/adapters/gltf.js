@@ -1,6 +1,6 @@
-import {getGLTFRuntime} from "../../model/three-runtime.js?v=146aa4b23c60ca46c03bae09422af4f02f92a568";
-import {modelDocumentFromThree} from "../three-model-import.js?v=146aa4b23c60ca46c03bae09422af4f02f92a568";
-import {renderModelWorkbench} from "../model-workbench.js?v=146aa4b23c60ca46c03bae09422af4f02f92a568";
+import {getGLTFRuntime} from "../../model/three-runtime.js?v=228b73eb14255367ff327e4fa097975410ecc9e5";
+import {modelDocumentFromThree} from "../three-model-import.js?v=228b73eb14255367ff327e4fa097975410ecc9e5";
+import {renderModelWorkbench} from "../model-workbench.js?v=228b73eb14255367ff327e4fa097975410ecc9e5";
 export async function render(container,resource){
   const url=resource.path||resource.url;
   const {GLTFLoader,MeshoptDecoder}=await getGLTFRuntime();

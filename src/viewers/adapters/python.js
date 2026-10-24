@@ -1,9 +1,9 @@
-import {pythonSourceURL} from "../python-source.js?v=146aa4b23c60ca46c03bae09422af4f02f92a568";
-import {pythonUploadPaths} from "../python-folder-paths.js?v=146aa4b23c60ca46c03bae09422af4f02f92a568";
-import {fetchText} from "../utils.js?v=146aa4b23c60ca46c03bae09422af4f02f92a568";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=146aa4b23c60ca46c03bae09422af4f02f92a568";
-import {createPythonSession} from "../python-session.js?v=146aa4b23c60ca46c03bae09422af4f02f92a568";
-import {createDomFinder} from "../dom-search.js?v=146aa4b23c60ca46c03bae09422af4f02f92a568";
+import {pythonSourceURL} from "../python-source.js?v=228b73eb14255367ff327e4fa097975410ecc9e5";
+import {pythonUploadPaths} from "../python-folder-paths.js?v=228b73eb14255367ff327e4fa097975410ecc9e5";
+import {fetchText} from "../utils.js?v=228b73eb14255367ff327e4fa097975410ecc9e5";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=228b73eb14255367ff327e4fa097975410ecc9e5";
+import {createPythonSession} from "../python-session.js?v=228b73eb14255367ff327e4fa097975410ecc9e5";
+import {createDomFinder} from "../dom-search.js?v=228b73eb14255367ff327e4fa097975410ecc9e5";
 
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
   const source=resource.sourceText!==undefined?String(resource.sourceText):await fetchText(resource.path||resource.url);
