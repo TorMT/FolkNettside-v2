@@ -395,7 +395,7 @@ const vessel='<svg viewBox="0 0 760 380"><path d="M120 236 L560 236 L642 265 L60
 const route=()=>location.hash.slice(1)||"/portfolio";
 const go=path=>{location.hash=path};
 const globalSearch=createSearchController({index:buildSearchIndex({semesters,projects,tools:activeTools(),diverse:DIVERSE_MODULES}),onNavigate:go});
-function parseCourseRoute(path){const m=path.match(/^\/(?:courses|study)\/(\d+)\/([^/]+)$/i);return m?{semester:Number(m[1]),code:decodeURIComponent(m[2])}:null}
+function parseCourseRoute(path){const m=path.match(/^\/(?:courses|study)\/(\d+)\/([^/]+)(?:\/section\/(\d+))?$/i);return m?{semester:Number(m[1]),code:decodeURIComponent(m[2]),sectionIndex:m[3]===undefined?null:Number(m[3])}:null}
 function parseViewerRoute(path){const m=path.match(/^\/viewer\/(\d+)\/([^/]+)\/(\d+)$/i);return m?{semester:Number(m[1]),code:decodeURIComponent(m[2]),resourceIndex:Number(m[3])}:null}
 function getSemester(id){return semesters.find(s=>Number(s.id)===Number(id))}
 function getCourse(semesterId,code){return getSemester(semesterId)?.courses.find(c=>c.code.toLowerCase()===String(code).toLowerCase())}
@@ -597,7 +597,7 @@ function coursesPage(requestedSemester){
   activeSemester?.scrollIntoView?.({behavior:"instant",block:"nearest",inline:"center"});
 }
 
-function coursePage(semesterId,code){
+function coursePage(semesterId,code,focusSectionIndex=null){
   const course=getCourse(semesterId,code);
   if(!course)return notFoundPage("Course "+code+" was not found in semester "+semesterId);
   document.documentElement.dataset.lens="study";
@@ -687,6 +687,10 @@ function coursePage(semesterId,code){
     buttons:app.querySelectorAll("[data-course-nav]"),
     topbar:app.querySelector(".topbar")
   });
+  if(Number.isInteger(focusSectionIndex)&&focusSectionIndex>=0){
+    const target=app.querySelector("#course-section-"+focusSectionIndex);
+    if(target)requestAnimationFrame(()=>target.scrollIntoView({block:"start",behavior:"instant"}));
+  }
 }
 function toolsPage(){
   document.documentElement.dataset.lens="study";
@@ -2363,7 +2367,7 @@ async function engineeringPage(){
   });
 }
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+escCourse(message)+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
-async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code},()=>go(courseRoute(info.semester,course.code)))}
+async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code,courseTitle:course.title,sectionIndex:course.sections.indexOf(resource.section)},()=>go(courseRoute(info.semester,course.code)))}
 
 async function render(){const currentPath=route();if(currentPath!=="/tools/python"){pythonToolCleanup?.();pythonToolCleanup=null;}if(currentPath!=="/tools/vault"){vaultToolCleanup?.();vaultToolCleanup=null;}app.__courseObserver?.disconnect();app.__courseObserver=null;const path=route();
   // Invalidate pending async engineering model loads when navigating to a
@@ -2375,7 +2379,7 @@ async function render(){const currentPath=route();if(currentPath!=="/tools/pytho
     engineeringCleanup?.();
     engineeringCleanup=null;
   }
-  if(path!=="/engineering/kisssoft"){kisssoftCleanup?.();kisssoftCleanup=null;}if(path!=="/engineering/cad"){cadToolCleanup?.();cadToolCleanup=null;}if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}if(!["/diverse/diving","/diverse/dive-map"].includes(path)){diveMapMountId++;diveMapCleanup?.();diveMapCleanup=null;}if(path!=="/diverse/brewing"){brewingMountId++;brewingCleanup?.();brewingCleanup=null;}if(path!=="/diverse/medisin"){medisinCleanup?.();medisinCleanup=null;}studyCatalogMountId++;studyCatalogCleanup?.cleanup?.();studyCatalogCleanup=null;const viewer=parseViewerRoute(path);if(["/about","/cv","/contact"].includes(path)){document.documentElement.dataset.lens="portfolio";const page=path.slice(1);app.innerHTML=top(page)+'<main class="section"><p>Loading profile…</p></main>';bindNav();loadCV().then(cv=>{if(route()!==path)return;app.innerHTML=top(page)+portfolioInfoPageHTML(page,cv);bindNav();}).catch(error=>{if(route()!==path)return;app.innerHTML=top(page)+`<main class="section"><h1>Profile unavailable</h1><p>${String(error.message||error).replace(/[&<>"]/g,"")}</p></main>`;bindNav();});return;}if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/diverse")return diversePage();if(path==="/diverse/diving"||path==="/diverse/dive-map")return diveMapPage();if(path==="/diverse/sandalen")return sandalenPage();if(path==="/diverse/matpris")return matprisPage();if(path==="/diverse/brewing")return brewingPage();if(path==="/diverse/medisin")return medisinPage();if(path==="/diverse/laos")return studyCatalogPage("laos");if(path==="/diverse/andrekok")return studyCatalogPage("kok");if(path==="/engineering/cad"){
+  if(path!=="/engineering/kisssoft"){kisssoftCleanup?.();kisssoftCleanup=null;}if(path!=="/engineering/cad"){cadToolCleanup?.();cadToolCleanup=null;}if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}if(!["/diverse/diving","/diverse/dive-map"].includes(path)){diveMapMountId++;diveMapCleanup?.();diveMapCleanup=null;}if(path!=="/diverse/brewing"){brewingMountId++;brewingCleanup?.();brewingCleanup=null;}if(path!=="/diverse/medisin"){medisinCleanup?.();medisinCleanup=null;}studyCatalogMountId++;studyCatalogCleanup?.cleanup?.();studyCatalogCleanup=null;const viewer=parseViewerRoute(path);if(["/about","/cv","/contact"].includes(path)){document.documentElement.dataset.lens="portfolio";const page=path.slice(1);app.innerHTML=top(page)+'<main class="section"><p>Loading profile…</p></main>';bindNav();loadCV().then(cv=>{if(route()!==path)return;app.innerHTML=top(page)+portfolioInfoPageHTML(page,cv);bindNav();}).catch(error=>{if(route()!==path)return;app.innerHTML=top(page)+`<main class="section"><h1>Profile unavailable</h1><p>${String(error.message||error).replace(/[&<>"]/g,"")}</p></main>`;bindNav();});return;}if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code,course.sectionIndex);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/courses"||path==="/study")return coursesPage();if(path==="/diverse")return diversePage();if(path==="/diverse/diving"||path==="/diverse/dive-map")return diveMapPage();if(path==="/diverse/sandalen")return sandalenPage();if(path==="/diverse/matpris")return matprisPage();if(path==="/diverse/brewing")return brewingPage();if(path==="/diverse/medisin")return medisinPage();if(path==="/diverse/laos")return studyCatalogPage("laos");if(path==="/diverse/andrekok")return studyCatalogPage("kok");if(path==="/engineering/cad"){
   document.documentElement.dataset.lens="workspace";
   app.innerHTML=top("engineering")+cadToolHTML();
   bindNav();cadToolCleanup=mountCADTool(app);return;
