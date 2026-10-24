@@ -1,7 +1,7 @@
-import {loadAdapter,viewerKind} from "./registry.js?v=ed67bb88a47eadd9c5a1ef13588681d2a3f74c8c";
-import {escapeHTML} from "./utils.js?v=ed67bb88a47eadd9c5a1ef13588681d2a3f74c8c";
-import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=ed67bb88a47eadd9c5a1ef13588681d2a3f74c8c";
-import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=ed67bb88a47eadd9c5a1ef13588681d2a3f74c8c";
+import {loadAdapter,viewerKind} from "./registry.js?v=89edd9aacc2e859a8494a2ef432a90ef9346c160";
+import {escapeHTML} from "./utils.js?v=89edd9aacc2e859a8494a2ef432a90ef9346c160";
+import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=89edd9aacc2e859a8494a2ef432a90ef9346c160";
+import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=89edd9aacc2e859a8494a2ef432a90ef9346c160";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the

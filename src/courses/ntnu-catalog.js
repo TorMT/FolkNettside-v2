@@ -13,7 +13,16 @@ const SAFE_FILE_TYPES=Object.freeze({
  mp4:"VIDEO",webm:"VIDEO",mov:"VIDEO",mp3:"AUDIO",wav:"AUDIO",
  zip:"ZIP",stl:"STL","3mf":"3MF",obj:"OBJ",glb:"GLB",gltf:"GLTF",
  f3z:"F3Z",f3d:"F3D",step:"STEP",stp:"STEP",iges:"IGES",igs:"IGES",
- w10:"W10",z012rs:"Z012RS",z014rs:"Z014RS"
+ w10:"W10",z012rs:"Z012RS",z014rs:"Z014RS",
+ z12:"Z12",z14:"Z14",z012:"Z012",z014:"Z014",ksys:"KSYS",
+ gltf:"GLTF",brep:"BREP",dxf:"DXF",dwg:"DWG",
+ tsv:"TSV",psv:"PSV",jsonl:"JSONL",ndjson:"NDJSON",
+ geojson:"GEOJSON",yaml:"YAML",yml:"YAML",xml:"XML",
+ srt:"SRT",vtt:"VTT",
+ mp3:"AUDIO",wav:"AUDIO",ogg:"AUDIO",flac:"AUDIO",
+ m4a:"AUDIO",aac:"AUDIO",oga:"AUDIO",opus:"AUDIO",
+ mkv:"VIDEO",m4v:"VIDEO",ogv:"VIDEO",
+ avif:"IMAGE",bmp:"IMAGE",tif:"IMAGE",tiff:"IMAGE"
 });
 const object=v=>v!==null&&typeof v==="object"&&!Array.isArray(v);
 const safePiece=v=>typeof v==="string"&&v.length>0&&v.length<=210&&
