@@ -1,4 +1,4 @@
-import {normaliseSpaceMouseSettings} from "./spacemouse-settings.js?v=b67b252dd6fbc40137d93e0430b40fd3e1089c77";
+import {normaliseSpaceMouseSettings} from "./spacemouse-settings.js?v=6b16ce2e1b358859d9ab7b80e670ae12b462f19f";
 
 /**
  * Camera-space movement adapter for 6-DOF HID reports.
