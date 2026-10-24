@@ -1,6 +1,6 @@
-import {escapeHTML} from "../utils.js";
+import {escapeHTML,previewContentURL} from "../utils.js";
 export async function render(container,resource){
-  const path=resource.url||resource.path;
+  const path=previewContentURL(resource);
   if(!path)throw new Error("Audio file has no source URL");
   container.innerHTML=`<section class="media-viewer audio-viewer">
     <strong>${escapeHTML(resource.label||resource.name||"Audio")}</strong>
