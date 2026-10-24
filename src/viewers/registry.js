@@ -53,7 +53,11 @@ export function viewerKind(resource={}){
   if(/^forelesning(?:er)?\.(?:json|txt)$/i.test(basename))return "lecture-list";
   if(kind==="QUIZ")return "quiz";
   if(kind==="VAULT"||String(resource.path||resource.url||resource.name||"").split(/[?#]/,1)[0].toLowerCase().endsWith(".vault.json"))return "vault";
-  const input=String(resource.path||resource.url||resource.name||"");
+  // Object URLs carry no file extension. Routing must keep the validated
+  // original name while the adapter fetches local, user-selected bytes.
+  const localBlob=resource.localPreview===true&&
+    String(resource.path||"").startsWith("blob:");
+  const input=String(localBlob?resource.name:(resource.path||resource.url||resource.name||""));
   const cleaned=input.replace(/\(\d+\)(?=[?#]|$)/,"");
   const ext=extension(cleaned);
   return adapters[ext] || "unsupported";

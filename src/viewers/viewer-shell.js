@@ -2,6 +2,7 @@ import {loadAdapter,viewerKind} from "./registry.js";
 import {escapeHTML} from "./utils.js";
 import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js";
 import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js";
+import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the
@@ -10,6 +11,10 @@ export async function mountViewer(root,resource,onBack){
   root.__viewerTicket=ticket;
   root.__viewerCleanup?.();
   root.__viewerCleanup=null;
+  // Blob URLs are session-only and must be revoked whenever the viewer closes.
+  if(resource.localPreview===true&&String(resource.path||"").startsWith("blob:")){
+    root.__viewerCleanup=()=>URL.revokeObjectURL(resource.path);
+  }
 
   const isQuiz=viewerKind(resource)==="quiz";
   root.innerHTML=`<main class="viewer ${isQuiz?"viewer--quiz":""}">
@@ -84,6 +89,29 @@ export async function mountViewer(root,resource,onBack){
   const fitButton=toolbar.querySelector('[data-action="fit"]');
   const resetButton=toolbar.querySelector('[data-action="resetZoom"]');
   const resetProgressButton=toolbar.querySelector('[data-action="resetProgress"]');
+  const localChoose=canRetryNTNUWithLocalFile(resource)?`<button class="btn" type="button" id="viewer-choose-local">Åpne nedlastet fil</button>
+    <input id="viewer-local-file" type="file" accept=".${escapeHTML(String(resource.name).split(".").at(-1).toLowerCase())}" hidden>
+    <span class="viewer-local-status" id="viewer-local-status" role="status"></span>`:"";
+  const bindLocalChoice=()=>{
+    const button=canvas.querySelector("#viewer-choose-local");
+    const input=canvas.querySelector("#viewer-local-file");
+    const feedback=canvas.querySelector("#viewer-local-status");
+    if(!button||!input)return;
+    button.addEventListener("click",()=>input.click());
+    input.addEventListener("change",()=>{
+      const file=input.files?.[0];
+      if(!file||!active())return;
+      try{
+        const local=createNTNULocalPreview(resource,file);
+        // The selected data never leaves this browser tab. Open original still
+        // uses the unchanged NTNU resource.url.
+        void mountViewer(root,local,onBack);
+      }catch(error){
+        if(feedback)feedback.textContent=String(error.message||error);
+      }
+      input.value="";
+    });
+  };
 
   const panelButtons=[...root.querySelectorAll("[data-viewer-panel]")];
   const panelContents=[...root.querySelectorAll("[data-viewer-panel-content]")];
@@ -124,7 +152,8 @@ export async function mountViewer(root,resource,onBack){
     const result=await adapter.render(canvas,resource);
     const adapterCleanup=result?.cleanup || null;
     if(!active()){adapterCleanup?.();return}
-    root.__viewerCleanup=adapterCleanup;
+    const blobCleanup=root.__viewerCleanup;
+    root.__viewerCleanup=()=>{adapterCleanup?.();blobCleanup?.()};
     status.textContent=result?.info || "."+adapter.extension;
 
     const actions=result?.actions||{};
@@ -189,6 +218,7 @@ export async function mountViewer(root,resource,onBack){
         <p>Den interaktive forhåndsvisningen er utilgjengelig fra GitHub Pages. Under vises NTNUs egen råfil-visning dersom nettleseren tillater det. Dette krever ikke CORS.</p>
         <div class="viewer-error-actions">
           <button class="btn" id="viewer-retry">Prøv interaktiv viser på nytt</button>
+          ${localChoose}
           <a class="btn primary" href="${escapeHTML(publicOriginal)}" target="_blank" rel="noopener noreferrer">Åpne originalfil på NTNU ↗</a>
         </div>
         <p class="muted">Hvis feltet nedenfor er tomt eller filen lastes ned, bruk lenken til originalfilen. Skript kan ikke kjøres i den innebygde visningen.</p>
@@ -196,6 +226,7 @@ export async function mountViewer(root,resource,onBack){
       <iframe class="viewer-remote-raw-frame" title="Skrivebeskyttet original fra NTNU" sandbox="" referrerpolicy="no-referrer" src="${escapeHTML(publicOriginal)}"></iframe>`;
       status.textContent="Originalfil fra NTNU · sikker reservevisning";
       canvas.querySelector("#viewer-retry")?.addEventListener("click",()=>mountViewer(root,resource,onBack));
+      bindLocalChoice();
       return;
     }
     const remote=resource.remoteArchive===true&&typeof resource.url==="string"&&
@@ -209,11 +240,13 @@ export async function mountViewer(root,resource,onBack){
       <p>${message}</p>
       <div class="viewer-error-actions">
         <button class="btn primary" id="viewer-retry">Retry</button>
+        ${localChoose}
         <a class="btn" id="viewer-error-original" target="_blank" rel="noopener noreferrer" href="${escapeHTML(resource.url||resource.path||"#")}">Åpne original på NTNU ↗</a>
       </div>
     </div>`;
     status.textContent="Error";
     canvas.querySelector("#viewer-retry")?.addEventListener("click",()=>mountViewer(root,resource,onBack));
+    bindLocalChoice();
 
   }
 }
