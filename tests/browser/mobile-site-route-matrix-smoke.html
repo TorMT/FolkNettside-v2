@@ -91,6 +91,9 @@ function auditLayout(route){
  if(route.startsWith("/viewer/")){
    check(d.querySelector(".viewer-breadcrumb a[href='#/courses']"),route+" breadcrumb not clickable");
    check(d.querySelector("#viewer-back"),route+" viewer return missing");
+   const original=d.querySelector("#open-original");
+   check(original&&getComputedStyle(original).display!=="none",
+      route+" direct NTNU original hidden on mobile");
    check(d.querySelector(".viewer-canvas")?.getBoundingClientRect().height>=100,route+" viewer canvas collapsed");
  }
  if(route==="/courses/5/TMR4182"){
