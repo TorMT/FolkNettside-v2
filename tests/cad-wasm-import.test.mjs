@@ -47,3 +47,13 @@ test("CAD extensions dispatch to real viewer and worker can cancel and cleanly t
  assert.equal(terminated,true);
  assert.rejects(()=>parseCADBuffer(new ArrayBuffer(0),"bad.step"),/between 1 byte/);
 });
+
+test("CAD workbench and worker both permit Munin STEP size but reject beyond 55 MiB",async()=>{
+ const {CAD_IMPORT_MAX_BYTES}=await import("../src/model/parsers/cad-runtime.js");
+ const {readFileSync}=await import("node:fs");
+ const worker=readFileSync(new URL("../src/model/parsers/occt-worker.js",import.meta.url),"utf8");
+ assert.equal(CAD_IMPORT_MAX_BYTES,55*1024*1024);
+ assert.ok(37_000_000<CAD_IMPORT_MAX_BYTES);
+ assert.match(worker,/buffer\.byteLength>55\*1024\*1024/);
+ await assert.rejects(parseCADBuffer(new ArrayBuffer(CAD_IMPORT_MAX_BYTES+1),"large.step"),/55 MiB/);
+});
