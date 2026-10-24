@@ -1,8 +1,9 @@
-import {escapeHTML,fetchJSON} from "../utils.js?v=690036134e9b63ccd03c3d646140e5e77c7f7857";
+import {escapeHTML,fetchJSON} from "../utils.js?v=70515bc8df142b6fb5b040b69a41cb9bb44917a8";
 import {
   answerQuestion,answerMatches,quizImageURL,selectQuizQuestions,createQuizAttempt,normalizeQuiz,quizScore,quizChapterView,quizChapterStorageKey,sanitizeQuizAttempt
-} from "../quiz-core.js?v=690036134e9b63ccd03c3d646140e5e77c7f7857";
-import {mistakeQuestions,recordQuizChoice,clearMistakeBank} from "../quiz-mistake-bank.js?v=690036134e9b63ccd03c3d646140e5e77c7f7857";
+} from "../quiz-core.js?v=70515bc8df142b6fb5b040b69a41cb9bb44917a8";
+import {mistakeQuestions,recordQuizChoice,clearMistakeBank} from "../quiz-mistake-bank.js?v=70515bc8df142b6fb5b040b69a41cb9bb44917a8";
+import {mountQuizLeaderboard} from "../quiz-leaderboard.js?v=70515bc8df142b6fb5b040b69a41cb9bb44917a8";
 
 function loadAttempt(key,quiz){
   try{
@@ -98,6 +99,7 @@ export async function render(container,resource){
         ${!mistakeMode&&mistakeQuestions(wholeQuiz,resource).length?'<button class="btn" id="quiz-mistake-start" type="button">Øv på feil-svar ('+mistakeQuestions(wholeQuiz,resource).length+')</button>':""}
         ${mistakeMode?'<button class="btn" id="quiz-mistake-clear" type="button">Tøm feil-svar-bank</button>':""}
       </div>
+      <div id="quiz-leaderboard"></div>
     </div>`;
   }
 
@@ -159,6 +161,11 @@ export async function render(container,resource){
     if(attempt.completed&&!review){
      container.innerHTML=resultHTML();
       bindChapters();
+      if(!mistakeMode&&selectedChapter==="all"&&quiz.questions.length===catalogQuiz.questions.length){
+        void mountQuizLeaderboard(container.querySelector("#quiz-leaderboard"),{
+          resource,quiz,attempt,originalQuestionCount:catalogQuiz.questions.length
+        });
+      }
       container.querySelector("#quiz-review")?.addEventListener("click",()=>{
         review=true;
         attempt.current=0;

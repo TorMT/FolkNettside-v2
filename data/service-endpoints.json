@@ -7,5 +7,9 @@
     "enabled": false,
     "raptBase": null,
     "brewingBase": null
+  },
+  "quizLeaderboard": {
+    "enabled": false,
+    "endpoint": null
   }
 }
