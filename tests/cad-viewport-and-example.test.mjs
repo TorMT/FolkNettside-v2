@@ -80,3 +80,28 @@ test("KISSsoft internal ring may be source gear 1 while pinion is source gear 2"
  assert.equal(pair.shaft2Width,40);
  assert.ok(gearPairFraming(pair,{aspect:1}).distance>pair.b.pitchRadius);
 });
+
+test("Munin is referenced from verified public NTNU sources, without GitHub model mirroring",async()=>{
+ const {cadToolHTML,MUNIN_CAD_SOURCES}=await import("../src/engineering/cad-tool.js");
+ const html=cadToolHTML();
+ for(const [format,url] of Object.entries(MUNIN_CAD_SOURCES)){
+   assert.match(url,/^https:\/\/tormt\.folk\.ntnu\.no\/diverse\/Njord\/filer\/MuninTing\//);
+   assert.ok(html.includes(url),format+" not linked");
+ }
+ assert.match(MUNIN_CAD_SOURCES.f3z,/\.f3z$/);
+ assert.match(MUNIN_CAD_SOURCES.step,/\.step$/);
+ assert.match(html,/data-cad-munin-choose/);
+ const code=readFileSync(new URL("../src/engineering/cad-tool.js",import.meta.url),"utf8");
+ assert.match(code,/renderModelWorkbench\(stage,documentModel,\{mobileCompact:true\}\)/);
+ assert.match(code,/renderModelWorkbench\(viewer,documentModel,\{mobileCompact:true\}\)/);
+ assert.match(code,/\(fusion\|\|isCADFile\(file\.name\)\)\?55:25/);
+});
+test("CAD mobile inspector is opt-in and desktop is unaffected",()=>{
+ const model=readFileSync(new URL("../src/viewers/model-workbench.js",import.meta.url),"utf8");
+ const css=readFileSync(new URL("../assets/viewer-enhancements.css",import.meta.url),"utf8");
+ assert.match(model,/mobileCompact=false/);
+ assert.match(model,/data-model-mobile-toggle/);
+ assert.match(model,/aria-expanded="false"/);
+ assert.match(css,/\.model-viewer-mobile-compact\.model-viewer-mobile-open \.model-viewer-inspector\{display:block\}/);
+ assert.match(css,/\.cad-munin-actions\{display:grid/);
+});
