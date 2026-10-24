@@ -154,3 +154,31 @@ test("inaccessible semester is marked partial, never substituted with demo files
  assert.deepEqual(r.semesters.map(x=>x.id),[5]);
  await assert.rejects(loadNTNUCatalog({origin:"https://evil.example",fetchImpl}),/Unexpected/);
 });
+
+test("public legacy NTNU metadata preserves engineering/media files supported by their viewers",async()=>{
+ const {viewerKind}=await import("../src/viewers/registry.js");
+ const cases=[
+  ["Gears.Z12","Z12","kisssoft"],
+  ["Gears.Z014","Z014","kisssoft"],
+  ["Assembly.KSYS","KSYS","kisssoft"],
+  ["Hull.GLTF","GLTF","gltf"],
+  ["Hull.BREP","BREP","cad"],
+  ["Drawing.DXF","DXF","conversion"],
+  ["Hydro.MP3","AUDIO","audio"],
+  ["Sensor.JSONL","JSONL","text"],
+  ["Lecture.MKV","VIDEO","video"],
+  ["Sheet.TSV","TSV","csv"]
+ ];
+ const raw={testcourse:{dir:"testcourse",beskyttet:false,
+  files:[...cases.map(([name])=>"filer/"+name),
+   "filer/private-gear.Z12","filer/.env","filer/unsafe.exe"]}};
+ const result=parseNTNUSemesterIndex(5,raw);
+ const resources=result.courses[0].resources;
+ for(const [name,kind,adapter] of cases){
+   const file=resources.find(item=>item.name===name);
+   assert.ok(file,name+" should stay indexed for V2");
+   assert.equal(file.kind,kind,name);
+   assert.equal(viewerKind(file),adapter,name);
+ }
+ assert.ok(!resources.some(file=>file.name==="private-gear.Z12"||file.name===".env"));
+});
