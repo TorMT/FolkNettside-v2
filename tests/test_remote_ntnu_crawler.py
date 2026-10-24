@@ -149,6 +149,92 @@ class RemoteCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"Invalid previously published"):
                 crawler.scan_and_write(self.config,output,fetch=self.fetch)
 
+    def test_vetted_course_json_detects_new_files_behind_custom_index_html(self):
+        """Only matching public course + semester metadata may add new paths."""
+        cfg={"publicCourses":[{"semester":5,"slug":"Marin-Dynamikk",
+                               "sections":["filer"],"publicIndexFallback":True}]}
+        outer=crawler.ORIGIN+"/semestre/5/index.json"
+        inside=crawler.ORIGIN+"/semestre/5/Marin-Dynamikk/index.json"
+        child=self.directory+"%C3%98ving4/"
+        self.pages[outer]=json.dumps({
+            "Marin-Dynamikk":{"dir":"Marin-Dynamikk","beskyttet":False,
+                "files":["filer/Øving4/new-exercise.pdf",
+                         "filer/Øving4/nested/answer.py",
+                         "filer/Øving4/hidden-private.pdf",
+                         "filer/Øving4/missing-from-course.pdf",
+                         "filer/Øving4/../secret.pdf"]}
+        })
+        self.pages[self.directory]=listing("%C3%98ving4/")
+        self.pages[child]='<html><title>Course materials</title>' + (
+            '<a href="unapproved.pdf">unreviewed</a>'
+            '<a href="https://evil.example/secret.py">offsite</a></html>'
+        )
+        self.pages[inside]=json.dumps({"filer":{
+            "dir":"filer","beskyttet":False,
+            "files":["Øving4/new-exercise.pdf",
+                     "Øving4/nested/answer.py",
+                     "Øving4/hidden-private.pdf",
+                     "Øving4/only-in-course.pdf",
+                     "Øving4/../secret.pdf"]
+        }})
+        self.urls.clear()
+        doc=crawler.crawl(cfg,fetch=self.fetch)
+        files=doc["semesters"][0]["courses"][0]["resources"]
+        names={x["relativePath"] for x in files}
+        self.assertEqual(names,{"filer/Øving4/new-exercise.pdf",
+                                "filer/Øving4/nested/answer.py"})
+        self.assertEqual(sorted(x["kind"] for x in files),["PDF","PY"])
+        self.assertEqual(self.urls.count(inside),1)
+        self.assertTrue(all(u.endswith("/") or u.endswith("/index.json")
+                            for u in self.urls))
+        self.assertNotIn("unapproved",json.dumps(doc))
+        self.assertNotIn("private",json.dumps(doc))
+        self.assertNotIn("secret",json.dumps(doc))
+
+    def test_json_fallback_requires_verified_public_indexes_and_safe_config(self):
+        for invalid in [None,"true",1,[],{}]:
+            cfg={"publicCourses":[{"semester":5,"slug":"Marin-Dynamikk",
+                                    "sections":["filer"],
+                                    "publicIndexFallback":invalid}]}
+            with self.assertRaisesRegex(ValueError,"Unsafe"):
+                crawler.approved_courses(cfg)
+        with self.assertRaises(ValueError):
+            crawler.approved_courses({"publicCourses":[{
+                "semester":5,"slug":"Marin-Dynamikk",
+                "sections":["quiz"],"publicIndexFallback":True
+            }]})
+        section={"dir":"filer","beskyttet":True,
+                 "files":["Øving4/task.pdf"]}
+        outer={"files":["filer/Øving4/task.pdf"]}
+        with self.assertRaisesRegex(ValueError,"not explicitly public"):
+            crawler.trusted_index_files({"filer":section},outer,"filer",5,
+                                        "Marin-Dynamikk",["filer","Øving4"])
+        section["beskyttet"]=False
+        self.assertEqual(crawler.trusted_index_files({"filer":section},{
+            "files":[]}, "filer",5,"Marin-Dynamikk",
+            ["filer","Øving4"]),[])
+        with self.assertRaisesRegex(ValueError,"invalid file entries"):
+            crawler.trusted_index_files({"filer":{**section,"files":"fake"}},
+                outer,"filer",5,"Marin-Dynamikk",["filer","Øving4"])
+
+    def test_invalid_json_index_retains_previous_references_without_new_files(self):
+        cfg={"publicCourses":[{"semester":5,"slug":"Marin-Dynamikk",
+                               "sections":["filer"],"publicIndexFallback":True}]}
+        inside=crawler.ORIGIN+"/semestre/5/Marin-Dynamikk/index.json"
+        child=self.directory+"exercise/"
+        self.pages[self.directory]=listing("exercise/")
+        self.pages[child]=listing("old.py")
+        with tempfile.TemporaryDirectory() as root:
+            output=Path(root)/"catalog.json"
+            crawler.scan_and_write(cfg,output,fetch=self.fetch)
+            saved=output.read_bytes()
+            self.pages[child]='<html><title>Custom landing page</title><a href="new.pdf">new</a></html>'
+            self.pages[inside]='{"filer":{"dir":"filer","beskyttet":true,"files":["new.pdf"]}}'
+            result=crawler.scan_and_write(cfg,output,fetch=self.fetch)
+            self.assertFalse(result["changed"])
+            self.assertEqual(output.read_bytes(),saved)
+            self.assertNotIn("new.pdf",output.read_text(encoding="utf-8"))
+
     def test_optional_missing_public_root_preserves_previously_empty_catalog(self):
         config={"publicCourses":[{
             "semester":5,"slug":"Marin-Dynamikk","sections":["filer"],

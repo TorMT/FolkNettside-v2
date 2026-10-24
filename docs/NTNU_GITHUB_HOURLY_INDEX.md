@@ -78,6 +78,36 @@ er en komplett offentlig filfortegnelse. Crawleren:
 maskinlesbar indeks eller en gjenopprettet Apache DirectoryIndex.
 De øvrige mappene indekseres normalt.
 
+## Verifisert maskinlesbar reserveindeks for ITGK (24.10.2026)
+
+ITGK har både en offentlig semesterindeks
+`/semestre/1/index.json` (fagets `files[]`) og en offentlig
+fagindeks `/semestre/1/itgk/index.json` (seksjonen `filer.files[]`).
+Disse ble kontrollert mot faktisk NTNU-data 24. oktober 2026.
+Dette gir et sikrere alternativ enn å tolke vilkårlige lenker i
+egendefinerte `index.html`-sider.
+
+For eksplisitt godkjente fag med `publicIndexFallback:true` i
+`config/ntnu-public-courses.json` gjør indeksereren derfor følgende:
+- Når en mappeside er egendefinert HTML og ikke Apache DirectoryIndex,
+  leses **kun** de to offentlige `index.json`-oversiktene.
+- Et nytt filnavn inkluderes **bare dersom begge indeksene eksplisitt
+  registrerer samme sti** innenfor riktig offentlig `filer/`-seksjon.
+- Fagets `filer`-seksjon må være markert `beskyttet:false`.
+- Private, skjulte, ukjente filtyper, feilaktige stier og HTML-lenker
+  ignoreres. Filer kopieres ikke til GitHub.
+- Tidligere gjennomgåtte filreferanser beholdes hvis den nye indeksen
+  er ufullstendig. Ved feil i begge kilder beholdes eksisterende
+  feilbeskyttelse, og vakten stanser ved uavklart katalog.
+
+**Konsekvens:** En ny ITGK-fil bak `Øving4/index.html` kan nå
+oppdages når NTNUs egne `index.json`-filer også er oppdatert.
+En ny fil som kun ligger på disk, men *ikke* finnes i indeksene,
+blir ikke tryllet frem. Da må ordinær NTNU SiteUpdater regenerere
+indeksene. Funksjonen er foreløpig kun aktivert for ITGK, fordi
+dette er kilden som er kontrollert. Andre fag må vurderes før
+tilsvarende tilgang slås på.
+
 ## CORS — kontroll før root-redirect
 
 GitHub Pages på tormt.github.io og NTNU på tormt.folk.ntnu.no er
