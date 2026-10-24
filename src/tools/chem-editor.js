@@ -1,5 +1,5 @@
-import {getKekule} from "../vendor/kekule-runtime.js?v=91086570bfa7f858e2e4bc4374c580e25e68ad88";
-import {CHEM_IMPORT_EXTENSIONS,chemActionForEvent} from "./chem-editor-core.js?v=91086570bfa7f858e2e4bc4374c580e25e68ad88";
+import {getKekule} from "../vendor/kekule-runtime.js?v=24d6298adb810ce7b2b5cde0d5e3e918fe0ad0cd";
+import {CHEM_IMPORT_EXTENSIONS,chemActionForEvent} from "./chem-editor-core.js?v=24d6298adb810ce7b2b5cde0d5e3e918fe0ad0cd";
 
 function downloadText(filename,text){
   const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
