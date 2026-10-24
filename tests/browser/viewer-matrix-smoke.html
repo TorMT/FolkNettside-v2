@@ -172,6 +172,42 @@ try{
     raceRoot.__viewerCleanup?.();
     raceRoot.remove();
   }
+  // CORS-blocked public NTNU Python source can be retried with a user-selected
+  // local copy without uploading data or changing the original link.
+  const ntRoot=document.createElement("div");
+  document.body.append(ntRoot);
+  const originalFetch=window.fetch;
+  const originalRevoke=URL.revokeObjectURL;
+  const revoked=[];
+  URL.revokeObjectURL=(url)=>{revoked.push(url);return originalRevoke.call(URL,url)};
+  window.fetch=(input,options)=>{
+    if(String(input).includes("tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/CORS.py"))
+      return Promise.reject(new TypeError("Blocked by CORS"));
+    return originalFetch(input,options);
+  };
+  try{
+    const ntURL="https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/CORS.py";
+    await mountViewer(ntRoot,{name:"CORS.py",label:"CORS example",kind:"PY",
+      section:"Filer",semester:5,courseCode:"Marin-Dynamikk",
+      source:"ntnu",remoteArchive:true,url:ntURL,path:ntURL},()=>{});
+    assert(ntRoot.querySelector("#viewer-choose-local"),"Local CORS retry missing");
+    const local=new File(["print('local preview')\n"],"CORS.py",{type:"text/x-python"});
+    const input=ntRoot.querySelector("#viewer-local-file");
+    const dt=new DataTransfer();dt.items.add(local);input.files=dt.files;
+    input.dispatchEvent(new Event("change",{bubbles:true}));
+    for(let i=0;i<60&&!ntRoot.querySelector(".python-workbench");i++)
+      await new Promise(resolve=>setTimeout(resolve,30));
+    assert(ntRoot.querySelector(".python-workbench"),"Downloaded .py not routed to Python viewer");
+    assert(ntRoot.querySelector("#viewer-canvas")?.textContent.includes("local preview"),
+      "Local Python contents missing");
+    assert(ntRoot.querySelector(".viewer-status")?.textContent.includes(ntURL),
+      "Original NTNU link was lost after local retry");
+    ntRoot.__viewerCleanup?.();
+    assert(revoked.some(url=>url.startsWith("blob:")),"Local object URL was not revoked");
+  }finally{
+    window.fetch=originalFetch;URL.revokeObjectURL=originalRevoke;
+    ntRoot.__viewerCleanup?.();ntRoot.remove();
+  }
   document.body.dataset.status="pass";
   result.textContent="viewer-matrix-smoke: "+report.join(", ")+"; URL-only DOCX and stale-viewer navigation";
 }catch(error){

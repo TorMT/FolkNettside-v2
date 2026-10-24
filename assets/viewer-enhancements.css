@@ -333,3 +333,12 @@
  .viewer-head-actions .btn{font-size:11px;padding:7px 8px}
  .viewer-toolbar{gap:5px}
 }
+
+/* No-upload recovery after NTNU CORS errors, mobile-first touch area. */
+.viewer-local-status{font-size:12px;max-width:100%;overflow-wrap:anywhere}
+.viewer-error-actions #viewer-choose-local,
+.viewer-readonly-fallback #viewer-choose-local{min-height:44px;white-space:normal}
+@media(max-width:390px){
+ .viewer-error-actions{display:flex;flex-wrap:wrap;gap:8px}
+ .viewer-error-actions>a,.viewer-error-actions>button{max-width:100%;white-space:normal}
+}
