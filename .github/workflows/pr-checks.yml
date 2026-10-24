@@ -17,6 +17,12 @@ jobs:
         run: find src tests -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
       - name: Run regression tests
         run: npm test
+      - name: PHP quiz leaderboard real HTTP and security regression
+        run: |
+          php --version
+          php -l server/quiz-leaderboard.php
+          python3 -m unittest discover -s tests -p 'test_quiz_leaderboard_php.py' -v
+
       - name: Verify NTNU same-origin code-only publishing
         run: |
           python3 -m unittest discover -s tests -p 'test_publish_ntnu_staging.py' -v
