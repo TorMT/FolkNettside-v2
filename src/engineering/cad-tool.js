@@ -114,7 +114,7 @@ export function mountCADTool(root){
  }
  async function presentModel(documentModel,current){
    if(current!==request||disposed)return;
-   const rendered=await renderModelWorkbench(stage,documentModel);
+   const rendered=await renderModelWorkbench(stage,documentModel,{mobileCompact:true});
    if(current!==request||disposed){rendered?.cleanup?.();return}
    cleanup=rendered?.cleanup||(()=>{});
  }
@@ -166,7 +166,7 @@ export function mountCADTool(root){
        report.innerHTML=fusionEngineeringReportHTML(documentModel.fusionEngineering);
        const viewer=document.createElement("div");
        stage.replaceChildren(report,viewer);
-       const result=await renderModelWorkbench(viewer,documentModel);
+       const result=await renderModelWorkbench(viewer,documentModel,{mobileCompact:true});
        if(current!==request||disposed){result?.cleanup?.();return}
        cleanup=result?.cleanup||(()=>{});
        status.textContent="Fusion API properties loaded · "+
