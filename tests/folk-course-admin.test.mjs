@@ -78,4 +78,17 @@ test("SQL candidate enforces row-level security and one administrator",()=>{
   assert.match(schema,/for update to authenticated/);
   assert.match(schema,/for delete to authenticated/);
   assert.doesNotMatch(schema,/grant insert, update, delete on public.folk_course_labels to anon/);
+  assert.match(schema,/when 'course-title' then 130/);
+  assert.match(schema,/when 'course-description' then 300/);
+  assert.match(schema,/else 160 end/);
+});
+
+test("Supabase admin deletion confirms exactly one removed row and request has a timeout",()=>{
+  const code=readFileSync(new URL("../src/platform/folk-course-admin.js",import.meta.url),"utf8");
+  const settings=readFileSync(new URL("../src/settings/settings-page.js",import.meta.url),"utf8");
+  assert.match(code,/signal:globalThis.AbortSignal\?\.timeout\?\.\(10000\)/);
+  assert.match(code,/redirect:"error"/);
+  assert.match(code,/method:"DELETE",headers:\{Prefer:"return=representation"\}/);
+  assert.match(code,/removed.length!==1/);
+  assert.match(settings,/href="#\/admin\/courses"/);
 });

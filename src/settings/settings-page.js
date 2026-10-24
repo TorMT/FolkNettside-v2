@@ -117,6 +117,7 @@ function coursesHTML(stats){
       <div><strong>${Number(stats.semesters)||0}</strong><span>semesters</span></div>
     </div>
     <div class="settings-card">
+      <div class="setting-row"><div><strong>Administrer fagnavn og filer</strong><small>Én verifisert FolkNet-administrator kan endre visningsnavn uten å flytte NTNU-filer. Krever Supabase-innlogging og servergodkjente rettigheter.</small></div><a class="btn" href="#/admin/courses">Åpne adminredigering</a></div>
       <div class="setting-row"><div><strong>Manifest freshness</strong><small>CI rebuilds and checks the manifest on every deploy.</small></div><span class="settings-status ready">CI gated</span></div>
       <div class="setting-row"><div><strong>Large resources</strong><small>Indexed from filesystem metadata; ordinary course files are not read during indexing.</small></div><span class="settings-status ready">Metadata only</span></div>
     </div>`;

@@ -20,7 +20,10 @@ create table if not exists public.folk_course_labels (
   kind text not null check (kind in ('course-title','course-description','section','file')),
   key text not null check (char_length(key) between 3 and 1600),
   label text not null check (
-    char_length(btrim(label)) between 1 and 300
+    char_length(btrim(label)) between 1 and
+      case kind when 'course-title' then 130
+                when 'course-description' then 300
+                else 160 end
     and label !~ '[<>[:cntrl:]]'
   ),
   updated_at timestamptz not null default now(),
