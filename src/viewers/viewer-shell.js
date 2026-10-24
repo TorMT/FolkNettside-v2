@@ -1,5 +1,6 @@
-import {loadAdapter,viewerKind} from "./registry.js?v=70515bc8df142b6fb5b040b69a41cb9bb44917a8";
-import {escapeHTML} from "./utils.js?v=70515bc8df142b6fb5b040b69a41cb9bb44917a8";
+import {loadAdapter,viewerKind} from "./registry.js?v=b80d2d574b602cba398fff5f3b9fd89d5861e712";
+import {escapeHTML} from "./utils.js?v=b80d2d574b602cba398fff5f3b9fd89d5861e712";
+import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=b80d2d574b602cba398fff5f3b9fd89d5861e712";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the
@@ -13,7 +14,7 @@ export async function mountViewer(root,resource,onBack){
   root.innerHTML=`<main class="viewer ${isQuiz?"viewer--quiz":""}">
     <header class="viewer-head">
       <div>
-        <div class="muted">Courses / Semester ${escapeHTML(resource.semester)} / ${escapeHTML(resource.courseCode)} / ${escapeHTML(resource.section)}</div>
+        ${viewerBreadcrumbHTML(resource)}
         <strong>${escapeHTML(resource.label)}</strong>
       </div>
       <div>
