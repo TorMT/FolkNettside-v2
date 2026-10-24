@@ -1,7 +1,7 @@
 # FolkNettside V2 — ACTIVE HANDOFF / START HERE
 
 **Updated:** 2026-10-24. **Repository:** `TorMT/FolkNettside-v2`, branch `main`.  
-**Purpose:** Durable single entry point for ChatGPT/Codex/other coding agents when a conversation is truncated, ends, or times out. Read this file *first* and update it after every merged work unit. Do not claim asynchronous work has been performed.
+**Purpose:** Durable single entry point for ChatGPT/Codex/other coding agents when a conversation is truncated, ends, or times out. **Tracking issue:** [#107](https://github.com/TorMT/FolkNettside-v2/issues/107). Read this file *first* and update it after every merged work unit. Do not claim asynchronous work has been performed.
 
 ## Request from owner
 
@@ -41,9 +41,9 @@ Continue finishing **all existing V2 capabilities**, incrementally. **One indepe
 | B04 | P0 | Identity: one account identity with Supabase login and optional explicit Google link. Verify token renewal, two accounts, no cross-user access | Client pieces only; live link unverified | Real OAuth config/consent, credentials, account |
 | B05 | P0 | Private storage: MedisinTimer/Brewing/Dive log use safe encrypted two-device synchronization with conflict protection and recovery | Local/Drive encryption code; no atomic concurrent CAS | Real two devices and backend/versioning |
 | B06 | P0 | Secure NTNU SiteUpdater: target semester/course, non-destructive indexes, files with/without index.json, safe rollbacks and real webedit acceptance | Scripts + tests; live acceptance missing | Mounted webedit and owner approval |
-| B07 | P1 | Quiz PHP leaderboard: same-origin PHP installed separately, server score verification, rate limits, real tests | Disabled PHP candidate, no verified deployment | NTNU PHP staging or other secure same-origin backend |
+| B07 | P1 | Quiz PHP leaderboard: same-origin PHP installed separately, server score verification, rate limits, real tests | **PR #106** adds real PHP HTTP integration CI; **PR #108** adds server-scored V1 random-subset rounds; backend still **disabled/uninstalled** | NTNU PHP staging or other secure same-origin backend |
 | B08 | P1 | Study progress: quiz/video local data and optional Supabase cloud summary, RLS, multi-device tests | Local + SQL candidate | FolkNet DB integration |
-| B09 | P1 | Munin **optimized GLB**, real skrog/thrusters, mobile direct preview with material/unit checks and fallback | Source F3Z + STEP verified; **no optimized GLB** | Actual mesh conversion from authorized source + performance tests |
+| B09 | P1 | Munin **optimized GLB**, real skrog/thrusters, mobile direct preview with material/unit checks and fallback | **PR #109 open:** OCP STEP→GLB conversion script, synthetic test and manual artifact workflow. **No real Munin GLB generated/reviewed yet.** | Workflow run with actual approved STEP + visual/unit/mobile acceptance |
 | B10 | P1 | Autodesk Fusion local and optional Hub import + F3Z-to-neutral conversion and physical-properties report | Local scripts/edge scaffolding; real integration unverified | Real Fusion installation, APS consent/secrets |
 | B11 | P1 | KISSsoft true user file parser comparison and sign/helix/planetary controls | Parser/educational 3D CI; real comparison needed | Owner's genuine files/references |
 | B12 | P1 | Hydro/Structure/Gunnerus: real watertight hull, independent hydro/GZ/loads benchmarks and correct structural idealization | Strong numerical fixture tests; **no certified vessel validation** | Approved hull-only geometry, vessel mass/loading |
@@ -89,5 +89,11 @@ No representation that this project provides certified stability, exact shell/so
 | Date | Work unit | Commit / PR | CI and external acceptance |
 | --- | --- | --- | --- |
 | 2026-10-24 | Create durable handoff and backlog for context-independent continuation | this file's creating commit | documentation only; external blockers explicitly preserved |
+| 2026-10-24 | Link this handoff from mandatory AGENTS.md | `55d6f2d` | documented, merged |
+| 2026-10-24 | Permanent open tracking issue for context recovery | [#107](https://github.com/TorMT/FolkNettside-v2/issues/107) | issue active |
+| 2026-10-24 | Isolated PHP HTTP tests, server recomputed scores, origin/storage/rate limits | [#106](https://github.com/TorMT/FolkNettside-v2/pull/106), `30d5bdf` | CI green, merged; live PHP disabled |
+| 2026-10-24 | Allow leaderboard of real NTNU `select:N` quiz rounds with PHP revalidation | [#108](https://github.com/TorMT/FolkNettside-v2/pull/108), `5768ea9` | CI green, merged; PHP deployment still blocked |
+| 2026-10-24 | Munin real STEP to GLB conversion candidate with isolated manual artifact workflow | [#109](https://github.com/TorMT/FolkNettside-v2/pull/109) | PR and CI pending; no actual model conversion yet |
+
 
 > **Agent instruction:** Add a row after each completed PR and update the matching B-number. Incomplete commits/branches also belong in the journal so a new session can resume rather than restart.
