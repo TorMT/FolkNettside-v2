@@ -17,8 +17,8 @@ self.onmessage=async({data})=>{
  const {id,format,buffer}=data||{};
  try{
    if(!["step","iges","brep"].includes(format))throw Error("Unsupported CAD format");
-   if(!(buffer instanceof ArrayBuffer)||!buffer.byteLength||buffer.byteLength>25*1024*1024)
-     throw Error("CAD file must be between 1 byte and 25 MB");
+   if(!(buffer instanceof ArrayBuffer)||!buffer.byteLength||buffer.byteLength>55*1024*1024)
+     throw Error("CAD file must be between 1 byte and 55 MiB");
    const occt=await getOCCT();
    const args=new Uint8Array(buffer);
    const params={linearUnit:"millimeter",linearDeflectionType:"bounding_box_ratio",
