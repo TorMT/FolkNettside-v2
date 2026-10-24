@@ -31,6 +31,21 @@ test("only completed full rounds can submit choices; never trust a client score"
   assert.equal(leaderboardPayload(quizResource,quiz,{completed:true,answers:[1,null]},2),null);
 });
 
+test("randomized NTNU rounds are eligible only when their entire selected round is complete",()=>{
+  const selectedQuiz={
+    title:"EXPH V1 subset",
+    questions:[{id:"EXPH1"},{id:"EXPH2"}]
+  };
+  const complete={completed:true,answers:[1,0]};
+  assert.deepEqual(leaderboardPayload(quizResource,selectedQuiz,complete,2),{
+    quiz:"1/exphil",answers:[{id:"EXPH1",selected:1},{id:"EXPH2",selected:0}]
+  });
+  assert.equal(leaderboardPayload(quizResource,selectedQuiz,complete,3),null);
+  assert.equal(leaderboardPayload(quizResource,{
+    ...selectedQuiz,questions:[{id:"same"},{id:"same"}]
+  },complete,2),null);
+});
+
 test("disabled, cross-origin and non-PHP endpoints cannot be selected",()=>{
   const ctx={base:"https://tormt.folk.ntnu.no/v2-staging/index.html",origin:"https://tormt.folk.ntnu.no"};
   assert.equal(leaderboardEndpoint({quizLeaderboard:{enabled:false,endpoint:"./api/quiz-leaderboard.php"}},ctx),null);
@@ -54,7 +69,8 @@ test("quiz renderer mounts ranking only in full completed result; PHP remains op
   assert.equal(config.quizLeaderboard.enabled,false);
   assert.equal(config.quizLeaderboard.endpoint,null);
   assert.match(adapter,/mountQuizLeaderboard/);
-  assert.match(adapter,/!mistakeMode&&selectedChapter==="all"&&quiz.questions.length===catalogQuiz.questions.length/);
+  assert.match(adapter,/!mistakeMode&&selectedChapter==="all"&&quiz.questions.length===wholeQuiz.questions.length/);
+  assert.match(adapter,/expectedQuestionCount:Math.min\(catalogQuiz.select,catalogQuiz.questions.length\)/);
   assert.match(php,/FOLK_LEADERBOARD_QUIZZES/);
   assert.match(php,/hash_hmac\('sha256'/);
   assert.match(php,/\$correct\+\+/);
