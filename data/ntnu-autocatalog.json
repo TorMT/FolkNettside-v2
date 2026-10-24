@@ -10320,6 +10320,66 @@
               "folders": [
                 "PitchSystem"
               ],
+              "kind": "Z12",
+              "label": "RingOgPinionMaskineriProsjekt",
+              "modified": 0,
+              "name": "RingOgPinionMaskineriProsjekt.Z12",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/RingOgPinionMaskineriProsjekt.Z12",
+              "relativePath": "filer/PitchSystem/RingOgPinionMaskineriProsjekt.Z12",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/RingOgPinionMaskineriProsjekt.Z12"
+            },
+            {
+              "folders": [
+                "PitchSystem"
+              ],
+              "kind": "Z14",
+              "label": "Stage1PlanetaryGear",
+              "modified": 0,
+              "name": "Stage1PlanetaryGear.Z14",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Stage1PlanetaryGear.Z14",
+              "relativePath": "filer/PitchSystem/Stage1PlanetaryGear.Z14",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Stage1PlanetaryGear.Z14"
+            },
+            {
+              "folders": [
+                "PitchSystem"
+              ],
+              "kind": "Z14",
+              "label": "Stage2PlanetaryGear",
+              "modified": 0,
+              "name": "Stage2PlanetaryGear.Z14",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Stage2PlanetaryGear.Z14",
+              "relativePath": "filer/PitchSystem/Stage2PlanetaryGear.Z14",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Stage2PlanetaryGear.Z14"
+            },
+            {
+              "folders": [
+                "PitchSystem"
+              ],
+              "kind": "Z14",
+              "label": "Stage3PlanetaryGear",
+              "modified": 0,
+              "name": "Stage3PlanetaryGear.Z14",
+              "path": "/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Stage3PlanetaryGear.Z14",
+              "relativePath": "filer/PitchSystem/Stage3PlanetaryGear.Z14",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-machinery-design-and-condition-monitoring/filer/PitchSystem/Stage3PlanetaryGear.Z14"
+            },
+            {
+              "folders": [
+                "PitchSystem"
+              ],
               "kind": "IMAGE",
               "label": "Teknisk cutaway av planetgir og ringgir",
               "modified": 0,
