@@ -46,6 +46,16 @@ class QuizLeaderboardPHPServerTests(unittest.TestCase):
                 ]
             }), encoding="utf-8"
         )
+        subset = cls.base / "semestre" / "1" / "shortquiz" / "quiz"
+        subset.mkdir(parents=True)
+        (subset / "quiz.json").write_text(json.dumps({
+            "title": "V1 random subset fixture", "select": 1,
+            "questions": [
+                {"text": "A", "options": ["No", "Yes"], "answer": [1]},
+                {"text": "B", "options": ["No", "Yes"], "answer": [0]},
+                {"text": "C", "options": ["No", "Yes"], "answer": [1]}
+            ]
+        }), encoding="utf-8")
         with socket.socket() as sock:
             sock.bind(("127.0.0.1", 0))
             cls.port = sock.getsockname()[1]
@@ -56,7 +66,7 @@ class QuizLeaderboardPHPServerTests(unittest.TestCase):
             "FOLK_QUIZ_ROOT": str(cls.base / "semestre"),
             "FOLK_LEADERBOARD_DIR": str(cls.private),
             "FOLK_LEADERBOARD_KEY": "test-only-random-key-that-is-never-deployed-012345",
-            "FOLK_LEADERBOARD_QUIZZES": "1/testquiz",
+            "FOLK_LEADERBOARD_QUIZZES": "1/testquiz,1/shortquiz",
         }
         cls.proc = subprocess.Popen(
             ["php", "-S", f"127.0.0.1:{cls.port}", "-t", str(cls.public)],
@@ -176,6 +186,27 @@ class QuizLeaderboardPHPServerTests(unittest.TestCase):
         self.assertNotIn("FOLK_LEADERBOARD_KEY", raw)
         self.assertNotIn(str(self.private), raw)
         self.assertNotIn("REMOTE_ADDR", raw)
+
+    def test_06_random_subset_is_scored_without_sending_full_question_pool(self):
+        # Real EXPH quizzes use select: 30 from a larger question bank.
+        self.assertEqual(self.request(quiz="1/shortquiz")[0], 200)
+        entry = {
+            "quiz": "1/shortquiz",
+            "nickname": "ShortRound",
+            "answers": [{"id": "q1", "selected": 1}]
+        }
+        code, result = self.request("POST", payload=entry)
+        self.assertEqual(code, 200, result)
+        self.assertEqual(result["entries"][0]["correct"], 1)
+        self.assertEqual(result["entries"][0]["total"], 1)
+
+        # Missing/extra/forged question identifiers do not qualify.
+        entry["answers"] = [{"id": "not-in-quiz", "selected": 1}]
+        self.assertEqual(self.request("POST", payload=entry)[0], 422)
+        entry["answers"] = [
+            {"id": "q1", "selected": 1}, {"id": "q2", "selected": 0}
+        ]
+        self.assertEqual(self.request("POST", payload=entry)[0], 422)
 
 
 if __name__ == "__main__":

@@ -12,12 +12,13 @@ export function leaderboardQuizId(resource={}){
   return match?`${match[1]}/${match[2]}`:null;
 }
 
-export function leaderboardPayload(resource,quiz,attempt,originalQuestionCount){
+export function leaderboardPayload(resource,quiz,attempt,expectedQuestionCount){
   const id=leaderboardQuizId(resource);
   if(!id||!attempt?.completed||!Array.isArray(quiz?.questions)||
-     quiz.questions.length!==originalQuestionCount||
+     !Number.isInteger(expectedQuestionCount)||quiz.questions.length!==expectedQuestionCount||
      !Array.isArray(attempt.answers)||attempt.answers.length!==quiz.questions.length||
-     attempt.answers.some(value=>value===null||value===undefined))return null;
+     attempt.answers.some(value=>value===null||value===undefined)||
+     new Set(quiz.questions.map(question=>question.id)).size!==quiz.questions.length)return null;
   return {quiz:id,answers:quiz.questions.map((question,index)=>({
     id:question.id,selected:attempt.answers[index]
   }))};
@@ -50,10 +51,10 @@ async function readResponse(response){
 }
 
 /** Mounted only after a complete full-quiz attempt, with optional server config. */
-export async function mountQuizLeaderboard(host,{resource,quiz,attempt,originalQuestionCount,
+export async function mountQuizLeaderboard(host,{resource,quiz,attempt,expectedQuestionCount,
   fetchImpl=fetch,base=globalThis.location?.href,origin=globalThis.location?.origin}={}){
   if(!host)return;
-  const payload=leaderboardPayload(resource,quiz,attempt,originalQuestionCount);
+  const payload=leaderboardPayload(resource,quiz,attempt,expectedQuestionCount);
   if(!payload)return;
   let config;
   try{

@@ -161,9 +161,9 @@ export async function render(container,resource){
     if(attempt.completed&&!review){
      container.innerHTML=resultHTML();
       bindChapters();
-      if(!mistakeMode&&selectedChapter==="all"&&quiz.questions.length===catalogQuiz.questions.length){
+      if(!mistakeMode&&selectedChapter==="all"&&quiz.questions.length===wholeQuiz.questions.length){
         void mountQuizLeaderboard(container.querySelector("#quiz-leaderboard"),{
-          resource,quiz,attempt,originalQuestionCount:catalogQuiz.questions.length
+          resource,quiz,attempt,expectedQuestionCount:Math.min(catalogQuiz.select,catalogQuiz.questions.length)
         });
       }
       container.querySelector("#quiz-review")?.addEventListener("click",()=>{

@@ -8,11 +8,16 @@ touched. Do not enable it until a separate V2 staging deployment is tested.
 
 - Only NTNU quiz resources at `/semestre/N/slug/quiz/quiz.json` may enter
   the scoreboard, and only those explicitly allowlisted by the server.
-- Only complete, full-quiz attempts are eligible. Random-subset quizzes,
-  chapter-filtered quizzes and wrong-answer practice remain local-only.
+- Only **completed rounds** are eligible: for a quiz with `select:30` the
+  server expects exactly 30 distinct question IDs from the reviewed question
+  bank. Chapter-filtered and wrong-answer practice remain local-only.
+  Rankings are casual study scores, not examination-grade fairness: different
+  random question subsets can differ in difficulty.
 - The PHP server reads the approved quiz JSON and independently computes
   the score from the submitted answer indices. The client cannot submit
-  its own score or total.
+  its own score or total. Unknown, missing or duplicate question IDs are
+  rejected; V1 integer-like answer-key strings are normalized as in the
+  browser quiz code.
 - Nicknames are self-selected and **not identities**. The list can be
   gamed because the quiz JSON contains public solutions; it is a casual
   study feature, not a controlled exam or cheating-proof ranking.
@@ -57,3 +62,12 @@ Cross-origin support would require a separately reviewed CORS and
 authentication design, and should not be improvised. Quiz question content
 remains on NTNU, not in GitHub. Public quiz JSON includes the answer key,
 so the leaderboard does not provide examination-grade integrity.
+
+## HTTP regression coverage (24 October 2026)
+
+PR #106 added a disposable PHP integration test with real GET/POST,
+origin restriction, whitelist, persisted scores and rate limits; CI runs
+`php -l` and `python3 -m unittest discover -s tests -p 'test_quiz_leaderboard_php.py' -v`.
+A follow-on change enables V1 `select` subsets and tests that the selected
+question count and IDs are verified by PHP. **The backend is still disabled
+until a separate NTNU staging/server setup is accepted.**

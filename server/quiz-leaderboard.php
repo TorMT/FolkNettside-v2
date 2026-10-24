@@ -66,12 +66,27 @@ if (!$file || !str_starts_with($file, $root . DIRECTORY_SEPARATOR) ||
 $text = file_get_contents($file);
 $quiz = is_string($text) ? json_decode($text, true) : null;
 $questions = $quiz['questions'] ?? null;
-if (!is_array($questions) || count($questions) < 1 || count($questions) > 400 ||
-    (isset($quiz['select']) && (int) $quiz['select'] !== count($questions))) {
-    respond(422, ['error' => 'Only complete fixed question sets can be ranked']);
+if (!is_array($questions) || count($questions) < 1 || count($questions) > 400) {
+    respond(422, ['error' => 'Unsupported question set']);
+}
+$declaredSelect = $quiz['select'] ?? null;
+$validSelect = (is_int($declaredSelect) || is_string($declaredSelect))
+    ? filter_var($declaredSelect, FILTER_VALIDATE_INT) : false;
+// Real NTNU quizzes frequently draw a fixed subset, e.g. 30 questions.
+// Enforce that each submitted round has exactly the declared count.
+$roundSize = ($validSelect !== false && $validSelect > 0)
+    ? min($validSelect, count($questions)) : count($questions);
+$questionsById = [];
+foreach ($questions as $i => $question) {
+    if (!is_array($question)) respond(422, ['error' => 'Invalid quiz question']);
+    $id = (string) ($question['id'] ?? 'q' . ($i + 1));
+    if ($id === '' || array_key_exists($id, $questionsById)) {
+        respond(422, ['error' => 'Duplicate or missing question ID']);
+    }
+    $questionsById[$id] = $question;
 }
 // New leaderboard for each quiz content revision; do not mix incompatible rounds.
-$boardKey = hash('sha256', $quizId . "\n" . $text);
+$boardKey = hash('sha256', "subset-v2\n" . $quizId . "\n" . $text);
 $filename = $storage . DIRECTORY_SEPARATOR . $boardKey . '.json';
 $handle = fopen($filename, 'c+');
 if ($handle === false || !flock($handle, LOCK_EX)) {
@@ -92,7 +107,7 @@ try {
         $answers = $request['answers'] ?? null;
         if (!is_string($name) ||
             !preg_match('/^[\p{L}\p{N} _.-]{2,24}$/uD', $name) ||
-            !is_array($answers) || count($answers) !== count($questions)) {
+            !is_array($answers) || count($answers) !== $roundSize) {
             respond(422, ['error' => 'Invalid name or incomplete answers']);
         }
         $provided = [];
@@ -104,25 +119,36 @@ try {
             $provided[$answer['id']] = $answer['selected'] ?? null;
         }
         $correct = 0;
-        foreach ($questions as $i => $question) {
-            if (!is_array($question) ||
-                !is_array($question['options'] ?? $question['choices'] ?? null)) {
+        foreach ($provided as $id => $submitted) {
+            if (!array_key_exists($id, $questionsById)) {
+                respond(422, ['error' => 'Unrecognized quiz question']);
+            }
+            $question = $questionsById[$id];
+            $choices = $question['options'] ?? $question['choices'] ?? null;
+            if (!is_array($choices) || count($choices) < 2 || count($choices) > 100) {
                 respond(422, ['error' => 'Unsupported quiz schema']);
             }
-            $id = (string) ($question['id'] ?? 'q' . ($i + 1));
-            if (!array_key_exists($id, $provided)) respond(422, ['error' => 'Missing question']);
-            $choices = $question['options'] ?? $question['choices'];
             $expected = $question['answer'] ?? null;
             $expected = is_array($expected) ? $expected : [$expected];
-            $selected = $provided[$id];
-            $selected = is_array($selected) ? $selected : [$selected];
+            $selected = is_array($submitted) ? $submitted : [$submitted];
             if (!$expected || !$selected) respond(422, ['error' => 'Invalid selection']);
-            foreach (array_merge($expected, $selected) as $index) {
+            // Browser normalizer accepts integer-like answer strings in old V1 JSON.
+            $normalizedExpected = [];
+            foreach ($expected as $index) {
+                if (is_string($index) && preg_match('/^(0|[1-9][0-9]{0,4})$/D', $index)) {
+                    $index = (int) $index;
+                }
+                if (!is_int($index) || $index < 0 || $index >= count($choices)) {
+                    respond(422, ['error' => 'Invalid answer key']);
+                }
+                $normalizedExpected[] = $index;
+            }
+            foreach ($selected as $index) {
                 if (!is_int($index) || $index < 0 || $index >= count($choices)) {
                     respond(422, ['error' => 'Invalid selection index']);
                 }
             }
-            $a = array_values(array_unique($expected));
+            $a = array_values(array_unique($normalizedExpected));
             $b = array_values(array_unique($selected));
             sort($a, SORT_NUMERIC);
             sort($b, SORT_NUMERIC);
@@ -148,7 +174,7 @@ try {
         $data['rate'] = array_slice($recent, -2000);
         // Nicknames are anonymous self-chosen labels, not verified identities.
         $entry = ['nickname' => $name, 'correct' => $correct,
-                  'total' => count($questions), 'at' => $now];
+                  'total' => $roundSize, 'at' => $now];
         $existing = false;
         foreach ($data['entries'] as &$value) {
             if (($value['nickname'] ?? '') === $name) {
