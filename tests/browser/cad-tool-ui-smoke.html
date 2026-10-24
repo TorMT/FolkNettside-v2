@@ -24,6 +24,11 @@ try{
    throw Error("Inactive APS Hub must be collapsed by default");
  if(host.querySelector("#cad-fusion-hub-browser")?.children.length)
    throw Error("Inactive APS Hub must not initialize until opened");
+ const munin=host.querySelector(".cad-example-munin");
+ if(!munin||!munin.textContent.includes("Munin"))throw Error("Munin CAD example missing");
+ if(munin.querySelectorAll("a[href^='https://tormt.folk.ntnu.no/diverse/Njord/']").length!==3)
+   throw Error("Munin public source links unavailable");
+ if(!host.querySelector("[data-cad-munin-choose]"))throw Error("Munin local import missing");
  const stage=host.querySelector("#cad-geometry-stage");
  if(stage.clientHeight<350||stage.clientWidth<300)
    throw Error("CAD stage has no usable geometry: "+stage.clientWidth+"x"+stage.clientHeight);
@@ -37,6 +42,22 @@ try{
  await new Promise(resolve=>setTimeout(resolve,200));
  if(canvas.clientHeight<330||canvas.clientWidth<200)
    throw Error("CAD canvas collapsed: "+canvas.clientWidth+"x"+canvas.clientHeight);
+ if(matchMedia("(max-width:900px)").matches){
+   const toggle=host.querySelector("[data-model-mobile-toggle]");
+   const inspector=host.querySelector(".model-viewer-inspector");
+   if(!toggle||!inspector||getComputedStyle(toggle).display==="none")
+     throw Error("Mobile CAD inspector toggle is missing");
+   if(toggle.getAttribute("aria-expanded")!=="false"||
+     getComputedStyle(inspector).display!=="none")
+     throw Error("Mobile tools must start collapsed to prioritize 3D view");
+   toggle.click();
+   if(toggle.getAttribute("aria-expanded")!=="true"||
+     getComputedStyle(inspector).display==="none")
+     throw Error("Mobile inspector cannot be opened");
+   const sw=Math.max(document.documentElement.scrollWidth,document.body.scrollWidth);
+   const vw=document.documentElement.clientWidth;
+   if(sw>vw+8)throw Error("Mobile CAD horizontal overflow "+sw+"/"+vw);
+ }
  if(!host.querySelector("[data-model-fit]")||!host.querySelector("[data-model-spacemouse]"))
    throw Error("Workbench camera/SpaceMouse actions missing");
  host.querySelector("[data-model-fit]").click();
