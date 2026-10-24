@@ -1,6 +1,7 @@
 import {loadAdapter,viewerKind} from "./registry.js";
 import {escapeHTML} from "./utils.js";
 import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js";
+import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the
@@ -181,6 +182,22 @@ export async function mountViewer(root,resource,onBack){
     }
   }catch(error){
     if(!active())return;
+    const publicOriginal=remoteReadOnlyFallbackURL(resource,viewerKind(resource));
+    if(publicOriginal){
+      canvas.innerHTML=`<div class="viewer-readonly-fallback">
+        <strong>Viser originalfilen fra NTNU (skrivebeskyttet)</strong>
+        <p>Den interaktive forhåndsvisningen er utilgjengelig fra GitHub Pages. Under vises NTNUs egen råfil-visning dersom nettleseren tillater det. Dette krever ikke CORS.</p>
+        <div class="viewer-error-actions">
+          <button class="btn" id="viewer-retry">Prøv interaktiv viser på nytt</button>
+          <a class="btn primary" href="${escapeHTML(publicOriginal)}" target="_blank" rel="noopener noreferrer">Åpne originalfil på NTNU ↗</a>
+        </div>
+        <p class="muted">Hvis feltet nedenfor er tomt eller filen lastes ned, bruk lenken til originalfilen. Skript kan ikke kjøres i den innebygde visningen.</p>
+      </div>
+      <iframe class="viewer-remote-raw-frame" title="Skrivebeskyttet original fra NTNU" sandbox="" referrerpolicy="no-referrer" src="${escapeHTML(publicOriginal)}"></iframe>`;
+      status.textContent="Originalfil fra NTNU · sikker reservevisning";
+      canvas.querySelector("#viewer-retry")?.addEventListener("click",()=>mountViewer(root,resource,onBack));
+      return;
+    }
     const remote=resource.remoteArchive===true&&typeof resource.url==="string"&&
       resource.url.startsWith("https://tormt.folk.ntnu.no/semestre/");
     const message=remote
