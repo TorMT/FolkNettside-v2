@@ -1,4 +1,5 @@
 import {localVideoProgress} from "../../video/progress-store.js";
+import {previewContentURL} from "../utils.js";
 
 export async function render(container,resource){
   const wrap=document.createElement("div");
@@ -8,7 +9,7 @@ export async function render(container,resource){
   video.controls=true;
   video.preload="metadata";
   video.playsInline=true;
-  video.src=resource.url||resource.path;
+  video.src=previewContentURL(resource);
   const resume=document.createElement("div");
   resume.className="video-resume muted";
   wrap.append(video,resume);

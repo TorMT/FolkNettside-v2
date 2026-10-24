@@ -1,4 +1,4 @@
-import {escapeHTML,extension,fetchBoundedBuffer} from "../utils.js";
+import {escapeHTML,extension,fetchBoundedBuffer,previewContentURL} from "../utils.js";
 import {OFFICE_LIMITS,validateOfficeArchive,limitedOfficeXML,assertOfficeWorksheetBounds} from "../office-safety.js";
 import {getJSZip} from "../../vendor/jszip.js";
 import {spreadsheetCellHTML} from "../xlsx-formulas.js";
@@ -162,7 +162,7 @@ async function renderPptx(container,zip){
 }
 
 export async function render(container,resource){
-  const path=resource.url||resource.path;
+  const path=previewContentURL(resource);
   const zip=await loadArchive(path);
   const ext=extension(resource.name||path);
   let result;

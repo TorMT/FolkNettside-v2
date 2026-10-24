@@ -1,7 +1,7 @@
 import {getJSZip} from "../../vendor/jszip.js";
-import {escapeHTML,fetchBoundedBuffer} from "../utils.js";
+import {escapeHTML,fetchBoundedBuffer,previewContentURL} from "../utils.js";
 export async function render(container,resource){
- const path=resource.url||resource.path;
+ const path=previewContentURL(resource);
  const buffer=await fetchBoundedBuffer(path,{maxBytes:80_000_000});
  const JSZip=await getJSZip();
  let zip;
