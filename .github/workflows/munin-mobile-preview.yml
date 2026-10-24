@@ -1,0 +1,55 @@
+name: Munin mobile GLB candidate (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      deflection_mm:
+        description: "STEP tessellation size in millimetres (40-200; bigger means smaller GLB)"
+        required: true
+        type: choice
+        options: ['40','60','100','160']
+        default: '60'
+
+permissions:
+  contents: read
+
+jobs:
+  convert-approved-munin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CAD conversion dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-input \
+            cadquery-ocp==7.9.3.1.1 numpy==2.3.5 trimesh==4.11.1
+      - name: Real synthetic STEP-to-GLB regression
+        run: |
+          python -m unittest discover -s tests -p 'test_munin_converter.py' -v
+      - name: Fetch only approved, publicly shared Munin STEP
+        run: |
+          mkdir -p "$RUNNER_TEMP/munin" candidate
+          curl --fail --silent --show-error --proto '=https' --max-redirs 0 \
+            --retry 2 --max-time 150 \
+            'https://tormt.folk.ntnu.no/diverse/Njord/filer/MuninTing/NJ26_MUN_HULL_ASM_MASTER.step' \
+            -o "$RUNNER_TEMP/munin/NJ26_MUN_HULL_ASM_MASTER.step"
+          test "$(stat -c%s "$RUNNER_TEMP/munin/NJ26_MUN_HULL_ASM_MASTER.step")" -le 80000000
+      - name: Convert Munin without copying the STEP source to GitHub
+        run: |
+          python scripts/convert_munin_step.py \
+            "$RUNNER_TEMP/munin/NJ26_MUN_HULL_ASM_MASTER.step" \
+            --output candidate/munin-mobile-preview.glb \
+            --deflection-mm "${{ inputs.deflection_mm }}" \
+            --max-glb-mb 15
+          test -s candidate/munin-mobile-preview.glb
+          test -s candidate/munin-mobile-preview.meta.json
+      - name: Upload candidate, not the original source
+        uses: actions/upload-artifact@v4
+        with:
+          name: munin-mobile-glb-review
+          path: |
+            candidate/munin-mobile-preview.glb
+            candidate/munin-mobile-preview.meta.json
+          retention-days: 7
