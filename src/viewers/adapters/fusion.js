@@ -1,9 +1,9 @@
 import {renderFusionPackage} from "../fusion-package-view.js";
-import {extension} from "../utils.js";
+import {extension,previewContentURL} from "../utils.js";
 
 export async function render(container,resource){
- const source=resource.url||resource.path;
- const kind=extension(source||resource.name);
+ const source=previewContentURL(resource);
+ const kind=extension(resource.localPreview===true?resource.name:(source||resource.name));
  if(kind!=="f3d"&&kind!=="f3z")throw Error("Not a Fusion archive");
  container.textContent="Reading Fusion archive locally…";
  const response=await fetch(source);
