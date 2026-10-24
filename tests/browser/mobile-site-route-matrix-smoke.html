@@ -103,11 +103,12 @@ function auditLayout(route){
 try{
  await until(()=>dom()?.querySelector(".topbar"),"app initial load");
  const checked=[];
+ const problems=[];
  for(const [route,selector] of selected){
    win().location.hash="#"+route;
    await until(()=>win().location.hash==="#"+route&&dom()?.querySelector(selector),route+" "+selector);
    await sleep(route==="/engineering/cad"?180:100);
-   auditLayout(route);
+   try{auditLayout(route)}catch(error){problems.push(String(error.message||error))}
    checked.push(route);
  }
  if(width<760){
@@ -116,14 +117,15 @@ try{
    dom().querySelector(".resource-viewer-link").click();
    await until(()=>dom().querySelector(".viewer-head"),"viewer opened from course");
    check(win().location.hash.startsWith("#/viewer/5/TMR4182/"),"resource click failed");
-   auditLayout("/viewer/5/TMR4182/0");
+   try{auditLayout("/viewer/5/TMR4182/0")}catch(error){problems.push(String(error.message||error))}
    const crumb=dom().querySelector(".viewer-breadcrumb a[href='#/courses/5']");
    check(crumb,"Semester crumb is not a link");
    crumb.click();
    await until(()=>win().location.hash==="#/courses/5"&&dom().querySelector(".course-grid"),
      "viewer breadcrumb return to semester");
-   auditLayout("/courses/5");
+   try{auditLayout("/courses/5")}catch(error){problems.push(String(error.message||error))}
  }
+ if(problems.length)throw Error("Mobile layout problems ("+width+"px): "+problems.join(" | "));
  document.body.dataset.status="pass";
  report.textContent=JSON.stringify({width,routeCount:checked.length,coursesAndViewerInteraction:width<760,checked});
 }catch(error){
