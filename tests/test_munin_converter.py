@@ -56,7 +56,7 @@ class MuninPreviewConverterTests(unittest.TestCase):
         self.assertNotIn(str(self.folder), json.dumps(metadata))
 
     def test_02_reject_oversized_mesh_before_publishing(self):
-        with self.assertRaisesRegex(ValueError, "too many triangles"):
+        with self.assertRaisesRegex(ValueError, "Unreasonable tessellation"):
             module.to_preview(self.source, self.out, max_triangles=1)
 
     def test_03_reject_non_step_and_unknown_units(self):
@@ -64,7 +64,7 @@ class MuninPreviewConverterTests(unittest.TestCase):
         wrong.write_text("not STEP")
         with self.assertRaisesRegex(ValueError, "step"):
             module.to_preview(wrong, self.out)
-        with self.assertRaisesRegex(ValueError, "deflection"):
+        with self.assertRaisesRegex(ValueError, "Unreasonable tessellation"):
             module.to_preview(self.source, self.out, deflection_mm=-10)
 
 
