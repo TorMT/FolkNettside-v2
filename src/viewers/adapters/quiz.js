@@ -1,9 +1,9 @@
-import {escapeHTML,fetchJSON} from "../utils.js?v=30d5bdf0ee310beb39404407ea7f857ed3c70497";
+import {escapeHTML,fetchJSON} from "../utils.js?v=5768ea9d018ce90322c83736d97c26876967a998";
 import {
   answerQuestion,answerMatches,quizImageURL,selectQuizQuestions,createQuizAttempt,normalizeQuiz,quizScore,quizChapterView,quizChapterStorageKey,sanitizeQuizAttempt
-} from "../quiz-core.js?v=30d5bdf0ee310beb39404407ea7f857ed3c70497";
-import {mistakeQuestions,recordQuizChoice,clearMistakeBank} from "../quiz-mistake-bank.js?v=30d5bdf0ee310beb39404407ea7f857ed3c70497";
-import {mountQuizLeaderboard} from "../quiz-leaderboard.js?v=30d5bdf0ee310beb39404407ea7f857ed3c70497";
+} from "../quiz-core.js?v=5768ea9d018ce90322c83736d97c26876967a998";
+import {mistakeQuestions,recordQuizChoice,clearMistakeBank} from "../quiz-mistake-bank.js?v=5768ea9d018ce90322c83736d97c26876967a998";
+import {mountQuizLeaderboard} from "../quiz-leaderboard.js?v=5768ea9d018ce90322c83736d97c26876967a998";
 
 function loadAttempt(key,quiz){
   try{
@@ -161,9 +161,9 @@ export async function render(container,resource){
     if(attempt.completed&&!review){
      container.innerHTML=resultHTML();
       bindChapters();
-      if(!mistakeMode&&selectedChapter==="all"&&quiz.questions.length===catalogQuiz.questions.length){
+      if(!mistakeMode&&selectedChapter==="all"&&quiz.questions.length===wholeQuiz.questions.length){
         void mountQuizLeaderboard(container.querySelector("#quiz-leaderboard"),{
-          resource,quiz,attempt,originalQuestionCount:catalogQuiz.questions.length
+          resource,quiz,attempt,expectedQuestionCount:Math.min(catalogQuiz.select,catalogQuiz.questions.length)
         });
       }
       container.querySelector("#quiz-review")?.addEventListener("click",()=>{
