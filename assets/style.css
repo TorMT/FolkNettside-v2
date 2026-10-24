@@ -1254,3 +1254,18 @@ a.project-row:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
  .crystal-toggle-grid .btn{min-width:0;min-height:44px;overflow-wrap:anywhere;white-space:normal}
  .crystal-stage-wrap .model-meta{min-width:0;display:flex;flex-wrap:wrap;gap:5px}
 }
+
+/* Tablet breakpoint: shrink the desktop navbar into its own swipeable rail.
+   Avoid the 1051px minimum header width on 768px tablets. */
+@media(min-width:761px) and (max-width:1050px){
+ .topbar{gap:10px;padding-inline:12px;max-width:100%;min-width:0}
+ .topbar .brand{flex:0 0 auto;font-size:15px;white-space:nowrap}
+ .topbar .nav{flex:1 1 0;min-width:0;max-width:100%;height:100%;
+   overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain}
+ .topbar .nav::-webkit-scrollbar{display:none}
+ .topbar .nav button{flex:0 0 auto;min-width:max-content;padding-inline:9px;
+   font-size:12px;white-space:nowrap}
+ .topbar .top-spacer{display:none}
+ .topbar .top-actions{flex:0 0 auto;min-width:0;gap:1px}
+ .topbar .top-actions .icon-btn{height:36px;width:36px}
+}
