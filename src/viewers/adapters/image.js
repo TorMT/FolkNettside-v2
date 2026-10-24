@@ -1,6 +1,6 @@
-import {escapeHTML} from "../utils.js?v=b0afac3f620ca5127863732bb1ff12314e31f371";
+import {escapeHTML,previewContentURL} from "../utils.js?v=b9ae778ce3927c136b5fbeb8999faafd146d118f";
 export async function render(container,resource){
-  const path=resource.url||resource.path;
+  const path=previewContentURL(resource);
   if(!path)throw new Error("Image file has no source URL");
   container.innerHTML=`<div class="media-viewer image-viewer">
     <div class="media-viewer-actions">

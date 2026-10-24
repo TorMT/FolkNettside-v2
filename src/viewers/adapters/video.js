@@ -1,4 +1,5 @@
-import {localVideoProgress} from "../../video/progress-store.js?v=b0afac3f620ca5127863732bb1ff12314e31f371";
+import {localVideoProgress} from "../../video/progress-store.js?v=b9ae778ce3927c136b5fbeb8999faafd146d118f";
+import {previewContentURL} from "../utils.js?v=b9ae778ce3927c136b5fbeb8999faafd146d118f";
 
 export async function render(container,resource){
   const wrap=document.createElement("div");
@@ -8,7 +9,7 @@ export async function render(container,resource){
   video.controls=true;
   video.preload="metadata";
   video.playsInline=true;
-  video.src=resource.url||resource.path;
+  video.src=previewContentURL(resource);
   const resume=document.createElement("div");
   resume.className="video-resume muted";
   wrap.append(video,resume);

@@ -1,9 +1,9 @@
-import {renderFusionPackage} from "../fusion-package-view.js?v=b0afac3f620ca5127863732bb1ff12314e31f371";
-import {extension} from "../utils.js?v=b0afac3f620ca5127863732bb1ff12314e31f371";
+import {renderFusionPackage} from "../fusion-package-view.js?v=b9ae778ce3927c136b5fbeb8999faafd146d118f";
+import {extension,previewContentURL} from "../utils.js?v=b9ae778ce3927c136b5fbeb8999faafd146d118f";
 
 export async function render(container,resource){
- const source=resource.url||resource.path;
- const kind=extension(source||resource.name);
+ const source=previewContentURL(resource);
+ const kind=extension(resource.localPreview===true?resource.name:(source||resource.name));
  if(kind!=="f3d"&&kind!=="f3z")throw Error("Not a Fusion archive");
  container.textContent="Reading Fusion archive locally…";
  const response=await fetch(source);

@@ -11,6 +11,12 @@ export function extension(path){
   return dot<0||dot===file.length-1?"":file.slice(dot+1).toLowerCase();
 }
 
+/** Preserve the original public URL except when the user explicitly chose a local copy. */
+export function previewContentURL(resource){
+  return resource?.localPreview===true&&String(resource.path||"").startsWith("blob:")
+    ?resource.path:(resource?.url||resource?.path);
+}
+
 const DEFAULT_MAX_TEXT_BYTES=8*1024*1024;
 const DEFAULT_MAX_JSON_BYTES=32*1024*1024;
 function sizeLimit(maxBytes){
