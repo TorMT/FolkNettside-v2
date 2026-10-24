@@ -91,7 +91,7 @@ try {
         $name = $request['nickname'] ?? null;
         $answers = $request['answers'] ?? null;
         if (!is_string($name) ||
-            !preg_match('/^[\\p{L}\\p{N} _.-]{2,24}$/uD', $name) ||
+            !preg_match('/^[\p{L}\p{N} _.-]{2,24}$/uD', $name) ||
             !is_array($answers) || count($answers) !== count($questions)) {
             respond(422, ['error' => 'Invalid name or incomplete answers']);
         }
