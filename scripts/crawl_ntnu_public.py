@@ -146,11 +146,14 @@ def approved_courses(config):
         sid,slug,sections = (course.get("semester"),course.get("slug"),
                              course.get("sections",[]))
         optional = course.get("allowMissingEmptySections", [])
+        use_index = course.get("publicIndexFallback", False)
         if (type(sid) is not int or sid<1 or sid>20 or not safe_piece(slug)
                 or not isinstance(sections,list) or len(set(sections)) != len(sections)
                 or any(s not in ("filer","quiz") for s in sections)
                 or not isinstance(optional,list) or len(set(optional)) != len(optional)
                 or any(s not in sections for s in optional)
+                or type(use_index) is not bool
+                or (use_index and "filer" not in sections)
                 or (sid,slug) in seen):
             raise ValueError("Unsafe/duplicate course allowlist entry")
         seen.add((sid,slug))
@@ -206,6 +209,61 @@ def previously_verified_references(previous, sid, slug, parts):
     return []
 
 
+def trusted_index_files(course_index, semester_record, section, sid, slug, prefix):
+    """Only files declared in BOTH explicit public NTNU indexes qualify.
+
+    This is not an HTML scraper: an arbitrary course landing page must not be
+    permitted to advertise new files through unchecked hyperlinks.
+    """
+    if not isinstance(course_index, dict) or not isinstance(semester_record, dict):
+        raise ValueError("Unrecognized public NTNU file index")
+    entry=course_index.get(section)
+    if not isinstance(entry,dict) or entry.get("dir",section)!=section or (
+            entry.get("beskyttet") is not False):
+        raise ValueError("Indexed section is not explicitly public")
+    inner=entry.get("files")
+    outer=semester_record.get("files")
+    if not isinstance(inner,list) or not isinstance(outer,list) or (
+            len(inner)>MAX_FILES or len(outer)>MAX_FILES):
+        raise ValueError("Public course file index has invalid file entries")
+    outer_set=set()
+    for path in outer:
+        if not isinstance(path,str):
+            raise ValueError("Unsafe semester file listing")
+        outer_set.add(path)
+    scope="/".join(prefix)+"/"
+    found=[]
+    seen=set()
+    for relative in inner:
+        if not isinstance(relative,str) or len(relative)>1400:
+            raise ValueError("Unsafe course file reference")
+        full=section+"/"+relative
+        pieces=full.split("/")
+        # Protected/hidden paths are never promoted, even when both indexes
+        # are inaccurate. File types must be supported and allowlisted.
+        if (not full.startswith(scope) or full not in outer_set or
+            len(pieces)<2 or len(pieces)>14 or
+            not all(safe_piece(p) for p in pieces) or
+            KINDS.get(Path(pieces[-1]).suffix.lower()) is None or
+            pieces[-1].lower() in SKIP):
+            continue
+        if full in seen:
+            raise ValueError("Duplicate public file in course index")
+        seen.add(full)
+        path=public_path(sid,slug,pieces)
+        name=pieces[-1]
+        found.append({
+            "source":"ntnu","section":section,"folders":pieces[1:-1],
+            "name":name,"label":Path(name).stem.replace("_"," ").replace("-"," "),
+            "relativePath":full,"path":path,"url":ORIGIN+path,
+            "kind":("QUIZ" if section=="quiz" and re.fullmatch(
+                r"quiz(?:_[a-z0-9-]+)?\.json",name,re.I)
+                    else KINDS[Path(name).suffix.lower()]),
+            "size":0,"modified":0
+        })
+    return found
+
+
 def is_missing_listing(error):
     return (isinstance(error,HTTPError) and error.code in (404,410)) or (
         type(error) is ValueError and str(error) ==
@@ -215,6 +273,12 @@ def is_missing_listing(error):
 
 def crawl(config, *, fetch=fetch_public, previous=None):
     semesters, indexes = {}, {}
+    reviewed_index_fallback={
+        (row["semester"],row["slug"])
+        for row in config["publicCourses"]
+        if row.get("publicIndexFallback") is True
+    }
+    course_indexes={}
     reviewed_missing = {
         (row["semester"],row["slug"],section)
         for row in config["publicCourses"]
@@ -251,19 +315,44 @@ def crawl(config, *, fetch=fetch_public, previous=None):
                         preserved=previously_verified_references(
                             previous,sid,slug,parts
                         )
-                        if preserved:
-                            for item in preserved:
-                                relative=item["relativePath"]
-                                if relative in seen:
-                                    raise ValueError("Duplicate preserved public reference")
-                                seen.add(relative)
-                                resources.append(item)
-                                count+=1
-                                if count>MAX_FILES:
-                                    raise ValueError("File limit exceeded")
-                            print("::warning::Apache listing replaced by custom page; "+
-                                  "retaining "+str(len(preserved))+
-                                  " previously reviewed file references at "+directory,
+                        indexed=[]
+                        if (sid,slug) in reviewed_index_fallback and section=="filer":
+                            # A reviewed public index is the only permitted
+                            # source of *new* paths behind custom index.html.
+                            # Never trust arbitrary links found in that HTML.
+                            try:
+                                key=(sid,slug)
+                                if key not in course_indexes:
+                                    url=ORIGIN+"/semestre/"+str(sid)+"/"+quote(
+                                        slug,safe="!\u0027()*")+"/index.json"
+                                    course_indexes[key]=json.loads(fetch(url))
+                                indexed=trusted_index_files(
+                                    course_indexes[key],course,section,sid,slug,parts)
+                            except (ValueError,HTTPError,TypeError,KeyError) as index_error:
+                                # Invalid metadata must not turn custom pages
+                                # into unreviewed path discovery.
+                                print("::warning::Reviewed NTNU JSON fallback unavailable at "+
+                                      directory+" ("+type(index_error).__name__+")",
+                                      file=sys.stderr)
+                        # Previous vetted paths are retained if newer index
+                        # metadata is incomplete, and duplicate names collapse.
+                        discovered=0
+                        for item in [*preserved,*indexed]:
+                            relative=item["relativePath"]
+                            if relative in seen:
+                                continue
+                            seen.add(relative)
+                            resources.append(item)
+                            count+=1
+                            if count>MAX_FILES:
+                                raise ValueError("File limit exceeded")
+                            if item in indexed and item not in preserved:
+                                discovered+=1
+                        if preserved or indexed:
+                            print("::warning::Custom public NTNU page at "+directory+
+                                  "; retained "+str(len(preserved))+
+                                  " reviewed references; discovered "+str(discovered)+
+                                  " from explicitly public JSON indexes",
                                   file=sys.stderr)
                             continue
                     allow_absent = (
