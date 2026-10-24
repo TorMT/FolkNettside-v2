@@ -3,7 +3,7 @@
  * Never substitutes GitHub fixtures for actual NTNU courses.
  * Invalid/unavailable auto-index -> existing per-semester public JSON indexes.
  */
-import {NTNU_ORIGIN,parseNTNUSemesterIndex,loadNTNUCatalog} from "./ntnu-catalog.js?v=fc57b9fb5c8d851efa745399aed4d164f60e2c96";
+import {NTNU_ORIGIN,parseNTNUSemesterIndex,loadNTNUCatalog} from "./ntnu-catalog.js?v=b67b252dd6fbc40137d93e0430b40fd3e1089c77";
 
 const LIMIT_BYTES=4_000_000;
 const MAX_FILES=25_000;

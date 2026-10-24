@@ -1,14 +1,15 @@
-import {mountModelScene} from "../model/model-scene.js?v=fc57b9fb5c8d851efa745399aed4d164f60e2c96";
-import {mountWaveControls} from "../model/model-wave-controls.js?v=fc57b9fb5c8d851efa745399aed4d164f60e2c96";
-import {mountAssemblyInspector} from "./assembly-inspector.js?v=fc57b9fb5c8d851efa745399aed4d164f60e2c96";
-import {connectSpaceMouse} from "../model/spacemouse-webhid.js?v=fc57b9fb5c8d851efa745399aed4d164f60e2c96";
-import {spaceMouseMovement} from "../model/spacemouse-motion.js?v=fc57b9fb5c8d851efa745399aed4d164f60e2c96";
-import {readSpaceMouseSettings,writeSpaceMouseSettings} from "../model/spacemouse-settings.js?v=fc57b9fb5c8d851efa745399aed4d164f60e2c96";
+import {mountModelScene} from "../model/model-scene.js?v=b67b252dd6fbc40137d93e0430b40fd3e1089c77";
+import {mountWaveControls} from "../model/model-wave-controls.js?v=b67b252dd6fbc40137d93e0430b40fd3e1089c77";
+import {mountAssemblyInspector} from "./assembly-inspector.js?v=b67b252dd6fbc40137d93e0430b40fd3e1089c77";
+import {connectSpaceMouse} from "../model/spacemouse-webhid.js?v=b67b252dd6fbc40137d93e0430b40fd3e1089c77";
+import {spaceMouseMovement} from "../model/spacemouse-motion.js?v=b67b252dd6fbc40137d93e0430b40fd3e1089c77";
+import {readSpaceMouseSettings,writeSpaceMouseSettings} from "../model/spacemouse-settings.js?v=b67b252dd6fbc40137d93e0430b40fd3e1089c77";
 
-export async function renderModelWorkbench(container,model,{showSidebar=false}={}){
-  container.innerHTML=`<div class="model-viewer-workbench">
+export async function renderModelWorkbench(container,model,{showSidebar=false,mobileCompact=false}={}){
+  container.innerHTML=`<div class="model-viewer-workbench ${mobileCompact?"model-viewer-mobile-compact":""}">
     <div class="model-viewer-stage" data-model-stage></div>
-    <aside class="model-viewer-inspector">
+    ${mobileCompact?'<button class="btn model-viewer-mobile-toggle" type="button" data-model-mobile-toggle aria-expanded="false" aria-controls="cad-mobile-inspector">Vis CAD-verktøy og komponenter <span aria-hidden="true">▾</span></button>':""}
+    <aside class="model-viewer-inspector" ${mobileCompact?'id="cad-mobile-inspector"':""}>
       <div class="model-viewer-section">
         <strong>3D model</strong>
         <p class="model-cad-shortcuts">Mouse: left drag orbit, middle drag pan, Shift + middle drag orbit, wheel zoom.
@@ -108,6 +109,16 @@ export async function renderModelWorkbench(container,model,{showSidebar=false}={
       <div data-model-waves></div>
     </aside>
   </div>`;
+  const mobileToggle=container.querySelector("[data-model-mobile-toggle]");
+  mobileToggle?.addEventListener("click",()=>{
+    const shell=mobileToggle.closest(".model-viewer-workbench");
+    const expanded=mobileToggle.getAttribute("aria-expanded")!=="true";
+    mobileToggle.setAttribute("aria-expanded",String(expanded));
+    shell?.classList.toggle("model-viewer-mobile-open",expanded);
+    mobileToggle.innerHTML=expanded
+      ?'Skjul CAD-verktøy <span aria-hidden="true">▴</span>'
+      :'Vis CAD-verktøy og komponenter <span aria-hidden="true">▾</span>';
+  });
   const stage=container.querySelector("[data-model-stage]");
   const report=container.querySelector("[data-model-water-report]");
   const measurementList=container.querySelector(".model-viewer-measurements");
