@@ -1239,3 +1239,18 @@ a.project-row:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .course-admin textarea{resize:vertical}
 .course-admin-actions{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1rem}
 #admin-status{min-height:1.5rem}
+
+/* Narrow phone crystallography: flexible controls/3D panels must fit their parent. */
+@media(max-width:760px){
+ .crystal-tool-layout{grid-template-columns:minmax(0,1fr)!important;min-width:0;max-width:100%}
+ .crystal-tool-layout>*,.crystal-stage-wrap,.crystal-controls,
+ .crystal-subpanel,.crystal-controls .field,.crystal-controls .field>div{
+   box-sizing:border-box;min-width:0;max-width:100%}
+ .crystal-controls .field>div{flex-wrap:wrap}
+ .crystal-controls input,.crystal-controls select,.crystal-controls button{
+   box-sizing:border-box;min-width:0;max-width:100%}
+ .crystal-controls input[type=number]{width:100%}
+ .crystal-toggle-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .crystal-toggle-grid .btn{min-width:0;min-height:44px;overflow-wrap:anywhere;white-space:normal}
+ .crystal-stage-wrap .model-meta{min-width:0;display:flex;flex-wrap:wrap;gap:5px}
+}
