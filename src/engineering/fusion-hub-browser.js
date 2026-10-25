@@ -1,5 +1,5 @@
 import {createAutodeskHubClient,validateHubConfig}
-  from "../platform/autodesk-hub-client.js?v=c1599ffd201246a75c7bfb3ff17388ef86f301d1";
+  from "../platform/autodesk-hub-client.js?v=c241949aa9e43c038d70642e616c579b97de2f48";
 
 const escapeHTML=text=>String(text??"").replace(/[&<>"']/g,c=>({
  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
