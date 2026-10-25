@@ -42,7 +42,12 @@ try{
  await until(()=>doc()?.querySelector(".topbar"),"initial app render");
  const metrics=[];
  for(const factor of [2,4]){
-  doc().documentElement.style.zoom=String(factor);
+  // Zoom the frame itself and reduce its CSS viewport in tandem.
+  // This exercises responsive breakpoints at 640/320 logical CSS pixels
+  // while rendering the content at a 1280px physical width.
+  // Zooming the inner root alone DOES NOT alter iframe media-query width.
+  frame.style.width=(1280/factor)+"px";
+  frame.style.zoom=String(factor);
   await sleep(180);
   const layoutWidth=doc().documentElement.clientWidth;
   check(Math.abs(layoutWidth-1280/factor)<35,
@@ -76,10 +81,10 @@ try{
    }
   }
  }
- doc().documentElement.style.zoom="";
+ frame.style.zoom="";frame.style.width="1280px";
  document.body.dataset.status="pass";
  document.querySelector("#result").textContent=JSON.stringify({
-  status:"pass",method:"Chromium CSS root zoom — NOT native browser-toolbar zoom",
+  status:"pass",method:"Chromium zoomed iframe with matching CSS viewport — NOT native browser-toolbar zoom",
   levels:["200%","400%"],routes:metrics});
 }catch(error){document.body.dataset.status="fail";
  document.querySelector("#result").textContent=String(error?.stack||error)}
