@@ -350,3 +350,21 @@
  .viewer-head-actions .viewer-file-actions #viewer-choose-local{flex:1 1 auto;min-width:0}
  .viewer-head-actions .viewer-file-actions{gap:6px}
 }
+
+/* B18: no clipped long assembly names or inaccessible CAD controls at zoom. */
+.cad-geometry-stage .model-viewer-workbench,
+.cad-geometry-stage .model-viewer-inspector,
+.cad-geometry-stage .model-viewer-section,
+.cad-geometry-stage [data-model-assembly]{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.cad-geometry-stage .cad-group-tree :is(button,span,strong),
+.cad-geometry-stage .model-viewer-section :is(p,label,button){
+  white-space:normal;overflow-wrap:anywhere;min-width:0}
+.cad-geometry-stage .model-viewer-actions{min-width:0}
+.cad-geometry-stage :is(.model-viewer-actions button,.model-viewer-mobile-toggle):focus-visible{
+  outline:3px solid #f0d380;outline-offset:-3px}
+@media(max-width:900px){
+ .cad-geometry-stage .model-viewer-mobile-compact .model-viewer-inspector[aria-hidden="true"]{display:none}
+ .cad-geometry-stage .model-viewer-mobile-compact.model-viewer-mobile-open .model-viewer-inspector{
+   display:block;max-width:100%;overflow-x:hidden}
+ .cad-geometry-stage .model-viewer-mobile-compact .model-viewer-actions button{min-height:44px}
+}
