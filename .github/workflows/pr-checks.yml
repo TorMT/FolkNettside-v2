@@ -182,8 +182,16 @@ jobs:
           chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/cad-standalone-driver.log 2>&1 &
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
-          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html 60 1400,950
-          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html 70 390,844
+          python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html?capture 60 1400,950
+          python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html?capture 70 390,844
+          python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html?capture 70 320,740
+          python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html?capture 70 768,1024
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: munin-mobile-review
+          path: /tmp/munin-review/*.png
+          retention-days: 7
 
       - name: Real STEP / OpenCascade WASM and browser 3D test
         run: |

@@ -30,7 +30,7 @@ try{
    throw Error("Munin public source links unavailable");
  if(!host.querySelector("[data-cad-munin-choose]"))throw Error("Munin local import missing");
  const stage=host.querySelector("#cad-geometry-stage");
- if(stage.clientHeight<350||stage.clientWidth<300)
+ if(stage.clientHeight<350||stage.clientWidth<200)
    throw Error("CAD stage has no usable geometry: "+stage.clientWidth+"x"+stage.clientHeight);
  const demo=host.querySelector("[data-cad-demo]");
  if(!demo)throw Error("Demo assembly missing");
@@ -65,9 +65,38 @@ try{
  canvas.dispatchEvent(new KeyboardEvent("keydown",{key:"i",bubbles:true,cancelable:true}));
  const status=host.querySelector("#cad-import-status").textContent;
  if(!status.includes("2 components"))throw Error("Demo mount failed: "+status);
+ // Real Munin asset: lazy fetch, axis convention, component count and viewport.
+ if(performance.getEntriesByType("resource").some(e=>e.name.endsWith("munin-mobile-preview.glb")))
+   throw Error("Munin downloaded before opt-in");
+ const nativeFetch=window.fetch;
+ window.fetch=(url,options)=>String(url).endsWith("munin-mobile-preview.glb")?
+   Promise.resolve(new Response("unavailable",{status:503})):nativeFetch(url,options);
+ host.querySelector("[data-cad-munin-preview]").click();
+ for(let i=0;i<100&&!host.querySelector("#cad-import-status").textContent.includes("HTTP 503");i++)
+   await new Promise(resolve=>setTimeout(resolve,20));
+ if(!host.querySelector("#cad-import-status").textContent.includes("HTTP 503"))throw Error("Munin fetch failure not reported");
+ window.fetch=(url,options)=>String(url).endsWith("munin-mobile-preview.glb")?
+   new Promise((resolve,reject)=>options.signal.addEventListener("abort",()=>reject(new DOMException("Cancelled","AbortError")))):nativeFetch(url,options);
+ host.querySelector("[data-cad-munin-preview]").click();
+ host.querySelector("#cad-import-cancel").click();
+ await new Promise(resolve=>setTimeout(resolve,20));
+ if(host.querySelector("#cad-import-status").textContent!=="Import cancelled")throw Error("Munin cancellation overwritten");
+ window.fetch=nativeFetch;
+ host.querySelector("[data-cad-munin-preview]").click();
+ for(let i=0;i<300&&!host.querySelector("#cad-import-status").textContent.includes("Munin lastet");i++)
+   await new Promise(resolve=>setTimeout(resolve,100));
+ if(!host.querySelector("#cad-import-status").textContent.includes("130 deler"))
+   throw Error("Real Munin failed: "+host.querySelector("#cad-import-status").textContent);
+ if(!host.querySelector(".three-canvas"))throw Error("Munin canvas missing");
+ const groupText=host.querySelector("[data-cad-group-tree]")?.textContent||"";
+ for(const label of ["Skrog","Thrustere","Sensorer","Elektrisk","Struktur"])
+   if(!groupText.includes(label))throw Error("Munin group missing: "+label);
+ if(Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)>document.documentElement.clientWidth+8)
+   throw Error("Munin overflows viewport");
+ host.querySelector("[data-model-fit]").click();
  document.body.dataset.status="pass";
- document.querySelector("#result").textContent="CAD live viewport, demo assembly, Fit and SpaceMouse controls ready";
- cleanup();
+ document.querySelector("#result").textContent="CAD demo and real Munin GLB, lazy load, mobile viewport, Fit and controls ready";
+ if(!new URLSearchParams(location.search).has("capture"))cleanup();
 }catch(error){
  document.body.dataset.status="fail";
  document.querySelector("#result").textContent=String(error?.stack||error);
