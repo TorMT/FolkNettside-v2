@@ -482,16 +482,22 @@ def manifest_source(output: Path) -> Path:
     Never silently replace migrated courses with demo fixtures, and never
     follow source pointers outside the repository.
     """
-    if not output.is_file():
+    # Example fixtures are a safe default only for the very first build.
+    # A pre-existing manifest is evidence of an already selected course
+    # source. Missing/blank metadata must never silently replace it.
+    if not output.exists() and not output.is_symlink():
         return DEFAULT_SOURCE
+    if not output.is_file() or output.is_symlink():
+        raise ValueError("existing manifest is not a regular file")
     configured = load_json(output).get("source")
-    if not configured:
-        return DEFAULT_SOURCE
-    source_label = Path(str(configured))
+    if not isinstance(configured, str) or not configured.strip():
+        raise ValueError("existing manifest has no reviewed semester source")
+    source_label = Path(configured)
     if source_label.is_absolute() or ".." in source_label.parts:
         raise ValueError("unsafe manifest source: outside repository")
     source = (ROOT / source_label).resolve()
-    if not source.is_relative_to(ROOT.resolve()) or not source.is_dir():
+    if (source == ROOT.resolve() or
+            not source.is_relative_to(ROOT.resolve()) or not source.is_dir()):
         raise ValueError("manifest course source is missing or outside repository")
     return source
 
