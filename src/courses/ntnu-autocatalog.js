@@ -3,13 +3,13 @@
  * Never substitutes GitHub fixtures for actual NTNU courses.
  * Invalid/unavailable auto-index -> existing per-semester public JSON indexes.
  */
-import {NTNU_ORIGIN,parseNTNUSemesterIndex,loadNTNUCatalog,readBoundedIndexBody} from "./ntnu-catalog.js";
+import {NTNU_ORIGIN,parseNTNUSemesterIndex,loadNTNUCatalog,readBoundedIndexBody,
+  isSafeNTNUSegment} from "./ntnu-catalog.js";
 
 const MAX_FILES=25_000;
 const object=value=>value!==null&&typeof value==="object"&&!Array.isArray(value);
-const safeSlug=s=>typeof s==="string"&&s.length>0&&s.length<=210&&
- !s.startsWith(".")&&!s.startsWith("~$")&&!/(?:beskyttet|protected|private|privat|restricted|hemmelig|secret|credential|passord)/i.test(s)&&
- !/[\\/%?#\u0000-\u001f\u007f]/.test(s)&&s!==".."&&s!==".";
+// One shared private/credential-name guard for both generated and legacy paths.
+const safeSlug=isSafeNTNUSegment;
 const expectedPath=(id,slug,relative)=>{
  if(typeof relative!=="string"||relative.length>1400)return null;
  const parts=relative.split("/");
