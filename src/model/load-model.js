@@ -1,9 +1,9 @@
-import {extension} from "../viewers/utils.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
-import {parseCADBuffer} from "./parsers/cad-runtime.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
-import {parse3MF} from "./parsers/three-mf.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
-import {parseSTL} from "./parsers/stl.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
-import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
-import {parseGLB} from "./parsers/gltf.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {extension} from "../viewers/utils.js?v=dbe1e7f8e3bd426bd033df83ff057485649de1cc";
+import {parseCADBuffer} from "./parsers/cad-runtime.js?v=dbe1e7f8e3bd426bd033df83ff057485649de1cc";
+import {parse3MF} from "./parsers/three-mf.js?v=dbe1e7f8e3bd426bd033df83ff057485649de1cc";
+import {parseSTL} from "./parsers/stl.js?v=dbe1e7f8e3bd426bd033df83ff057485649de1cc";
+import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=dbe1e7f8e3bd426bd033df83ff057485649de1cc";
+import {parseGLB} from "./parsers/gltf.js?v=dbe1e7f8e3bd426bd033df83ff057485649de1cc";
 
 export function applyModelRules(documentModel,rules=[]){
   for(const component of documentModel.components){
