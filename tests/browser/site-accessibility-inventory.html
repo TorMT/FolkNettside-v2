@@ -87,6 +87,8 @@ try{
     issuesHeuristic:issues,
     affectedRoutes:bad.map(x=>({route:x.route,count:x.issueCount,examples:x.issues.slice(0,2)})),
     note:"Heuristic inspection only. Not an axe audit or actual assistive technology certification."};
+  check(issues===0,"Accessible-name/landmark/ID audit detected "+
+    issues+" issue(s): "+JSON.stringify(bad.slice(0,6)));
   document.body.dataset.status="pass";
   document.querySelector("#result").textContent=JSON.stringify(summary);
 }catch(error){
