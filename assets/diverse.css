@@ -174,3 +174,13 @@
  #brew-local-inventory .medisin-sync-panel{padding:12px}
  #dive-log-root .medisin-buttons>*,#brew-local-inventory .medisin-buttons>*{max-width:100%}
 }
+
+/* B15: keep consent/privacy and geolocation errors readable at mobile widths. */
+.dive-controls .dive-location-status{
+  grid-column:1 / -1;min-width:0;margin:0;
+  font-size:11px;line-height:1.55;color:var(--ink-2);
+  overflow-wrap:anywhere;
+}
+.dive-location-button:focus-visible{
+  outline:3px solid var(--accent);outline-offset:3px;
+}

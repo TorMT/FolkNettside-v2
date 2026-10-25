@@ -11,7 +11,7 @@
 <pre id="result">running</pre>
 <script type="module">
 import {diveMapHTML,mountDiveMap} from "../../src/diverse/dive-map.js";
-import {diveFeatureLevel,diveStats,filterDiveFeatures} from "../../src/diverse/dive-core.js";
+import {diveFeatureLevel,diveStats,filterDiveFeatures,sortDiveFeatures} from "../../src/diverse/dive-core.js";
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 try{
   document.querySelector("#app").innerHTML=diveMapHTML();
@@ -65,8 +65,23 @@ try{
       };
     }
   };
+  // A fake geolocation provider gives deterministic browser permission behavior,
+  // without reading the developer/CI runner's real location.
+  let geoCalls=0,geoBehavior="success",delayedSuccess=null;
+  const injectedGeolocation={
+    getCurrentPosition(success,failure,options){
+      geoCalls++;
+      assert(options.enableHighAccuracy===false,"Needlessly requested precise location");
+      assert(options.maximumAge===0,"Requested a cached browser location");
+      if(geoBehavior==="deny")failure({code:1});
+      else if(geoBehavior==="invalid")success({coords:{latitude:95,longitude:10,accuracy:50}});
+      else if(geoBehavior==="defer")delayedSuccess=success;
+      else success({coords:{latitude:63.43,longitude:10.39,accuracy:250}});
+    }
+  };
   const cleanup=await mountDiveMap(document.querySelector("#app"),{
-    dataUrl:"../../data/diving/trondheim-sites.geojson",leaflet:L
+    dataUrl:"../../data/diving/trondheim-sites.geojson",leaflet:L,
+    geolocation:injectedGeolocation
   });
   assert(icons.length>=stats.withCoordinates,"SVG pins were not generated");
   assert(icons.every(icon=>icon.html.includes("<svg")),"Dive marker icon must include embedded SVG");
@@ -105,7 +120,59 @@ try{
   document.querySelector("#dive-kind").dispatchEvent(new Event("change",{bubbles:true}));
   assert(list()===stats.wrecks,"Wreck-only filter did not update list");
   assert(icons.length>0&&markerClicks.length>0,"Map markers are not interactive");
+
+  // B15: position request happens only on tap, and only affects in-memory sort.
+  const locationButton=document.querySelector("#dive-locate");
+  const locationStatus=document.querySelector("#dive-location-status");
+  assert(geoCalls===0,"Geolocation requested on page load");
+  assert(locationButton&&locationStatus?.getAttribute("role")==="status","Location accessibility missing");
+  const sort=document.querySelector("#dive-sort");
+  sort.value="nearest";sort.dispatchEvent(new Event("change",{bubbles:true}));
+  assert(geoCalls===0,"Selecting nearest implicitly requested browser location");
+  locationButton.click();
+  assert(geoCalls===1,"Explicit location click did not request permission");
+  assert(sort.value==="nearest","Nearest option not selected on location success");
+  assert(locationButton.getAttribute("aria-pressed")==="true","Location enabled state missing");
+  assert(locationButton.textContent.includes("Clear"),"Location cannot be cleared");
+  assert(locationStatus.textContent.includes("±250 m"),"Accuracy not disclosed");
+  assert(document.querySelector("#dive-stats").textContent.includes("distance enabled"),
+    "Distance not displayed after permission");
+  // Revert filters from earlier test to compare all locations' nearest order.
+  document.querySelector("#dive-kind").value="all";
+  document.querySelector("#dive-kind").dispatchEvent(new Event("change",{bubbles:true}));
+  const expectedFirst=sortDiveFeatures(features,"nearest",{
+    origin:{lat:63.43,lon:10.39}
+  })[0].properties.ID;
+  assert(document.querySelector(".dive-list-item")?.dataset.diveId===expectedFirst,
+    "Nearest sort is not using the browser-granted position");
+  locationButton.click();
+  assert(sort.value==="name"&&locationButton.getAttribute("aria-pressed")==="false",
+    "Clearing position must reset nearest sort and pressed state");
+  assert(!document.querySelector("#dive-stats").textContent.includes("distance enabled"),
+    "Location was retained after Clear");
+  assert(geoCalls===1,"Clearing the location unexpectedly re-requested it");
+
+  geoBehavior="deny";
+  locationButton.click();
+  assert(geoCalls===2&&locationStatus.textContent.includes("declined"),
+    "Permission denial was not handled");
+  assert(locationButton.disabled===false&&locationButton.getAttribute("aria-pressed")==="false",
+    "Permission denial must restore clickable control");
+  geoBehavior="invalid";
+  locationButton.click();
+  assert(geoCalls===3&&locationStatus.textContent.includes("invalid position"),
+    "Out-of-range browser coordinates were used");
+  geoBehavior="defer";
+  locationButton.click();
+  assert(locationButton.disabled&&locationButton.textContent.includes("Finding"),
+    "Pending browser permission does not announce pending state");
+  assert(geoCalls===4,"Pending request missing");
   cleanup();
+  const beforeLateResult=locationStatus.textContent;
+  delayedSuccess({coords:{latitude:63.43,longitude:10.39,accuracy:100}});
+  assert(locationStatus.textContent===beforeLateResult,
+    "Geolocation callback changed disposed map state");
+
   document.body.dataset.status="pass";
   document.querySelector("#result").textContent=JSON.stringify({records:features.length,mapped:stats.withCoordinates,unmapped:features.length-stats.withCoordinates});
 }catch(error){
