@@ -117,6 +117,99 @@ export function autoAssignTheme(palette){
   };
 }
 
+
+// WCAG 2.x relative luminance in linear sRGB (not average RGB brightness).
+export function relativeLuminance(hex){
+  const {r,g,b}=hexToRgb(hex);
+  const linear=value=>{
+    const c=value/255;
+    return c<=0.04045?c/12.92:((c+0.055)/1.055)**2.4;
+  };
+  return 0.2126*linear(r)+0.7152*linear(g)+0.0722*linear(b);
+}
+
+export function contrastRatio(a,b){
+  const l1=relativeLuminance(a),l2=relativeLuminance(b);
+  return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+}
+
+export function readableTextColor(background){
+  return contrastRatio(background,"#ffffff")>=contrastRatio(background,"#000000")
+    ?"#ffffff":"#000000";
+}
+
+// Find the closest blend toward the more contrasting black/white endpoint.
+export function ensureTextContrast(color,background,minimum=4.5){
+  if(contrastRatio(color,background)>=minimum)return color.toLowerCase();
+  const target=readableTextColor(background);
+  const source=hexToRgb(color),end=hexToRgb(target);
+  let low=0,high=1;
+  for(let i=0;i<22;i++){
+    const t=(low+high)/2;
+    const candidate=rgbToHex({
+      r:source.r+(end.r-source.r)*t,
+      g:source.g+(end.g-source.g)*t,
+      b:source.b+(end.b-source.b)*t
+    });
+    if(contrastRatio(candidate,background)>=minimum)high=t;
+    else low=t;
+  }
+  return rgbToHex({
+    r:source.r+(end.r-source.r)*high,
+    g:source.g+(end.g-source.g)*high,
+    b:source.b+(end.b-source.b)*high
+  });
+}
+
+function contrastSafeGradient(a,b,minimum=4.5){
+  // An almost black→white gradient cannot have one readable text color
+  // across both ends. Alter display endpoints, never the source palette.
+  const options=["#ffffff","#000000"].map(text=>{
+    const start=ensureTextContrast(a,text,minimum);
+    const end=ensureTextContrast(b,text,minimum);
+    return {start,end,text,change:colorDistance(a,start)+colorDistance(b,end)};
+  });
+  return options.sort((x,y)=>x.change-y.change)[0];
+}
+
+export function themeContrastReport(input={}){
+  const theme=normalizeTheme(input);
+  const c=theme.colors;
+  const gradient=contrastSafeGradient(c.navbar1,c.navbar2);
+  const sidebarText=readableTextColor(c.sidebar);
+  const actionText=readableTextColor(c.primary);
+  const heading=ensureTextContrast(c.primary,c.background);
+  const mainText=readableTextColor(c.background);
+  const secondaryText=ensureTextContrast(
+    mainText==="#000000"?"#4a5568":"#cbd5e1",c.background);
+  const mutedText=ensureTextContrast(
+    mainText==="#000000"?"#718096":"#94a3b8",c.background);
+  const border=ensureTextContrast("#9aaab5",c.background,3);
+  const hoverBorder=ensureTextContrast("#778b9a",c.background,3);
+  const checks=[
+    {label:"Navbar (start)",foreground:gradient.text,background:gradient.start},
+    {label:"Navbar (end)",foreground:gradient.text,background:gradient.end},
+    {label:"Sidebar",foreground:sidebarText,background:c.sidebar},
+    {label:"Primary action",foreground:actionText,background:c.primary},
+    {label:"Heading/link",foreground:heading,background:c.background},
+    {label:"Main text",foreground:mainText,background:c.background},
+    {label:"Secondary text",foreground:secondaryText,background:c.background},
+    {label:"Muted text",foreground:mutedText,background:c.background}
+  ].map(item=>({...item,ratio:contrastRatio(item.foreground,item.background)}));
+  const adjustments=[];
+  if(gradient.start!==c.navbar1||gradient.end!==c.navbar2){
+    adjustments.push("Navbar display gradient was adjusted for readable text.");
+  }
+  if(heading!==c.primary){
+    adjustments.push("Heading/link color was adjusted against the background.");
+  }
+  return {colors:{
+    navbar1:gradient.start,navbar2:gradient.end,navbarText:gradient.text,
+    sidebar:c.sidebar,sidebarText,actionText,heading,mainText,secondaryText,
+    mutedText,border,hoverBorder
+  },checks,adjustments};
+}
+
 export function normalizeTheme(theme={}){
   const fallback={
     primary:"#b3157a",
@@ -126,43 +219,52 @@ export function normalizeTheme(theme={}){
     background:"#f4f8fa"
   };
   const colors={};
-  for(const role of THEME_ROLES)colors[role]=theme.colors?.[role]||theme[role]||fallback[role];
+  for(const role of THEME_ROLES){
+    const candidate=String(theme.colors?.[role]||theme[role]||fallback[role]).trim();
+    colors[role]=/^#[0-9a-f]{6}$/i.test(candidate)?candidate.toLowerCase():fallback[role];
+  }
+  // Theme names also become CSS attribute selectors and download file names.
+  const safeName=String(theme.name||"custom-theme").trim()
+    .replace(/[^a-z0-9_-]+/gi,"-").replace(/^-+|-+$/g,"").slice(0,64);
   return {
-    name:String(theme.name||"custom-theme").trim()||"custom-theme",
+    name:safeName||"custom-theme",
     colors
   };
 }
 
 export function themeCss(theme={}){
   const {name,colors}=normalizeTheme(theme);
-  const lightText=brightness(colors.background)>128;
+  const {colors:readable}=themeContrastReport({name,colors});
   return `[data-theme="${name}"] {
   --primary: ${colors.primary};
   --primary-light: ${adjustColor(colors.primary,20)};
   --primary-dark: ${adjustColor(colors.primary,-20)};
   --primary-transparent: ${hexToRgba(colors.primary,.1)};
+  --primary-text: ${readable.actionText};
+  --primary-readable: ${readable.heading};
   --accent: ${colors.primary};
+  --accent-text: ${readable.actionText};
   --accent-light: ${adjustColor(colors.primary,30)};
   --accent-dark: ${adjustColor(colors.primary,-30)};
-  --navbar-bg: linear-gradient(135deg, ${colors.navbar1} 0%, ${colors.navbar2} 100%);
-  --navbar-text: #ffffff;
+  --navbar-bg: linear-gradient(135deg, ${readable.navbar1} 0%, ${readable.navbar2} 100%);
+  --navbar-text: ${readable.navbarText};
   --navbar-hover: rgba(255,255,255,.1);
   --sidebar-bg: ${colors.sidebar};
-  --sidebar-text: #ffffff;
+  --sidebar-text: ${readable.sidebarText};
   --sidebar-hover: rgba(255,255,255,.1);
-  --sidebar-border: ${adjustColor(colors.sidebar,10)};
+  --sidebar-border: ${ensureTextContrast(adjustColor(colors.sidebar,10),colors.sidebar,3)};
   --bg-main: ${colors.background};
   --bg-alt: ${adjustColor(colors.background,-5)};
   --bg-card: ${colors.background};
-  --text-main: ${lightText?"#1a202c":"#f1f5f9"};
-  --text-secondary: ${lightText?"#4a5568":"#cbd5e1"};
-  --text-muted: ${lightText?"#718096":"#94a3b8"};
-  --border-color: ${adjustColor(colors.background,-10)};
-  --border-hover: ${adjustColor(colors.background,-20)};
+  --text-main: ${readable.mainText};
+  --text-secondary: ${readable.secondaryText};
+  --text-muted: ${readable.mutedText};
+  --border-color: ${readable.border};
+  --border-hover: ${readable.hoverBorder};
   --success: #10b981;
   --error: #ef4444;
   --warning: #f59e0b;
-  --info: ${colors.primary};
+  --info: ${readable.heading};
 }`;
 }
 
