@@ -78,7 +78,7 @@ import {configuredMatprisEndpoint} from "./diverse/matpris-api.js";
 import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js";
 import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js";
 import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js";
-import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignUp,folkSignOut,getFolkLinkedProviders} from "./platform/folkside-auth.js";
+import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignOut,getFolkLinkedProviders} from "./platform/folkside-auth.js";
 import {probeFolkCoreBackend} from "./platform/folkside-cloud.js";
 import {createFolkAppearanceBackup} from "./platform/folkside-preferences.js";
 
@@ -1027,8 +1027,7 @@ function settingsPage(){
     buttons.forEach(b=>b.disabled=true);
     try{
       const credentials=folkCredentials();
-      if(action==="signup")await folkSignUp(credentials);
-      else await folkSignIn(credentials);
+      await folkSignIn(credentials);
     }catch{ /* Auth status is rendered from the shared account state. */ }
     if(route().startsWith("/settings")&&settingsSection==="connections")settingsPage();
   };
@@ -1036,7 +1035,6 @@ function settingsPage(){
     event.preventDefault();
     void folkAction("login");
   });
-  app.querySelector("[data-folk-signup]")?.addEventListener("click",()=>void folkAction("signup"));
   app.querySelector("[data-folk-signout]")?.addEventListener("click",async()=>{
     await folkSignOut();
     if(route().startsWith("/settings")&&settingsSection==="connections")settingsPage();
