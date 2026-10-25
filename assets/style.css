@@ -1269,3 +1269,85 @@ a.project-row:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
  .topbar .top-actions{flex:0 0 auto;min-width:0;gap:1px}
  .topbar .top-actions .icon-btn{height:36px;width:36px}
 }
+
+/* B18: visible shell keyboard focus in light/dark themes. */
+.topbar .brand{border:0;background:transparent;color:inherit;padding:0;min-height:38px;white-space:nowrap}
+.topbar :is(.brand,.nav button,.top-actions button):focus-visible{outline:3px solid #f0d380;outline-offset:2px}
+.mobile-nav button:focus-visible{outline:3px solid #f0d380;outline-offset:-3px}
+.mobile-more-menu button:focus-visible{outline:3px solid var(--accent-strong);outline-offset:-3px}
+
+/* B18 phase 2: bypass repeating navigation without changing SPA hash routes. */
+.skip-to-content{
+  position:fixed;z-index:250;left:8px;top:8px;
+  transform:translateY(-180%);padding:10px 15px;
+  border:2px solid #f0d380;border-radius:8px;
+  background:#0d2433;color:#fff;font:700 14px/1.3 system-ui,sans-serif;
+  cursor:pointer
+}
+.skip-to-content:focus{transform:none;outline:3px solid #f0d380;outline-offset:2px}
+.workspace :is(.mobile-workspace-actions button,.mobile-panel-close):focus-visible{
+  outline:3px solid #f0d380;outline-offset:-3px
+}
+@media (prefers-reduced-motion:reduce){
+  html:focus-within{scroll-behavior:auto!important}
+  *,*::before,*::after{
+    animation-duration:0.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:0.01ms!important;
+    scroll-behavior:auto!important
+  }
+}
+@media (forced-colors:active){
+  .skip-to-content,.topbar :is(.brand,.nav button,.top-actions button):focus-visible,
+  .mobile-nav button:focus-visible,
+  .workspace :is(.mobile-workspace-actions button,.mobile-panel-close):focus-visible{
+    outline:3px solid Highlight;outline-offset:2px
+  }
+  .skip-to-content{background:Canvas;color:CanvasText;border-color:CanvasText}
+}
+
+/* B18: Settings controls must have real visual effects, independent of OS prefs.
+   The base accent palette has AA contrast with white; keep strong focus on
+   both the light canvas and the always-dark navigation bar. */
+:root[data-mode="dark"][data-accent]{
+  --accent-soft:color-mix(in srgb,var(--accent) 18%,#0e1b26);
+  --accent-ink:#f8e0ec;
+}
+:root[data-mode="dark"] :is(.link,.panel-tabs button.active,.course-update-pill){
+  color:var(--accent-ink)
+}
+:root[data-contrast="high"]{
+  --ink-2:#294454;
+  --ink-3:#375364;
+  --line:#60798b;
+  --line-strong:#41596a;
+}
+:root[data-mode="dark"][data-contrast="high"]{
+  --ink-2:#ecf4f8;
+  --ink-3:#d3e6ef;
+  --line:#8daabf;
+  --line-strong:#b4ccda;
+}
+:root[data-contrast="high"] :is(button,a,input,select,textarea):focus-visible{
+  outline:3px solid var(--ink);
+  outline-offset:2px
+}
+:root[data-contrast="high"] .topbar :is(button,a):focus-visible,
+:root[data-contrast="high"] .mobile-nav button:focus-visible,
+:root[data-contrast="high"] .skip-to-content:focus-visible{
+  outline:3px solid #f0d380;
+  outline-offset:2px
+}
+:root[data-contrast="high"] .topbar .nav button.active:after{
+  background:#f0d380;height:4px
+}
+:root[data-motion="reduced"]{
+  scroll-behavior:auto!important
+}
+:root[data-motion="reduced"] *,:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after{
+  animation-duration:0.01ms!important;
+  animation-iteration-count:1!important;
+  transition-duration:0.01ms!important;
+  scroll-behavior:auto!important
+}

@@ -49,3 +49,24 @@ test("account chip escapes untrusted identity text in both initial and accessibl
  assert.doesNotMatch(html,/<img/);
  assert.match(html,/&lt;img/);
 });
+
+test("brand is a native keyboard-operable button and current route is announced",()=>{
+  const courses=renderTopShell("courses",{coursesLabel:"Courses"});
+  assert.match(courses,/<button type="button" class="brand" id="home" aria-label="Go to Projects">/);
+  assert.doesNotMatch(courses,/<div class="brand" id="home">/);
+  assert.match(courses,/data-go="\/courses" class="active" aria-current="page"/);
+  assert.match(courses,/aria-label="Main navigation"/);
+  assert.match(courses,/aria-label="Course navigation"/);
+  const engineering=renderTopShell("engineering");
+  assert.match(engineering,/data-go="\/engineering" class="active" aria-current="page"/);
+  assert.match(engineering,/aria-controls="mobile-more-menu" aria-expanded="false"/);
+  assert.match(engineering,/button type="button" data-search-open/);
+});
+
+test("SPA exposes keyboard bypass without stealing the hash-router URL",()=>{
+  const html=renderTopShell("portfolio");
+  assert.match(html,/class="skip-to-content" data-skip-content/);
+  assert.doesNotMatch(html,/href="#main"/);
+  assert.ok(html.indexOf("data-skip-content")<html.indexOf("<header"),
+    "Bypass control must precede the navigation for keyboard order");
+});

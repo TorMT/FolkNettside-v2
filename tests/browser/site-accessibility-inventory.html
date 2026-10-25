@@ -1,0 +1,98 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>FolkNet route accessibility inventory (non-certifying)</title>
+<style>body{margin:8px;font-family:system-ui}#site{height:820px;border:0;display:block}#result{white-space:pre-wrap;overflow-wrap:anywhere}</style>
+</head><body data-status="running">
+<iframe id="site" title="Accessibility audit sample" src="../../index.html#/portfolio"></iframe>
+<pre id="result">running</pre>
+<script type="module">
+const width=Number(new URLSearchParams(location.search).get("width")||390);
+const frame=document.querySelector("#site");frame.style.width=width+"px";
+const doc=()=>frame.contentDocument,win=()=>frame.contentWindow;
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const check=(condition,message)=>{if(!condition)throw Error(message)};
+const routes=[
+ ["/portfolio",".hero"],["/about","main"],["/cv","main.cv-page"],["/contact","main"],
+ ["/courses",".course-grid"],["/courses/5",".course-card"],
+ ["/courses/5/TMR4182",".course-header"],["/viewer/5/TMR4182/0",".viewer"],
+ ["/engineering",".workspace"],["/engineering/hydro",".workspace"],
+ ["/engineering/structure",".workspace"],["/engineering/cad",".engineering-cad-page"],
+ ["/engineering/kisssoft",".kisssoft-page"],["/tools",".topbar"],
+ ["/tools/python",".python-workbench"],["/tools/coolprop",".topbar"],
+ ["/tools/model-inspector",".topbar"],["/tools/crystal",".topbar"],
+ ["/diverse",".diverse-page"],["/diverse/diving",".dive-page"],
+ ["/diverse/brewing",".topbar"],["/diverse/medisin",".topbar"],
+ ["/settings",".settings"],["/settings/connections",".settings"]
+];
+const result=[];
+function visible(el){
+  if(el.closest("[hidden],[inert],[aria-hidden='true']"))return false;
+  const style=win().getComputedStyle(el);
+  return style.display!=="none"&&style.visibility!=="hidden"&&el.getClientRects().length>0;
+}
+function label(el,d){
+  if(el.getAttribute("aria-label")?.trim()||el.getAttribute("aria-labelledby")?.trim())return true;
+  if(el.getAttribute("title")?.trim())return true;
+  if(el.labels?.length&&[...el.labels].some(x=>x.textContent.trim()))return true;
+  if(el.tagName==="INPUT"){
+    if(["button","reset","submit"].includes(el.type))return Boolean(el.value.trim());
+    return false;
+  }
+  if(el.tagName==="IMG")return Boolean(el.getAttribute("alt"));
+  if(el.textContent?.trim())return true;
+  return Boolean(el.querySelector("img[alt]:not([alt='']), svg[aria-label], svg title"));
+}
+function scan(route){
+  const d=doc();const issues=[];
+  const interactive=d.querySelectorAll("button,a[href],input:not([type='hidden']),select,textarea");
+  for(const el of interactive){
+    if(!visible(el))continue;
+    if(!label(el,d)){
+      const target=(el.outerHTML||"").slice(0,130).replaceAll("\n"," ");
+      issues.push("unlabelled "+target);
+    }
+  }
+  for(const el of d.querySelectorAll("img")){
+    if(!visible(el))continue;
+    if(!el.hasAttribute("alt"))issues.push("image missing alt "+(el.getAttribute("src")||"").slice(0,80));
+  }
+  const known=new Set();
+  for(const el of d.querySelectorAll("[id]")){
+    if(known.has(el.id))issues.push("duplicate id "+el.id);
+    known.add(el.id);
+  }
+  const landmark=d.querySelector("main, [role='main']");
+  if(!landmark)issues.push("main landmark absent");
+  return {route,issues:issues.slice(0,15),issueCount:issues.length,
+    controls:[...interactive].filter(visible).length};
+}
+async function waitFor(route,selector){
+  for(let i=0;i<140;i++){
+    if(win().location.hash==="#"+route&&doc()?.querySelector(selector))return;
+    await sleep(90);
+  }
+  throw Error("route load "+route);
+}
+try{
+  await waitFor("/portfolio",".hero");
+  check(doc().documentElement.lang==="no","Site language must be declared");
+  for(const [route,selector] of routes){
+    win().location.hash="#"+route;
+    await waitFor(route,selector);
+    await sleep(75);
+    result.push(scan(route));
+  }
+  const issues=result.reduce((acc,x)=>acc+x.issueCount,0);
+  const bad=result.filter(x=>x.issueCount>0);
+  const summary={viewport:width,checkedRoutes:result.length,
+    issuesHeuristic:issues,
+    affectedRoutes:bad.map(x=>({route:x.route,count:x.issueCount,examples:x.issues.slice(0,2)})),
+    note:"Heuristic inspection only. Not an axe audit or actual assistive technology certification."};
+  check(issues===0,"Accessible-name/landmark/ID audit detected "+
+    issues+" issue(s): "+JSON.stringify(bad.slice(0,6)));
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent=JSON.stringify(summary);
+}catch(error){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>

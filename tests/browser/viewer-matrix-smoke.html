@@ -172,6 +172,89 @@ try{
     raceRoot.__viewerCleanup?.();
     raceRoot.remove();
   }
+  // CORS-blocked public NTNU Python source can be retried with a user-selected
+  // local copy without uploading data or changing the original link.
+  const ntRoot=document.createElement("div");
+  document.body.append(ntRoot);
+  const originalFetch=window.fetch;
+  const originalRevoke=URL.revokeObjectURL;
+  const revoked=[];
+  URL.revokeObjectURL=(url)=>{revoked.push(url);return originalRevoke.call(URL,url)};
+  window.fetch=(input,options)=>{
+    if(/tormt\.folk\.ntnu\.no\/semestre\/5\/Marin-Dynamikk\/filer\/CORS\.(?:py|docx)/.test(String(input)))
+      return Promise.reject(new TypeError("Blocked by CORS"));
+    return originalFetch(input,options);
+  };
+  try{
+    const ntURL="https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/CORS.py";
+    await mountViewer(ntRoot,{name:"CORS.py",label:"CORS example",kind:"PY",
+      section:"Filer",semester:5,courseCode:"Marin-Dynamikk",
+      source:"ntnu",remoteArchive:true,url:ntURL,path:ntURL},()=>{});
+    assert(ntRoot.querySelector("#viewer-choose-local"),"Local CORS retry missing");
+    const local=new File(["print('local preview')\n"],"CORS.py",{type:"text/x-python"});
+    const input=ntRoot.querySelector("#viewer-local-file");
+    const dt=new DataTransfer();dt.items.add(local);input.files=dt.files;
+    input.dispatchEvent(new Event("change",{bubbles:true}));
+    for(let i=0;i<60&&!ntRoot.querySelector(".python-workbench");i++)
+      await new Promise(resolve=>setTimeout(resolve,30));
+    assert(ntRoot.querySelector(".python-workbench"),"Downloaded .py not routed to Python viewer");
+    assert(ntRoot.querySelector("#viewer-canvas")?.textContent.includes("local preview"),
+      "Local Python contents missing");
+    assert(ntRoot.querySelector(".viewer-status")?.textContent.includes(ntURL),
+      "Original NTNU link was lost after local retry");
+    ntRoot.__viewerCleanup?.();
+    assert(revoked.some(url=>url.startsWith("blob:")),"Local object URL was not revoked");
+    // Native image embeds can fail without rejecting the adapter render.
+    const imageRoot=document.createElement("div");document.body.append(imageRoot);
+    const imageURL=ntURL.replace("CORS.py","CORS.png");
+    try{
+      await mountViewer(imageRoot,{name:"CORS.png",label:"Image CORS",kind:"IMAGE",
+        section:"Filer",semester:5,courseCode:"Marin-Dynamikk",
+        source:"ntnu",remoteArchive:true,url:imageURL,path:imageURL},()=>{});
+      assert(imageRoot.querySelector(".image-viewer"),"Image viewer failed to mount");
+      assert(imageRoot.querySelector(".viewer-head #viewer-choose-local"),
+        "Local open must be visible even without adapter failure");
+      const imageInput=imageRoot.querySelector("#viewer-local-file");
+      const bytes=Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+nOZkAAAAASUVORK5CYII="),c=>c.charCodeAt(0));
+      const choice=new DataTransfer();
+      choice.items.add(new File([bytes],"CORS.png",{type:"image/png"}));
+      imageInput.files=choice.files;imageInput.dispatchEvent(new Event("change",{bubbles:true}));
+      for(let i=0;i<60&&!imageRoot.querySelector(".image-viewer img[src^='blob:']");i++)
+        await new Promise(resolve=>setTimeout(resolve,20));
+      assert(imageRoot.querySelector(".image-viewer img[src^='blob:']"),
+        "Image was not opened from the selected local file");
+      assert(imageRoot.querySelector(".viewer-status")?.textContent.includes(imageURL),
+        "Original image URL was lost");
+    }finally{imageRoot.__viewerCleanup?.();imageRoot.remove()}
+    // Office previously preferred resource.url over the local blob.
+    const fixture="../../examples/semesters/5/TMR4182/Filer%20og%20ressurser/Office/hydro-notes.docx";
+    const officeData=await (await originalFetch(fixture)).arrayBuffer();
+    const docxURL=ntURL.replace("CORS.py","CORS.docx");
+    const docxRoot=document.createElement("div");document.body.append(docxRoot);
+    try{
+      await mountViewer(docxRoot,{name:"CORS.docx",label:"DOCX local retry",kind:"DOCX",
+        section:"Filer",semester:5,courseCode:"Marin-Dynamikk",
+        source:"ntnu",remoteArchive:true,url:docxURL,path:docxURL},()=>{});
+      assert(docxRoot.querySelector("#viewer-choose-local"),"DOCX local retry control missing");
+      const localInput=docxRoot.querySelector("#viewer-local-file");
+      const selected=new DataTransfer();
+      selected.items.add(new File([officeData],"CORS.docx",{
+        type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      }));
+      localInput.files=selected.files;localInput.dispatchEvent(new Event("change",{bubbles:true}));
+      for(let i=0;i<80&&!docxRoot.querySelector(".office-doc");i++)
+        await new Promise(resolve=>setTimeout(resolve,35));
+      assert(docxRoot.querySelector(".office-doc"),"DOCX local retry still fetched remote NTNU URL");
+      assert(docxRoot.querySelector(".viewer-status")?.textContent.includes(docxURL),
+        "Original DOCX URL lost when local copy was opened");
+    }finally{
+      docxRoot.__viewerCleanup?.();docxRoot.remove();
+    }
+
+  }finally{
+    window.fetch=originalFetch;URL.revokeObjectURL=originalRevoke;
+    ntRoot.__viewerCleanup?.();ntRoot.remove();
+  }
   document.body.dataset.status="pass";
   result.textContent="viewer-matrix-smoke: "+report.join(", ")+"; URL-only DOCX and stale-viewer navigation";
 }catch(error){

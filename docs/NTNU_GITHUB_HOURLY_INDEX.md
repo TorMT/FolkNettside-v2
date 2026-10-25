@@ -108,6 +108,35 @@ indeksene. Funksjonen er foreløpig kun aktivert for ITGK, fordi
 dette er kilden som er kontrollert. Andre fag må vurderes før
 tilsvarende tilgang slås på.
 
+## Støttede formater fra kataloglisting (24.10.2026)
+
+NTNU trenger **ikke** en egen `index.json` per ny fil når Apache DirectoryIndex
+viser innholdet i en godkjent offentlig fagmappe. Skanneren oppdager
+filreferansen ved neste kjøring. Nå er også KISSsoft-varianter
+(`.Z12`, `.Z14`, `.Z012`, `.Z014`, `.KSYS`), CAD
+(`.gltf`, `.brep`, `.dxf`, `.dwg`), lyd/video og strukturerte
+tekstformater justert mot V2s filvisere. Et format med
+konverteringsadapter blir tilgjengelig for nedlasting, ikke automatisk
+fullverdig 3D-forhåndsvisning. Ingen originalfil lastes ned eller legges til
+GitHub.
+
+Beskyttede, skjulte og ikke-tillatte stier forblir avvist.
+Eksisterende `index.html`-sider som skjuler kataloglistingen er fortsatt
+et separat problem og behandles konservativt som beskrevet over.
+
+## Eldre NTNU-reserveindeks krever eksplisitt offentlig status (25.10.2026)
+
+Når V2s genererte indeks ikke er tilgjengelig, kan den eksisterende
+NTNU-`index.json` brukes som reserve. Den trenger nå nøyaktig
+`beskyttet: false` på **både semester og fag** for å kunne vise filene.
+Manglende status, strengen `"false"`, `null` eller `true` gir ingen
+offentlig visning. Dette er tilsvarende sikkerhetskrav som i den
+automatiske indeksereren.
+
+Hvis en eldre, reelt offentlig NTNU-mappe mangler statusfeltet, skal
+SiteUpdater-metadata gjennomgås separat og oppdateres med godkjennelse;
+V2 skal ikke gjette rettighetene eller kopiere originalfilene.
+
 ## CORS — kontroll før root-redirect
 
 GitHub Pages på tormt.github.io og NTNU på tormt.folk.ntnu.no er

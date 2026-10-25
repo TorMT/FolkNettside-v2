@@ -333,3 +333,20 @@
  .viewer-head-actions .btn{font-size:11px;padding:7px 8px}
  .viewer-toolbar{gap:5px}
 }
+
+/* No-upload recovery after NTNU CORS errors, mobile-first touch area. */
+.viewer-local-status{font-size:12px;max-width:100%;overflow-wrap:anywhere}
+.viewer-error-actions #viewer-choose-local,
+.viewer-readonly-fallback #viewer-choose-local{min-height:44px;white-space:normal}
+@media(max-width:390px){
+ .viewer-error-actions{display:flex;flex-wrap:wrap;gap:8px}
+ .viewer-error-actions>a,.viewer-error-actions>button{max-width:100%;white-space:normal}
+}
+
+/* NTNU file opening stays usable even when browser-native embeds fail silently. */
+.viewer-file-actions #viewer-choose-local{min-height:44px;white-space:normal}
+.viewer-file-actions .viewer-local-status:not(:empty){flex:1 1 100%;line-height:1.4}
+@media(max-width:390px){
+ .viewer-head-actions .viewer-file-actions #viewer-choose-local{flex:1 1 auto;min-width:0}
+ .viewer-head-actions .viewer-file-actions{gap:6px}
+}

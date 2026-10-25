@@ -13,7 +13,16 @@ const SAFE_FILE_TYPES=Object.freeze({
  mp4:"VIDEO",webm:"VIDEO",mov:"VIDEO",mp3:"AUDIO",wav:"AUDIO",
  zip:"ZIP",stl:"STL","3mf":"3MF",obj:"OBJ",glb:"GLB",gltf:"GLTF",
  f3z:"F3Z",f3d:"F3D",step:"STEP",stp:"STEP",iges:"IGES",igs:"IGES",
- w10:"W10",z012rs:"Z012RS",z014rs:"Z014RS"
+ w10:"W10",z012rs:"Z012RS",z014rs:"Z014RS",
+ z12:"Z12",z14:"Z14",z012:"Z012",z014:"Z014",ksys:"KSYS",
+ gltf:"GLTF",brep:"BREP",dxf:"DXF",dwg:"DWG",
+ tsv:"TSV",psv:"PSV",jsonl:"JSONL",ndjson:"NDJSON",
+ geojson:"GEOJSON",yaml:"YAML",yml:"YAML",xml:"XML",
+ srt:"SRT",vtt:"VTT",
+ mp3:"AUDIO",wav:"AUDIO",ogg:"AUDIO",flac:"AUDIO",
+ m4a:"AUDIO",aac:"AUDIO",oga:"AUDIO",opus:"AUDIO",
+ mkv:"VIDEO",m4v:"VIDEO",ogv:"VIDEO",
+ avif:"IMAGE",bmp:"IMAGE",tif:"IMAGE",tiff:"IMAGE"
 });
 const object=v=>v!==null&&typeof v==="object"&&!Array.isArray(v);
 const safePiece=v=>typeof v==="string"&&v.length>0&&v.length<=210&&
@@ -64,7 +73,7 @@ export function parseNTNUSemesterIndex(semesterId,raw,{titles=new Map(),origin=N
  const courses=[];
  for(const [slug,record] of Object.entries(raw)){
    if(slug==="welcome"||!safePiece(slug)||!object(record)||
-      record.beskyttet===true)continue;
+      record.beskyttet!==false)continue;
    if(record.dir!==undefined&&record.dir!==slug)continue;
    const indexed=Array.isArray(record.files)?record.files:[];
    const quizRef=typeof record.quiz==="string"?record.quiz:null;
@@ -144,7 +153,7 @@ export async function loadNTNUCatalog({fetchImpl=fetch,origin=NTNU_ORIGIN,
  const root=await readIndex("/semestre/index.json",{fetchImpl,origin});
  if(!object(root))throw Error("Invalid NTNU catalog root");
  const ids=Object.keys(root).filter(x=>/^\d{1,2}$/.test(x)&&
-   Number(x)>=1&&Number(x)<=20&&root[x]?.beskyttet!==true)
+   Number(x)>=1&&Number(x)<=20&&root[x]?.beskyttet===false)
    .map(Number).sort((a,b)=>a-b);
  if(!ids.length)throw Error("NTNU index declares no public semesters");
  let titles=new Map();

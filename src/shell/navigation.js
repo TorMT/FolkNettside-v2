@@ -26,16 +26,17 @@ function navButton(item,active,{mobile=false,coursesLabel="Courses",courseUpdate
   const label=escapeHTML(item.id==="courses"?coursesLabel:item.label);
   const news=item.id==="courses"?courseUpdateCounter(courseUpdates):"";
   const activeClass=active===item.id?"active":"";
+  const current=active===item.id?' aria-current="page"':"";
   if(item.action==="more"){
     return `<button data-mobile-more-toggle type="button" aria-controls="mobile-more-menu" aria-expanded="false" class="${activeClass}"><span>${item.icon||""}</span>${label}</button>`;
   }
   if(item.action==="search"){
-    return `<button data-search-open class="${activeClass}"><span>${item.icon||""}</span>${label}</button>`;
+    return `<button type="button" data-search-open class="${activeClass}"><span>${item.icon||""}</span>${label}</button>`;
   }
   if(mobile){
-    return `<button data-go="${item.route}" aria-label="${item.id==="engineering"?"Engineering":label}" class="${activeClass}"><span>${item.icon||""}</span>${label}${news}</button>`;
+    return `<button data-go="${item.route}" aria-label="${item.id==="engineering"?"Engineering":label}" class="${activeClass}"${current}><span>${item.icon||""}</span>${label}${news}</button>`;
   }
-  return `<button data-go="${item.route}" class="${activeClass}">${label}${news}</button>`;
+  return `<button data-go="${item.route}" class="${activeClass}"${current}>${label}${news}</button>`;
 }
 
 export function renderTopShell(active,{coursesLabel="Courses",account={},folkAccount={},courseUpdates=0}={}){
@@ -50,11 +51,12 @@ export function renderTopShell(active,{coursesLabel="Courses",account={},folkAcc
   const accountName=escapeHTML(text);
   const accountInitial=signedIn?escapeHTML(String(text).trim().slice(0,1).toUpperCase()):"○";
 
-  return `<header class="topbar">
-    <div class="brand" id="home"><span class="brand-mark"></span>FolkNettside</div>
-    <nav class="nav">${desktopPrimary}</nav>
+  return `<button type="button" class="skip-to-content" data-skip-content>Skip to content</button>
+  <header class="topbar">
+    <button type="button" class="brand" id="home" aria-label="Go to Projects"><span class="brand-mark" aria-hidden="true"></span>FolkNettside</button>
+    <nav class="nav" aria-label="Main navigation">${desktopPrimary}</nav>
     <span class="top-spacer"></span>
-    <nav class="nav"><button data-go="/courses" class="${active==="courses"?"active":""}">${escapeHTML(coursesLabel)}${courseUpdateCounter(courseUpdates)}</button></nav>
+    <nav class="nav" aria-label="Course navigation"><button data-go="/courses" class="${active==="courses"?"active":""}"${active==="courses"?' aria-current="page"':""}>${escapeHTML(coursesLabel)}${courseUpdateCounter(courseUpdates)}</button></nav>
     <div class="top-actions">
       <button class="icon-btn" data-search-open aria-label="Search">⌕</button>
       <button class="account-chip ${signedIn?"signed-in":""}" data-go="/settings/connections" aria-label="${signedIn?`Account: ${accountName}`:"Sign in"}"><span>${accountInitial}</span><em>${accountName}</em></button>
@@ -63,10 +65,10 @@ export function renderTopShell(active,{coursesLabel="Courses",account={},folkAcc
   </header>
   <nav class="mobile-nav" aria-label="Primary">${mobile}</nav>
   <nav class="mobile-more-menu" id="mobile-more-menu" aria-label="Additional navigation" hidden>
-    <button data-go="/about">About</button>
-    <button data-go="/cv">CV</button>
-    <button data-go="/contact">Contact</button>
-    <button data-go="/settings">Settings</button>
+    <button type="button" data-go="/about">About</button>
+    <button type="button" data-go="/cv">CV</button>
+    <button type="button" data-go="/contact">Contact</button>
+    <button type="button" data-go="/settings">Settings</button>
   </nav>`;
 }
 
@@ -76,10 +78,48 @@ export function bindShellNavigation(root,{navigate,openSearch,onHome}){
   });
   const moreButton=root.querySelector("[data-mobile-more-toggle]");
   const moreMenu=root.querySelector("#mobile-more-menu");
-  moreButton?.addEventListener("click",()=>{
+  // Global listeners are attached only while the popup is open.
+  const closeMoreMenu=(restoreFocus=false)=>{
+    if(!moreMenu||moreMenu.hidden)return;
+    moreMenu.hidden=true;
+    moreButton?.setAttribute("aria-expanded","false");
+    document.removeEventListener("pointerdown",closeOnOutside);
+    document.removeEventListener("focusin",closeOnOutside);
+    window.removeEventListener("hashchange",closeOnRoute);
+    if(restoreFocus)moreButton?.focus();
+  };
+  function closeOnOutside(event){
+    if(moreMenu?.contains(event.target)||moreButton?.contains(event.target))return;
+    closeMoreMenu();
+  }
+  function closeOnRoute(){closeMoreMenu();}
+  function closeOnEscape(event){
+    if(event.key!=="Escape"||moreMenu?.hidden)return;
+    event.preventDefault();
+    closeMoreMenu(true);
+  }
+  moreButton?.addEventListener("click",event=>{
     if(!moreMenu)return;
-    moreMenu.hidden=!moreMenu.hidden;
-    moreButton.setAttribute("aria-expanded",String(!moreMenu.hidden));
+    if(!moreMenu.hidden){closeMoreMenu();return;}
+    moreMenu.hidden=false;
+    moreButton.setAttribute("aria-expanded","true");
+    document.addEventListener("pointerdown",closeOnOutside);
+    document.addEventListener("focusin",closeOnOutside);
+    window.addEventListener("hashchange",closeOnRoute);
+    if(event.detail===0)moreMenu.querySelector("button")?.focus();
+  });
+  moreButton?.addEventListener("keydown",closeOnEscape);
+  moreMenu?.addEventListener("keydown",closeOnEscape);
+  moreMenu?.querySelectorAll("[data-go]").forEach(button=>{
+    button.addEventListener("click",()=>closeMoreMenu());
+  });
+  root.querySelector("[data-skip-content]")?.addEventListener("click",()=>{
+    // Hash routing owns the URL fragment: using href="#main" would change routes.
+    const target=root.querySelector("main, [role='main'], .workspace, .viewer, .layout, .settings, .engineering-cad-page, .kisssoft-page, .python-workbench, .course-admin-page, .diverse-page, .dive-page");
+    if(!target)return;
+    if(!target.hasAttribute("tabindex"))target.setAttribute("tabindex","-1");
+    if(target.tagName!=="MAIN"&&!target.hasAttribute("role"))target.setAttribute("role","main");
+    target.focus();
   });
   root.querySelector("#home")?.addEventListener("click",onHome);
   root.querySelectorAll("[data-search-open]").forEach(button=>{

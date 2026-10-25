@@ -59,6 +59,42 @@ test("semester 5 index preserves nested course files without copying bytes",()=>
  assert.ok(!JSON.stringify(result).includes("Private notes"));
  assert.ok(!JSON.stringify(result).includes("Secret.zip"));
 });
+test("unknown or malformed NTNU public status is excluded from legacy resources",()=>{
+ const raw={
+  approved:{dir:"approved",beskyttet:false,files:["filer/public.pdf"]},
+  missing:{dir:"missing",files:["filer/unreviewed.pdf"]},
+  stringFlag:{dir:"stringFlag",beskyttet:"false",files:["filer/unreviewed.pdf"]},
+  nullFlag:{dir:"nullFlag",beskyttet:null,files:["filer/unreviewed.pdf"]},
+  denied:{dir:"denied",beskyttet:true,files:["filer/unreviewed.pdf"]}
+ };
+ const parsed=parseNTNUSemesterIndex(5,raw);
+ assert.deepEqual(parsed.courses.map(x=>x.code),["approved"]);
+ assert.equal(parsed.courses[0].resources[0].name,"public.pdf");
+});
+test("root semester access must be explicitly false before fetching files",async()=>{
+ const root={
+  "1":{dir:"1",files:[]},
+  "2":{dir:"2",beskyttet:"false",files:[]},
+  "3":{dir:"3",beskyttet:true,files:[]},
+  "4":{dir:"4",beskyttet:false,files:[]}
+ };
+ const requested=[];
+ const fetchImpl=async url=>{
+  const path=new URL(url).pathname;
+  requested.push(path);
+  return {ok:true,status:200,text:async()=>JSON.stringify(
+    path==="/semestre/index.json"?root:
+      {test:{dir:"test",beskyttet:false,files:["filer/public.pdf"]}}
+  )};
+ };
+ const out=await loadNTNUCatalog({fetchImpl});
+ assert.deepEqual(requested,["/semestre/index.json","/semestre/4/index.json"]);
+ assert.deepEqual(out.semesters.map(x=>x.id),[4]);
+ assert.deepEqual(out.semesters[0].courses.map(x=>x.code),["test"]);
+ await assert.rejects(loadNTNUCatalog({fetchImpl:async()=>({
+  ok:true,text:async()=>JSON.stringify({"1":{dir:"1",files:[]}})
+ })}),/no public semesters/);
+});
 test("real NTNU quiz metadata outside files becomes a QUIZ resource once",()=>{
  const source={
   exphil:{
@@ -144,7 +180,7 @@ test("inaccessible semester is marked partial, never substituted with demo files
    const path=new URL(u).pathname;
    if(path==="/semestre/1/index.json")return {ok:false,status:403};
    const body=path==="/semestre/index.json"?
-     {"1":{dir:"1",files:[]},"5":{dir:"5",files:[]}}:
+     {"1":{dir:"1",files:[],beskyttet:false},"5":{dir:"5",files:[],beskyttet:false}}:
      {"marin-maskineri":{dir:"marin-maskineri",files:[],beskyttet:false}};
    return {ok:true,text:async()=>JSON.stringify(body)};
  };
@@ -153,4 +189,32 @@ test("inaccessible semester is marked partial, never substituted with demo files
  assert.deepEqual(r.failedSemesters,[1]);
  assert.deepEqual(r.semesters.map(x=>x.id),[5]);
  await assert.rejects(loadNTNUCatalog({origin:"https://evil.example",fetchImpl}),/Unexpected/);
+});
+
+test("public legacy NTNU metadata preserves engineering/media files supported by their viewers",async()=>{
+ const {viewerKind}=await import("../src/viewers/registry.js");
+ const cases=[
+  ["Gears.Z12","Z12","kisssoft"],
+  ["Gears.Z014","Z014","kisssoft"],
+  ["Assembly.KSYS","KSYS","kisssoft"],
+  ["Hull.GLTF","GLTF","gltf"],
+  ["Hull.BREP","BREP","cad"],
+  ["Drawing.DXF","DXF","conversion"],
+  ["Hydro.MP3","AUDIO","audio"],
+  ["Sensor.JSONL","JSONL","text"],
+  ["Lecture.MKV","VIDEO","video"],
+  ["Sheet.TSV","TSV","csv"]
+ ];
+ const raw={testcourse:{dir:"testcourse",beskyttet:false,
+  files:[...cases.map(([name])=>"filer/"+name),
+   "filer/private-gear.Z12","filer/.env","filer/unsafe.exe"]}};
+ const result=parseNTNUSemesterIndex(5,raw);
+ const resources=result.courses[0].resources;
+ for(const [name,kind,adapter] of cases){
+   const file=resources.find(item=>item.name===name);
+   assert.ok(file,name+" should stay indexed for V2");
+   assert.equal(file.kind,kind,name);
+   assert.equal(viewerKind(file),adapter,name);
+ }
+ assert.ok(!resources.some(file=>file.name==="private-gear.Z12"||file.name===".env"));
 });

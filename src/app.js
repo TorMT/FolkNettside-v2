@@ -78,7 +78,7 @@ import {configuredMatprisEndpoint} from "./diverse/matpris-api.js";
 import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js";
 import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js";
 import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js";
-import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignUp,folkSignOut,getFolkLinkedProviders} from "./platform/folkside-auth.js";
+import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignOut,getFolkLinkedProviders} from "./platform/folkside-auth.js";
 import {probeFolkCoreBackend} from "./platform/folkside-cloud.js";
 import {createFolkAppearanceBackup} from "./platform/folkside-preferences.js";
 
@@ -1027,8 +1027,7 @@ function settingsPage(){
     buttons.forEach(b=>b.disabled=true);
     try{
       const credentials=folkCredentials();
-      if(action==="signup")await folkSignUp(credentials);
-      else await folkSignIn(credentials);
+      await folkSignIn(credentials);
     }catch{ /* Auth status is rendered from the shared account state. */ }
     if(route().startsWith("/settings")&&settingsSection==="connections")settingsPage();
   };
@@ -1036,7 +1035,6 @@ function settingsPage(){
     event.preventDefault();
     void folkAction("login");
   });
-  app.querySelector("[data-folk-signup]")?.addEventListener("click",()=>void folkAction("signup"));
   app.querySelector("[data-folk-signout]")?.addEventListener("click",async()=>{
     await folkSignOut();
     if(route().startsWith("/settings")&&settingsSection==="connections")settingsPage();
@@ -2092,7 +2090,7 @@ async function engineeringPage(){
     <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
       ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
     </div></div>
-    <aside class="tree"><input id="component-filter" placeholder="Filter name, role or subsystem"><div class="tree-label">Semantic assembly</div>
+    <aside class="tree"><input id="component-filter" aria-label="Filter components by name, role or subsystem" placeholder="Filter name, role or subsystem"><div class="tree-label">Semantic assembly</div>
       <div id="component-tree">${uiComponents.map(component=>{
         const semantic=componentSemantic(component);
         const semanticLabel=semantic.subtype||semantic.role||component.type;
@@ -2375,9 +2373,21 @@ async function engineeringPage(){
   });
 }
 function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+escCourse(message)+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
-async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code,courseTitle:course.title,sectionIndex:course.sections.indexOf(resource.section),fileNavigation:courseViewerNeighbors({...course,semester:info.semester},info.resourceIndex)},()=>go(courseRoute(info.semester,course.code)))}
+function disposeActiveViewer(){
+  const holder=app.__viewerHolder;
+  if(!holder)return;
+  app.__viewerHolder=null;
+  // A native breadcrumb or next/previous link can detach the old viewer
+  // without clicking its own Back button. Abort any pending adapter and
+  // release blob URLs, WebGL scenes, workers and keyboard shortcuts.
+  holder.__viewerTicket=(holder.__viewerTicket||0)+1;
+  const cleanup=holder.__viewerCleanup;
+  holder.__viewerCleanup=null;
+  cleanup?.();
+}
+async function viewerPage(info){const course=getCourse(info.semester,info.code),resource=course?.resources[info.resourceIndex];if(!course||!resource)return notFoundPage("Viewer resource was not found.");app.innerHTML=top("courses");bindNav();const holder=document.createElement("div");app.append(holder);app.__viewerHolder=holder;await mountViewer(holder,{...resource,semester:info.semester,courseCode:course.code,courseTitle:course.title,sectionIndex:course.sections.indexOf(resource.section),fileNavigation:courseViewerNeighbors({...course,semester:info.semester},info.resourceIndex)},()=>go(courseRoute(info.semester,course.code)))}
 
-async function render(){const currentPath=route();if(currentPath!=="/tools/python"){pythonToolCleanup?.();pythonToolCleanup=null;}if(currentPath!=="/tools/vault"){vaultToolCleanup?.();vaultToolCleanup=null;}app.__courseObserver?.disconnect();app.__courseObserver=null;const path=route();
+async function render(){disposeActiveViewer();const currentPath=route();if(currentPath!=="/tools/python"){pythonToolCleanup?.();pythonToolCleanup=null;}if(currentPath!=="/tools/vault"){vaultToolCleanup?.();vaultToolCleanup=null;}app.__courseObserver?.disconnect();app.__courseObserver=null;const path=route();
   // Invalidate pending async engineering model loads when navigating to a
   // different route. Otherwise a slow WebGL/model promise may overwrite CAD,
   // KISSsoft, Tools or a document viewer after its page has already mounted.

@@ -33,6 +33,18 @@ KINDS = {
     ".glb":"GLB",".obj":"OBJ",".f3z":"F3Z",".f3d":"F3D",
     ".step":"STEP",".stp":"STEP",".iges":"IGES",".igs":"IGES",
     ".z012rs":"Z012RS",".z014rs":"Z014RS",".w10":"W10",
+    # Keep the hourly scanner aligned with the actual V2 viewer registry.
+    # Names and URLs only: no course material is downloaded to GitHub.
+    ".z12":"Z12",".z14":"Z14",".z012":"Z012",".z014":"Z014",
+    ".ksys":"KSYS",
+    ".gltf":"GLTF",".brep":"BREP",".dxf":"DXF",".dwg":"DWG",
+    ".tsv":"TSV",".psv":"PSV",".jsonl":"JSONL",".ndjson":"NDJSON",
+    ".geojson":"GEOJSON",".yaml":"YAML",".yml":"YAML",".xml":"XML",
+    ".srt":"SRT",".vtt":"VTT",
+    ".mp3":"AUDIO",".wav":"AUDIO",".ogg":"AUDIO",".flac":"AUDIO",
+    ".m4a":"AUDIO",".aac":"AUDIO",".oga":"AUDIO",".opus":"AUDIO",
+    ".mkv":"VIDEO",".m4v":"VIDEO",".ogv":"VIDEO",
+    ".avif":"IMAGE",".bmp":"IMAGE",".tif":"IMAGE",".tiff":"IMAGE",
     ".fbm":"FILE"  # DELFTship / other legacy source file: download-only
 }
 SKIP = {"index.html","index.htm","index.php","index.json","thumbs.db"}

@@ -36,9 +36,9 @@ test("public index audit summarizes real viewer kinds without exposing paths",()
 
 test("index audit counts separate quiz metadata and skips duplicate quiz paths",()=>{
  const source={
-   exphil:{dir:"exphil",files:["filer/readme.pdf"],quiz:"quiz/quiz.json"},
-   itgk:{dir:"itgk",files:["quiz/quiz.json"],quiz:"quiz/quiz.json"},
-   nofile:{dir:"nofile",quiz:"quiz/quiz.json"}
+   exphil:{dir:"exphil",beskyttet:false,files:["filer/readme.pdf"],quiz:"quiz/quiz.json"},
+   itgk:{dir:"itgk",beskyttet:false,files:["quiz/quiz.json"],quiz:"quiz/quiz.json"},
+   nofile:{dir:"nofile",beskyttet:false,quiz:"quiz/quiz.json"}
  };
  const result=summarizeSemester(1,source);
  assert.equal(result.publicIndexEntries,4);
@@ -50,12 +50,29 @@ test("index audit counts separate quiz metadata and skips duplicate quiz paths",
 test("partial public semester indexes produce an explicit unavailable state",()=>{
  const root={"1":{dir:"1",beskyttet:false},"2":{dir:"2",beskyttet:false},
    "3":{dir:"3",beskyttet:false}};
- const data={1:{intro:{dir:"intro",files:["filer/test.pdf"]}},
-   3:{empty:{dir:"empty",files:[]}}};
+ const data={1:{intro:{dir:"intro",beskyttet:false,files:["filer/test.pdf"]}},
+   3:{empty:{dir:"empty",beskyttet:false,files:[]}}};
  const summary=summarizeRoot(root,data);
  assert.equal(summary.semesterCount,3);
  assert.equal(summary.availableSemesters,2);
  assert.equal(summary.visibleResources,1);
  assert.deepEqual(summary.semesters.filter(x=>x.unavailable).map(x=>x.semester),[2]);
  assert.equal(summary.readOnly,true);
+});
+
+test("read-only index health excludes unknown public status in metrics",()=>{
+ const summary=summarizeSemester(5,{
+  reviewed:{dir:"reviewed",beskyttet:false,files:["filer/okay.pdf"]},
+  unknown:{dir:"unknown",files:["filer/unknown.pdf"]},
+  malformed:{dir:"malformed",beskyttet:"false",files:["filer/unknown.pdf"]}
+ });
+ assert.equal(summary.visibleResources,1);
+ assert.equal(summary.publicIndexEntries,1);
+ assert.equal(summary.unclassifiedCourseDirectories,2);
+ const root=summarizeRoot({
+  "1":{dir:"1",files:[]},
+  "2":{dir:"2",beskyttet:"false"},
+  "3":{dir:"3",beskyttet:false}
+ },{3:{test:{dir:"test",beskyttet:false,files:[]}}});
+ assert.deepEqual(root.semesters.map(s=>s.semester),[3]);
 });

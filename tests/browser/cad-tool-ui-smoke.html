@@ -65,9 +65,24 @@ try{
  canvas.dispatchEvent(new KeyboardEvent("keydown",{key:"i",bubbles:true,cancelable:true}));
  const status=host.querySelector("#cad-import-status").textContent;
  if(!status.includes("2 components"))throw Error("Demo mount failed: "+status);
+ // Real Munin asset: lazy fetch, axis convention, component count and viewport.
+ if(performance.getEntriesByType("resource").some(e=>e.name.endsWith("munin-mobile-preview.glb")))
+   throw Error("Munin downloaded before opt-in");
+ host.querySelector("[data-cad-munin-preview]").click();
+ for(let i=0;i<300&&!host.querySelector("#cad-import-status").textContent.includes("Munin lastet");i++)
+   await new Promise(resolve=>setTimeout(resolve,100));
+ if(!host.querySelector("#cad-import-status").textContent.includes("130 deler"))
+   throw Error("Real Munin failed: "+host.querySelector("#cad-import-status").textContent);
+ if(!host.querySelector(".three-canvas"))throw Error("Munin canvas missing");
+ const groupText=host.querySelector("[data-cad-group-tree]")?.textContent||"";
+ for(const label of ["Skrog","Thrustere","Sensorer","Elektrisk","Struktur"])
+   if(!groupText.includes(label))throw Error("Munin group missing: "+label);
+ if(Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)>document.documentElement.clientWidth+8)
+   throw Error("Munin overflows viewport");
+ host.querySelector("[data-model-fit]").click();
  document.body.dataset.status="pass";
- document.querySelector("#result").textContent="CAD live viewport, demo assembly, Fit and SpaceMouse controls ready";
- cleanup();
+ document.querySelector("#result").textContent="CAD demo and real Munin GLB, lazy load, mobile viewport, Fit and controls ready";
+ if(!new URLSearchParams(location.search).has("capture"))cleanup();
 }catch(error){
  document.body.dataset.status="fail";
  document.querySelector("#result").textContent=String(error?.stack||error);

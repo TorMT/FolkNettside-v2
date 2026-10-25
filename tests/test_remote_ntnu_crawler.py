@@ -57,6 +57,29 @@ class RemoteCatalogTests(unittest.TestCase):
         self.assertTrue(all(f["url"].startswith(crawler.ORIGIN) for f in files))
         self.assertTrue(all(f["size"]==0 and f["modified"]==0 for f in files))
 
+    def test_new_supported_engineering_and_media_formats_need_no_new_index_json(self):
+        """Real KISSsoft/CAD and media references are indexed directly from AutoIndex."""
+        self.pages[self.directory]=listing(
+            "Gear.Z12","Gear.Z014","Planets.KSYS","Hull.GLTF",
+            "Hull.BREP","Drawing.DXF","Guide.MP3","notes.YAML",
+            "trace.JSONL","film.MKV","unsafe.exe",".env",
+            "private-model.Z12","passord.MP3"
+        )
+        doc=crawler.crawl(self.config,fetch=self.fetch)
+        files=doc["semesters"][0]["courses"][0]["resources"]
+        kinds={item["name"]:item["kind"] for item in files}
+        self.assertEqual(kinds,{
+            "Gear.Z12":"Z12","Gear.Z014":"Z014",
+            "Planets.KSYS":"KSYS","Hull.GLTF":"GLTF",
+            "Hull.BREP":"BREP","Drawing.DXF":"DXF",
+            "Guide.MP3":"AUDIO","notes.YAML":"YAML",
+            "trace.JSONL":"JSONL","film.MKV":"VIDEO"
+        })
+        self.assertEqual(self.urls,[
+            crawler.ORIGIN+"/semestre/5/index.json",self.directory
+        ])
+        self.assertTrue(all(item["url"].startswith(crawler.ORIGIN+"/semestre/5/") for item in files))
+
     def test_block_private_courses_before_directory_requests(self):
         self.pages[crawler.ORIGIN+"/semestre/5/index.json"]=json.dumps({
             "Marin-Dynamikk":{"dir":"Marin-Dynamikk","beskyttet":True}

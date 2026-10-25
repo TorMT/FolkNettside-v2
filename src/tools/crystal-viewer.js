@@ -45,9 +45,9 @@ export function crystalToolHTML(state={}){
         <div class="field">
           <span>Replication Nx × Ny × Nz</span>
           <div class="crystal-replication">
-            <input id="crystal-nx" type="number" min="1" max="8" step="1" value="${nx}">
-            <input id="crystal-ny" type="number" min="1" max="8" step="1" value="${ny}">
-            <input id="crystal-nz" type="number" min="1" max="8" step="1" value="${nz}">
+            <input id="crystal-nx" aria-label="Replication along X (Nx)" type="number" min="1" max="8" step="1" value="${nx}">
+            <input id="crystal-ny" aria-label="Replication along Y (Ny)" type="number" min="1" max="8" step="1" value="${ny}">
+            <input id="crystal-nz" aria-label="Replication along Z (Nz)" type="number" min="1" max="8" step="1" value="${nz}">
           </div>
         </div>
 
