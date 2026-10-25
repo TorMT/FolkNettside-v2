@@ -44,7 +44,7 @@ or duplicate INSERT is a **conflict**, not permission to overwrite.
 
 1. Review the migration and its SQL trigger on a **separate test project**
    or local database; then only if approved apply it to
-   `glfuvfmppkjmarujjqwg`. Never run on LeseRavnen.
+   `aeuouzkiyddfjtjfdosp`. Never run on LeseRavnen.
 2. Verify anonymous, user A and user B cannot read/change each other's
    records, including direct PostgREST calls.
 3. Verify 2 devices updating one record produce a conflict on stale
