@@ -1,6 +1,7 @@
--- FOLKNET ONLY: candidate schema for project glfuvfmppkjmarujjqwg.
--- Not installed by GitHub Pages. Review and apply to the correct Supabase
--- project, NEVER to LeseRavnen.
+-- FOLKNET ONLY: installed on NEW project aeuouzkiyddfjtjfdosp on 2026-10-25
+-- as Supabase migration folk_course_admin_labels_20261025.
+-- Historical file name contains "candidate"; it IS deployed on the new project.
+-- NOT installed by GitHub Pages; do not reapply manually or use on LeseRavnen.
 --
 -- Insert the actual ADMIN auth.users.id separately from a privileged
 -- Supabase SQL session after the owner has logged in at least once.
@@ -10,7 +11,7 @@ create table if not exists public.folk_site_admins (
   slot smallint not null default 1 unique check (slot = 1)
 );
 alter table public.folk_site_admins enable row level security;
-revoke all on public.folk_site_admins from anon, authenticated;
+revoke all on public.folk_site_admins from public, anon, authenticated;
 grant select on public.folk_site_admins to authenticated;
 create policy folk_admin_read_self on public.folk_site_admins
   for select to authenticated
@@ -30,7 +31,7 @@ create table if not exists public.folk_course_labels (
   primary key (kind,key)
 );
 alter table public.folk_course_labels enable row level security;
-revoke all on public.folk_course_labels from anon, authenticated;
+revoke all on public.folk_course_labels from public, anon, authenticated;
 grant select on public.folk_course_labels to anon, authenticated;
 grant insert, update, delete on public.folk_course_labels to authenticated;
 
