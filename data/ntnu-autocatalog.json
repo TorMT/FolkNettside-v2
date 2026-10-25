@@ -10820,6 +10820,19 @@
             },
             {
               "folders": [],
+              "kind": "PDF",
+              "label": "ØvingM2",
+              "modified": 0,
+              "name": "ØvingM2.pdf",
+              "path": "/semestre/5/marin-teknikk-4-propulsjon/filer/%C3%98vingM2.pdf",
+              "relativePath": "filer/ØvingM2.pdf",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-teknikk-4-propulsjon/filer/%C3%98vingM2.pdf"
+            },
+            {
+              "folders": [],
               "kind": "XLSX",
               "label": "ØvingR1",
               "modified": 0,
