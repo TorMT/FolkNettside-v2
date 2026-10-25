@@ -1,4 +1,4 @@
-import {PROPERTY_DEFINITIONS,categories,enrichElement,filterElements,formattedProperty,propertyValue,stateAtTemperature,uniqueValues} from "./periodic-table-core.js?v=6579e44096be500c7c0b643d3313056d4b731598";
+import {PROPERTY_DEFINITIONS,categories,enrichElement,filterElements,formattedProperty,propertyValue,stateAtTemperature,uniqueValues} from "./periodic-table-core.js?v=6107a75ee9edc7a765b5fbcb07069998f2366f5d";
 
 let fixturePromise;
 export function loadPeriodicFixture(path="./data/periodic-table.json"){
