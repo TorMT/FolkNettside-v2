@@ -1269,3 +1269,9 @@ a.project-row:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
  .topbar .top-actions{flex:0 0 auto;min-width:0;gap:1px}
  .topbar .top-actions .icon-btn{height:36px;width:36px}
 }
+
+/* B18: visible shell keyboard focus in light/dark themes. */
+.topbar .brand{border:0;background:transparent;color:inherit;padding:0;min-height:38px;white-space:nowrap}
+.topbar :is(.brand,.nav button,.top-actions button):focus-visible{outline:3px solid #f0d380;outline-offset:2px}
+.mobile-nav button:focus-visible{outline:3px solid #f0d380;outline-offset:-3px}
+.mobile-more-menu button:focus-visible{outline:3px solid var(--accent-strong);outline-offset:-3px}
