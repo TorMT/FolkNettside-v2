@@ -14,7 +14,7 @@
  * All remote fields are treated as untrusted. The backend must authenticate
  * the user, authorize each ID against Autodesk, and prevent open redirects.
  */
-import {getFolkAccessToken} from "./folkside-auth.js?v=802f1c6e9008ae03de65a5e5893eee1fe75df6a3";
+import {getFolkAccessToken} from "./folkside-auth.js?v=89a7630076656c764fe964fbb16ec5499057a23c";
 
 const LEVELS=new Set(["hubs","projects","topFolders","contents","versions"]);
 const FIELDS={hubs:[],projects:["hubId"],topFolders:["hubId","projectId"],
@@ -36,7 +36,7 @@ export function validateHubConfig(input,{origin}={}){
  if(!url.pathname.endsWith("/"))url.pathname+="/";
  const authMode=input.authMode==="folknet"?"folknet":"cookie";
  // A FolkNet Supabase JWT is sensitive: never send it to a configurable URL.
- if(authMode==="folknet"&&(url.origin!=="https://glfuvfmppkjmarujjqwg.supabase.co"||
+ if(authMode==="folknet"&&(url.origin!=="https://aeuouzkiyddfjtjfdosp.supabase.co"||
    url.pathname!=="/functions/v1/autodesk-hub/"))
    throw Error("FolkNet bearer auth requires the exact first-party Supabase function");
  return {enabled:true,apiBase:url.toString(),authMode,reason:""};
