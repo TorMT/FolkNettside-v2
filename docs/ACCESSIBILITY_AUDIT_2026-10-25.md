@@ -34,3 +34,16 @@ Manual acceptance should include:
 5. Large PDF, DOCX, deep NTNU directory, huge model and low-memory handset performance. Avoid publishing or copying student/private resources to reproduce a test.
 
 The issue B18 remains **partial** until the manual gates and systematic contrast/zoom review are complete. A green CI result only validates the automated checks above.
+
+
+## 2026-10-25 — High contrast and motion Settings follow-up
+
+[PR #122](https://github.com/TorMT/FolkNettside-v2/pull/122), merge `1640542a04c1c9e758413331a75c8552b3371f34`.
+
+**Measured issue:** Settings already persisted `contrast=high` and `motion=reduced`, but the stylesheet had no `[data-contrast]` or `[data-motion]` visual rules. The former OS-based reduced-motion media query did not respond to a user's explicit in-app choice.
+
+**Fix:** CSS high-contrast text/border tokens in light and dark mode, keyboard focus rings on controls, readable dark-mode accent ink and dark accent-soft swatches. The explicit reduced-motion preference now limits CSS transitions/animations independently of system preferences, and selecting `system` restores normal CSS transitions where the OS setting permits them.
+
+**Chrome acceptance:** [CI run 40215966024](https://github.com/TorMT/FolkNettside-v2/actions/runs/40215966024) passed all 49 regression steps. Browser checks at **320, 390 and 768px** each verified all **10 combinations** of light/dark × five bundled accent palettes; sampled high-contrast text tokens on panel/recessed surfaces at **≥4.5:1**, strong borders at **≥3:1**, white text on accent buttons at **≥4.5:1**, and saved Settings after a reload. Explicit reduced motion was verified against computed transition duration, then reset to system.
+
+**Limits:** This is a bounded common-token and browser-style acceptance test, **not** full WCAG 2.2 conformance, full Theme Studio image/custom-palette audit or a claim that WebGL/canvas animations stop. Native Windows forced-colors, screen readers, 200–400% zoom and real low-memory phones still require separate testing.
