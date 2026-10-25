@@ -1305,3 +1305,49 @@ a.project-row:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
   }
   .skip-to-content{background:Canvas;color:CanvasText;border-color:CanvasText}
 }
+
+/* B18: Settings controls must have real visual effects, independent of OS prefs.
+   The base accent palette has AA contrast with white; keep strong focus on
+   both the light canvas and the always-dark navigation bar. */
+:root[data-mode="dark"][data-accent]{
+  --accent-soft:color-mix(in srgb,var(--accent) 18%,#0e1b26);
+  --accent-ink:#f8e0ec;
+}
+:root[data-mode="dark"] :is(.link,.panel-tabs button.active,.course-update-pill){
+  color:var(--accent-ink)
+}
+:root[data-contrast="high"]{
+  --ink-2:#294454;
+  --ink-3:#375364;
+  --line:#60798b;
+  --line-strong:#41596a;
+}
+:root[data-mode="dark"][data-contrast="high"]{
+  --ink-2:#ecf4f8;
+  --ink-3:#d3e6ef;
+  --line:#8daabf;
+  --line-strong:#b4ccda;
+}
+:root[data-contrast="high"] :is(button,a,input,select,textarea):focus-visible{
+  outline:3px solid var(--ink);
+  outline-offset:2px
+}
+:root[data-contrast="high"] .topbar :is(button,a):focus-visible,
+:root[data-contrast="high"] .mobile-nav button:focus-visible,
+:root[data-contrast="high"] .skip-to-content:focus-visible{
+  outline:3px solid #f0d380;
+  outline-offset:2px
+}
+:root[data-contrast="high"] .topbar .nav button.active:after{
+  background:#f0d380;height:4px
+}
+:root[data-motion="reduced"]{
+  scroll-behavior:auto!important
+}
+:root[data-motion="reduced"] *,:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after{
+  animation-duration:0.01ms!important;
+  animation-iteration-count:1!important;
+  transition-duration:0.01ms!important;
+  scroll-behavior:auto!important
+}
