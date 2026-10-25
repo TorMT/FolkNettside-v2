@@ -1,19 +1,26 @@
 # FolkNettside V2 — Supabase backend
 
-## Active destination (12 October 2026)
+## Active destination (25 October 2026) — new owner-managed project
 
-- **Project reference:** `glfuvfmppkjmarujjqwg`
-- **API base:** `https://glfuvfmppkjmarujjqwg.supabase.co`
-- **Database:** PostgreSQL 17, EU West
+- **Project reference:** `aeuouzkiyddfjtjfdosp`
+- **API base:** `https://aeuouzkiyddfjtjfdosp.supabase.co`
+- **Organization:** TorMT's Org, Supabase Free (quoted 0 USD/month)
+- **Database:** PostgreSQL 17, Frankfurt (eu-central-1)
 - **Existing unrelated project:** LeseRavnen, not modified
 - **GitHub:** `TorMT/FolkNettside-v2`; source files are committed individually
-- **Deployed functions:** `folk-core` (ACTIVE) and `autodesk-hub` (ACTIVE, backend code deployed but APS credentials and live authorization not configured).
+- **New live function:** `folk-core` (ACTIVE, v1); unauthenticated session/health return HTTP 401.
+- **Autodesk Hub:** code is versioned but the function has **not** been deployed in the NEW project; APS credentials and live authorization remain unconfigured.
 - **Backend authentication status:** Supabase Auth integration with the site's existing Google Drive login is NOT completed. A Google access token from GIS is **not** a Supabase Auth JWT.
 
 This file is an implementation record, **not** permission to remove or migrate
 existing V1/Drive data. V1 is unchanged.
 
-## Installed schema
+## Installed schema (deployed 25 October 2026)
+
+Migrations `folk_course_admin_labels_20261025` and
+`folk_private_storage_and_oauth_20261025` succeeded in the new project.
+The owner-facing admin-label tables are present with RLS, but `auth.users`
+and `folk_site_admins` are both empty; do not claim a working admin login.
 
 The SQL applied to the verified destination project is versioned as
 `server/supabase/folkside_backend_schema.sql`. Current objects:
@@ -66,18 +73,19 @@ The function sets `verify_jwt=false` at the gateway **only** so an
 unauthenticated CORS preflight can succeed. Actual GET calls independently
 validate bearer JWTs with the project's `/auth/v1/user` endpoint before
 returning data. Tokens are never echoed in responses. This is covered by
-`tests/folk-core.test.mjs`. The deployment exists in the correct project;
-a live browser session with a real user JWT has **not yet been tested**.
+`tests/folk-core.test.mjs`. The deployment exists in the new project; anonymous `/health` and `/session`
+were rejected with HTTP 401, but no real authenticated owner JWT has yet
+been tested.
 
-Do not mistake `folk-core` for Autodesk OAuth: the separate
-`autodesk-hub` Edge Function now contains an encrypted PKCE token exchange,
-refresh and callback implementation. Autodesk client registration and
+Do not mistake `folk-core` for Autodesk OAuth: the separately versioned
+`autodesk-hub` Edge Function **source** contains an encrypted PKCE token exchange,
+refresh and callback implementation. It is not deployed in this new project. Autodesk client registration and
 server-side secrets are still missing, and no real Hub user consent has
 been exercised. See `docs/AUTODESK_HUB_BACKEND.md`.
 
-## Current V2 account frontend (implemented 12 October 2026)
+## Current V2 account frontend (updated 25 October 2026)
 
-The optional FolkNet/Supabase Auth account is now visible under
+The optional FolkNet/Supabase Auth account is visible under
 **Settings → Account & connections**, *separate from the existing
 Google/Drive session*. The browser loads public configuration from
 `data/folkside-auth.json`, which contains the fixed Supabase URL and
@@ -85,8 +93,8 @@ a **publishable key only**. It must never contain the database password,
 the secret/service-role key or OAuth tokens.
 
 Files:
-- `src/platform/folkside-auth.js`: explicit email/password registration,
-  sign-in, single-flight refresh, sign-out, and account snapshot events.
+- `src/platform/folkside-auth.js`: owner-managed email/password sign-in (no public signup button), single-flight
+  refresh, sign-out, and account snapshot events.
 - `src/platform/folkside-cloud.js`: authenticated user-identity check
   against the active `folk-core/session` Edge Function.
 - `src/settings/settings-page.js` and `src/app.js`: standalone private
