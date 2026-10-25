@@ -1,5 +1,5 @@
--- DEVELOPMENT CANDIDATE ONLY. Not applied to production Supabase.
--- Target: glfuvfmppkjmarujjqwg (FolkNettside), never the LeseRavnen project.
+-- DEVELOPMENT CANDIDATE ONLY. NOT installed as of 2026-10-25.
+-- Candidate target: new FolkNet project aeuouzkiyddfjtjfdosp; never LeseRavnen or the inaccessible old project.
 -- Run only after 2-user RLS and revision-conflict acceptance tests.
 -- Progress is non-sensitive summary data. Never store answers, dive details,
 -- medicine schedules, OAuth tokens or raw Drive objects in this table.
