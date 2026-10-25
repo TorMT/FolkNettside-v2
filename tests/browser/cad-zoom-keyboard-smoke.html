@@ -22,7 +22,17 @@ function fits(el){
 function noOverflow(where){
  const vw=doc().documentElement.clientWidth;
  const scroll=Math.max(doc().documentElement.scrollWidth,doc().body.scrollWidth);
- assert(scroll<=vw+7,where+" horizontal overflow "+scroll+"/"+vw);
+ const offenders=[...doc().querySelectorAll("body *")].filter(element=>{
+   const bounds=element.getBoundingClientRect();
+   return bounds.width>0&&bounds.right>vw+5&&bounds.left<vw;
+ }).slice(0,14).map(element=>{
+   const b=element.getBoundingClientRect();
+   return element.tagName.toLowerCase()+"."+
+     String(element.className||"").slice(0,60)+"("+Math.round(b.left)+
+     ".."+Math.round(b.right)+")";
+ });
+ assert(scroll<=vw+7,where+" horizontal overflow "+scroll+"/"+vw+
+   "; offenders: "+offenders.join(" | "));
 }
 try{
  await until(()=>get("#model-inspector-stage .three-canvas")&&
