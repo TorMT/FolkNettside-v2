@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NTNU partial semester real Chrome acceptance</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<style>
+body{margin:0}
+#result{font:12px/1.4 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+#frame{display:block;border:1px solid var(--line-strong);max-width:none;height:810px}
+</style>
+</head>
+<body data-status="running">
+<div id="app"></div>
+<pre id="result">running</pre>
+<script type="module">
+import {loadNTNUCatalog} from "../../src/courses/ntnu-catalog.js";
+import {
+  initialCourseSemester,semesterTabsHTML,courseCatalogWarningHTML,emptySemesterHTML
+} from "../../src/courses/course-catalog-availability.js";
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const wait=async(fn,label)=>{
+  for(let n=0;n<180;n++){let found;try{found=fn()}catch{}
+    if(found)return found;await sleep(70)}
+  throw Error("Timed out: "+label);
+};
+const check=(value,msg)=>{if(!value)throw Error(msg)};
+const qs=new URLSearchParams(location.search);
+const width=Number(qs.get("width")||390);
+const app=document.querySelector("#app"),report=document.querySelector("#result");
+
+async function runInner(){
+  const requests=[];
+  const approved={
+    "1":{dir:"1",beskyttet:false},
+    "2":{dir:"2",beskyttet:false},
+    "3":{dir:"3",beskyttet:false},
+    "4":{dir:"4",beskyttet:true},
+    "5":{dir:"5",beskyttet:"false"}
+  };
+  const fetchImpl=async url=>{
+    const path=new URL(url).pathname;
+    requests.push(path);
+    if(path==="/semestre/2/index.json")return {ok:false,status:503};
+    const json=path==="/semestre/index.json"?approved:
+      {["fag-"+path.split("/")[2]]:{
+        dir:"fag-"+path.split("/")[2],beskyttet:false,
+        files:["filer/Øving 1/løsning.py","filer/lecture.pdf"]
+      }};
+    return {ok:true,status:200,headers:{get:()=>null},text:async()=>JSON.stringify(json)};
+  };
+  const manifest=await loadNTNUCatalog({fetchImpl});
+  check(manifest.status==="partial","Injected HTTP failure did not reach real NTNU catalog loader");
+  check(manifest.failedSemesters.join(",")==="2","Reported the wrong failed semester");
+  check(manifest.semesters.flatMap(s=>s.courses).length===2,"Working courses were discarded");
+  check(requests.length===4&&requests.every(p=>!p.includes("/4/")&&!p.includes("/5/")),
+    "Requested unknown or explicitly protected semester indexes");
+  const site=Array.from({length:5},(_,i)=>({
+    id:i+1,label:"Semester "+(i+1),courses:[]
+  }));
+  const semesters=site.map(s=>manifest.semesters.find(m=>m.id===s.id)||s);
+  const source={mode:"ntnu",status:manifest.status,
+    failedSemesters:manifest.failedSemesters};
+  const fixtureCourseCards=semester=>semester.courses.map(c=>
+    `<a class="course-card" href="#/courses/${semester.id}/${encodeURIComponent(c.code)}">
+      <h3>${c.title}</h3><p>${c.resources.length} ressurser</p>
+    </a>`).join("");
+  const render=()=>{
+    const route=/^#\/courses\/(\d+)(?:\/|$)/.exec(location.hash);
+    const id=initialCourseSemester(semesters,source,{
+      requested:route?Number(route[1]):undefined,preferred:2
+    });
+    const selected=semesters.find(s=>s.id===id);
+    app.innerHTML=`<main class="study courses-overview">
+      ${courseCatalogWarningHTML(source)}
+      <div class="semester-navigation"><nav class="semester-tabs" aria-label="Semester navigation">
+        ${semesterTabsHTML(semesters,id,source)}
+      </nav></div>
+      <section class="study-main courses-main">
+        <div class="title-row courses-title-row"><h2>Semester ${id}</h2></div>
+        ${selected.courses.length?
+          `<div class="course-grid">${fixtureCourseCards(selected)}</div>`:
+          emptySemesterHTML(selected,source)}
+      </section>
+    </main>`;
+  };
+  window.addEventListener("hashchange",render);
+  render();
+  const nav=()=>document.querySelector(".semester-tabs");
+  const banner=()=>document.querySelector(".course-source-warning");
+  check(banner()?.getAttribute("role")==="status","Missing accessible status");
+  check(banner().textContent.includes("S2"),"Failed semester not named");
+  check(!banner().textContent.includes("S4")&&!banner().textContent.includes("S5"),
+    "Private or unclassified semester revealed as failed");
+  check(nav().querySelectorAll("a").length===5,"Wrong semester tab count");
+  const broken=nav().querySelector('[data-semester="2"]');
+  check(broken.classList.contains("semester-tab-unavailable"),"No failed tab marker");
+  check(broken.getAttribute("aria-label").includes("kunne ikke oppdateres"),
+    "Failed-tab accessible label missing");
+  check(nav().querySelectorAll(".semester-tab-issue").length===1,
+    "Wrong number of failure markers");
+  check(nav().querySelector('[data-semester="1"]').getAttribute("aria-current")==="page",
+    "Initial navigation did not prefer a successful semester");
+  check(document.querySelector(".course-grid a.course-card[href]"),
+    "Working course card is not a native link");
+  check(!document.querySelector(".course-semester-unavailable"),
+    "Healthy semester mistakenly labelled failed");
+  const viewport=document.documentElement.clientWidth;
+  check(Math.abs(viewport-width)<=20,"Browser viewport wrong: "+viewport+"/"+width);
+  const noPageOverflow=()=>Math.max(
+    document.documentElement.scrollWidth,document.body.scrollWidth)<=innerWidth+6;
+  check(noPageOverflow(),"Banner caused horizontal overflow at "+width+"px");
+  const railStyle=getComputedStyle(nav());
+  check(railStyle.overflowX==="auto"||railStyle.overflowX==="scroll",
+    "Semester rail is not scrollable");
+  const firstLabel=getComputedStyle(nav().querySelector(".semester-label-short")).display;
+  check(width<=760?firstLabel!=="none":firstLabel==="none",
+    "Semester tab label is not responsive");
+
+  broken.focus();
+  check(document.activeElement===broken,"Failed semester tab cannot receive keyboard focus");
+  broken.click();
+  await wait(()=>location.hash==="#/courses/2"&&
+    document.querySelector(".course-semester-unavailable"),
+    "Click did not show the correct failed semester message");
+  check(!document.querySelector(".course-header")?.textContent.includes("Ingen offentlige fag"),
+    "Failed index masquerades as empty semester");
+  check(document.querySelector('[data-semester="2"]').getAttribute("aria-current")==="page",
+    "Failed semester not selected after navigation");
+  check(noPageOverflow(),"Failed semester empty-state caused overflow");
+  const healthy=nav().querySelector('[data-semester="3"]');
+  healthy.focus();
+  check(document.activeElement===healthy,"Healthy semester tab cannot receive focus");
+  healthy.click();
+  await wait(()=>location.hash==="#/courses/3"&&
+    Boolean(document.querySelector(".course-grid a.course-card")),
+    "Healthy semester course did not recover after failed tab");
+  check(!document.querySelector(".course-semester-unavailable"),
+    "Healthy semester still says unavailable");
+  check(document.querySelector(".course-grid").querySelectorAll("a").length===1,
+    "Successful semester lost its working course card");
+  check(noPageOverflow(),"Course cards caused horizontal overflow");
+  return {width,loadedSemesters:manifest.semesters.map(s=>s.id),
+    failed:manifest.failedSemesters,requests:requests.length,
+    keyboard:true,nativeNavigation:true,overflow:false};
+}
+
+try{
+  if(![320,390,768].includes(width))throw Error("Unsupported acceptance width");
+  if(!qs.has("inner")){
+    // An iframe gives Chrome an actual 320/390/768 CSS viewport, rather than
+    // only shrinking an element inside an otherwise desktop-sized window.
+    const frame=document.createElement("iframe");
+    frame.id="frame";
+    frame.title="Isolated NTNU index failure browser test";
+    frame.style.width=width+"px";
+    frame.src=location.pathname+"?width="+width+"&inner=1";
+    app.append(frame);
+    const result=await wait(()=>{
+      const body=frame.contentDocument?.body;
+      return body?.dataset.status==="pass"||body?.dataset.status==="fail"?body:null;
+    },"inner browser fixture");
+    check(result.dataset.status==="pass",
+      result.querySelector("#result")?.textContent||"Inner fixture failed");
+    document.body.dataset.status="pass";
+    report.textContent=result.querySelector("#result").textContent;
+  }else{
+    const outcome=await runInner();
+    document.body.dataset.status="pass";
+    report.textContent=JSON.stringify(outcome);
+  }
+}catch(err){
+  document.body.dataset.status="fail";
+  report.textContent=String(err?.stack||err);
+}
+</script></body></html>
