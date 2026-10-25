@@ -1,5 +1,5 @@
-import {parseKisssoftBuffer} from "../../engineering/kisssoft-core.js?v=dbe1e7f8e3bd426bd033df83ff057485649de1cc";
-import {kisssoftSummary,mountKisssoftVisual,bindKisssoftParameterSearch} from "../../engineering/kisssoft-tool.js?v=dbe1e7f8e3bd426bd033df83ff057485649de1cc";
+import {parseKisssoftBuffer} from "../../engineering/kisssoft-core.js?v=520fc612140469f3fd3baf73d69bf0fca2dc4fec";
+import {kisssoftSummary,mountKisssoftVisual,bindKisssoftParameterSearch} from "../../engineering/kisssoft-tool.js?v=520fc612140469f3fd3baf73d69bf0fca2dc4fec";
 export async function render(container,resource){
  const path=resource.url||resource.path;
  const response=await fetch(path);

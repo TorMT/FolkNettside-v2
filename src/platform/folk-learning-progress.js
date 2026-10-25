@@ -4,7 +4,7 @@
  * Server migration is intentionally not deployed until two-user RLS checks.
  */
 import {getFolkAccessToken,getFolkAccountSnapshot,validateFolkAuthConfig}
- from "./folkside-auth.js?v=dbe1e7f8e3bd426bd033df83ff057485649de1cc";
+ from "./folkside-auth.js?v=520fc612140469f3fd3baf73d69bf0fca2dc4fec";
 
 const TYPES=["course","quiz","video"];
 const isObj=v=>v!==null&&typeof v==="object"&&!Array.isArray(v);
