@@ -9,7 +9,10 @@ function binaryLooksValid(buffer){
 
 function parseBinary(buffer){
   const view=new DataView(buffer),count=view.getUint32(80,true);
-  const positions=new Float32Array(count*9),indices=new Uint32Array(count*3);
+  // Build the public array representation directly. Previously binary STL
+  // allocated two typed arrays and then duplicated both via Array.from(),
+  // causing high transient memory use for large local CAD imports.
+  const positions=new Array(count*9),indices=new Array(count*3);
   let offset=84,p=0;
   for(let i=0;i<count;i++){
     offset+=12;
@@ -21,7 +24,7 @@ function parseBinary(buffer){
     indices[i*3]=i*3;indices[i*3+1]=i*3+1;indices[i*3+2]=i*3+2;
     offset+=2;
   }
-  return {positions:Array.from(positions),indices:Array.from(indices),triangleCount:count};
+  return {positions,indices,triangleCount:count};
 }
 
 function parseASCII(text){

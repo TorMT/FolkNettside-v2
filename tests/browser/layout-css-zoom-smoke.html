@@ -1,0 +1,91 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>FolkNet Chrome layout-zoom 200/400 percent acceptance</title>
+<style>body{margin:5px;font:13px system-ui}#frame{border:0;width:1280px;height:920px;display:block}#result{white-space:pre-wrap}</style>
+</head><body data-status="running"><pre id="result">Chrome layout zoom is running</pre>
+<iframe id="frame" title="Zoom reflow acceptance" src="../../index.html#/tools/model-inspector"></iframe>
+<script type="module">
+const frame=document.querySelector("#frame"),win=()=>frame.contentWindow,doc=()=>frame.contentDocument;
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+function check(value,message){if(!value)throw Error(message)}
+async function until(callback,message){
+ for(let i=0;i<160;i++){try{if(callback())return}catch{}await sleep(65)}
+ throw Error("Timeout: "+message);
+}
+function overflowDiagnostics(route,factor){
+ const d=doc(),width=win().innerWidth;
+ const scroll=Math.max(d.documentElement.scrollWidth,d.body.scrollWidth);
+ if(scroll<=width+9)return;
+ const over=[...d.querySelectorAll("#app *")].filter(el=>{
+   if(el.closest("[hidden],[inert],[aria-hidden='true']"))return false;
+   const b=el.getBoundingClientRect(),style=win().getComputedStyle(el);
+   return b.width>1&&b.right>width+6&&b.left<width&&style.display!=="none";
+ }).slice(0,12).map(el=>{
+    const b=el.getBoundingClientRect();
+    return el.tagName.toLowerCase()+(el.id?"#"+el.id:"")+
+      "."+String(el.className).slice(0,45)+" [right "+Math.round(b.right)+"]";
+ });
+ throw Error(route+" at "+factor+"x: document overflows "+scroll+"/"+width+
+  "; candidates "+over.join(" / "));
+}
+function visible(el){
+ if(!el||el.closest("[hidden],[inert],[aria-hidden='true']"))return false;
+ const b=el.getBoundingClientRect(),css=win().getComputedStyle(el);
+ return b.width>1&&b.height>1&&css.display!=="none"&&css.visibility!=="hidden";
+}
+const routeCases=[
+ ["/courses",".course-grid"],
+ ["/settings",".settings"],
+ ["/engineering/cad",".engineering-cad-page"],
+ ["/tools/model-inspector",".model-inspector-page"]
+];
+try{
+ await until(()=>doc()?.querySelector(".topbar"),"initial app render");
+ const metrics=[];
+ for(const factor of [2,4]){
+  // Zoom the frame itself and reduce its CSS viewport in tandem.
+  // This exercises responsive breakpoints at 640/320 logical CSS pixels
+  // while rendering the content at a 1280px physical width.
+  // Zooming the inner root alone DOES NOT alter iframe media-query width.
+  frame.style.width=(1280/factor)+"px";
+  frame.style.zoom=String(factor);
+  await sleep(180);
+  const layoutWidth=doc().documentElement.clientWidth;
+  check(Math.abs(layoutWidth-1280/factor)<35,
+    "CSS root zoom did not reflow layout: "+layoutWidth+" vs "+1280/factor);
+  for(const [route,selector] of routeCases){
+   win().location.hash="#"+route;
+   await until(()=>win().location.hash==="#"+route&&doc().querySelector(selector),route);
+   await sleep(115);
+   const main=doc().querySelector(selector);
+   check(visible(main),route+" main area disappeared at "+factor+"x");
+   overflowDiagnostics(route,factor);
+   const navigation=doc().querySelector(".mobile-nav");
+   check(visible(navigation),"Zoom layout missing mobile navigation at "+factor+"x");
+   const allVisibleControls=[...doc().querySelectorAll("button,a[href],input:not([type=hidden]),select")]
+     .filter(visible);
+   check(allVisibleControls.length>4,"Controls disappeared at "+factor+"x on "+route);
+   metrics.push({factor,route,layoutWidth,interactive:allVisibleControls.length});
+   if(route==="/engineering/cad"){
+     const file=doc().querySelector("#cad-import-file");
+     check(file&&file.getBoundingClientRect().right<=win().innerWidth+5,
+       "Native file chooser clipped at zoom "+factor);
+   }
+   if(route==="/tools/model-inspector"){
+     await until(()=>doc().querySelector(".model-inspector-stage .three-components button"),
+       "3D sample component tree at "+factor+"x");
+     const list=doc().querySelector(".model-inspector-stage .three-components");
+     const listButton=list.querySelector("button");
+     check(visible(list)&&visible(listButton),"3D part selection missing at zoom "+factor);
+     listButton.focus();
+     check(doc().activeElement===listButton,"3D part buttons not focusable at zoom "+factor);
+   }
+  }
+ }
+ frame.style.zoom="";frame.style.width="1280px";
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent=JSON.stringify({
+  status:"pass",method:"Chromium zoomed iframe with matching CSS viewport — NOT native browser-toolbar zoom",
+  levels:["200%","400%"],routes:metrics});
+}catch(error){document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error?.stack||error)}
+</script></body></html>

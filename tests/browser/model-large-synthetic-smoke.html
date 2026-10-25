@@ -1,0 +1,71 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>Synthetic large STL model Chrome performance and cleanup</title>
+<link rel="stylesheet" href="../../assets/style.css">
+<style>body{font:13px system-ui}#stage{width:min(960px,95vw);height:560px;background:#081820}
+#result{white-space:pre-wrap}</style></head>
+<body data-status="running"><div id="stage" aria-label="Synthetic geometry test"></div>
+<pre id="result">Synthetic stress model is loading</pre>
+<script type="module">
+import {parseSTL} from "../../src/model/parsers/stl.js";
+import {mountModelScene} from "../../src/model/model-scene.js";
+const stage=document.querySelector("#stage"),result=document.querySelector("#result");
+const check=(yes,why)=>{if(!yes)throw Error(why)};
+function generateSTL(triangleCount){
+ const buffer=new ArrayBuffer(84+triangleCount*50);
+ const view=new DataView(buffer);
+ view.setUint32(80,triangleCount,true);
+ for(let i=0;i<triangleCount;i++){
+   const offset=84+i*50+12;
+   const x=i%400,y=Math.floor(i/400)%400;
+   for(let v=0;v<3;v++){
+     const base=offset+v*12;
+     view.setFloat32(base,x+v*.8,true);
+     view.setFloat32(base+4,y+(v===2?.8:0),true);
+     view.setFloat32(base+8,Math.sin(i*.01)*.1,true);
+   }
+ }
+ return buffer;
+}
+let scene=null;
+try{
+ const triangles=100000; // ~5 MB on-disk STL, user data never touched.
+ const buffer=generateSTL(triangles);
+ const parseStart=performance.now();
+ const model=parseSTL(buffer,"synthetic-large-100k.stl");
+ const parseMs=Math.round(performance.now()-parseStart);
+ check(model.components[0].geometry.indices.length===triangles*3,"STL facets lost");
+ result.textContent="Parsed "+triangles+" facets in "+parseMs+"ms; preparing WebGL...";
+ const renderStart=performance.now();
+ scene=await mountModelScene(stage,model,{showSidebar:false});
+ const mountMs=Math.round(performance.now()-renderStart);
+ const canvas=stage.querySelector(".three-canvas");
+ check(canvas&&canvas.clientWidth>=600&&canvas.clientHeight>=350,
+   "WebGL did not render inside a real large viewport: "+
+   String(canvas?.clientWidth)+"x"+String(canvas?.clientHeight));
+ check(canvas.width>=600&&canvas.height>=350,
+   "WebGL backing buffer remained at browser 300x150 default");
+ check(scene.actions.getBounds().size.every(Number.isFinite),"Nonfinite synthetic model bounds");
+ const navigationStart=performance.now();
+ scene.actions.fit();
+ scene.actions.setView("top");
+ scene.actions.resetZoom();
+ const navigationMs=Math.round(performance.now()-navigationStart);
+ const canvasSize=[canvas.width,canvas.height];
+ check(parseMs<20000,"Unbounded STL parse duration: "+parseMs+"ms");
+ check(mountMs<40000,"Unbounded large-model WebGL mount duration: "+mountMs+"ms");
+ const cleanupStart=performance.now();
+ scene.cleanup();scene=null;
+ stage.replaceChildren();
+ const cleanupMs=Math.round(performance.now()-cleanupStart);
+ check(!stage.querySelector("canvas"),"Viewer DOM not disposed");
+ check(cleanupMs<10000,"Large-model scene disposal stalled");
+ document.body.dataset.status="pass";
+ result.textContent=JSON.stringify({status:"pass",source:"synthetic local binary STL",
+  triangles,bufferMiB:(buffer.byteLength/1024/1024).toFixed(2),
+  parseMs,mountMs,navigationMs,cleanupMs,canvasSize});
+}catch(error){
+ try{scene?.cleanup()}catch{}
+ document.body.dataset.status="fail";
+ result.textContent=String(error?.stack||error);
+}
+</script></body></html>
