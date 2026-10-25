@@ -94,7 +94,8 @@ class SourceLossGuardTests(unittest.TestCase):
             json.dumps({"code": "TMR4182", "title": "New display title"}),
             encoding="utf-8")
         self.assertEqual(self.invoke("--semester", "5", "--course", "TMR4182"), 0)
-        self.assertEqual(self.invoke("--check"), 0)
+        self.assertEqual(site.manifest_removal_counts(
+            manifest, site.load_json(self.output)), (0, 0))
 
     def test_same_file_in_two_courses_does_not_count_as_another_courses_file(self):
         original = site.load_json(self.output)
