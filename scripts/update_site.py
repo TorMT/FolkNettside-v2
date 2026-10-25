@@ -226,6 +226,32 @@ def resolve_course_dir(semester_dir: Path, course_name: str) -> Path:
     return matches[0]
 
 
+def verify_unique_course_routes(manifest: dict) -> None:
+    """Fail closed on ambiguous semester/course routes before publication.
+
+    URL routing treats semester IDs as integers and course slugs
+    case-insensitively. Two entries targeting the same route cannot be
+    safely navigated or selectively updated.
+    """
+    seen_semesters: set[int] = set()
+    for semester in manifest.get("semesters", []):
+        sid = semester.get("id")
+        if type(sid) is not int or sid < 1:
+            raise ValueError("Invalid semester ID in public manifest")
+        if sid in seen_semesters:
+            raise ValueError(f"Duplicate semester ID {sid} in public manifest")
+        seen_semesters.add(sid)
+        seen_codes: set[str] = set()
+        for course in semester.get("courses", []):
+            code = course.get("code")
+            if not isinstance(code, str) or not code.strip():
+                raise ValueError(f"Missing course code in semester {sid}")
+            normalized = code.casefold()
+            if normalized in seen_codes:
+                raise ValueError(f"Duplicate course route in semester {sid}: {code}")
+            seen_codes.add(normalized)
+
+
 def scan_semester(source: Path, semester_id: int, course_code: str | None = None) -> dict:
     semester_dir = source / str(semester_id)
     if not semester_dir.is_dir():
@@ -239,7 +265,9 @@ def scan_semester(source: Path, semester_id: int, course_code: str | None = None
         course_dirs = [resolve_course_dir(semester_dir, course_code)]
 
     courses = [scan_course(semester_id, course_dir) for course_dir in course_dirs]
-    return {"id": semester_id, "label": f"Semester {semester_id}", "courses": courses}
+    semester = {"id": semester_id, "label": f"Semester {semester_id}", "courses": courses}
+    verify_unique_course_routes({"semesters": [semester]})
+    return semester
 
 def build_full_manifest(source: Path) -> dict:
     if not source.exists():
@@ -250,17 +278,22 @@ def build_full_manifest(source: Path) -> dict:
         if not path.is_dir() or path.is_symlink():
             continue
         try:
-            semester_ids.append(int(path.name))
+            semester_id = int(path.name)
         except ValueError:
-            pass
+            continue
+        if semester_id < 1 or str(semester_id) != path.name:
+            raise ValueError(f"Noncanonical semester directory name: {path.name}")
+        semester_ids.append(semester_id)
 
     semesters = [scan_semester(source, semester_id) for semester_id in sorted(semester_ids)]
-    return {
+    manifest = {
         "schemaVersion": 2,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "source": rel_web(source),
         "semesters": semesters,
     }
+    verify_unique_course_routes(manifest)
+    return manifest
 
 def merge_scope(
     current: dict,
@@ -269,6 +302,8 @@ def merge_scope(
     course_code: str | None,
 ) -> dict:
     """Update only one semester/course while preserving the rest of the manifest."""
+    if current:
+        verify_unique_course_routes(current)
     result = copy.deepcopy(current) if current else {
         "schemaVersion": 2,
         "source": rel_web(source),
@@ -313,6 +348,7 @@ def merge_scope(
 
     semesters.sort(key=lambda item: int(item.get("id", 0)))
     result["semesters"] = semesters
+    verify_unique_course_routes(result)
     return result
 
 def stable_for_check(data: dict) -> dict:
@@ -420,6 +456,7 @@ def restore_manifest(snapshot: Path, output: Path, backup_dir: Path) -> Path | N
     restored = load_json(snapshot)
     if not isinstance(restored.get("semesters"), list):
         raise ValueError("Snapshot missing semesters array")
+    verify_unique_course_routes(restored)
     violations = public_manifest_violations(restored)
     if violations:
         raise ValueError("Snapshot includes protected paths")
