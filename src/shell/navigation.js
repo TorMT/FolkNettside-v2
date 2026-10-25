@@ -51,7 +51,8 @@ export function renderTopShell(active,{coursesLabel="Courses",account={},folkAcc
   const accountName=escapeHTML(text);
   const accountInitial=signedIn?escapeHTML(String(text).trim().slice(0,1).toUpperCase()):"○";
 
-  return `<header class="topbar">
+  return `<button type="button" class="skip-to-content" data-skip-content>Skip to content</button>
+  <header class="topbar">
     <button type="button" class="brand" id="home" aria-label="Go to Projects"><span class="brand-mark" aria-hidden="true"></span>FolkNettside</button>
     <nav class="nav" aria-label="Main navigation">${desktopPrimary}</nav>
     <span class="top-spacer"></span>
@@ -111,6 +112,14 @@ export function bindShellNavigation(root,{navigate,openSearch,onHome}){
   moreMenu?.addEventListener("keydown",closeOnEscape);
   moreMenu?.querySelectorAll("[data-go]").forEach(button=>{
     button.addEventListener("click",()=>closeMoreMenu());
+  });
+  root.querySelector("[data-skip-content]")?.addEventListener("click",()=>{
+    // Hash routing owns the URL fragment: using href="#main" would change routes.
+    const target=root.querySelector("main, [role='main'], .workspace, .viewer, .layout, .settings, .engineering-cad-page, .kisssoft-page, .python-workbench, .course-admin-page, .diverse-page, .dive-page");
+    if(!target)return;
+    if(!target.hasAttribute("tabindex"))target.setAttribute("tabindex","-1");
+    if(target.tagName!=="MAIN"&&!target.hasAttribute("role"))target.setAttribute("role","main");
+    target.focus();
   });
   root.querySelector("#home")?.addEventListener("click",onHome);
   root.querySelectorAll("[data-search-open]").forEach(button=>{
