@@ -1,6 +1,6 @@
-import {validateNTNUAutoCatalog} from "./ntnu-autocatalog.js?v=1fff9a48acdb61912056574877967631693f4019";
+import {validateNTNUAutoCatalog} from "./ntnu-autocatalog.js?v=cd1af15d73caa05c0b416a1fabed555ac3f55bd2";
 import {applyNTNUDisplayNames,validateNTNUDisplayNames}
- from "./ntnu-display-names.js?v=1fff9a48acdb61912056574877967631693f4019";
+ from "./ntnu-display-names.js?v=cd1af15d73caa05c0b416a1fabed555ac3f55bd2";
 
 /** Original V1 paths are the identifiers; any display labels are optional. */
 export function editorCandidates(course){
