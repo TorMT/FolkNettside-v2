@@ -6,7 +6,7 @@
   URLs continue to point to `https://tormt.folk.ntnu.no/semestre/...`.
   This feature never uploads, renames, deletes or copies NTNU files.
 - GitHub Pages hosts the V2 UI and the indexed public metadata.
-- The dedicated FolkNet Supabase project `glfuvfmppkjmarujjqwg` stores
+- The dedicated FolkNet Supabase project `aeuouzkiyddfjtjfdosp` stores
   public cosmetic labels; **no course files or quiz answer content**.
 - Supabase Auth provides email/password sign-in already available under
   Settings → Account & connections. The editor is at `#/admin/courses`.
@@ -24,15 +24,27 @@ Opprett/verifiser først eierens konto der og registrer den faktiske Auth-UUID
 i admin-tabellen. Ingen passord, kontoeieridentitet eller adminrettigheter
 skal hardkodes i GitHub Pages.
 
-## Database not installed yet
+## Database installed on the new project — owner account pending (25 October 2026)
 
-The SQL candidate is `server/supabase/20261024_folk_course_labels_candidate.sql`.
-It has **not** been applied. The current connector can see only the separate
-LeseRavnen Supabase project, so it must NOT be used for FolkNet changes.
+Live target: [FolkNettside in TorMT's Org](https://supabase.com/dashboard/project/aeuouzkiyddfjtjfdosp),
+project `aeuouzkiyddfjtjfdosp`, `eu-central-1` (Frankfurt), Free tier (quoted USD 0/month).
+Old `glfuvfmppkjmarujjqwg` was not accessible and **was not migrated or modified**.
 
-For installation, connect/select FolkNet in Supabase and review the SQL in
-the correct project. Use an authenticated owner account with a verified
-email; do not publish a password, service-role key or database password.
+Successful migrations on the **new** project:
+- `folk_course_admin_labels_20261025`: `folk_site_admins` and `folk_course_labels`, RLS and single-owner guard.
+- `folk_private_storage_and_oauth_20261025`: private `folk-private` Storage bucket, user settings/files, private OAuth tables and user-prefix policies.
+- `folk-core` Edge Function deployed (version 1), with independent JWT verification. Unauthenticated `/session` and `/health` probes returned HTTP 401.
+
+Post-deployment SQL confirmed **4 RLS-enabled public tables** and a private bucket.
+`auth.users` and `folk_site_admins` were empty (no account has been invited or assigned).
+Security advisor raised INFO-only notices for two intentionally private OAuth tables
+with no end-user RLS policies. This is expected; they are not in the Data API.
+
+**Next owner action:** Create or invite a user in **Authentication → Users** in
+this exact project, confirm the email, disable unwanted public sign-up in Auth
+settings and allow the GitHub Pages site URL. Then verify its actual UUID and
+seed only that user as admin. Do not publish a password or a service-role key.
+The existence of the UI does not prove real login or RLS enforcement for two accounts.
 
 The two tables:
 
@@ -78,6 +90,6 @@ On saving, the editor reloads the page so the browser rebuilds its catalog.
 ## What this does not do
 
 - No registration or verification of an admin account is performed here.
-- No database deployment has been performed from GitHub.
+- Core Supabase migrations and `folk-core` have been deployed to the new project; real admin identity and user-based acceptance tests remain.
 - No direct NTNU upload/edit/delete. Those require separate access-control
   and content-rights checks before adding any future file operations.
