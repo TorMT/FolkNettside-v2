@@ -73,7 +73,7 @@ export function parseNTNUSemesterIndex(semesterId,raw,{titles=new Map(),origin=N
  const courses=[];
  for(const [slug,record] of Object.entries(raw)){
    if(slug==="welcome"||!safePiece(slug)||!object(record)||
-      record.beskyttet===true)continue;
+      record.beskyttet!==false)continue;
    if(record.dir!==undefined&&record.dir!==slug)continue;
    const indexed=Array.isArray(record.files)?record.files:[];
    const quizRef=typeof record.quiz==="string"?record.quiz:null;
@@ -153,7 +153,7 @@ export async function loadNTNUCatalog({fetchImpl=fetch,origin=NTNU_ORIGIN,
  const root=await readIndex("/semestre/index.json",{fetchImpl,origin});
  if(!object(root))throw Error("Invalid NTNU catalog root");
  const ids=Object.keys(root).filter(x=>/^\d{1,2}$/.test(x)&&
-   Number(x)>=1&&Number(x)<=20&&root[x]?.beskyttet!==true)
+   Number(x)>=1&&Number(x)<=20&&root[x]?.beskyttet===false)
    .map(Number).sort((a,b)=>a-b);
  if(!ids.length)throw Error("NTNU index declares no public semesters");
  let titles=new Map();
