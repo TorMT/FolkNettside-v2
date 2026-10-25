@@ -1,8 +1,8 @@
-import {onNTNUHost} from "./courses/ntnu-catalog.js?v=6107a75ee9edc7a765b5fbcb07069998f2366f5d";
-import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=6107a75ee9edc7a765b5fbcb07069998f2366f5d";
-import {loadPublicCourseLabels,mergeCloudCourseLabels} from "./platform/folk-course-admin.js?v=6107a75ee9edc7a765b5fbcb07069998f2366f5d";
-import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=6107a75ee9edc7a765b5fbcb07069998f2366f5d";
-import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=6107a75ee9edc7a765b5fbcb07069998f2366f5d";
+import {onNTNUHost} from "./courses/ntnu-catalog.js?v=79b5d8681aa2894aaa520e68ce480d4aca258feb";
+import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=79b5d8681aa2894aaa520e68ce480d4aca258feb";
+import {loadPublicCourseLabels,mergeCloudCourseLabels} from "./platform/folk-course-admin.js?v=79b5d8681aa2894aaa520e68ce480d4aca258feb";
+import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=79b5d8681aa2894aaa520e68ce480d4aca258feb";
+import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=79b5d8681aa2894aaa520e68ce480d4aca258feb";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
