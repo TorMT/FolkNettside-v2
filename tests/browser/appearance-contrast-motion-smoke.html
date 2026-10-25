@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>FolkNet Settings contrast/motion browser acceptance</title>
+<style>body{margin:8px;font:13px system-ui}#site{height:850px;border:0;display:block}#result{white-space:pre-wrap}</style>
+</head><body data-status="running">
+<iframe id="site" title="FolkNet appearance Settings" src="../../index.html#/settings"></iframe>
+<pre id="result">running</pre>
+<script type="module">
+const viewport=Number(new URLSearchParams(location.search).get("width")||390);
+const frame=document.querySelector("#site");frame.style.width=viewport+"px";
+const doc=()=>frame.contentDocument,win=()=>frame.contentWindow;
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const check=(yes,message)=>{if(!yes)throw Error(message)};
+async function until(fn,label){
+ for(let i=0;i<150;i++){try{if(fn())return}catch{}
+   await sleep(65)}
+ throw Error("Timeout: "+label);
+}
+const root=()=>doc().documentElement;
+const prop=key=>win().getComputedStyle(root()).getPropertyValue(key).trim();
+function luminance(hex){
+ const input=hex.trim().replace("#","");
+ check(/^[0-9a-f]{6}$/i.test(input),"Unexpected color token: "+hex);
+ const channels=[0,2,4].map(i=>parseInt(input.slice(i,i+2),16)/255)
+   .map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);
+ return channels[0]*.2126+channels[1]*.7152+channels[2]*.0722;
+}
+function contrast(a,b){
+ const light=Math.max(luminance(a),luminance(b));
+ const dark=Math.min(luminance(a),luminance(b));
+ return (light+.05)/(dark+.05);
+}
+function press(name,value){
+ const el=doc().querySelector('[data-setting="'+name+'"][data-value="'+value+'"]');
+ check(Boolean(el),"Missing setting "+name+" / "+value);
+ el.click();
+ check(root().dataset[name]===value,"Setting not applied: "+name+"="+value);
+}
+try{
+ await until(()=>doc()?.querySelector('[data-settings-panel="appearance"]'),"appearance");
+ // OS motion preferences must not be required for an explicit user override.
+ press("motion","system");
+ const brand=()=>doc().querySelector(".topbar .brand");
+ const before=parseFloat(win().getComputedStyle(brand()).transitionDuration);
+ check(before>=.1,"Cannot observe baseline button transition: "+before);
+ press("motion","reduced");
+ const after=parseFloat(win().getComputedStyle(brand()).transitionDuration);
+ check(after<.002,"Explicit Reduced Motion did not override transitions: "+after);
+ press("motion","system");
+ check(parseFloat(win().getComputedStyle(brand()).transitionDuration)>=.1,
+   "System Motion did not restore normal transitions");
+ let cases=0;
+ const accents=["magenta","teal","blue","amber","graphite"];
+ for(const mode of ["light","dark"]){
+   press("mode",mode);
+   press("contrast","high");
+   const surface=prop("--surface");
+   const recessed=prop("--surface-sunk");
+   const primary=prop("--ink");
+   const secondary=prop("--ink-2");
+   const tertiary=prop("--ink-3");
+   for(const text of [primary,secondary,tertiary]){
+     const min=Math.min(contrast(text,surface),contrast(text,recessed));
+     check(min>=4.5,mode+" high-contrast text failed: "+text+" / "+min.toFixed(2));
+   }
+   const line=prop("--line-strong");
+   check(contrast(line,surface)>=3,mode+" high-contrast border failed");
+   for(const accent of accents){
+     press("accent",accent);
+     check(contrast(prop("--accent"),"#ffffff")>=4.5,
+       mode+" accent has unreadable white-on-primary text: "+accent);
+     if(mode==="dark"){
+       check(contrast(prop("--accent-ink"),surface)>=4.5,
+         "Dark accent ink not readable: "+accent);
+       const probe=doc().createElement("span");
+       probe.style.backgroundColor="var(--accent-soft)";
+       doc().body.append(probe);
+       const bg=win().getComputedStyle(probe).backgroundColor;
+       probe.remove();
+       // The dark accent must no longer inherit its light-only accent-soft swatch.
+       check(!["rgb(217, 238, 238)","rgb(223, 231, 251)",
+                "rgb(245, 231, 199)","rgb(223, 230, 234)"].includes(bg),
+         "Light palette leaks into dark accent: "+accent+" / "+bg);
+     }
+     cases++;
+   }
+   press("contrast","standard");
+   check(prop("--line-strong")!==line,
+     mode+" standard/high contrast are visually identical");
+ }
+ // Persisted Settings must be honored after page reload.
+ press("motion","reduced");press("contrast","high");press("mode","dark");
+ win().location.reload();
+ await until(()=>doc()?.querySelector('[data-settings-panel="appearance"]')&&
+   root().dataset.motion==="reduced"&&root().dataset.contrast==="high"&&
+   root().dataset.mode==="dark","settings restored");
+ check(parseFloat(win().getComputedStyle(doc().querySelector(".topbar .brand")).transitionDuration)<.002,
+   "Saved reduced-motion setting not effective after reload");
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent=JSON.stringify({viewport,modeAccentPairs:cases,
+   thresholds:"WCAG normal text 4.5:1; visible strong border 3:1",
+   settingsPersistAcrossReload:true,status:"pass"});
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>
