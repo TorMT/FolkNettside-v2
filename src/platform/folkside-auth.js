@@ -49,7 +49,7 @@ function normalizeConfig(value){
  if(!value||typeof value!=="object")return null;
  try{
    const url=new URL(String(value.url||""));
-   if(url.origin!=="https://glfuvfmppkjmarujjqwg.supabase.co"||
+   if(url.origin!=="https://aeuouzkiyddfjtjfdosp.supabase.co"||
      url.pathname!=="/"||url.search||url.hash)return null;
    const key=String(value.publishableKey||"");
    if(!/^sb_publishable_[A-Za-z0-9_-]{10,}$/.test(key))return null;
