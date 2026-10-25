@@ -280,7 +280,7 @@ try{
     console.log(`  ${fluid.padEnd(10)} throttling P-h consistency OK`);
   }
 
-  console.log(`Independent published IF97 cross-check: ${count} state/saturation samples, ${largest*100|0}% upper rounded relative deviation; ${IAPWS_IF97_INDEPENDENT_CASES.length} states + ${IAPWS_IF97_SATURATION_CASES.length} saturation cases.`);
+  console.log(`Independent IF97: ${count} published numeric comparisons across ${IAPWS_IF97_INDEPENDENT_CASES.length} (T,P) states + ${IAPWS_IF97_SATURATION_CASES.length} saturation points. Maximum state-property relative deviation: ${(largest*100).toFixed(3)}%.`);
 
   console.log("\nCoolProp numerical and diagram reference verification passed.");
 } finally {
