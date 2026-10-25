@@ -1,5 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <title>Synthetic large STL model Chrome performance and cleanup</title>
+<link rel="stylesheet" href="../../assets/style.css">
 <style>body{font:13px system-ui}#stage{width:min(960px,95vw);height:560px;background:#081820}
 #result{white-space:pre-wrap}</style></head>
 <body data-status="running"><div id="stage" aria-label="Synthetic geometry test"></div>
@@ -38,7 +39,11 @@ try{
  scene=await mountModelScene(stage,model,{showSidebar:false});
  const mountMs=Math.round(performance.now()-renderStart);
  const canvas=stage.querySelector(".three-canvas");
- check(canvas&&canvas.width>0&&canvas.height>0,"Large model WebGL did not initialize");
+ check(canvas&&canvas.clientWidth>=600&&canvas.clientHeight>=350,
+   "WebGL did not render inside a real large viewport: "+
+   String(canvas?.clientWidth)+"x"+String(canvas?.clientHeight));
+ check(canvas.width>=600&&canvas.height>=350,
+   "WebGL backing buffer remained at browser 300x150 default");
  check(scene.actions.getBounds().size.every(Number.isFinite),"Nonfinite synthetic model bounds");
  const navigationStart=performance.now();
  scene.actions.fit();
