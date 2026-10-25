@@ -55,14 +55,14 @@ test("complete draft converts every mode including process targets and preserves
 test("ammonia, water and unmapped native reference formats convert fluid-specific preset values",()=>{
   for(const [fluid,tableId,expected] of [
     ["Ammonia","A-13","233.15\n253.15\n273.15\n293.15"],
-    ["Water","A-3","100\n300\n500"],
+    ["Water","A-3","50\n100\n500\n1000"],
     ["Propane","Native-TP","273.15,100\n298.15,100\n373.15,500\n473.15,1000"]
   ]){
     const draft={fluid,units:old,reference:{tableId,rows:courseTableDefaultRows(fluid,tableId,old)}};
     const changed=convertCoolPropDraftUnits(draft,next);
     if(fluid==="Water"){
       const values=changed.reference.rows.split("\n");
-      assert.equal(values[0],"100");
+      assert.equal(values[0],"50");
       continue;
     }
     assert.equal(changed.reference.rows,expected,fluid);
