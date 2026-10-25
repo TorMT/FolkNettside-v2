@@ -60,3 +60,16 @@ The issue B18 remains **partial** until the manual gates and systematic contrast
 **Acceptance:** Latest-head [CI run 40217316066](https://github.com/TorMT/FolkNettside-v2/actions/runs/40217316066) **50/50 steps passed**. Node tests cover known WCAG numerical pairs, adversarial bright/dark/midgray palettes, preserved source/JSON, and safe CSS selectors. Chrome exercised manual and image-mode preview at **320, 390 and 768px**, confirming eight visible passing text pairs, correctly corrected navbar gradient and preserved editor values.
 
 **Limits:** The 4.5:1 test refers to sampled *generated preview text*; it is not a full UI or imported-CSS contrast audit. Users may still export color variables for other arbitrary downstream selectors, images and 3D canvases; they need individual evaluation. Theme Studio remains a generator, separate from Settings's built-in accent presets. Native forced-colors, physical mobile screen readers, zoom and third-party viewers remain open manual B18 gates.
+
+
+## 2026-10-25 — CAD and Model Inspector zoom-width / keyboard reflow
+
+[PR #127](https://github.com/TorMT/FolkNettside-v2/pull/127), merge `9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb`.
+
+**Issues found:** The advanced STL/3MF Model Inspector hid all component-selection buttons at narrow widths, leaving mouse/canvas selection as the only route. Its fixed-height viewer grid did not account for keyboard guidance and downstream results. The CAD workbench's mobile drawer lacked focus restoration/Escape/ARIA-hidden state coordination. During Chrome testing at 320 CSS px, the CAD native file input retained a browser intrinsic width of ~278px, generating horizontal overflow (316px content versus a 305px usable viewport after scrollbar).
+
+**Fixes:** Model Inspector now exposes a scrollable, named-button component list below the canvas at narrow widths, wraps long nested component names, reflows its stage and results, and includes visible keyboard shortcut text linked with `aria-describedby`. Hydro results have a region name, status changes are announced and Measure exposes `aria-pressed`. The compact CAD controls now mark closed content `inert`/`aria-hidden`, keep `aria-expanded` consistent, focus available controls when opening, restore opener focus on Escape/closing, and synchronize on breakpoint changes. Wave motion controls and native file chooser are width-constrained rather than clipping their contents.
+
+**Acceptance:** Latest-head [Chrome/Node CI run 40218979471](https://github.com/TorMT/FolkNettside-v2/actions/runs/40218979471) passed **50/50 steps**. New real-Chrome regression passed at **320, 390 and 768 CSS px**, testing example STL/3D scene, long component names, keyboard focus/fit shortcut, Measure toggle, visible mobile component panel, CAD demo mobile disclosure, Escape/focus and absence of whole-document horizontal overflow. First test runs failed on an actual 320px file-input width issue, which was corrected and retested.
+
+**Limits:** CSS width reductions act as zoom-equivalent reflow checks, **not** a direct native 200%/400% browser zoom session. The test did not use physical iPhone/Android hardware or VoiceOver/TalkBack; large or damaged proprietary models, canvas semantics and low-memory GPU behavior still need direct acceptance. No V1 or NTNU source files were touched.
