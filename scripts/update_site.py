@@ -351,6 +351,42 @@ def merge_scope(
     verify_unique_course_routes(result)
     return result
 
+def manifest_removal_counts(previous: dict, updated: dict) -> tuple[int, int]:
+    """Detect disappearing approved course routes and resource links.
+
+    Counts refer to public *manifest references*, never course file bytes.
+    Moving/renaming a file changes its link and is intentionally treated as
+    a removal until the operator explicitly reviews the update.
+    """
+    if not previous:
+        return 0, 0
+    if not isinstance(previous.get("semesters"), list):
+        raise ValueError("Existing manifest is missing its semesters array")
+    verify_unique_course_routes(previous)
+    verify_unique_course_routes(updated)
+
+    def flatten(manifest: dict) -> dict[tuple[int, str], set[str]]:
+        courses: dict[tuple[int, str], set[str]] = {}
+        for semester in manifest["semesters"]:
+            for course in semester.get("courses", []):
+                identifiers = set()
+                for resource in course.get("resources", []):
+                    identity = resource.get("path") or resource.get("url") or (
+                        resource.get("relativePath") or resource.get("id"))
+                    if not isinstance(identity, str) or not identity:
+                        raise ValueError("Existing course contains a resource without a stable link")
+                    identifiers.add(identity)
+                courses[semester["id"], course["code"].casefold()] = identifiers
+        return courses
+
+    old = flatten(previous)
+    new = flatten(updated)
+    removed_courses = len(old.keys() - new.keys())
+    removed_files = sum(len(files - new.get(key, set()))
+                        for key, files in old.items())
+    return removed_courses, removed_files
+
+
 def stable_for_check(data: dict) -> dict:
     clone = copy.deepcopy(data)
     clone.pop("generatedAt", None)
@@ -510,6 +546,8 @@ def main() -> int:
     parser.add_argument("--course", help="Only update one course; requires --semester")
     parser.add_argument("--check", action="store_true", help="Fail if the full committed manifest is stale")
     parser.add_argument("--dry-run", action="store_true", help="Preview the manifest without writing it")
+    parser.add_argument("--allow-removals", action="store_true",
+                        help="Explicitly permit deleting manifest links after reviewing the change; creates a backup")
     parser.add_argument("--interactive", action="store_true", help="Choose the semester and course from discovered folders")
     parser.add_argument("--backup-dir", type=Path, default=ROOT / ".siteupdater-backups" / "v2-manifests",
                         help="Local manifest snapshots before substantive changes")
@@ -581,6 +619,26 @@ def main() -> int:
             print(f"Unsafe public resource: {path} ({problem})", file=sys.stderr)
         print("No manifest written; move protected files outside public sources.", file=sys.stderr)
         return 2
+
+    # A partially copied/mounted directory can be scanned successfully but
+    # would otherwise erase previously published course/file references.
+    # Reject any loss by default, for full and scoped updates alike.
+    try:
+        existing = load_json(output) if output.exists() else {}
+        removed_courses, removed_files = manifest_removal_counts(existing, manifest)
+    except (ValueError, TypeError, KeyError) as error:
+        print(f"SiteUpdater removal check cancelled: {error}. Manifest unchanged.",
+              file=sys.stderr)
+        return 2
+    if removed_courses or removed_files:
+        summary = (f"{removed_courses} course(s), {removed_files} file link(s)")
+        if not args.allow_removals:
+            print("SiteUpdater refused to remove " + summary +
+                  ". Restore the missing source or review and rerun with "
+                  "--allow-removals. Manifest unchanged.", file=sys.stderr)
+            return 2
+        print("Reviewed removal override: " + summary +
+              ". A metadata snapshot will be saved before any changed manifest write.")
 
     if args.check:
         if not output.exists():
