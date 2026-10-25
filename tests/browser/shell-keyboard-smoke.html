@@ -43,14 +43,14 @@ try{
       "More did not open");
     const first=menu().querySelector("button");
     first.focus();
-    first.dispatchEvent(new win().KeyboardEvent("keydown",
+    first.dispatchEvent(new (win().KeyboardEvent)("keydown",
       {key:"Escape",bubbles:true,cancelable:true}));
     check(menu().hidden&&more().getAttribute("aria-expanded")==="false",
       "Escape did not close More");
     check(doc().activeElement===more(),"Escape did not restore focus");
     more().click();
     check(!menu().hidden,"More failed to reopen");
-    get("#home").dispatchEvent(new win().PointerEvent("pointerdown",{bubbles:true}));
+    get("#home").dispatchEvent(new (win().PointerEvent)("pointerdown",{bubbles:true}));
     check(menu().hidden,"Outside pointer press did not close More");
     more().click();
     check(!menu().hidden,"More failed to reopen after outside press");
