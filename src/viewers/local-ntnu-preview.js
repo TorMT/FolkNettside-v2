@@ -3,8 +3,8 @@
  * preview cannot fetch cross-origin content from GitHub Pages.
  * No upload, proxy or external account is involved.
  */
-import {extension} from "./utils.js?v=9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb";
-import {viewerKind} from "./registry.js?v=9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb";
+import {extension} from "./utils.js?v=c1599ffd201246a75c7bfb3ff17388ef86f301d1";
+import {viewerKind} from "./registry.js?v=c1599ffd201246a75c7bfb3ff17388ef86f301d1";
 
 const ORIGIN="https://tormt.folk.ntnu.no";
 const MAX_SIZE=55*1024*1024;
