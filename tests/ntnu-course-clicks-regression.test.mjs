@@ -44,3 +44,14 @@ test("viewer provides an actual original-file link when remote preview cannot fe
  assert.match(text,/id="viewer-error-original" target="_blank" rel="noopener noreferrer" href=/);
  assert.doesNotMatch(text,/id="viewer-error-original"\)\?\.addEventListener/);
 });
+
+test("SPA route changes dispose prior file viewers before any page replacement",()=>{
+ const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
+ assert.match(app,/function disposeActiveViewer\(\)/);
+ assert.match(app,/holder\.__viewerTicket=\(holder\.__viewerTicket\|\|0\)\+1/);
+ assert.match(app,/holder\.__viewerCleanup=null;\s+cleanup\?\.\(\)/);
+ assert.match(app,/async function render\(\)\{disposeActiveViewer\(\);/);
+ assert.match(app,/app\.append\(holder\);app\.__viewerHolder=holder;await mountViewer/);
+ const browser=readFileSync(new URL("../tests/browser/course-native-navigation-smoke.html",import.meta.url),"utf8");
+ assert.match(browser,/Native breadcrumb did not dispose old viewer exactly once/);
+});
