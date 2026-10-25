@@ -73,3 +73,16 @@ The issue B18 remains **partial** until the manual gates and systematic contrast
 **Acceptance:** Latest-head [Chrome/Node CI run 40218979471](https://github.com/TorMT/FolkNettside-v2/actions/runs/40218979471) passed **50/50 steps**. New real-Chrome regression passed at **320, 390 and 768 CSS px**, testing example STL/3D scene, long component names, keyboard focus/fit shortcut, Measure toggle, visible mobile component panel, CAD demo mobile disclosure, Escape/focus and absence of whole-document horizontal overflow. First test runs failed on an actual 320px file-input width issue, which was corrected and retested.
 
 **Limits:** CSS width reductions act as zoom-equivalent reflow checks, **not** a direct native 200%/400% browser zoom session. The test did not use physical iPhone/Android hardware or VoiceOver/TalkBack; large or damaged proprietary models, canvas semantics and low-memory GPU behavior still need direct acceptance. No V1 or NTNU source files were touched.
+
+
+## 2026-10-25 — Zoom-equivalent Chrome reflow and synthetic large-STL performance
+
+[PR #133](https://github.com/TorMT/FolkNettside-v2/pull/133), merge `a0bef9d33f73206a2fdd83ea91e32d2dba0d1a6e`.
+
+**Coverage added:** Chromium iframe **CSS layout zoom** at **200%** and **400%** (1280px physical width, effective layout 632/316 CSS px after scrollbar) on Courses, Settings, Engineering CAD and Model Inspector. Both reflow levels checked that visible controls remained available, no whole-page horizontal overflow occurred, and model parts retained keyboard focus. This is **not** the browser's own native menu zoom and does not prove full WCAG reflow compliance.
+
+**Large-file data and implementation:** Binary STL parsing no longer allocates typed-position/index arrays **and** duplicates them with `Array.from`; it directly constructs the existing `Array`-valued geometry interface, preserving numerical values and callers. Node regression parses **125k synthetic facets (~6.25 MiB)**; real Chrome generates **100k synthetic triangles / 4.77 MiB**, creates a styled **960×560** WebGL canvas, performs Fit/Top/Reset camera operations and disposes resources. No personal, NTNU or proprietary models were used.
+
+**Latest-head CI:** [Run 40221393483](https://github.com/TorMT/FolkNettside-v2/actions/runs/40221393483) passed **50/50 steps**. Chrome reported parse **16 ms**, WebGL mount **766 ms**, camera actions **2 ms** and disposal **1 ms** for the 100k-triangle synthetic case on the GitHub CI machine. These are a single-run regression sample, **not** typical or guaranteed mobile timings. An earlier test falsely exercised the default 300×150 canvas; the final test loads the real stylesheet and requires a large canvas, confirming 960×560.
+
+**Manual gates not closed:** Physical iOS Safari+VoiceOver, Android Chrome+TalkBack, actual browser-setting 200/400% zoom, native forced-colors, third-party accessible 3D interaction and genuine low-memory/very-large CAD stability. [Physical acceptance protocol](B18_PHYSICAL_DEVICE_ACCEPTANCE.md) records exact procedures; all unexecuted checks are labeled NOT RUN.
