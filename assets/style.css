@@ -1351,3 +1351,16 @@ a.project-row:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
   transition-duration:0.01ms!important;
   scroll-behavior:auto!important
 }
+
+/* B18: generated Theme Studio preview is a color-simulation, not a second SPA main. */
+.theme-preview-body .theme-preview-main{padding:24px}
+.theme-preview-action{display:inline-block;padding:8px 11px;border-radius:6px;margin-top:10px;font:inherit;font-weight:650}
+.theme-contrast-audit{background:var(--surface);border:1px solid var(--line-strong);border-radius:12px;padding:15px 18px}
+.theme-contrast-audit h2{font-size:17px;margin:0 0 5px}
+.theme-contrast-audit>p{font-size:12px;line-height:1.55;color:var(--ink-2)}
+.theme-contrast-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px}
+.theme-contrast-check{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  border-bottom:1px solid var(--line);padding:8px 0;font-size:12px}
+.theme-contrast-check strong{white-space:nowrap;color:var(--ink);font-variant-numeric:tabular-nums}
+.theme-contrast-note{font-size:12px;color:var(--ink-2);line-height:1.55}
+@media(max-width:760px){.theme-contrast-checks{grid-template-columns:1fr}}

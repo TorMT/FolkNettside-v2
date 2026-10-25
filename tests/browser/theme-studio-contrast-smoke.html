@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Theme Studio contrast browser regression</title>
+<style>body{margin:6px;font:13px system-ui}#site{height:850px;border:0;display:block}#result{white-space:pre-wrap}</style>
+</head><body data-status="running">
+<iframe id="site" title="Theme Studio contrast check" src="../../index.html#/settings/theme-studio/manual"></iframe>
+<pre id="result">running</pre>
+<script type="module">
+const width=Number(new URLSearchParams(location.search).get("width")||390);
+const iframe=document.querySelector("#site");iframe.style.width=width+"px";
+const doc=()=>iframe.contentDocument,win=()=>iframe.contentWindow;
+const get=s=>doc()?.querySelector(s);
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const check=(ok,msg)=>{if(!ok)throw Error(msg)};
+async function waitFor(fn,msg){
+  for(let i=0;i<160;i++){try{if(fn())return}catch{}
+    await sleep(65)}
+  throw Error("Timeout: "+msg);
+}
+function channel(value){const c=value/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4}
+function luminosity(hex){
+ const m=/^#([0-9a-f]{6})$/i.exec(hex);
+ check(m,"CSS has invalid hex: "+hex);
+ const v=m[1];return .2126*channel(parseInt(v.slice(0,2),16))+
+  .7152*channel(parseInt(v.slice(2,4),16))+
+  .0722*channel(parseInt(v.slice(4,6),16));
+}
+function ratio(a,b){const x=luminosity(a),y=luminosity(b);
+ return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)}
+function setRole(role,color){
+ const input=get('[data-theme-role="'+role+'"]');
+ check(input,"Missing role "+role);
+ input.value=color;
+ input.dispatchEvent(new (win().Event)("input",{bubbles:true}));
+}
+function token(css,name){
+ const match=css.match(new RegExp("--"+name+":\\s*(#[0-9a-f]{6});","i"));
+ check(match,"Missing export "+name);return match[1];
+}
+try{
+ await waitFor(()=>get(".theme-live-preview")&&get("#theme-css-output"),"Theme Studio load");
+ check(doc().querySelectorAll("main:not([aria-hidden])").length===1,
+  "Preview introduced a nested main landmark");
+ const desired={
+  primary:"#ffffff",navbar1:"#000000",navbar2:"#ffffff",
+  sidebar:"#ffffff",background:"#ffffff"
+ };
+ for(const [role,color] of Object.entries(desired))setRole(role,color);
+ await waitFor(()=>get('[data-theme-role="background"]')?.value==="#ffffff","role updates");
+ for(const [role,color] of Object.entries(desired)){
+   check(get('[data-theme-role="'+role+'"]')?.value===color,
+    "Theme Studio silently altered original "+role);
+ }
+ const css=get("#theme-css-output").textContent;
+ const text=token(css,"navbar-text");
+ const gradient=css.match(/--navbar-bg:\s*linear-gradient\(135deg, (#[0-9a-f]{6}) 0%, (#[0-9a-f]{6}) 100%\)/i);
+ check(Boolean(gradient),"Missing generated gradient");
+ check(ratio(text,gradient[1])>=4.5&&ratio(text,gradient[2])>=4.5,
+   "Generated navbar contrast fails at one endpoint");
+ check(ratio(token(css,"sidebar-text"),desired.sidebar)>=4.5,
+   "Sidebar text unreadable");
+ check(ratio(token(css,"primary-text"),desired.primary)>=4.5,
+   "Primary action text unreadable");
+ check(ratio(token(css,"primary-readable"),desired.background)>=4.5,
+   "Primary heading unreadable");
+ check(ratio(token(css,"text-muted"),desired.background)>=4.5,
+   "Muted text unreadable");
+ check(css.includes("--primary: #ffffff;"),"Source primary palette was overwritten");
+ const audit=get(".theme-contrast-audit");
+ check(audit?.textContent.includes("Auto-adjusted for readability"),
+   "Missing notification about auto corrections");
+ const rows=[...audit.querySelectorAll(".theme-contrast-check")];
+ check(rows.length===8&&rows.every(row=>row.textContent.includes("PASS")),
+   "Theme audit must have eight passing entries");
+ check(get(".theme-live-preview")?.getAttribute("aria-hidden")==="true",
+   "Decorative preview should be hidden from screen-reader landmarks");
+ // Confirm updates work in image mode without resetting manual palette.
+ get('[data-theme-mode="image"]').click();
+ await waitFor(()=>get('[data-theme-role="primary"]')?.value==="#ffffff"&&
+   win().location.hash==="#/settings/theme-studio/manual","image mode retains source palette");
+ check(get('[data-theme-mode="image"]').getAttribute("aria-pressed")==="true",
+   "Mode tab missing pressed state");
+ check(get(".theme-contrast-audit")?.textContent.includes("4.5:1"),
+   "Audit missing text-contrast threshold");
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent=
+  "Theme Studio contrast browser PASS at "+width+"px: original palette retained; "+
+  rows.length+" readable pairs; safe gradient and UI audit";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>

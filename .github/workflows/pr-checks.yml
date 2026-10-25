@@ -111,6 +111,9 @@ jobs:
           python3 scripts/test_hydro_worker_browser.py 'http://127.0.0.1:4210/tests/browser/appearance-contrast-motion-smoke.html?width=320' 65 1280,900
           python3 scripts/test_hydro_worker_browser.py 'http://127.0.0.1:4210/tests/browser/appearance-contrast-motion-smoke.html?width=390' 65 1280,900
           python3 scripts/test_hydro_worker_browser.py 'http://127.0.0.1:4210/tests/browser/appearance-contrast-motion-smoke.html?width=768' 65 1280,900
+          python3 scripts/test_hydro_worker_browser.py 'http://127.0.0.1:4210/tests/browser/theme-studio-contrast-smoke.html?width=320' 65 1280,900
+          python3 scripts/test_hydro_worker_browser.py 'http://127.0.0.1:4210/tests/browser/theme-studio-contrast-smoke.html?width=390' 65 1280,900
+          python3 scripts/test_hydro_worker_browser.py 'http://127.0.0.1:4210/tests/browser/theme-studio-contrast-smoke.html?width=768' 65 1280,900
 
       - name: Mobile engineering and tools route matrix
         run: |
