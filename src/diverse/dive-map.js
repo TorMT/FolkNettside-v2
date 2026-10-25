@@ -1,7 +1,7 @@
-import {mountDiveLog} from "./dive-log.js?v=6604a1d2cf5eed11ba6c4f90f3662edbfe14b3fa";
-import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js?v=6604a1d2cf5eed11ba6c4f90f3662edbfe14b3fa";
-import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js?v=6604a1d2cf5eed11ba6c4f90f3662edbfe14b3fa";
-import {diveMapLegendHTML,diveMarkerClass,diveMarkerHTML} from "./dive-marker-icons.js?v=6604a1d2cf5eed11ba6c4f90f3662edbfe14b3fa";
+import {mountDiveLog} from "./dive-log.js?v=555e981d1c77521faa9186a5ca45a1d21179f379";
+import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js?v=555e981d1c77521faa9186a5ca45a1d21179f379";
+import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js?v=555e981d1c77521faa9186a5ca45a1d21179f379";
+import {diveMapLegendHTML,diveMarkerClass,diveMarkerHTML} from "./dive-marker-icons.js?v=555e981d1c77521faa9186a5ca45a1d21179f379";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
