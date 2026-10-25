@@ -12,7 +12,7 @@ import {optionalKarakterwebUrl} from "./courses/external-links.js";
 import {bindCourseNavigation} from "./courses/course-navigation.js";
 import {mountCourseAdmin} from "./courses/admin-page.js";
 import {createResourceNotices} from "./courses/resource-updates.js";
-import {failedNTNUSemesters,initialCourseSemester,courseCatalogWarningHTML,emptySemesterHTML} from "./courses/course-catalog-availability.js";
+import {initialCourseSemester,semesterTabsHTML,courseCatalogWarningHTML,emptySemesterHTML} from "./courses/course-catalog-availability.js";
 import {escapeHTML as escCourse} from "./viewers/utils.js";
 import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js";
 import {hydroPressureResultHTML} from "./engineering/hydro-pressure-panel.js";
@@ -534,17 +534,7 @@ function coursesPage(requestedSemester){
     requested:requestedSemester,preferred:site.defaultSemester
   });
   const semester=getSemester(semesterId)||semesters[0];
-  const failedSemesters=new Set(failedNTNUSemesters(courseSource));
-  const semesterTabs=semesters.map(s=>{
-    const selected=Number(s.id)===Number(semester.id);
-    const unavailable=failedSemesters.has(Number(s.id));
-    const status=unavailable?", kunne ikke oppdateres":"";
-    return `<a class="${selected?"active":""}${unavailable?" semester-tab-unavailable":""}" href="#/courses/${s.id}" data-semester="${s.id}" ${selected?'aria-current="page"':""} aria-label="${escCourse(s.label+status)}" title="${escCourse(s.label+status)}">
-      <span class="semester-label-long">${escCourse(s.label)}</span>
-      <span class="semester-label-short">S${s.id}</span>
-      ${unavailable?'<span class="semester-tab-issue" aria-hidden="true">!</span>':""}
-    </a>`;
-  }).join("");
+  const semesterTabs=semesterTabsHTML(semesters,semester.id,courseSource);
   const courseCards=semester.courses.map(course=>{
     const resourceCount=course.resources?.length||0;
     const sectionCount=course.sections?.length||0;
