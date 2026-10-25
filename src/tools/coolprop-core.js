@@ -425,6 +425,66 @@ export function outputFromSI(param,value,units={}){
   return v;
 }
 
+
+// Preserve the *physical* state when display units are switched. These
+// conversions must happen before the next calculation, not after its result
+// has silently changed (e.g. 1 bar becoming 1 kPa).
+export function convertCoolPropInputUnit(key,raw,oldUnits,newUnits){
+  if(raw===null||raw===undefined||String(raw).trim()==="")return raw;
+  const number=Number(raw);
+  if(!Number.isFinite(number))return raw; // preserve an invalid draft for correction
+  const si=inputToSI(key,number,oldUnits);
+  const converted=outputFromSI(key,si,newUnits);
+  return Number(converted.toPrecision(12));
+}
+
+export function convertCoolPropInputRows(rows,keys,oldUnits,newUnits){
+  return String(rows??"").split(/(\r?\n)/).map(line=>{
+    if(/^\r?\n$/.test(line)||!line.trim())return line;
+    const parts=line.trim().split(/[,;\s]+/);
+    if(parts.length!==keys.length||parts.some(part=>part===""||!Number.isFinite(Number(part))))
+      return line; // invalid/incomplete drafts stay invalid; never fabricate a state
+    return parts.map((part,i)=>convertCoolPropInputUnit(keys[i],part,oldUnits,newUnits)).join(",");
+  }).join("");
+}
+
+export function convertCoolPropDraftUnits(draft,newUnits){
+  const oldUnits=unitsWithDefaults(draft.units);
+  const nextUnits=unitsWithDefaults(newUnits);
+  const point=entry=>({
+    ...entry,
+    value1:convertCoolPropInputUnit(entry.input1,entry.value1,oldUnits,nextUnits),
+    value2:convertCoolPropInputUnit(entry.input2,entry.value2,oldUnits,nextUnits)
+  });
+  const batch=draft.batch||{};
+  const reference=draft.reference||{};
+  const process=draft.process||{};
+  const table=courseTableById(draft.fluid,reference.tableId);
+  const referenceKeys=table?.mode==="ideal-gas"?null:
+    table?.mode==="sat-T"?["T"]:
+    table?.mode==="sat-P"?["P"]:
+    ["T","P"];
+  const pair=batchFormat(batch.format||"TP");
+  return {
+    ...draft,units:nextUnits,
+    single:point(draft.single||{input1:"P",input2:"T"}),
+    explore:point(draft.explore||{input1:"T",input2:"P"}),
+    batch:{...batch,rows:pair?
+      convertCoolPropInputRows(batch.rows,pair,oldUnits,nextUnits):batch.rows},
+    reference:{...reference,rows:referenceKeys?
+      convertCoolPropInputRows(reference.rows,referenceKeys,oldUnits,nextUnits):
+      reference.rows},
+    process:{
+      ...process,
+      start:process.start?point(process.start):process.start,
+      steps:(process.steps||[]).map(step=>({
+        ...step,targetValue:convertCoolPropInputUnit(
+          step.targetType,step.targetValue,oldUnits,nextUnits)
+      }))
+    }
+  };
+}
+
 export const COOLPROP_PHASE_INDEX={
   0:"liquid",
   1:"supercritical",

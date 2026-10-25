@@ -1,4 +1,4 @@
-import {mergeMedisinBackups,newMedisinBackup,validateMedisinBackup} from "../platform/medisin-drive.js?v=d733aac0b240e08c083a1c6b644db8cdb2f67570";
+import {mergeMedisinBackups,newMedisinBackup,validateMedisinBackup} from "../platform/medisin-drive.js?v=1fff9a48acdb61912056574877967631693f4019";
 
 export const MEDISIN_LOCAL_PREFIX="folk-medisin-v2:";
 export const MEDISIN_GUEST_KEY=MEDISIN_LOCAL_PREFIX+"guest";

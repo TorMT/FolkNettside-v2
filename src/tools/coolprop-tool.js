@@ -1,11 +1,11 @@
 import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,TABLE4_PRESETS,
-  computeBatch,computeCourseReferenceTable,computeProcess,computeState,computeTable4,courseCalibrationSummary,courseTableConfig,courseTableDefaultRows,courseTableLabel,processTargetOptions,
+  computeBatch,computeCourseReferenceTable,computeProcess,computeState,computeTable4,convertCoolPropDraftUnits,courseCalibrationSummary,courseTableConfig,courseTableDefaultRows,courseTableLabel,processTargetOptions,
   rowsToCSV,rowsToJSON,saturationWarning,tableReferenceProfile,unitLabel
-} from "./coolprop-core.js?v=d733aac0b240e08c083a1c6b644db8cdb2f67570";
-import {getCoolProp} from "../vendor/coolprop-runtime.js?v=d733aac0b240e08c083a1c6b644db8cdb2f67570";
-import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=d733aac0b240e08c083a1c6b644db8cdb2f67570";
-import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=d733aac0b240e08c083a1c6b644db8cdb2f67570";
+} from "./coolprop-core.js?v=1fff9a48acdb61912056574877967631693f4019";
+import {getCoolProp} from "../vendor/coolprop-runtime.js?v=1fff9a48acdb61912056574877967631693f4019";
+import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=1fff9a48acdb61912056574877967631693f4019";
+import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=1fff9a48acdb61912056574877967631693f4019";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -412,9 +412,58 @@ export function bindCoolPropTool(root,state,onState){
     }
     save({...syncGlobal(),exportRows:[],exportName:"coolprop-results",diagram:{...s.diagram,visible:false,states:[],source:""}},false);
   };
-  for(const selector of ["#cp-pressure-unit","#cp-temperature-unit","#cp-energy-unit","#cp-entropy-unit","#cp-book-basis"]){
-    root.querySelector(selector)?.addEventListener("change",invalidateComputedResults);
+  for(const selector of ["#cp-pressure-unit","#cp-temperature-unit","#cp-energy-unit","#cp-entropy-unit"]){
+    root.querySelector(selector)?.addEventListener("change",event=>{
+      // Read unsubmitted edits from ALL tabs before rerendering. Otherwise the
+      // old numeric draft acquires a new unit and changes physical meaning.
+      const field=(id)=>root.querySelector("#"+id)?.value;
+      const single={
+        input1:field("cp-single-i1")||s.single.input1,
+        value1:field("cp-single-v1")??s.single.value1,
+        input2:field("cp-single-i2")||s.single.input2,
+        value2:field("cp-single-v2")??s.single.value2
+      };
+      const explore={
+        input1:field("cp-explore-i1")||s.explore.input1,
+        value1:field("cp-explore-v1")??s.explore.value1,
+        input2:field("cp-explore-i2")||s.explore.input2,
+        value2:field("cp-explore-v2")??s.explore.value2
+      };
+      const batch={...s.batch,mode:field("cp-batch-mode")||s.batch.mode,
+        format:field("cp-batch-format")||s.batch.format,
+        rows:field("cp-batch-rows")??s.batch.rows,
+        outputs:[...root.querySelectorAll("[data-cp-batch-output]:checked")]
+          .map(el=>el.dataset.cpBatchOutput)};
+      const reference={tableId:field("cp-reference-table")||s.reference.tableId,
+        rows:field("cp-reference-rows")??s.reference.rows};
+      const process={
+        start:{
+          input1:field("cp-start-i1")||s.process.start.input1,
+          value1:field("cp-start-v1")??s.process.start.value1,
+          input2:field("cp-start-i2")||s.process.start.input2,
+          value2:field("cp-start-v2")??s.process.start.value2,
+          description:field("cp-start-description")??s.process.start.description
+        },
+        steps:s.process.steps.map((step,index)=>({
+          ...step,
+          processType:root.querySelector(`[data-process-field="processType"][data-process-index="${index}"]`)?.value||step.processType,
+          targetType:root.querySelector(`[data-process-field="targetType"][data-process-index="${index}"]`)?.value||step.targetType,
+          targetValue:root.querySelector(`[data-process-field="targetValue"][data-process-index="${index}"]`)?.value??step.targetValue,
+          description:root.querySelector(`[data-process-field="description"][data-process-index="${index}"]`)?.value??step.description
+        }))
+      };
+      const changed=convertCoolPropDraftUnits(
+        {...s,single,explore,batch,reference,process},readUnits(root));
+      diagramHandle?.cleanup?.();diagramHandle=null;
+      save({...changed,bookBasis:Boolean(root.querySelector("#cp-book-basis")?.checked),
+        exportRows:[],exportName:"coolprop-results",
+        diagram:{...s.diagram,visible:false,states:[],source:""}},true);
+      // Return focus to the same selector after the app refreshes the values.
+      const focusId=event.currentTarget.id;
+      requestAnimationFrame(()=>document.getElementById(focusId)?.focus({preventScroll:true}));
+    });
   }
+  root.querySelector("#cp-book-basis")?.addEventListener("change",invalidateComputedResults);
 
   root.querySelectorAll("[data-cp-tab]").forEach(button=>button.addEventListener("click",()=>{
     save({...syncGlobal(),tab:button.dataset.cpTab},true);
