@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>CAD keyboard and zoom-width regression</title></head>
+<body data-status="running"><pre id="result">running</pre>
+<iframe id="site" title="CAD zoom and keyboard audit" src="../../index.html#/tools/model-inspector"
+ style="height:920px;border:0;display:block"></iframe>
+<script type="module">
+const width=Number(new URLSearchParams(location.search).get("width")||390);
+const iframe=document.querySelector("#site");iframe.style.width=width+"px";
+const doc=()=>iframe.contentDocument,win=()=>iframe.contentWindow;
+const get=sel=>doc()?.querySelector(sel);
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const assert=(condition,msg)=>{if(!condition)throw Error(msg)};
+async function until(test,message){
+ for(let i=0;i<190;i++){try{if(test())return}catch{}await sleep(90)}
+ throw Error("Timeout: "+message+" route="+win()?.location.hash);
+}
+function fits(el){
+ const bounds=el.getBoundingClientRect();
+ const windowWidth=doc().documentElement.clientWidth;
+ return bounds.width>0&&bounds.left>=-3&&bounds.right<=windowWidth+3;
+}
+function noOverflow(where){
+ const vw=doc().documentElement.clientWidth;
+ const scroll=Math.max(doc().documentElement.scrollWidth,doc().body.scrollWidth);
+ const offenders=[...doc().querySelectorAll("body *")].filter(element=>{
+   const bounds=element.getBoundingClientRect();
+   return bounds.width>0&&bounds.right>vw+5&&bounds.left<vw;
+ }).slice(0,14).map(element=>{
+   const b=element.getBoundingClientRect();
+   return element.tagName.toLowerCase()+"."+
+     (element.getAttribute("name")||element.getAttribute("id")||Object.keys(element.dataset||{}).join("," )||String(element.className||"")).slice(0,100)+
+     "[type="+(element.getAttribute("type")||"")+" parent="+String(element.parentElement?.className||"").slice(0,45)+"]("+Math.round(b.left)+
+     ".."+Math.round(b.right)+")";
+ });
+ assert(scroll<=vw+7,where+" horizontal overflow "+scroll+"/"+vw+
+   "; offenders: "+offenders.join(" | "));
+}
+try{
+ await until(()=>get("#model-inspector-stage .three-canvas")&&
+   get("#model-inspector-stage .three-components button"),
+   "model example WebGL and component list");
+ assert(get("#model-inspector-status").getAttribute("role")==="status",
+   "Dynamic model status is not announced");
+ const guidance=get("#model-inspector-keyboard-help");
+ assert(guidance?.textContent.includes("piltastene"),"Keyboard controls have no visible guide");
+ const canvas=get("#model-inspector-stage .three-canvas");
+ assert(canvas.tabIndex===0&&canvas.getAttribute("aria-describedby")===guidance.id,
+   "3D canvas cannot be found/explained by a keyboard/screen-reader user");
+ const list=get("#model-inspector-stage .three-components");
+ const component=list.querySelector("button[data-component]");
+ assert(component,"Component must be selectable through a named native button");
+ const longName="Long imported component name / nested assemblies / "+("Port bow hydraulic longitudinal reinforcement ".repeat(8));
+ component.querySelector("span:last-child").textContent=longName;
+ const listedStyle=win().getComputedStyle(list);
+ assert(listedStyle.display!=="none","Component list missing in mobile/zoom layout");
+ assert(fits(list),"Component list extends beyond viewport");
+ assert(fits(component),"Long component control clips horizontally");
+ component.focus();
+ assert(doc().activeElement===component,"Component selection not keyboard focusable");
+ component.click();
+ assert(component.classList.contains("active"),"Component selection click did not update state");
+ canvas.focus();
+ const evt=new (win().KeyboardEvent)("keydown",{key:"f",bubbles:true,cancelable:true});
+ canvas.dispatchEvent(evt);
+ assert(evt.defaultPrevented,"Focus-scoped keyboard Fit shortcut unavailable");
+ const measure=get("#model-measure");
+ assert(measure?.getAttribute("aria-pressed")==="false","Measurement toggle initial state absent");
+ measure.click();
+ assert(measure.getAttribute("aria-pressed")==="true","Measurement state not exposed to assistive tech");
+ measure.click();
+ assert(measure.getAttribute("aria-pressed")==="false","Measurement off state incorrect");
+ noOverflow("Model inspector");
+ win().location.hash="#/engineering/cad";
+ await until(()=>get("#cad-geometry-stage [data-cad-demo]"),"CAD demo prompt");
+ get("[data-cad-demo]").click();
+ await until(()=>get("#cad-geometry-stage [data-model-mobile-toggle]")&&
+   get("#cad-geometry-stage .three-canvas"),"CAD workbench demo");
+ const toggle=get("[data-model-mobile-toggle]");
+ const inspector=get("#cad-mobile-inspector");
+ assert(toggle.getAttribute("aria-controls")===inspector.id,
+   "CAD drawer trigger has invalid aria-controls");
+ assert(toggle.getAttribute("aria-expanded")==="false",
+   "CAD tool drawer initial collapsed state missing");
+ assert(inspector.inert&&inspector.getAttribute("aria-hidden")==="true",
+   "Closed mobile CAD tool drawer remains keyboard/screen-reader reachable");
+ toggle.focus();
+ toggle.click();
+ assert(toggle.getAttribute("aria-expanded")==="true"&&!inspector.inert,
+   "Opening CAD tools did not update the accessibility state");
+ assert(inspector.contains(doc().activeElement),"CAD drawer opening did not move focus into controls");
+ inspector.querySelector("input,button")?.dispatchEvent(new (win().KeyboardEvent)(
+   "keydown",{key:"Escape",bubbles:true,cancelable:true}));
+ assert(toggle.getAttribute("aria-expanded")==="false"&&inspector.inert,
+   "Escape failed to dismiss the CAD drawer");
+ assert(doc().activeElement===toggle,"Escape failed to restore focus to CAD toggle");
+ // Inject an intentionally long nested assembly label to catch clipping.
+ toggle.click();
+ const name=get(".cad-group-tree button")||get('[data-model-assembly] button');
+ if(name){
+   name.textContent="Assembly / hydrofoils / left side / "+("Very long nested component name ".repeat(9));
+   assert(fits(name),"Long CAD assembly name extends outside viewport");
+ }
+ noOverflow("CAD workbench expanded");
+ toggle.click();
+ assert(inspector.inert&&toggle.getAttribute("aria-expanded")==="false",
+   "Closing the drawer leaves hidden focusable controls");
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent=
+   "CAD/model zoom-width accessibility PASS at "+width+"px; canvas shortcuts, "+
+   "long assembly labels, mobile component list, Escape/focus/ARIA";
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>

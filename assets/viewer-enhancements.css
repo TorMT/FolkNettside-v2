@@ -350,3 +350,51 @@
  .viewer-head-actions .viewer-file-actions #viewer-choose-local{flex:1 1 auto;min-width:0}
  .viewer-head-actions .viewer-file-actions{gap:6px}
 }
+
+/* B18: no clipped long assembly names or inaccessible CAD controls at zoom. */
+.cad-geometry-stage .model-viewer-workbench,
+.cad-geometry-stage .model-viewer-inspector,
+.cad-geometry-stage .model-viewer-section,
+.cad-geometry-stage [data-model-assembly]{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.cad-geometry-stage .cad-group-tree :is(button,span,strong),
+.cad-geometry-stage .model-viewer-section :is(p,label,button){
+  white-space:normal;overflow-wrap:anywhere;min-width:0}
+.cad-geometry-stage .model-viewer-actions{min-width:0}
+.cad-geometry-stage :is(.model-viewer-actions button,.model-viewer-mobile-toggle):focus-visible{
+  outline:3px solid #f0d380;outline-offset:-3px}
+@media(max-width:900px){
+ .cad-geometry-stage .model-viewer-mobile-compact .model-viewer-inspector[aria-hidden="true"]{display:none}
+ .cad-geometry-stage .model-viewer-mobile-compact.model-viewer-mobile-open .model-viewer-inspector{
+   display:block;max-width:100%;overflow-x:hidden}
+ .cad-geometry-stage .model-viewer-mobile-compact .model-viewer-actions button{min-height:44px}
+}
+
+/* Reflow nested wave/RAO form controls: intrinsic select and number-input
+   widths must not push the CAD panel beyond a 320px zoom-equivalent viewport. */
+.cad-geometry-stage .model-viewer-inspector :is(input,select,textarea){
+  box-sizing:border-box;min-width:0;max-width:100%}
+.cad-geometry-stage .model-wave-actions,
+.cad-geometry-stage .model-wave-rao,
+.cad-geometry-stage .model-wave-fields{
+  min-width:0;max-width:100%}
+.cad-geometry-stage .model-wave-actions .wave-motion-select{
+  box-sizing:border-box;display:grid;gap:5px;min-width:0;
+  max-width:100%;flex:1 1 220px;overflow-wrap:anywhere}
+.cad-geometry-stage .model-wave-actions .wave-motion-select select{
+  display:block;width:100%;min-width:0;max-width:100%;
+  border:1px solid var(--line);border-radius:6px;
+  background:var(--surface-sunk);color:var(--ink);padding:8px}
+.cad-geometry-stage .model-wave-fields>label,
+.cad-geometry-stage .model-wave-actions>label{
+  box-sizing:border-box;min-width:0;max-width:100%}
+.cad-geometry-stage .model-wave-actions .wave-phase-scrub input{
+  flex:1 1 110px;width:min(150px,100%);min-width:0;max-width:100%}
+@media(max-width:560px){
+  .cad-geometry-stage .model-wave-actions .wave-motion-select{flex-basis:100%}
+}
+
+/* Native file inputs have a Chromium intrinsic width (~278px) which exceeds
+   the usable 305px CSS viewport once the CAD page and scrollbar are present. */
+.engineering-cad-page .cad-import-bar>label{box-sizing:border-box;min-width:0;max-width:100%}
+.engineering-cad-page .cad-import-bar input[type="file"]{
+  display:block;box-sizing:border-box;min-width:0;width:100%;max-width:100%}

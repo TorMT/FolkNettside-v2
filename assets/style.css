@@ -1364,3 +1364,36 @@ a.project-row:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .theme-contrast-check strong{white-space:nowrap;color:var(--ink);font-variant-numeric:tabular-nums}
 .theme-contrast-note{font-size:12px;color:var(--ink-2);line-height:1.55}
 @media(max-width:760px){.theme-contrast-checks{grid-template-columns:1fr}}
+
+/* B18: model inspector reflow and keyboard component list at zoom-sized viewports. */
+.model-inspector-main{min-width:0;grid-template-rows:auto minmax(520px,68vh) auto;align-content:start}
+.model-inspector-keyboard-help{margin:0;padding:10px 12px;border:1px solid var(--line);
+  border-radius:9px;background:var(--surface);color:var(--ink-2);font-size:12px;
+  line-height:1.55;overflow-wrap:anywhere}
+.model-inspector-page .model-inspector-controls,
+.model-inspector-page .crystal-subpanel,
+.model-inspector-page .tool-result-grid,
+.model-inspector-page .tool-result-card{min-width:0;overflow-wrap:anywhere}
+.model-inspector-stage .three-components button{
+  min-width:0;min-height:40px;align-items:flex-start;white-space:normal;text-align:left}
+.model-inspector-stage .three-components button span:last-child{
+  min-width:0;overflow-wrap:anywhere;word-break:normal}
+.model-inspector-stage :is(.three-canvas,.three-components button):focus-visible{
+  outline:3px solid #f0d380;outline-offset:-3px}
+@media(max-width:900px){
+ .model-inspector-main{grid-template-rows:auto auto auto}
+ .model-inspector-stage{height:auto;min-height:0;overflow:visible}
+ .model-inspector-stage .three-stage{
+   display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:clamp(290px,48dvh,510px) auto;
+   height:auto;min-height:0;overflow:hidden;border-radius:11px}
+ .model-inspector-stage .three-canvas{
+   display:block;width:100%;height:100%;min-height:0}
+ .model-inspector-stage .three-components{
+   display:block!important;min-width:0;max-height:min(220px,34dvh);overflow:auto;
+   border-left:0;border-top:1px solid var(--line);scrollbar-gutter:stable}
+ .model-inspector-page .crystal-coordinate-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:400px){
+ .model-inspector-page .crystal-coordinate-grid{grid-template-columns:minmax(0,1fr)}
+ .model-inspector-stage .three-components{max-height:180px}
+}
