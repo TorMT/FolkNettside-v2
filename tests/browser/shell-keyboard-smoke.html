@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>FolkNet shell keyboard and menu regression</title></head>
+<body data-status="running">
+<pre id="result">running</pre>
+<iframe id="site" title="Accessible shell" src="../../index.html#/portfolio" style="height:820px;border:0;display:block"></iframe>
+<script type="module">
+const width=Number(new URLSearchParams(location.search).get("width")||390);
+const frame=document.querySelector("#site");
+frame.style.width=width+"px";
+const doc=()=>frame.contentDocument;
+const win=()=>frame.contentWindow;
+const get=selector=>doc()?.querySelector(selector);
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const check=(ok,message)=>{if(!ok)throw Error(message)};
+async function until(predicate,message){
+  for(let i=0;i<140;i++){if(predicate())return;await sleep(80)}
+  throw Error("Timeout: "+message+" (route "+win()?.location.hash+")");
+}
+async function visit(route,selector){
+  win().location.hash="#"+route;
+  await until(()=>win().location.hash==="#"+route&&get(selector),route+" "+selector);
+}
+try{
+  await until(()=>get("#home")&&get(".topbar"),"initial site shell");
+  check(get("#home").tagName==="BUTTON"&&get("#home").type==="button",
+    "Brand is not a native button");
+  check(get("#home").getAttribute("aria-label")==="Go to Projects",
+    "Brand lacks destination label");
+  await visit("/about","main");
+  get("#home").focus();
+  check(doc().activeElement===get("#home"),"Brand cannot receive keyboard focus");
+  get("#home").click();
+  await until(()=>win().location.hash==="#/portfolio"&&get(".hero"),"brand navigation");
+  await visit("/courses",".course-grid");
+  check(doc().querySelectorAll('[data-go="/courses"][aria-current="page"]').length>=1,
+    "Active Courses route not announced");
+  if(width<=760){
+    const more=()=>get("[data-mobile-more-toggle]");
+    const menu=()=>get("#mobile-more-menu");
+    more().click();
+    check(!menu().hidden&&more().getAttribute("aria-expanded")==="true",
+      "More did not open");
+    const first=menu().querySelector("button");
+    first.focus();
+    first.dispatchEvent(new (win().KeyboardEvent)("keydown",
+      {key:"Escape",bubbles:true,cancelable:true}));
+    check(menu().hidden&&more().getAttribute("aria-expanded")==="false",
+      "Escape did not close More");
+    check(doc().activeElement===more(),"Escape did not restore focus");
+    more().click();
+    check(!menu().hidden,"More failed to reopen");
+    get("#home").dispatchEvent(new (win().PointerEvent)("pointerdown",{bubbles:true}));
+    check(menu().hidden,"Outside pointer press did not close More");
+    more().click();
+    check(!menu().hidden,"More failed to reopen after outside press");
+    get("#home").focus();
+    check(menu().hidden,"Moving keyboard focus outside did not close More");
+    more().click();
+    check(!menu().hidden,"More failed to open again");
+    menu().querySelector('[data-go="/cv"]').click();
+    await until(()=>win().location.hash==="#/cv"&&get("main.cv-page"),
+      "More CV navigation");
+    check(more().getAttribute("aria-expanded")==="false","More did not reset");
+    check(menu().hidden,"More not hidden after navigating");
+  }else{
+    check(get('[data-go="/courses"][aria-current="page"]')!==null,
+      "Desktop active route absent");
+  }
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent=
+    "Shell keyboard and More accessibility PASS at "+width+"px";
+}catch(error){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script>
+</body></html>
