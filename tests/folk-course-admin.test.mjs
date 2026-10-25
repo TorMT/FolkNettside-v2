@@ -33,7 +33,7 @@ test("reject malformed labels and unsafe paths without rendering",()=>{
 
 test("public Supabase labels require valid response and use only publishable key",async()=>{
   const calls=[];
-  const config={url:"https://glfuvfmppkjmarujjqwg.supabase.co",
+  const config={url:"https://aeuouzkiyddfjtjfdosp.supabase.co",
     publishableKey:"sb_publishable_1234567890xyz"};
   const result=await loadPublicCourseLabels({
     configLoader:async()=>config,
