@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {loadNTNUCatalog} from "../src/courses/ntnu-catalog.js";
 import {
- failedNTNUSemesters,initialCourseSemester,courseCatalogWarningHTML,emptySemesterHTML
+ failedNTNUSemesters,initialCourseSemester,semesterTabsHTML,courseCatalogWarningHTML,emptySemesterHTML
 } from "../src/courses/course-catalog-availability.js";
 
 const siteSemesters=[
@@ -101,8 +101,12 @@ test("working and failed empty states differ without caching stale public refere
  assert.match(app,/courseCatalogWarningHTML\(courseSource\)/);
  assert.match(app,/initialCourseSemester\(semesters,courseSource/);
  assert.match(app,/emptySemesterHTML\(semester,courseSource\)/);
- assert.match(app,/semester-tab-unavailable/);
- assert.match(app,/aria-label="\$\{escCourse\(s\.label\+status\)\}"/);
+ assert.match(app,/semesterTabsHTML\(semesters,semester\.id,courseSource\)/);
+ const tabMarkup=semesterTabsHTML(siteSemesters,2,{mode:"ntnu",status:"partial",failedSemesters:[2]});
+ assert.match(tabMarkup,/semester-tab-unavailable/);
+ assert.match(tabMarkup,/aria-label="Semester 2, kunne ikke oppdateres"/);
+ assert.match(tabMarkup,/aria-current="page"/);
+ assert.match(tabMarkup,/href="#\/courses\/2"/);
  assert.match(css,/\.semester-tab-issue/);
  assert.match(css,/max-width:640px/);
  assert.match(css,/\.course-source-warning/);

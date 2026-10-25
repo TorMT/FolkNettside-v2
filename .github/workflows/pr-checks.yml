@@ -91,6 +91,18 @@ jobs:
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4227/tests/browser/projects-gallery-smoke.html 35 1440,900
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4227/tests/browser/projects-gallery-smoke.html 35 390,844
 
+      - name: Simulated partial NTNU index failure in real Chrome 320 390 768
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4257 --bind 127.0.0.1 >/tmp/ntnu-partial-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/ntnu-partial-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py 'http://127.0.0.1:4257/tests/browser/ntnu-partial-index-smoke.html?width=320' 45 1280,900
+          python3 scripts/test_hydro_worker_browser.py 'http://127.0.0.1:4257/tests/browser/ntnu-partial-index-smoke.html?width=390' 45 1280,900
+          python3 scripts/test_hydro_worker_browser.py 'http://127.0.0.1:4257/tests/browser/ntnu-partial-index-smoke.html?width=768' 45 1280,900
+
       - name: Mobile navigation About CV Contact and overflow browser regression
         run: |
           command -v chromedriver
