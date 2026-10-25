@@ -5,7 +5,7 @@ import {
  folkSignIn,folkSignUp,getFolkAccessToken,getFolkAccountUser,getFolkLinkedProviders,folkSignOut,
  resetFolkAccountForTests
 } from "../src/platform/folkside-auth.js";
-const url="https://glfuvfmppkjmarujjqwg.supabase.co";
+const url="https://aeuouzkiyddfjtjfdosp.supabase.co";
 const config={url,publishableKey:"sb_publishable_"+ "A".repeat(32)};
 const user={id:"11111111-2222-3333-4444-555555555555",email:"test@example.org"};
 const session={access_token:"eyJ"+"x".repeat(30),refresh_token:"ref_"+"x".repeat(30),expires_in:3600,user};
