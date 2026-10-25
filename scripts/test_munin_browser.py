@@ -7,6 +7,13 @@ import test_hydro_worker_browser as smoke
 original_call = smoke.call
 
 def capture_call(method, path, body=None, timeout=30):
+    if method == 'POST' and path == '/session':
+        result = original_call(method, path, body, timeout)
+        width, height = map(int, sys.argv[3].split(','))
+        original_call('POST', '/session/' + result['sessionId'] + '/goog/cdp/execute', {
+            'cmd': 'Emulation.setDeviceMetricsOverride', 'params': {
+                'width': width, 'height': height, 'deviceScaleFactor': 1, 'mobile': width < 900}})
+        return result
     if method == 'DELETE' and path.startswith('/session/'):
         try:
             original_call('POST', path + '/execute/sync', {

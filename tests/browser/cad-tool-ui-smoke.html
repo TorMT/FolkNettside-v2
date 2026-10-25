@@ -30,7 +30,7 @@ try{
    throw Error("Munin public source links unavailable");
  if(!host.querySelector("[data-cad-munin-choose]"))throw Error("Munin local import missing");
  const stage=host.querySelector("#cad-geometry-stage");
- if(stage.clientHeight<350||stage.clientWidth<300)
+ if(stage.clientHeight<350||stage.clientWidth<200)
    throw Error("CAD stage has no usable geometry: "+stage.clientWidth+"x"+stage.clientHeight);
  const demo=host.querySelector("[data-cad-demo]");
  if(!demo)throw Error("Demo assembly missing");
