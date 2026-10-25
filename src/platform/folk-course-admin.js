@@ -3,8 +3,8 @@
  * Public read; only allowlisted Supabase Auth users can write, enforced by Postgres RLS.
  * NTNU files/paths are never modified by this module.
  */
-import {validateNTNUDisplayNames} from "../courses/ntnu-display-names.js?v=cdfaa885e0a338fe115dc5c63770a6c7facb4745";
-import {validateFolkAuthConfig,getFolkAccessToken,getFolkAccountSnapshot} from "./folkside-auth.js?v=cdfaa885e0a338fe115dc5c63770a6c7facb4745";
+import {validateNTNUDisplayNames} from "../courses/ntnu-display-names.js?v=ca90c93a141b468461ed11407264dbaf388adb6d";
+import {validateFolkAuthConfig,getFolkAccessToken,getFolkAccountSnapshot} from "./folkside-auth.js?v=ca90c93a141b468461ed11407264dbaf388adb6d";
 
 const KINDS=new Set(["course-title","course-description","section","file"]);
 const MAX_ROWS=5000;
