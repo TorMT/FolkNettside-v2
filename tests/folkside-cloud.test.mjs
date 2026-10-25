@@ -52,7 +52,8 @@ test("Google session and FolkNet session remain separate in account settings",()
  const guest=settingsPageHTML({settings:{},section:"connections",
    account:{status:"signed-out"},folkAccount:{status:"signed-out"}});
  assert.match(guest,/data-folk-auth-form/);
- assert.match(guest,/data-folk-signup/);
+ assert.match(guest,/data-folk-login/);
+ assert.doesNotMatch(guest,/data-folk-signup/);
  assert.doesNotMatch(guest,/data-folk-probe/);
 });
 test("untrusted session error message rendered as escaped text",()=>{

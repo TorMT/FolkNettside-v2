@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {clearLocalStudyProgress,settingsPageHTML,SETTINGS_SECTIONS} from "../src/settings/settings-page.js";
+import {readFileSync} from "node:fs";
 
 function memoryStorage(entries={}){
   const data=new Map(Object.entries(entries));
@@ -61,4 +62,20 @@ test("Clear progress removes only quiz and video records",()=>{
     "folk-v2-settings":"{\"mode\":\"dark\"}",
     "unrelated":"keep"
   });
+});
+
+test("FolkNet admin login is invite-only in V2 and available on narrow screens",()=>{
+  const signedOut=settingsPageHTML({settings,section:"connections",
+    folkAccount:{status:"signed-out"}});
+  assert.match(signedOut,/data-folk-auth-form/);
+  assert.match(signedOut,/data-folk-login/);
+  assert.match(signedOut,/Kun forhåndsopprettede FolkNet-kontoer/);
+  assert.doesNotMatch(signedOut,/data-folk-signup/);
+  const signedIn=settingsPageHTML({settings,section:"connections",
+    folkAccount:{status:"signed-in",user:{id:"owner-id",email:"owner@example.org"}}});
+  assert.match(signedIn,/href="#\/admin\/courses"/);
+  assert.match(signedIn,/data-folk-signout/);
+  assert.doesNotMatch(signedIn,/data-folk-signup/);
+  const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
+  assert.doesNotMatch(app,/data-folk-signup/);
 });
