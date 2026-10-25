@@ -21,7 +21,7 @@ function csvCell(value){
   let text=Array.isArray(value)?value.join(" | "):String(value);
   // Reject spreadsheet formula execution when exported CSV is opened in Excel.
   // Numeric data (including legitimate negative numbers) is unaffected.
-  if(typeof value!=="number"&&/^[\\s]*[=+@-]/.test(text))text="'"+text;
+  if(typeof value!=="number"&&/^\s*[=+@-]/.test(text))text="'"+text;
   return /[",\n\r]/.test(text)?`"${text.replace(/"/g,'""')}"`:text;
 }
 
