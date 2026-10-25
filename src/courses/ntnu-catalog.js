@@ -4,7 +4,11 @@
  * assemble a manifest. This only runs on the exact, trusted NTNU host.
  */
 export const NTNU_ORIGIN="https://tormt.folk.ntnu.no";
-const PRIVATE=/(?:beskyttet|protected|private|privat|restricted|hemmelig|secrets?|credentials|passord)/i;
+// Keep the legacy index safety gate at least as strict as the scheduled
+// public crawler and the local NTNU fallback. Public JSON metadata is not
+// evidence that a credential-like file may be linked from V2.
+const PRIVATE=/(?:beskyttet|protected|private|privat|restricted|hemmelig|secrets?|credentials?|passord|password|token|api[-_]?key|service[-_]?account|id[-_]?(?:rsa|ed25519)|\.env|\.htaccess)/i;
+const SECRET_EXTENSION=/\.(?:pem|p12|pfx|p8|keystore|key)$/i;
 const SAFE_FILE_TYPES=Object.freeze({
  pdf:"PDF",md:"MD",txt:"TXT",py:"PY",ipynb:"IPYNB",js:"JS",mjs:"JS",
  html:"HTML",htm:"HTML",json:"JSON",csv:"CSV",xlsx:"XLSX",xls:"XLS",
@@ -25,9 +29,11 @@ const SAFE_FILE_TYPES=Object.freeze({
  avif:"IMAGE",bmp:"IMAGE",tif:"IMAGE",tiff:"IMAGE"
 });
 const object=v=>v!==null&&typeof v==="object"&&!Array.isArray(v);
-const safePiece=v=>typeof v==="string"&&v.length>0&&v.length<=210&&
+export const isSafeNTNUSegment=v=>typeof v==="string"&&v.length>0&&v.length<=210&&
  ![".",".."].includes(v)&&!v.startsWith(".")&&!v.startsWith("~$")&&
- !/[\\/%?#\u0000-\u001f\u007f]/.test(v)&&!PRIVATE.test(v);
+ !/[\\/%?#\u0000-\u001f\u007f]/.test(v)&&!PRIVATE.test(v)&&
+ !SECRET_EXTENSION.test(v);
+const safePiece=isSafeNTNUSegment;
 const segments=path=>{
  if(typeof path!=="string"||path.length>1400||!path||
    path.startsWith("/")||path.includes("\\")||path.includes("%")||
