@@ -12,8 +12,8 @@
  * No inference from visual hull triangles, corrosion, effective breadth,
  * shear lag, cutouts, welds, torsion, buckling, or overlap subtraction.
  */
-import {validateGirderProfile} from "./girder-profiles.js?v=933da81f89017f643820b82863bb31f511c8caf0";
-import {structuralOverlapAudit} from "./girder-section-geometry.js?v=933da81f89017f643820b82863bb31f511c8caf0";
+import {validateGirderProfile} from "./girder-profiles.js?v=ba4504c94e2d0fb6d93f6f08242d632c0b1259f8";
+import {structuralOverlapAudit} from "./girder-section-geometry.js?v=ba4504c94e2d0fb6d93f6f08242d632c0b1259f8";
 const finite=Number.isFinite;
 function number(raw,name){
   if(raw===undefined||raw===null||String(raw).trim()==="")
