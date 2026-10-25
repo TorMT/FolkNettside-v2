@@ -1,6 +1,27 @@
+import {diveCoordinateAssessment,diveSourceUrls} from "./dive-core.js";
+
+function publicDiveFeature(feature){
+  // Never silently turn source-disclaimed or invalid coordinates into
+  // navigation-ready points in CSV/GeoJSON exports.
+  const safe=JSON.parse(JSON.stringify(feature));
+  const assessment=diveCoordinateAssessment(feature);
+  safe.properties=safe.properties||{};
+  safe.properties.source_urls=diveSourceUrls(safe.properties);
+  if(assessment.status!=="mapped"){
+    safe.geometry=null;
+    safe.properties.Lat=null;
+    safe.properties.Lon=null;
+    safe.properties.location_status=assessment.status;
+  }
+  return safe;
+}
+
 function csvCell(value){
   if(value===null||value===undefined)return "";
-  const text=Array.isArray(value)?value.join(" | "):String(value);
+  let text=Array.isArray(value)?value.join(" | "):String(value);
+  // Reject spreadsheet formula execution when exported CSV is opened in Excel.
+  // Numeric data (including legitimate negative numbers) is unaffected.
+  if(typeof value!=="number"&&/^[\\s]*[=+@-]/.test(text))text="'"+text;
   return /[",\n\r]/.test(text)?`"${text.replace(/"/g,'""')}"`:text;
 }
 
@@ -12,8 +33,9 @@ export function diveFeaturesCSV(features=[]){
     "source_ids","source_urls","verified_date"
   ];
   const rows=(features||[]).map(feature=>{
-    const p=feature?.properties||{};
-    const coords=feature?.geometry?.type==="Point"?feature.geometry.coordinates:[null,null];
+    const safe=publicDiveFeature(feature);
+    const p=safe.properties||{};
+    const coords=safe.geometry?.type==="Point"?safe.geometry.coordinates:[null,null];
     return [
       p.ID||feature?.id||"",p.Navn,p.Område,p.Kategori,p.Status,
       coords?.[1]??"",coords?.[0]??"",p.Dybde_min_m,p.Dybde_max_m,p.Kilde_nivå,p.Datakvalitet,
@@ -25,15 +47,23 @@ export function diveFeaturesCSV(features=[]){
 }
 
 export function diveFeaturesGeoJSON(features=[],metadata={}){
+  // Export only documented filter/source metadata. GPS origin is intentionally
+  // excluded even if a caller accidentally includes it in an input object.
+  const filters={};
+  for(const key of ["query","level","kind","quality","maxDepth","sort","wildlife","excludeWildlife"]){
+    if(Object.hasOwn(metadata.filters||{},key))filters[key]=metadata.filters[key];
+  }
   return JSON.stringify({
     type:"FeatureCollection",
     metadata:{
       exportedAt:new Date().toISOString(),
+      source:metadata.source??null,
+      sourceDate:metadata.sourceDate??null,
+      filters,
       publicExport:true,
-      records:(features||[]).length,
-      ...metadata
+      records:(features||[]).length
     },
-    features:(features||[]).map(feature=>JSON.parse(JSON.stringify(feature)))
+    features:(features||[]).map(publicDiveFeature)
   },null,2)+"\n";
 }
 
