@@ -2090,7 +2090,7 @@ async function engineeringPage(){
     <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
       ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
     </div></div>
-    <aside class="tree"><input id="component-filter" placeholder="Filter name, role or subsystem"><div class="tree-label">Semantic assembly</div>
+    <aside class="tree"><input id="component-filter" aria-label="Filter components by name, role or subsystem" placeholder="Filter name, role or subsystem"><div class="tree-label">Semantic assembly</div>
       <div id="component-tree">${uiComponents.map(component=>{
         const semantic=componentSemantic(component);
         const semanticLabel=semantic.subtype||semantic.role||component.type;

@@ -62,3 +62,11 @@ test("brand is a native keyboard-operable button and current route is announced"
   assert.match(engineering,/aria-controls="mobile-more-menu" aria-expanded="false"/);
   assert.match(engineering,/button type="button" data-search-open/);
 });
+
+test("SPA exposes keyboard bypass without stealing the hash-router URL",()=>{
+  const html=renderTopShell("portfolio");
+  assert.match(html,/class="skip-to-content" data-skip-content/);
+  assert.doesNotMatch(html,/href="#main"/);
+  assert.ok(html.indexOf("data-skip-content")<html.indexOf("<header"),
+    "Bypass control must precede the navigation for keyboard order");
+});
