@@ -47,3 +47,16 @@ The issue B18 remains **partial** until the manual gates and systematic contrast
 **Chrome acceptance:** [CI run 40215966024](https://github.com/TorMT/FolkNettside-v2/actions/runs/40215966024) passed all 49 regression steps. Browser checks at **320, 390 and 768px** each verified all **10 combinations** of light/dark × five bundled accent palettes; sampled high-contrast text tokens on panel/recessed surfaces at **≥4.5:1**, strong borders at **≥3:1**, white text on accent buttons at **≥4.5:1**, and saved Settings after a reload. Explicit reduced motion was verified against computed transition duration, then reset to system.
 
 **Limits:** This is a bounded common-token and browser-style acceptance test, **not** full WCAG 2.2 conformance, full Theme Studio image/custom-palette audit or a claim that WebGL/canvas animations stop. Native Windows forced-colors, screen readers, 200–400% zoom and real low-memory phones still require separate testing.
+
+
+## 2026-10-25 — Custom Theme Studio contrast safety
+
+[PR #124](https://github.com/TorMT/FolkNettside-v2/pull/124), merged `520fc612140469f3fd3baf73d69bf0fca2dc4fec`.
+
+**Observed before fix:** Theme Studio's legacy preview and generated CSS assumed white text for the navbar, sidebar and button even on white/light custom palettes. Main theme text was chosen using average RGB brightness instead of WCAG relative luminance. Extremely contrasting two-ended navbar gradients could not have a single readable foreground.
+
+**Changes:** `src/settings/theme-studio-core.js` now computes relative luminance and contrast ratios in linear sRGB, selects accessible text colors for the generated navbar/sidebar/primary button, main/secondary/muted text, and contrast-adjusted primary headings/links. When a gradient contains conflicting bright/dark endpoints, the **preview and generated CSS gradient** use nearest contrast-corrected endpoints, leaving the original color selection and JSON palette unchanged. An eight-item preview report presents measured ratios and explains automatic adjustments. Colors and CSS-selector theme names are validated before output. This does not install a custom runtime theme or modify existing global Settings.
+
+**Acceptance:** Latest-head [CI run 40217316066](https://github.com/TorMT/FolkNettside-v2/actions/runs/40217316066) **50/50 steps passed**. Node tests cover known WCAG numerical pairs, adversarial bright/dark/midgray palettes, preserved source/JSON, and safe CSS selectors. Chrome exercised manual and image-mode preview at **320, 390 and 768px**, confirming eight visible passing text pairs, correctly corrected navbar gradient and preserved editor values.
+
+**Limits:** The 4.5:1 test refers to sampled *generated preview text*; it is not a full UI or imported-CSS contrast audit. Users may still export color variables for other arbitrary downstream selectors, images and 3D canvases; they need individual evaluation. Theme Studio remains a generator, separate from Settings's built-in accent presets. Native forced-colors, physical mobile screen readers, zoom and third-party viewers remain open manual B18 gates.
