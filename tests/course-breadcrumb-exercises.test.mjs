@@ -6,7 +6,7 @@ import {viewerBreadcrumbHTML} from "../src/viewers/viewer-breadcrumb.js";
 
 test("flat exercise PDF and solution files become exercise sections without changing original paths",()=>{
   const result=parseNTNUSemesterIndex(5,{
-    "Marin-Dynamikk":{dir:"Marin-Dynamikk",files:[
+    "Marin-Dynamikk":{dir:"Marin-Dynamikk",beskyttet:false,files:[
       "filer/Øving7.pdf",
       "filer/Øving7 løsning.pdf",
       "filer/Øving3/oppgave.py",
