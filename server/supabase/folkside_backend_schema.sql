@@ -1,6 +1,6 @@
--- FolkNettside V2 / planned Supabase project: folkside
--- Dedicated Supabase project ref: glfuvfmppkjmarujjqwg (verified 2026-10-12).
--- Version-controlled deployment schema. Apply only to this verified project.
+-- FolkNettside V2 / new Supabase project aeuouzkiyddfjtjfdosp in TorMT's Org.
+-- Applied 2026-10-25 as migration folk_private_storage_and_oauth_20261025.
+-- This file documents the deployed schema; do not rerun blindly.
 -- Public tables use RLS. "private" contains only server-held encrypted
 -- external-service credentials; no browser Data API grants.
 --
