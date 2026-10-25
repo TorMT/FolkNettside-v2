@@ -36,7 +36,7 @@ export function validateHubConfig(input,{origin}={}){
  if(!url.pathname.endsWith("/"))url.pathname+="/";
  const authMode=input.authMode==="folknet"?"folknet":"cookie";
  // A FolkNet Supabase JWT is sensitive: never send it to a configurable URL.
- if(authMode==="folknet"&&(url.origin!=="https://glfuvfmppkjmarujjqwg.supabase.co"||
+ if(authMode==="folknet"&&(url.origin!=="https://aeuouzkiyddfjtjfdosp.supabase.co"||
    url.pathname!=="/functions/v1/autodesk-hub/"))
    throw Error("FolkNet bearer auth requires the exact first-party Supabase function");
  return {enabled:true,apiBase:url.toString(),authMode,reason:""};
