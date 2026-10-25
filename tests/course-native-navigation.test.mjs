@@ -72,5 +72,6 @@ test("redundant upstream catalog status banner is absent from normal course UI",
  const end=app.indexOf("function coursePage",start);
  const section=app.slice(start,end);
  assert.doesNotMatch(section,/course-source-status/);
- assert.match(section,/course-source-warning/);
+ assert.match(section,/courseCatalogWarningHTML\(courseSource\)/);
+ assert.match(section,/failedNTNUSemesters\(courseSource\)/);
 });

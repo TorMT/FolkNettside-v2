@@ -1397,3 +1397,32 @@ a.project-row:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
  .model-inspector-page .crystal-coordinate-grid{grid-template-columns:minmax(0,1fr)}
  .model-inspector-stage .three-components{max-height:180px}
 }
+
+
+/* Read-only NTNU metadata health: do not disguise an unreachable public
+   semester as an empty one. Compact enough for the 320px semester rail. */
+.course-source-warning{
+  max-width:1280px;
+  margin:14px auto 0;
+  padding:12px 16px;
+  border:1px solid var(--line-strong);
+  border-inline-start:4px solid var(--warn);
+  border-radius:10px;
+  background:var(--surface);
+  color:var(--ink);
+  overflow-wrap:anywhere;
+}
+.course-source-warning strong{display:block;line-height:1.4}
+.course-source-warning p{margin:5px 0 0;color:var(--ink-2);line-height:1.5}
+.semester-tabs a.semester-tab-unavailable{border-style:dashed}
+.semester-tab-issue{
+  display:inline-grid;place-items:center;
+  margin-inline-start:5px;
+  width:17px;height:17px;border:1px solid currentColor;
+  border-radius:50%;font-size:12px;line-height:1;font-weight:800;
+}
+.course-semester-unavailable{border-inline-start:4px solid var(--warn)}
+@media (max-width:640px){
+  .course-source-warning{margin:10px 16px 0;padding:10px 12px;font-size:13px}
+  .semester-tab-issue{width:15px;height:15px;margin-inline-start:4px;font-size:11px}
+}

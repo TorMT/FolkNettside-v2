@@ -12,6 +12,7 @@ import {optionalKarakterwebUrl} from "./courses/external-links.js";
 import {bindCourseNavigation} from "./courses/course-navigation.js";
 import {mountCourseAdmin} from "./courses/admin-page.js";
 import {createResourceNotices} from "./courses/resource-updates.js";
+import {failedNTNUSemesters,initialCourseSemester,courseCatalogWarningHTML,emptySemesterHTML} from "./courses/course-catalog-availability.js";
 import {escapeHTML as escCourse} from "./viewers/utils.js";
 import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js";
 import {hydroPressureResultHTML} from "./engineering/hydro-pressure-panel.js";
@@ -529,12 +530,21 @@ function sandalenPage(){
 
 function coursesPage(requestedSemester){
   document.documentElement.dataset.lens="study";
-  const semesterId=Number(requestedSemester)||Number(site.defaultSemester)||semesters.find(s=>s.courses.length)?.id||semesters[0]?.id;
+  const semesterId=initialCourseSemester(semesters,courseSource,{
+    requested:requestedSemester,preferred:site.defaultSemester
+  });
   const semester=getSemester(semesterId)||semesters[0];
-  const semesterTabs=semesters.map(s=>`<a class="${Number(s.id)===Number(semester.id)?"active":""}" href="#/courses/${s.id}" data-semester="${s.id}" ${Number(s.id)===Number(semester.id)?'aria-current="page"':""} aria-label="${escCourse(s.label)}" title="${escCourse(s.label)}">
-    <span class="semester-label-long">${escCourse(s.label)}</span>
-    <span class="semester-label-short">S${s.id}</span>
-  </a>`).join("");
+  const failedSemesters=new Set(failedNTNUSemesters(courseSource));
+  const semesterTabs=semesters.map(s=>{
+    const selected=Number(s.id)===Number(semester.id);
+    const unavailable=failedSemesters.has(Number(s.id));
+    const status=unavailable?", kunne ikke oppdateres":"";
+    return `<a class="${selected?"active":""}${unavailable?" semester-tab-unavailable":""}" href="#/courses/${s.id}" data-semester="${s.id}" ${selected?'aria-current="page"':""} aria-label="${escCourse(s.label+status)}" title="${escCourse(s.label+status)}">
+      <span class="semester-label-long">${escCourse(s.label)}</span>
+      <span class="semester-label-short">S${s.id}</span>
+      ${unavailable?'<span class="semester-tab-issue" aria-hidden="true">!</span>':""}
+    </a>`;
+  }).join("");
   const courseCards=semester.courses.map(course=>{
     const resourceCount=course.resources?.length||0;
     const sectionCount=course.sections?.length||0;
@@ -554,8 +564,7 @@ function coursesPage(requestedSemester){
   }).join("");
 
   app.innerHTML=top("courses")+`<main class="study courses-overview">
-    ${courseSource?.mode==="ntnu"&&!["auto","live"].includes(courseSource.status)?
-      '<p class="course-source-warning" role="alert">NTNUs kursoversikt er delvis utilgjengelig. Eksisterende filer er ikke endret.</p>':""}
+    ${courseCatalogWarningHTML(courseSource)}
     <section class="study-hero courses-hero">
       <div>
         <span class="project-kicker">Study archive</span>
@@ -584,9 +593,7 @@ function coursesPage(requestedSemester){
       </div>
       ${semester.courses.length
         ?`<div class="course-grid">${courseCards}</div>`
-        :courseSource?.mode==="github-ntnu"||courseSource?.mode==="ntnu"
-          ?'<div class="course-header"><h3>Ingen offentlige fag registrert i dette semesteret ennå.</h3><p>Når det opprettes og godkjennes offentlige fag på NTNU, kan de vises her uten å kopiere kursfilene til GitHub.</p></div>'
-          :'<div class="course-header"><h3>Ingen eksempeldata i dette semesteret ennå.</h3><p>Forhåndsvisningen inneholder bare et begrenset utvalg av testressurser.</p></div>'}
+        :emptySemesterHTML(semester,courseSource)}
     </section>
   </main><div class="preview-badge">Courses exposes Kok; Portfolio does not</div>`;
 
