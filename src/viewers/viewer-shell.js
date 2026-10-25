@@ -31,6 +31,9 @@ export async function mountViewer(root,resource,onBack){
         </nav>`:""}
         <div class="viewer-file-actions">
           ${isQuiz?'<button class="btn" id="viewer-quiz-info" aria-pressed="false">File info</button>':""}
+          ${canRetryNTNUWithLocalFile(resource)?`<button class="btn" type="button" id="viewer-choose-local" aria-controls="viewer-local-file">Åpne nedlastet fil</button>
+            <input id="viewer-local-file" type="file" aria-label="Velg nedlastet lokal kopi av filen" accept=".${escapeHTML(String(resource.name).split(".").at(-1).toLowerCase())}" hidden>
+            <span class="viewer-local-status" id="viewer-local-status" role="status" aria-live="polite"></span>`:""}
           <button class="btn" id="open-original">Open original</button>
           <button class="btn" id="viewer-back">Back</button>
         </div>
@@ -89,13 +92,10 @@ export async function mountViewer(root,resource,onBack){
   const fitButton=toolbar.querySelector('[data-action="fit"]');
   const resetButton=toolbar.querySelector('[data-action="resetZoom"]');
   const resetProgressButton=toolbar.querySelector('[data-action="resetProgress"]');
-  const localChoose=canRetryNTNUWithLocalFile(resource)?`<button class="btn" type="button" id="viewer-choose-local">Åpne nedlastet fil</button>
-    <input id="viewer-local-file" type="file" accept=".${escapeHTML(String(resource.name).split(".").at(-1).toLowerCase())}" hidden>
-    <span class="viewer-local-status" id="viewer-local-status" role="status"></span>`:"";
   const bindLocalChoice=()=>{
-    const button=canvas.querySelector("#viewer-choose-local");
-    const input=canvas.querySelector("#viewer-local-file");
-    const feedback=canvas.querySelector("#viewer-local-status");
+    const button=root.querySelector("#viewer-choose-local");
+    const input=root.querySelector("#viewer-local-file");
+    const feedback=root.querySelector("#viewer-local-status");
     if(!button||!input)return;
     button.addEventListener("click",()=>input.click());
     input.addEventListener("change",()=>{
@@ -113,6 +113,9 @@ export async function mountViewer(root,resource,onBack){
     });
   };
 
+  // PDFs and images may fail silently without throwing; keep local
+  // downloaded-file opening available before an adapter finishes.
+  bindLocalChoice();
   const panelButtons=[...root.querySelectorAll("[data-viewer-panel]")];
   const panelContents=[...root.querySelectorAll("[data-viewer-panel-content]")];
   panelButtons.forEach(button=>button.addEventListener("click",()=>{
@@ -216,17 +219,16 @@ export async function mountViewer(root,resource,onBack){
       canvas.innerHTML=`<div class="viewer-readonly-fallback">
         <strong>Viser originalfilen fra NTNU (skrivebeskyttet)</strong>
         <p>Den interaktive forhåndsvisningen er utilgjengelig fra GitHub Pages. Under vises NTNUs egen råfil-visning dersom nettleseren tillater det. Dette krever ikke CORS.</p>
+        <p>Du kan åpne en nedlastet kopi via knappen «Åpne nedlastet fil» i toppmenyen.</p>
         <div class="viewer-error-actions">
           <button class="btn" id="viewer-retry">Prøv interaktiv viser på nytt</button>
-          ${localChoose}
-          <a class="btn primary" href="${escapeHTML(publicOriginal)}" target="_blank" rel="noopener noreferrer">Åpne originalfil på NTNU ↗</a>
+                    <a class="btn primary" href="${escapeHTML(publicOriginal)}" target="_blank" rel="noopener noreferrer">Åpne originalfil på NTNU ↗</a>
         </div>
         <p class="muted">Hvis feltet nedenfor er tomt eller filen lastes ned, bruk lenken til originalfilen. Skript kan ikke kjøres i den innebygde visningen.</p>
       </div>
       <iframe class="viewer-remote-raw-frame" title="Skrivebeskyttet original fra NTNU" sandbox="" referrerpolicy="no-referrer" src="${escapeHTML(publicOriginal)}"></iframe>`;
       status.textContent="Originalfil fra NTNU · sikker reservevisning";
       canvas.querySelector("#viewer-retry")?.addEventListener("click",()=>mountViewer(root,resource,onBack));
-      bindLocalChoice();
       return;
     }
     const remote=resource.remoteArchive===true&&typeof resource.url==="string"&&
@@ -238,15 +240,14 @@ export async function mountViewer(root,resource,onBack){
       <span class="project-kicker">Viewer error</span>
       <h2>Could not render this resource</h2>
       <p>${message}</p>
+      ${canRetryNTNUWithLocalFile(resource)?'<p>Du kan åpne en nedlastet kopi via «Åpne nedlastet fil» i toppmenyen.</p>':""}
       <div class="viewer-error-actions">
         <button class="btn primary" id="viewer-retry">Retry</button>
-        ${localChoose}
-        <a class="btn" id="viewer-error-original" target="_blank" rel="noopener noreferrer" href="${escapeHTML(resource.url||resource.path||"#")}">Åpne original på NTNU ↗</a>
+                <a class="btn" id="viewer-error-original" target="_blank" rel="noopener noreferrer" href="${escapeHTML(resource.url||resource.path||"#")}">Åpne original på NTNU ↗</a>
       </div>
     </div>`;
     status.textContent="Error";
     canvas.querySelector("#viewer-retry")?.addEventListener("click",()=>mountViewer(root,resource,onBack));
-    bindLocalChoice();
 
   }
 }

@@ -204,6 +204,28 @@ try{
       "Original NTNU link was lost after local retry");
     ntRoot.__viewerCleanup?.();
     assert(revoked.some(url=>url.startsWith("blob:")),"Local object URL was not revoked");
+    // Native image embeds can fail without rejecting the adapter render.
+    const imageRoot=document.createElement("div");document.body.append(imageRoot);
+    const imageURL=ntURL.replace("CORS.py","CORS.png");
+    try{
+      await mountViewer(imageRoot,{name:"CORS.png",label:"Image CORS",kind:"IMAGE",
+        section:"Filer",semester:5,courseCode:"Marin-Dynamikk",
+        source:"ntnu",remoteArchive:true,url:imageURL,path:imageURL},()=>{});
+      assert(imageRoot.querySelector(".image-viewer"),"Image viewer failed to mount");
+      assert(imageRoot.querySelector(".viewer-head #viewer-choose-local"),
+        "Local open must be visible even without adapter failure");
+      const imageInput=imageRoot.querySelector("#viewer-local-file");
+      const bytes=Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+nOZkAAAAASUVORK5CYII="),c=>c.charCodeAt(0));
+      const choice=new DataTransfer();
+      choice.items.add(new File([bytes],"CORS.png",{type:"image/png"}));
+      imageInput.files=choice.files;imageInput.dispatchEvent(new Event("change",{bubbles:true}));
+      for(let i=0;i<60&&!imageRoot.querySelector(".image-viewer img[src^='blob:']");i++)
+        await new Promise(resolve=>setTimeout(resolve,20));
+      assert(imageRoot.querySelector(".image-viewer img[src^='blob:']"),
+        "Image was not opened from the selected local file");
+      assert(imageRoot.querySelector(".viewer-status")?.textContent.includes(imageURL),
+        "Original image URL was lost");
+    }finally{imageRoot.__viewerCleanup?.();imageRoot.remove()}
     // Office previously preferred resource.url over the local blob.
     const fixture="../../examples/semesters/5/TMR4182/Filer%20og%20ressurser/Office/hydro-notes.docx";
     const officeData=await (await originalFetch(fixture)).arrayBuffer();
