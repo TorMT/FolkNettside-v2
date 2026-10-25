@@ -137,7 +137,7 @@ export function parseNTNUSemesterIndex(semesterId,raw,{titles=new Map(),origin=N
 // Public indexes are untrusted server responses. Bound bytes before JSON parsing
 // so a broken/misconfigured endpoint cannot exhaust memory on a phone.
 const MAX_INDEX_BYTES=4_000_000;
-async function readBoundedIndexBody(response){
+export async function readBoundedIndexBody(response){
  const header=response.headers?.get?.("content-length");
  if(header!==null&&header!==undefined&&Number.isFinite(Number(header))&&
     Number(header)>MAX_INDEX_BYTES)
