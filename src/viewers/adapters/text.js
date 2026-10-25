@@ -1,7 +1,7 @@
-import {escapeHTML,fetchText,extension} from "../utils.js?v=9381df14d503bbbe82d8b77c2584a1d5d5f823ba";
-import {getHighlighter} from "../../vendor/highlight.js?v=9381df14d503bbbe82d8b77c2584a1d5d5f823ba";
-import {createDomFinder} from "../dom-search.js?v=9381df14d503bbbe82d8b77c2584a1d5d5f823ba";
-import {codeRows} from "../highlighted-lines.js?v=9381df14d503bbbe82d8b77c2584a1d5d5f823ba";
+import {escapeHTML,fetchText,extension} from "../utils.js?v=fa3500a4cc0e83196536ff6c74795c68626dc2a0";
+import {getHighlighter} from "../../vendor/highlight.js?v=fa3500a4cc0e83196536ff6c74795c68626dc2a0";
+import {createDomFinder} from "../dom-search.js?v=fa3500a4cc0e83196536ff6c74795c68626dc2a0";
+import {codeRows} from "../highlighted-lines.js?v=fa3500a4cc0e83196536ff6c74795c68626dc2a0";
 
 const languageByExtension={
   py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",
