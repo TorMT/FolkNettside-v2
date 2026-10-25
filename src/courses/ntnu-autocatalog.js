@@ -3,9 +3,8 @@
  * Never substitutes GitHub fixtures for actual NTNU courses.
  * Invalid/unavailable auto-index -> existing per-semester public JSON indexes.
  */
-import {NTNU_ORIGIN,parseNTNUSemesterIndex,loadNTNUCatalog} from "./ntnu-catalog.js";
+import {NTNU_ORIGIN,parseNTNUSemesterIndex,loadNTNUCatalog,readBoundedIndexBody} from "./ntnu-catalog.js";
 
-const LIMIT_BYTES=4_000_000;
 const MAX_FILES=25_000;
 const object=value=>value!==null&&typeof value==="object"&&!Array.isArray(value);
 const safeSlug=s=>typeof s==="string"&&s.length>0&&s.length<=210&&
@@ -90,11 +89,7 @@ export async function loadNTNUAutoCatalog({
    redirect:"error",headers:{Accept:"application/json"}
  });
  if(!response.ok)throw Error("Auto-index unavailable HTTP "+response.status);
- const length=Number(response.headers?.get?.("content-length"));
- if(Number.isFinite(length)&&length>LIMIT_BYTES)
-   throw Error("Auto-index exceeds size limit");
- const content=await response.text();
- if(content.length>LIMIT_BYTES)throw Error("Auto-index exceeds size limit");
+ const content=await readBoundedIndexBody(response);
  let parsed;
  try{parsed=JSON.parse(content)}catch{throw Error("Auto-index invalid JSON")}
  return validateNTNUAutoCatalog(parsed,{origin});
