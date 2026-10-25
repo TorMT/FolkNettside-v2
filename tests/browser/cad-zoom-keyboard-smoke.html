@@ -28,7 +28,8 @@ function noOverflow(where){
  }).slice(0,14).map(element=>{
    const b=element.getBoundingClientRect();
    return element.tagName.toLowerCase()+"."+
-     String(element.className||"").slice(0,60)+"("+Math.round(b.left)+
+     (element.getAttribute("name")||element.getAttribute("id")||Object.keys(element.dataset||{}).join("," )||String(element.className||"")).slice(0,100)+
+     "[type="+(element.getAttribute("type")||"")+" parent="+String(element.parentElement?.className||"").slice(0,45)+"]("+Math.round(b.left)+
      ".."+Math.round(b.right)+")";
  });
  assert(scroll<=vw+7,where+" horizontal overflow "+scroll+"/"+vw+
