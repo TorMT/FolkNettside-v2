@@ -57,7 +57,7 @@ Continue finishing **all existing V2 capabilities**, incrementally. **One indepe
 | B15 | P1 | Diverses: validate dive coordinates, log, LAOS/Kok external links, Medisin reminder limits | Implemented UI, incomplete external validation | Live data/accounts |
 | B16 | P2 | Portfolio/CV/LinkedIn: check real photos and references, no fabricated CV, optional *reviewed* update flow | Data-driven CV + 8 project entries | Owner review, LinkedIn permitted access |
 | B17 | P2 | GA4: consent and page-view privacy, owner-only reports and live realtime check | Client configured; realtime unverified | Owner Analytics access |
-| B18 | P2 | Whole-site accessibility, dark/high-contrast/reduced-motion, actual phone testing, perf/large files | Chrome responsive CI; physical devices unverified | Real devices optional |
+| B18 | P2 | Whole-site accessibility, dark/high-contrast/reduced-motion, actual phone testing, perf/large files | **PR #116 merged:** keyboard-focusable native brand, `aria-current` active links, dismissible mobile More popup, focus rings; real Chrome CI 320/390/768. **Remaining:** full WCAG/assistive-tech, physical device, performance/large-file acceptance | Real devices optional |
 | B19 | P2 | Production staging + rollback + penetration/basic auth checks, no V1 cutover | Deploy scripts and docs | Mounted NTNU staging and explicit release approval |
 | B20 | P2 | Owner-facing CMS for project/gallery/sections/settings beyond course labels | Course-label editor only | B01 must be completed securely |
 
@@ -113,5 +113,6 @@ No representation that this project provides certified stability, exact shell/so
 | 2026-10-25 | B03: show local downloaded-file opener in persistent header; silent native-image/PDF failures no longer hide fallback | [#115](https://github.com/TorMT/FolkNettside-v2/pull/115), source `8b25519f`, merge `52530083113e9bad1bf18b7992d6c77cd005a615` | Latest-head full CI **success**, PNG local-file Chrome regression + existing mobile 320/390/768; no V1 changes |
 | 2026-10-25 | B03: dispose course viewer on native breadcrumb/next file navigation; invalidate async adapters and clean up browser resources | [#117](https://github.com/TorMT/FolkNettside-v2/pull/117), source `66c7103d`, merge `e677c880bee3f75349cc6ea0327f4050cbb16816` | Latest-head full CI **success**; native breadcrumb cleanup Chrome regression and mobile matrix. No NTNU/V1 edits |
 
+| 2026-10-25 | B18: keyboard and screen-reader semantics for shell navigation; close mobile More on Escape/outside focus/click/route | [#116](https://github.com/TorMT/FolkNettside-v2/pull/116), source `a66f6d7`, merge `1c0dceae9bc922bebf73eab9f6487dd3ab3fe668` | Full 49-step latest-head PR CI **success** including Chrome at 320, 390, 768. Physical-device/screen-reader audit remains |
 
 > **Agent instruction:** Add a row after each completed PR and update the matching B-number. Incomplete commits/branches also belong in the journal so a new session can resume rather than restart.
