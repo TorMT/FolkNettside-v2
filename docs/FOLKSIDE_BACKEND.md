@@ -7,7 +7,7 @@
 - **Database:** PostgreSQL 17, EU Central (Frankfurt), TorMT's Org
 - **Existing unrelated project:** LeseRavnen, not modified
 - **GitHub:** `TorMT/FolkNettside-v2`; source files are committed individually
-- **Deployed functions:** NONE in this new project at the time of migration audit. `folk-core` and `autodesk-hub` exist as source in GitHub and must be separately deployed and verified. Previous deployment notes below refer to the superseded FolkNet project.
+- **Deployed functions:** `folk-core` is ACTIVE (v2) in the new project, deployed from `supabase/functions/folk-core/` on 25 October 2026. Unauthenticated endpoint behavior and a real signed-in-user round trip still need verification. `autodesk-hub` is **not deployed** in this replacement project and requires separate APS credentials/consent. Older deployment notes below can refer to the superseded FolkNet project.
 - **Backend authentication status:** Supabase Auth integration with the site's existing Google Drive login is NOT completed. A Google access token from GIS is **not** a Supabase Auth JWT.
 
 This file is an implementation record, **not** permission to remove or migrate
@@ -52,7 +52,7 @@ advisor identified a missing index for the pending OAuth `user_id` foreign
 key; the index was added. Newly created unused indexes may be informational
 until traffic begins.
 
-### Authenticated Edge Function (source present; deployment pending in new project)
+### Authenticated Edge Function (folk-core deployed; owner sign-in acceptance pending)
 
 Versioned files: `supabase/functions/folk-core/core.js` and `index.ts`.
 
