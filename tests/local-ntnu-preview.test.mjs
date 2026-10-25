@@ -49,3 +49,12 @@ test("local retry control remains available in fallback with cleanup on next vie
  assert.match(shell,/URL\.revokeObjectURL\(resource\.path\)/);
  assert.match(shell,/bindLocalChoice\(\)/);
 });
+
+test("NTNU local file action is present before adapter failure, exactly once",()=>{
+ const shell=readFileSync(new URL("../src/viewers/viewer-shell.js",import.meta.url),"utf8");
+ assert.match(shell,/class="viewer-file-actions">[\s\S]*?id="viewer-choose-local"/);
+ assert.match(shell,/bindLocalChoice\(\);\n  const panelButtons/);
+ assert.match(shell,/root\.querySelector\("#viewer-local-file"\)/);
+ assert.match(shell,/aria-controls="viewer-local-file"/);
+ assert.equal((shell.match(/id="viewer-local-file"/g)||[]).length,1);
+});
