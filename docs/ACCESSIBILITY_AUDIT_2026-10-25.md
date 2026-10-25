@@ -20,7 +20,7 @@ The first route-inventory CI run (before fixes) found:
 
 Also found during code review: off-screen mobile Engineering drawers could still be reached through keyboard/assistive technology. `src/shell/workspace-drawers.js` now applies `inert` plus `aria-hidden` while a mobile panel is closed, updates expanded state and restores focus on dismissal. Desktop resize removes these restrictions.
 
-**Acceptance status:** The first 49-step CI run passed with the new inspection in reporting mode and confirmed the counts above. A second CI run must pass after label fixes and zero-issue enforcement before merge.
+**Acceptance status:** Initial 49-step CI passed with the inventory in reporting mode and measured the issues above. The latest-head follow-up CI [run 40214399727](https://github.com/TorMT/FolkNettside-v2/actions/runs/40214399727) passed **all 49 steps** after the four label fixes. Zero-rule checks returned **0 heuristic issues across 24 routes at 390px** and **0 across the same 24 routes at 768px**. PR [#119](https://github.com/TorMT/FolkNettside-v2/pull/119) was merged as `38e5521b493efa1ecb00d8234c2c73404d780039`. Manual acceptance gates below remain open.
 
 ## Important limits / remaining manual acceptance
 
