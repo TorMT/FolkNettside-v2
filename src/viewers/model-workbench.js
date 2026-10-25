@@ -1,9 +1,9 @@
-import {mountModelScene} from "../model/model-scene.js?v=3f2b7644d1b7d4bdefd3c49a1dbc9d1aaed4801d";
-import {mountWaveControls} from "../model/model-wave-controls.js?v=3f2b7644d1b7d4bdefd3c49a1dbc9d1aaed4801d";
-import {mountAssemblyInspector} from "./assembly-inspector.js?v=3f2b7644d1b7d4bdefd3c49a1dbc9d1aaed4801d";
-import {connectSpaceMouse} from "../model/spacemouse-webhid.js?v=3f2b7644d1b7d4bdefd3c49a1dbc9d1aaed4801d";
-import {spaceMouseMovement} from "../model/spacemouse-motion.js?v=3f2b7644d1b7d4bdefd3c49a1dbc9d1aaed4801d";
-import {readSpaceMouseSettings,writeSpaceMouseSettings} from "../model/spacemouse-settings.js?v=3f2b7644d1b7d4bdefd3c49a1dbc9d1aaed4801d";
+import {mountModelScene} from "../model/model-scene.js?v=9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb";
+import {mountWaveControls} from "../model/model-wave-controls.js?v=9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb";
+import {mountAssemblyInspector} from "./assembly-inspector.js?v=9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb";
+import {connectSpaceMouse} from "../model/spacemouse-webhid.js?v=9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb";
+import {spaceMouseMovement} from "../model/spacemouse-motion.js?v=9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb";
+import {readSpaceMouseSettings,writeSpaceMouseSettings} from "../model/spacemouse-settings.js?v=9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb";
 
 export async function renderModelWorkbench(container,model,{showSidebar=false,mobileCompact=false}={}){
   container.innerHTML=`<div class="model-viewer-workbench ${mobileCompact?"model-viewer-mobile-compact":""}">
@@ -110,15 +110,55 @@ export async function renderModelWorkbench(container,model,{showSidebar=false,mo
     </aside>
   </div>`;
   const mobileToggle=container.querySelector("[data-model-mobile-toggle]");
-  mobileToggle?.addEventListener("click",()=>{
-    const shell=mobileToggle.closest(".model-viewer-workbench");
-    const expanded=mobileToggle.getAttribute("aria-expanded")!=="true";
+  const mobileInspector=container.querySelector(".model-viewer-inspector");
+  const mobileLayout=window.matchMedia("(max-width: 900px)");
+  const shell=container.querySelector(".model-viewer-workbench");
+  let mobileOpen=false;
+  // Closed panels must not remain in the tab order or accessibility tree.
+  const syncMobileInspector=()=>{
+    if(!mobileToggle||!mobileInspector)return;
+    const visible=!mobileLayout.matches||mobileOpen;
+    const expanded=mobileLayout.matches&&mobileOpen;
+    mobileInspector.inert=!visible;
+    if(visible)mobileInspector.removeAttribute("aria-hidden");
+    else mobileInspector.setAttribute("aria-hidden","true");
     mobileToggle.setAttribute("aria-expanded",String(expanded));
     shell?.classList.toggle("model-viewer-mobile-open",expanded);
     mobileToggle.innerHTML=expanded
       ?'Skjul CAD-verktøy <span aria-hidden="true">▴</span>'
       :'Vis CAD-verktøy og komponenter <span aria-hidden="true">▾</span>';
-  });
+  };
+  const toggleMobileInspector=()=>{
+    if(!mobileLayout.matches)return;
+    mobileOpen=!mobileOpen;
+    if(!mobileOpen&&mobileInspector?.contains(document.activeElement)){
+      mobileToggle.focus({preventScroll:true});
+    }
+    syncMobileInspector();
+    if(mobileOpen){
+      mobileInspector?.querySelector("button:not(:disabled),input:not(:disabled),select:not(:disabled),a[href]")
+        ?.focus({preventScroll:true});
+    }
+  };
+  const escapeMobileInspector=event=>{
+    if(event.key!=="Escape"||!mobileLayout.matches||!mobileOpen||
+      !mobileInspector?.contains(event.target))return;
+    event.preventDefault();
+    mobileOpen=false;
+    mobileToggle.focus({preventScroll:true});
+    syncMobileInspector();
+  };
+  const resetOnWidthChange=()=>{
+    // Re-entering mobile should not unexpectedly expose a previously open panel.
+    mobileOpen=false;
+    if(mobileInspector?.contains(document.activeElement)&&mobileLayout.matches)
+      mobileToggle?.focus({preventScroll:true});
+    syncMobileInspector();
+  };
+  mobileToggle?.addEventListener("click",toggleMobileInspector);
+  mobileInspector?.addEventListener("keydown",escapeMobileInspector);
+  mobileLayout.addEventListener("change",resetOnWidthChange);
+  if(mobileToggle)syncMobileInspector();
   const stage=container.querySelector("[data-model-stage]");
   const report=container.querySelector("[data-model-water-report]");
   const measurementList=container.querySelector(".model-viewer-measurements");
@@ -274,6 +314,10 @@ export async function renderModelWorkbench(container,model,{showSidebar=false,mo
   const waveControls=mountWaveControls($("[data-model-waves]"),scene);
   return {...scene,info:scene.info+" · interactive 3D, hydro-waterline and wave collection",
     cleanup(){
+      mobileToggle?.removeEventListener("click",toggleMobileInspector);
+      mobileInspector?.removeEventListener("keydown",escapeMobileInspector);
+      mobileLayout.removeEventListener("change",resetOnWidthChange);
+      if(mobileInspector){mobileInspector.inert=false;mobileInspector.removeAttribute("aria-hidden")}
       disposed=true;window.removeEventListener("folk:spacemouse-settings",onGlobal3DSettings);
       assembly.dispose();waveControls.dispose();
       void disconnect();scene.cleanup();

@@ -1,9 +1,9 @@
-import {escapeHTML,fetchJSON} from "../utils.js?v=3f2b7644d1b7d4bdefd3c49a1dbc9d1aaed4801d";
+import {escapeHTML,fetchJSON} from "../utils.js?v=9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb";
 import {
   answerQuestion,answerMatches,quizImageURL,selectQuizQuestions,createQuizAttempt,normalizeQuiz,quizScore,quizChapterView,quizChapterStorageKey,sanitizeQuizAttempt
-} from "../quiz-core.js?v=3f2b7644d1b7d4bdefd3c49a1dbc9d1aaed4801d";
-import {mistakeQuestions,recordQuizChoice,clearMistakeBank} from "../quiz-mistake-bank.js?v=3f2b7644d1b7d4bdefd3c49a1dbc9d1aaed4801d";
-import {mountQuizLeaderboard} from "../quiz-leaderboard.js?v=3f2b7644d1b7d4bdefd3c49a1dbc9d1aaed4801d";
+} from "../quiz-core.js?v=9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb";
+import {mistakeQuestions,recordQuizChoice,clearMistakeBank} from "../quiz-mistake-bank.js?v=9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb";
+import {mountQuizLeaderboard} from "../quiz-leaderboard.js?v=9f227c0035f93c85f02e5f4d20c40d9e9f0b2afb";
 
 function loadAttempt(key,quiz){
   try{
