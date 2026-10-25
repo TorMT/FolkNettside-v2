@@ -1,4 +1,4 @@
-import {escapeHTML} from "./utils.js?v=411f3f7a1366e88ab8e13281e586a71ad64c479b";
+import {escapeHTML} from "./utils.js?v=f156da35e168cc821dedf01519cb8c1ac9ebf921";
 
 /** Render cached spreadsheet output and the original formula without evaluating it. */
 export function spreadsheetCellView({value="",formula=null,hasFormula=false}={}){

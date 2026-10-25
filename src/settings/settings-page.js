@@ -1,4 +1,4 @@
-import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=411f3f7a1366e88ab8e13281e586a71ad64c479b";
+import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=f156da35e168cc821dedf01519cb8c1ac9ebf921";
 const SECTIONS=[
   ["appearance","Appearance"],
   ["connections","Account & connections"],
@@ -60,6 +60,7 @@ function connectionsHTML(account={},folkAccount={}){
     : "Optional private account for FolkNettside. Google Drive retains its own connection; nothing is migrated automatically.";
   const folkControl=folkSigned
     ? `<div class="settings-connection-actions"><span class="settings-status ready">Connected</span>
+        <a class="btn" href="#/admin/courses">Administrer kurs</a>
         <button type="button" class="btn" data-folk-signout>Sign out of FolkNet</button></div>`
     : `<form data-folk-auth-form class="folk-auth-form" autocomplete="on">
          <label>Email <input type="email" name="folk-email" required maxlength="254"
@@ -68,10 +69,10 @@ function connectionsHTML(account={},folkAccount={}){
            autocomplete="current-password" placeholder="FolkNet password"></label>
          <div class="settings-connection-actions">
           <button class="btn" type="submit" data-folk-login ${folkBusy?"disabled":""}>Sign in</button>
-          <button class="btn" type="button" data-folk-signup ${folkBusy?"disabled":""}>Create account</button>
+
          </div>
-         <small>Creating an account requires a password of at least 10 characters.
-         You may need to confirm your email before signing in.</small>
+         <small>Kun forhåndsopprettede FolkNet-kontoer. Administratorkontoen må
+           opprettes og gis tilgang i riktig Supabase-prosjekt.</small>
        </form>`;
   const googleDescription=signedIn
     ? `${esc(accountLabel)}${profile.email&&profile.email!==accountLabel?` · ${esc(profile.email)}`:""}. This one site-level session is reused by Brewing and Dive log.`
