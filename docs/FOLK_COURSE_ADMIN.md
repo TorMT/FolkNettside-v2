@@ -11,6 +11,19 @@
 - Supabase Auth provides email/password sign-in already available under
   Settings → Account & connections. The editor is at `#/admin/courses`.
 
+## Én forhåndsopprettet konto
+
+V2 viser nå kun **Logg inn** i Innstillinger → Konto og tilkoblinger.
+En innlogget bruker får lenke til kursadministrasjon, men tilgang avgjøres
+fremdeles av serverens RLS og tabellen `folk_site_admins`.
+
+**Viktig:** Å skjule registreringsknappen deaktiverer ikke Supabase sitt
+registrerings-API. Deaktiver offentlig registrering eller begrens den til
+invitasjoner under Auth-innstillingene i **riktig FolkNet-prosjekt**.
+Opprett/verifiser først eierens konto der og registrer den faktiske Auth-UUID
+i admin-tabellen. Ingen passord, kontoeieridentitet eller adminrettigheter
+skal hardkodes i GitHub Pages.
+
 ## Database not installed yet
 
 The SQL candidate is `server/supabase/20261024_folk_course_labels_candidate.sql`.
