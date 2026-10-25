@@ -10,6 +10,7 @@ const raw=JSON.parse(readFileSync(new URL("../data/ntnu-autocatalog.json",import
 const visibility=JSON.parse(readFileSync(new URL("../config/ntnu-course-visibility.json",import.meta.url),"utf8"));
 const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
 const css=readFileSync(new URL("../assets/style.css",import.meta.url),"utf8");
+const courseTabs=readFileSync(new URL("../src/courses/course-catalog-availability.js",import.meta.url),"utf8");
 const source=()=>validateNTNUAutoCatalog(raw);
 
 test("V2 hides only the duplicate Marint maskineri course without modifying NTNU catalog",()=>{
@@ -50,7 +51,7 @@ test("file rows contain safe direct native hash navigation and separate original
  assert.match(html,/target="_blank" rel="noopener noreferrer"/);
  assert.doesNotMatch(html,/role="button"/);
  assert.match(app,/href="#\$\{courseRoute\(semester\.id,course\.code\)\}"/);
- assert.match(app,/href="#\/courses\/\$\{s\.id\}"/);
+ assert.match(courseTabs,/href="#\/courses\/\$\{id\}"/);
  assert.match(css,/\.course-card\{display:block/);
 });
 
@@ -73,5 +74,5 @@ test("redundant upstream catalog status banner is absent from normal course UI",
  const section=app.slice(start,end);
  assert.doesNotMatch(section,/course-source-status/);
  assert.match(section,/courseCatalogWarningHTML\(courseSource\)/);
- assert.match(section,/failedNTNUSemesters\(courseSource\)/);
+ assert.match(section,/semesterTabsHTML\(semesters,semester\.id,courseSource\)/);
 });
