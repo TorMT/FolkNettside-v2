@@ -1,10 +1,10 @@
-import {getThreeRuntime} from "../model/three-runtime.js?v=1f9e96d14273012207ab14079796a0ceda4b0338";
-import {crystalEditorPanelHTML} from "./crystal-editor-panel.js?v=1f9e96d14273012207ab14079796a0ceda4b0338";
+import {getThreeRuntime} from "../model/three-runtime.js?v=38e5521b493efa1ecb00d8234c2c73404d780039";
+import {crystalEditorPanelHTML} from "./crystal-editor-panel.js?v=38e5521b493efa1ecb00d8234c2c73404d780039";
 import {
   cellEdges,crystalPreset,crystalType,distance3,idealHoleCenters,
   listCrystalPresets,listCrystalTypes,replicateCrystal
-} from "./crystal-structures-core.js?v=1f9e96d14273012207ab14079796a0ceda4b0338";
-import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,contactTriangles,coordinationPolyhedron,interstitialVoidPolyhedron,millerPlane,periodicImageSites,planeBoxPolygon,planeContactNetwork,polyhedronEdges,sitesNearPlane} from "./crystal-analysis.js?v=1f9e96d14273012207ab14079796a0ceda4b0338";
+} from "./crystal-structures-core.js?v=38e5521b493efa1ecb00d8234c2c73404d780039";
+import {analyzeCrystal,applyCrystalEdits,bondPairs,closePackedPlaneSpecs,contactTriangles,coordinationPolyhedron,interstitialVoidPolyhedron,millerPlane,periodicImageSites,planeBoxPolygon,planeContactNetwork,polyhedronEdges,sitesNearPlane} from "./crystal-analysis.js?v=38e5521b493efa1ecb00d8234c2c73404d780039";
 
 const SPECIES_COLORS={
   A:0xb3157a,B:0x2f7fa4,O:0xd9e7ed,
@@ -45,9 +45,9 @@ export function crystalToolHTML(state={}){
         <div class="field">
           <span>Replication Nx × Ny × Nz</span>
           <div class="crystal-replication">
-            <input id="crystal-nx" type="number" min="1" max="8" step="1" value="${nx}">
-            <input id="crystal-ny" type="number" min="1" max="8" step="1" value="${ny}">
-            <input id="crystal-nz" type="number" min="1" max="8" step="1" value="${nz}">
+            <input id="crystal-nx" aria-label="Replication along X (Nx)" type="number" min="1" max="8" step="1" value="${nx}">
+            <input id="crystal-ny" aria-label="Replication along Y (Ny)" type="number" min="1" max="8" step="1" value="${ny}">
+            <input id="crystal-nz" aria-label="Replication along Z (Nz)" type="number" min="1" max="8" step="1" value="${nz}">
           </div>
         </div>
 
