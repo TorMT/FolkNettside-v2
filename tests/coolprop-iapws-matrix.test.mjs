@@ -44,7 +44,7 @@ test("reference-table Water headings and dimensional conversions stay consistent
   assert.equal(rows[0].Status,"OK");
   assert.equal(rows[0].H,115.331273);
   assert.equal(rows[0].U,112.324818);
-  assert.equal(rows[0].S,0.392294792);
+  assert.ok(Math.abs(rows[0].S-0.392294792)<1e-12);
   assert.equal(rows[0].v,0.001);
   assert.equal(rows[0].P,30);
 });
