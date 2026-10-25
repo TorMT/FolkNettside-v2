@@ -368,3 +368,27 @@
    display:block;max-width:100%;overflow-x:hidden}
  .cad-geometry-stage .model-viewer-mobile-compact .model-viewer-actions button{min-height:44px}
 }
+
+/* Reflow nested wave/RAO form controls: intrinsic select and number-input
+   widths must not push the CAD panel beyond a 320px zoom-equivalent viewport. */
+.cad-geometry-stage .model-viewer-inspector :is(input,select,textarea){
+  box-sizing:border-box;min-width:0;max-width:100%}
+.cad-geometry-stage .model-wave-actions,
+.cad-geometry-stage .model-wave-rao,
+.cad-geometry-stage .model-wave-fields{
+  min-width:0;max-width:100%}
+.cad-geometry-stage .model-wave-actions .wave-motion-select{
+  box-sizing:border-box;display:grid;gap:5px;min-width:0;
+  max-width:100%;flex:1 1 220px;overflow-wrap:anywhere}
+.cad-geometry-stage .model-wave-actions .wave-motion-select select{
+  display:block;width:100%;min-width:0;max-width:100%;
+  border:1px solid var(--line);border-radius:6px;
+  background:var(--surface-sunk);color:var(--ink);padding:8px}
+.cad-geometry-stage .model-wave-fields>label,
+.cad-geometry-stage .model-wave-actions>label{
+  box-sizing:border-box;min-width:0;max-width:100%}
+.cad-geometry-stage .model-wave-actions .wave-phase-scrub input{
+  flex:1 1 110px;width:min(150px,100%);min-width:0;max-width:100%}
+@media(max-width:560px){
+  .cad-geometry-stage .model-wave-actions .wave-motion-select{flex-basis:100%}
+}
