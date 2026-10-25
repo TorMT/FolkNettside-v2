@@ -115,6 +115,18 @@ try{
   document.querySelector(".dive-list-item").click();
   assert(document.querySelector("#dive-inspector").textContent.includes("Ladekaia"),
     "Feature details did not open on selection");
+  // Source-disclaimed places remain searchable, but no unsafe pin is mapped.
+  query.value="Tråsåvika Camping";query.dispatchEvent(new Event("input",{bubbles:true}));
+  assert(list()===1,"Unverified dive entry was hidden rather than retained in the list");
+  assert(!document.querySelector(".leaflet-marker-icon[data-site-id='D013']"),
+    "Disclaimed D013 position still creates a map marker");
+  document.querySelector(".dive-list-item").click();
+  const details=document.querySelector("#dive-inspector").textContent;
+  assert(details.includes("Unverified source coordinate")&&
+    details.includes("Ikke bruk koordinatet"),
+    "Unverified source caveat is not disclosed in the inspector");
+  assert(document.querySelector("#dive-stats").textContent.includes("unverified pins withheld"),
+    "Map does not report withheld point count");
   query.value="";query.dispatchEvent(new Event("input",{bubbles:true}));
   document.querySelector("#dive-kind").value="wreck";
   document.querySelector("#dive-kind").dispatchEvent(new Event("change",{bubbles:true}));
