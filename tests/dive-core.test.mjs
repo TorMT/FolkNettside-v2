@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
-import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "../src/diverse/dive-core.js";
+import {diveCoordinateAssessment,diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveSourceUrls,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "../src/diverse/dive-core.js";
 
 const dataset=JSON.parse(await readFile(new URL("../data/diving/trondheim-sites.geojson",import.meta.url),"utf8"));
 const features=dataset.features;
@@ -116,4 +116,62 @@ test("map coordinate validation refuses missing, null or out-of-range locations"
   assert.equal(diveFeaturePoint({geometry:{type:"LineString",coordinates:[10,60]}}),null);
   assert.deepEqual(diveFeaturePoint({geometry:{type:"Point",coordinates:[10.39,63.43]}}),
     {lat:63.43,lon:10.39});
+});
+
+
+test("public map distinguishes 67 raw points from 64 usable pins without altering canonical source",()=>{
+  const raw=features.filter(feature=>feature.geometry?.type==="Point");
+  const visible=features.filter(feature=>diveFeaturePoint(feature)!==null);
+  const withheld=features.filter(feature=>diveCoordinateAssessment(feature).status==="unverified");
+  assert.equal(features.length,88);
+  assert.equal(raw.length,67);
+  assert.equal(visible.length,64);
+  assert.deepEqual(withheld.map(feature=>feature.id).sort(),["D005","D013","X010"]);
+  assert.equal(diveStats(features).unverifiedCoordinates,3);
+  assert.equal(diveStats(features).withCoordinates,64);
+  for(const feature of withheld){
+    assert.equal(diveFeaturePoint(feature),null,feature.id);
+    assert.ok(feature.geometry?.coordinates?.length===2,
+      "Source snapshot must retain evidence coordinates until independently reviewed");
+    assert.ok(feature.properties?.Notater,"Every withheld coordinate needs an explicit note");
+  }
+  const safelyMapped=features.find(feature=>feature.id==="D004");
+  assert.deepEqual(diveFeaturePoint(safelyMapped),{lat:63.483067,lon:9.868017});
+});
+
+test("malformed or discrepant coordinates never become map pins or nearest targets",()=>{
+  const make=(coordinates,properties={})=>({
+    geometry:{type:"Point",coordinates},properties
+  });
+  assert.equal(diveCoordinateAssessment({geometry:null}).status,"missing");
+  for(const coords of [[10,91],[181,63],[null,63],["10",63],[0,0],[10,63,99]]){
+    assert.equal(diveCoordinateAssessment(make(coords)).status,"invalid",JSON.stringify(coords));
+  }
+  assert.equal(diveCoordinateAssessment(make([10.2,63.4],{Lat:63.5,Lon:10.2})).status,"invalid");
+  assert.deepEqual(diveFeaturePoint(make([10.2,63.4],{Lat:63.4,Lon:10.2})),
+    {lat:63.4,lon:10.2});
+  const unverified=make([10.2,63.4],{Notater:"Ikke bruk koordinatet uten lokal verifisering."});
+  assert.equal(diveCoordinateAssessment(unverified).status,"unverified");
+  const nearest=sortDiveFeatures([unverified,make([10.3,63.5])],"nearest",{
+    origin:{lat:63.4,lon:10.2}
+  });
+  assert.equal(nearest[0].geometry.coordinates[0],10.3);
+});
+
+test("external source urls accept only absolute http(s) without credentials",()=>{
+  const urls=diveSourceUrls({source_urls:[
+    "https://dykkepedia.com/wiki/Test",
+    "http://example.org/source#note",
+    "javascript:alert(1)",
+    "data:text/html,%3Cscript%3E",
+    "//example.com/relative",
+    "https://username:password@example.com/sensitive",
+    "file:///etc/passwd",
+    "  https://safe.example/resource  "
+  ]});
+  assert.deepEqual(urls,[
+    "https://dykkepedia.com/wiki/Test",
+    "http://example.org/source#note",
+    "  https://safe.example/resource  "
+  ]);
 });
