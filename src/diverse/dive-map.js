@@ -1,5 +1,5 @@
 import {mountDiveLog} from "./dive-log.js";
-import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js";
+import {diveCoordinateAssessment,diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveSourceUrls,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js";
 import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js";
 import {diveMapLegendHTML,diveMarkerClass,diveMarkerHTML} from "./dive-marker-icons.js";
 
@@ -15,19 +15,23 @@ function ensureLeafletCSS(){
   document.head.append(link);
 }
 function sourceLinks(properties){
-  return (properties?.source_urls||[]).map((url,index)=>`<a href="${esc(url)}" target="_blank" rel="noopener">Source ${index+1}</a>`).join("");
+  return diveSourceUrls(properties).map((url,index)=>`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Source ${index+1}</a>`).join("");
 }
 function featureDetail(feature,{origin=null}={}){
   const p=feature.properties||{};
   const depthMin=p.Dybde_min_m!==null&&p.Dybde_min_m!==undefined&&p.Dybde_min_m!==""&&Number.isFinite(Number(p.Dybde_min_m))?Number(p.Dybde_min_m):null;
   const depthMax=diveFeatureMaxDepth(feature);
   const depth=depthMin===null&&depthMax===null?"Not documented":depthMin===depthMax?`${depthMax} m`:`${depthMin??0}–${depthMax??"?"} m`;
-  const point=diveFeaturePoint(feature);
+  const coordinate=diveCoordinateAssessment(feature);
+  const point=coordinate.point;
   const distance=origin&&point?diveDistanceKm(origin,point):null;
   const wildlife=diveFeatureWildlife(feature);
   return `<div class="dive-detail">
     <div class="dive-detail-head"><strong>${esc(p.Navn||"Unnamed site")}</strong><span>${diveFeatureLevel(feature)}</span></div>
     <div class="dive-detail-meta"><span>${esc(p.Kategori||"")}</span><span>${esc(p.Område||"")}</span><span>${depth}</span>${distance===null?"":`<span>${distance.toFixed(1)} km away</span>`}</div>
+    ${coordinate.status==="unverified"?`<p><b>Location:</b> Unverified source coordinate — omitted from map and exports pending local verification.</p>`:""}
+    ${coordinate.status==="invalid"?`<p><b>Location:</b> Invalid coordinates — map marker withheld.</p>`:""}
+    ${p.Notater?`<p><b>Source note:</b> ${esc(p.Notater)}</p>`:""}
     ${p.Status?`<p><b>Status:</b> ${esc(p.Status)}</p>`:""}
     ${p.Adkomst?`<p><b>Access:</b> ${esc(p.Adkomst)}</p>`:""}
     ${p.Bunn_terreng?`<p><b>Bottom / terrain:</b> ${esc(p.Bunn_terreng)}</p>`:""}
@@ -116,7 +120,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
       elements.inspector.innerHTML='<div class="dive-empty"><strong>Select a site</strong><span>Choose a visible map marker or listed dive site.</span></div>';
     }
     const stats=diveStats(visible);
-    elements.stats.innerHTML=`<strong>${stats.total}</strong> shown · ${stats.nature} nature/area · ${stats.wrecks} wreck · ${stats.withCoordinates} mapped · ${stats.withDepth} with documented max depth · ${stats.withWildlife} with wildlife${state.origin?" · distance enabled":""}`;
+    elements.stats.innerHTML=`<strong>${stats.total}</strong> shown · ${stats.nature} nature/area · ${stats.wrecks} wreck · ${stats.withCoordinates} mapped${stats.unverifiedCoordinates?` · ${stats.unverifiedCoordinates} unverified pins withheld`:""} · ${stats.withDepth} with documented max depth · ${stats.withWildlife} with wildlife${state.origin?" · distance enabled":""}`;
     elements.list.innerHTML=visible.map(feature=>{
       const p=feature.properties||{};
       const max=diveFeatureMaxDepth(feature);
@@ -125,7 +129,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
       return `<button class="dive-list-item ${state.selected===p.ID?"selected":""}" data-dive-id="${esc(p.ID)}">
         <span class="dive-list-title"><strong>${esc(p.Navn)}</strong><em>${diveFeatureLevel(feature)}</em></span>
         <span>${esc(p.Område||"")}</span>
-        <small>${esc(p.Kategori||"")}${max===null?"":` · max ${max} m`} · quality ${diveFeatureQuality(feature)}${distance===null?"":` · ${distance.toFixed(1)} km`}${feature.geometry?"":" · no public coordinates"}</small>
+        <small>${esc(p.Kategori||"")}${max===null?"":` · max ${max} m`} · quality ${diveFeatureQuality(feature)}${distance===null?"":` · ${distance.toFixed(1)} km`}${point?"":diveCoordinateAssessment(feature).status==="unverified"?" · coordinate unverified":" · no usable coordinates"}</small>
       </button>`;
     }).join("")||'<div class="dive-empty"><strong>No matching sites</strong><span>Adjust filters to show more locations.</span></div>';
     elements.list.querySelectorAll("[data-dive-id]").forEach(button=>{
