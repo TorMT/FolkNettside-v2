@@ -15,10 +15,10 @@ let state={
  fluid:"Ammonia",tab:"reference",units:{pressure:"bar",temperature:"C",energy:"kJkg",entropy:"kJkgK"},
  single:{input1:"P",value1:"1.2",input2:"T",value2:"25"},
  explore:{input1:"H",value1:"300",input2:"S",value2:"1.2"},
- batch:{mode:"multi",format:"PH",rows:"1,300\\n2,400",outputs:["H","S"]},
+ batch:{mode:"multi",format:"PH",rows:"1,300\n2,400",outputs:["H","S"]},
  process:{start:{input1:"P",value1:"1",input2:"T",value2:"100",description:"test"},
   steps:[{processType:"isobaric",targetType:"T",targetValue:"110",description:"heating"}]},
- reference:{tableId:"A-13",rows:"-40\\n-20\\n0"}
+ reference:{tableId:"A-13",rows:"-40\n-20\n0"}
 };
 function render(){
  root.innerHTML=coolPropToolHTML(state);
@@ -33,14 +33,14 @@ try{
  render();
  check($("cp-reference-table").value==="A-13","Wrong initial ammonia table");
  $("cp-single-v1").value="2.5"; // deliberately never clicked Calculate
- $("cp-reference-rows").value="-30\\n0\\ntext"; // deliberately never generated
- $("cp-batch-rows").value="3,410\\n9,530"; // deliberately never run
+ $("cp-reference-rows").value="-30\n0\ntext"; // deliberately never generated
+ $("cp-batch-rows").value="3,410\n9,530"; // deliberately never run
  set("cp-pressure-unit","kPa");
  await nextFrame();
  near($("cp-single-v1").value,250,"Unsaved single pressure");
- check($("cp-reference-rows").value==="-30\\n0\\ntext",
+ check($("cp-reference-rows").value==="-30\n0\ntext",
    "Ammonia temperature rows must not change when pressure unit changes");
- check($("cp-batch-rows").value==="300,410\\n900,530",
+ check($("cp-batch-rows").value==="300,410\n900,530",
    "Unsaved P-H rows incorrectly converted");
  check($("cp-reference-table").value==="A-13","Changed course table");
  check(document.activeElement?.id==="cp-pressure-unit","Unit selector focus was lost");
@@ -48,14 +48,14 @@ try{
  set("cp-temperature-unit","K");
  await nextFrame();
  near($("cp-single-v2").value,298.15,"Single temperature not converted");
- check($("cp-reference-rows").value==="243.15\\n273.15\\ntext",
+ check($("cp-reference-rows").value==="243.15\n273.15\ntext",
    "Ammonia A-13 rows not converted to Kelvin with invalid row preserved");
  near($("cp-start-v2").value,373.15,"Process start temperature not converted");
  const target=root.querySelector('[data-process-field="targetValue"]');
  near(target.value,383.15,"Process target temperature not converted");
  set("cp-energy-unit","Jkg");
  await nextFrame();
- check($("cp-batch-rows").value==="300,410000\\n900,530000",
+ check($("cp-batch-rows").value==="300,410000\n900,530000",
    "Batch enthalpy was not converted");
  near($("cp-explore-v1").value,300000,"Explore enthalpy was not converted");
  set("cp-entropy-unit","JkgK");
