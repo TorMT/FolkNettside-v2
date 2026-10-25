@@ -9,6 +9,7 @@
  */
 const CONFIG_URL="./data/folkside-auth.json";
 const SESSION_KEY="folk:v2:supabase:session";
+const authTimeout=()=>globalThis.AbortSignal?.timeout?.(10000);
 const listeners=new Set();
 const copyUser=user=>user?{id:String(user.id||""),email:String(user.email||"")}:null;
 let state={status:"loading",configured:null,user:null,error:""};
@@ -81,7 +82,7 @@ function requestPath(path,{method="GET",body,token,signal}={}){
  if(!auth)throw Error("FolkNet account is not configured.");
  return {url:auth.config.url+"/auth/v1/"+path,
    options:{
-     method,cache:"no-store",signal,
+     method,cache:"no-store",redirect:"error",signal:signal||authTimeout(),
      headers:{"apikey":auth.config.publishableKey,
        "Accept":"application/json",
        ...(body?{"Content-Type":"application/json"}:{}),
@@ -91,7 +92,13 @@ function requestPath(path,{method="GET",body,token,signal}={}){
 }
 async function request(path,args={}){
  const {url,options}=requestPath(path,args);
- const response=await auth.fetchImpl(url,options);
+ let response;
+ try{response=await auth.fetchImpl(url,options)}
+ catch(error){
+   if(error?.name==="TimeoutError"||error?.name==="AbortError")
+     throw Error("FolkNet connection timed out. Please try again.");
+   throw error;
+ }
  const result=await response.json().catch(()=>null);
  if(!response.ok){
    const error=new Error(
@@ -121,7 +128,7 @@ export async function initializeFolkAccount({configLoader=null,fetchImpl=fetch}=
  initPromise=(async()=>{
    try{
      const raw=configLoader?await configLoader():
-       await fetchImpl(CONFIG_URL,{cache:"no-store",headers:{Accept:"application/json"}})
+       await fetchImpl(CONFIG_URL,{cache:"no-store",redirect:"error",signal:authTimeout(),headers:{Accept:"application/json"}})
          .then(r=>r.ok?r.json():null);
      const config=normalizeConfig(raw);
      if(!config)throw Error("FolkNet account configuration unavailable.");
@@ -145,7 +152,8 @@ export async function folkSignIn({email,password}={}){
  if(!auth)throw Error("FolkNet account is unavailable");
  if(!emailValid(email)||typeof password!=="string"||password.length<6)
    throw Error("Enter a valid email and password.");
- const myRevision=revision;patch({status:"connecting",error:""});
+ // The earlier request must not overwrite a newer login or logout.
+ const myRevision=++revision;patch({status:"connecting",error:""});
  try{
    const result=await request("token?grant_type=password",{
      method:"POST",body:{email:email.trim(),password}});

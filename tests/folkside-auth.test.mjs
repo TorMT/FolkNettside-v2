@@ -117,3 +117,38 @@ test("linked Google login status uses verified FolkNet identities, never Drive t
  userResponse={...user,id:"different-user",identities:[{provider:"google"}]};
  await assert.rejects(getFolkLinkedProviders(),/identity verification/);
 });
+
+test("FolkNet auth requests reject redirects and have an abort deadline",async()=>{
+ let opts;
+ await withAuth(async(_url,options)=>{opts=options;return reply(session)});
+ await folkSignIn({email:user.email,password:"abcdefghij"});
+ assert.equal(opts.redirect,"error");
+ assert.equal(typeof opts.signal?.aborted,"boolean");
+});
+test("an aborted login reports the timeout without granting a session",async()=>{
+ await withAuth(async()=>{
+   const failure=new Error("network stalled");
+   failure.name="TimeoutError";
+   throw failure;
+ });
+ await assert.rejects(folkSignIn({email:user.email,password:"abcdefghij"}),/connection timed out/i);
+ assert.equal(getFolkAccountSnapshot().status,"signed-out");
+ assert.equal(getFolkAccountSnapshot().hasSession,false);
+});
+test("slow earlier login cannot replace newer owner session",async()=>{
+ let resolveOld;
+ const prior={...session,user:{...user,id:"old-user",email:"old@example.org"}};
+ await withAuth(async(_url,options)=>{
+   if(JSON.parse(options.body).email==="old@example.org")
+     return new Promise(resolve=>{resolveOld=()=>resolve(reply(prior))});
+   return reply(session);
+ });
+ const first=folkSignIn({email:"old@example.org",password:"abcdefghij"});
+ for(let i=0;i<20&&!resolveOld;i++)await Promise.resolve();
+ assert.equal(typeof resolveOld,"function");
+ const newest=await folkSignIn({email:user.email,password:"abcdefghij"});
+ assert.equal(newest.user.id,user.id);
+ resolveOld();
+ await assert.rejects(first,/Sign-in cancelled/);
+ assert.equal(getFolkAccountSnapshot().user.id,user.id);
+});
