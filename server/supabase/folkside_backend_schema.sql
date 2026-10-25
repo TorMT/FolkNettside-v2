@@ -1,5 +1,5 @@
--- FolkNettside V2 / planned Supabase project: folkside
--- Dedicated Supabase project ref: glfuvfmppkjmarujjqwg (verified 2026-10-12).
+-- FolkNettside V2 / active Supabase project: FolkNettside in TorMT's Org
+-- Dedicated Supabase project ref: aeuouzkiyddfjtjfdosp (verified 2026-10-25).
 -- Version-controlled deployment schema. Apply only to this verified project.
 -- Public tables use RLS. "private" contains only server-held encrypted
 -- external-service credentials; no browser Data API grants.
