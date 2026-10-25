@@ -11,13 +11,16 @@ const valid=raw=>raw!==null&&typeof raw==="object"&&!Array.isArray(raw);
 export function summarizeSemester(id,source){
  if(!Number.isInteger(Number(id))||!valid(source))throw Error("Invalid semester data");
  const catalog=parseNTNUSemesterIndex(id,source);
- let sourceCount=0,privateDirectories=0,excludedCourses=0;
+ let sourceCount=0,privateDirectories=0,unclassifiedDirectories=0,excludedCourses=0;
  for(const [slug,record] of Object.entries(source)){
   if(slug==="welcome"||!valid(record))continue;
   if(record.beskyttet===true||/beskyttet|private|privat|protected|secret/i.test(slug)){
     privateDirectories++;
     continue; // do not touch or count protected file metadata
   }
+  // The live and generated public catalogs require explicit false.
+  // Unknown access is never included in public metrics or file counts.
+  if(record.beskyttet!==false){unclassifiedDirectories++;continue}
   const indexed=Array.isArray(record.files)?record.files:[];
   sourceCount+=indexed.length;
   // This V1 quiz is a separately indexed resource, not in files[].
@@ -40,6 +43,7 @@ export function summarizeSemester(id,source){
   visibleResources:resources.length,
   skippedEntries:Math.max(0,sourceCount-resources.length),
   excludedCourses,protectedCourseDirectories:privateDirectories,
+  unclassifiedCourseDirectories:unclassifiedDirectories,
   nestedFiles:nestedPaths,withoutNativePreview:unsupported,
   viewerFormats:Object.fromEntries(Object.entries(formats).sort())
  };
@@ -47,7 +51,7 @@ export function summarizeSemester(id,source){
 export function summarizeRoot(root,details){
  if(!valid(root)||!valid(details))throw Error("Expected public NTNU JSON indexes");
  const ids=Object.keys(root).filter(id=>/^\d{1,2}$/.test(id)&&
-    Number(id)>=1&&Number(id)<=20&&root[id]?.beskyttet!==true)
+    Number(id)>=1&&Number(id)<=20&&root[id]?.beskyttet===false)
   .map(Number).sort((a,b)=>a-b);
  const semesters=ids.map(id=>{
   const raw=details[id];
