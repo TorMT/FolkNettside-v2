@@ -4,7 +4,7 @@
  * No files are downloaded, no private paths or filenames appear in output.
  * Running without --live prints instructions and makes no network requests.
  */
-import {parseNTNUSemesterIndex,NTNU_ORIGIN} from "../src/courses/ntnu-catalog.js";
+import {parseNTNUSemesterIndex,NTNU_ORIGIN,readBoundedIndexBody} from "../src/courses/ntnu-catalog.js";
 import {viewerKind} from "../src/viewers/registry.js";
 
 const valid=raw=>raw!==null&&typeof raw==="object"&&!Array.isArray(raw);
@@ -70,26 +70,23 @@ export function summarizeRoot(root,details){
   semesters
  };
 }
-async function getJSON(path){
+async function getJSON(path,{fetchImpl=fetch}={}){
  const u=new URL(path,NTNU_ORIGIN);
  if(u.origin!==NTNU_ORIGIN||!/^\/semestre\/(?:index\.json|\d{1,2}\/index\.json)$/.test(u.pathname))
   throw Error("Unapproved URL");
- const response=await fetch(u,{cache:"no-store",redirect:"error",
+ const response=await fetchImpl(u,{cache:"no-store",redirect:"error",
    signal:AbortSignal.timeout(15000),headers:{Accept:"application/json"}});
  if(!response.ok)throw Error("Public index HTTP "+response.status);
- if(Number(response.headers.get("content-length"))>4_000_000)
-  throw Error("Public index too large");
- const text=await response.text();
- if(text.length>4_000_000)throw Error("Public index too large");
+ const text=await readBoundedIndexBody(response);
  return JSON.parse(text);
 }
-export async function liveAudit(){
- const root=await getJSON("/semestre/index.json"),details={};
+export async function liveAudit({fetchImpl=fetch}={}){
+ const root=await getJSON("/semestre/index.json",{fetchImpl}),details={};
  const ids=Object.keys(root).filter(x=>/^\d{1,2}$/.test(x)&&
-   Number(x)<=20&&Number(x)>=1&&root[x]?.beskyttet!==true);
+   Number(x)<=20&&Number(x)>=1&&root[x]?.beskyttet===false);
  // Never request individual PDFs, private courses or material downloads.
  const results=await Promise.allSettled(ids.map(async id=>getJSON(
-  "/semestre/"+Number(id)+"/index.json"
+  "/semestre/"+Number(id)+"/index.json",{fetchImpl}
  )));
  results.forEach((r,i)=>{if(r.status==="fulfilled")details[ids[i]]=r.value});
  return summarizeRoot(root,details);
