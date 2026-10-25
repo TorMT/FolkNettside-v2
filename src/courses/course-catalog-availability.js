@@ -1,3 +1,5 @@
+import {escapeHTML} from "../viewers/utils.js?v=1b774962b35bf90b16b099cda4efa03bb73460a3";
+
 /**
  * A partial NTNU index read is not the same as an empty public semester.
  * Keep successful course data, name failed semester numbers (never URLs or
@@ -28,6 +30,25 @@ export function initialCourseSemester(semesters,source,{requested,preferred}={})
   if(available.length)return Number(available[0].id);
   if(preferredId&&byId(preferredId))return preferredId;
   return Number(list[0]?.id)||1;
+}
+
+/** Shared production/browser markup for accessible, native semester links. */
+export function semesterTabsHTML(semesters,activeId,source){
+  const failed=new Set(failedNTNUSemesters(source));
+  return (Array.isArray(semesters)?semesters:[]).map(s=>{
+    const id=Number(s.id);
+    if(!Number.isInteger(id)||id<1||id>20)return "";
+    const selected=id===Number(activeId);
+    const unavailable=failed.has(id);
+    const label=escapeHTML(String(s.label||"Semester "+id));
+    const status=unavailable?", kunne ikke oppdateres":"";
+    const description=escapeHTML(String(s.label||"Semester "+id)+status);
+    return `<a class="${selected?"active":""}${unavailable?" semester-tab-unavailable":""}" href="#/courses/${id}" data-semester="${id}" ${selected?'aria-current="page"':""} aria-label="${description}" title="${description}">
+      <span class="semester-label-long">${label}</span>
+      <span class="semester-label-short">S${id}</span>
+      ${unavailable?'<span class="semester-tab-issue" aria-hidden="true">!</span>':""}
+    </a>`;
+  }).join("");
 }
 
 export function courseCatalogWarningHTML(source){
