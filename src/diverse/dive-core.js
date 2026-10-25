@@ -75,11 +75,47 @@ export function diveDistanceKm(a,b){
   return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));
 }
 
+// The canonical research master is preserved. A recorded position is NOT
+// treated as a verified map pin if its source notes explicitly disallow use.
+// Keep records with unknown positions searchable but never invent coordinates.
+const coordinateCaveat=/verifiser posisjon lokalt før bruk|ikke bruk koordinatet|eksakt plassering ikke etablert/i;
+export function diveCoordinateAssessment(feature){
+  const geometry=feature?.geometry;
+  if(geometry===null||geometry===undefined)return {status:"missing",point:null};
+  if(geometry.type!=="Point"||!Array.isArray(geometry.coordinates)||
+    geometry.coordinates.length!==2)return {status:"invalid",point:null};
+  const [lon,lat]=geometry.coordinates;
+  if(typeof lon!=="number"||typeof lat!=="number"||
+    !Number.isFinite(lon)||!Number.isFinite(lat)||
+    Math.abs(lat)>90||Math.abs(lon)>180||
+    (lat===0&&lon===0))return {status:"invalid",point:null};
+  const p=feature?.properties||{};
+  // An inconsistent duplicated position field must not silently override the
+  // authoritative GeoJSON geometry or be shown as a verified point.
+  if(p.Lat!==null&&p.Lat!==undefined&&p.Lon!==null&&p.Lon!==undefined){
+    const otherLat=Number(p.Lat),otherLon=Number(p.Lon);
+    if(!Number.isFinite(otherLat)||!Number.isFinite(otherLon)||
+      Math.abs(otherLat-lat)>1e-6||Math.abs(otherLon-lon)>1e-6)
+      return {status:"invalid",point:null};
+  }
+  if(coordinateCaveat.test(String(p.Notater||"")))
+    return {status:"unverified",point:null};
+  return {status:"mapped",point:{lat,lon}};
+}
 export function diveFeaturePoint(feature){
-  if(feature?.geometry?.type!=="Point"||!Array.isArray(feature.geometry.coordinates))return null;
-  const [lon,lat]=feature.geometry.coordinates;
-  if([lat,lon].some(value=>value===null||value===undefined||value===""))return null;
-  return Number.isFinite(Number(lat))&&Number.isFinite(Number(lon))&&Math.abs(Number(lat))<=90&&Math.abs(Number(lon))<=180?{lat:Number(lat),lon:Number(lon)}:null;
+  return diveCoordinateAssessment(feature).point;
+}
+
+export function diveSourceUrls(properties){
+  const urls=Array.isArray(properties?.source_urls)?properties.source_urls:[];
+  return urls.filter(value=>{
+    if(typeof value!=="string")return false;
+    try{
+      const url=new URL(value);
+      return (url.protocol==="https:"||url.protocol==="http:")&&
+        Boolean(url.hostname)&&!url.username&&!url.password;
+    }catch{return false}
+  });
 }
 
 export function filterDiveFeatures(features,{query="",level="all",kind="all",quality="all",maxDepth="",wildlife="all",excludeWildlife=false}={}){
@@ -133,7 +169,8 @@ export function diveStats(features){
     wrecks:list.filter(f=>diveFeatureKind(f)==="wreck").length,
     nature:list.filter(f=>diveFeatureKind(f)==="nature").length,
     withDepth:list.filter(f=>diveFeatureMaxDepth(f)!==null).length,
-    withCoordinates:list.filter(f=>Array.isArray(f.geometry?.coordinates)&&f.geometry.coordinates.length>=2).length,
+    withCoordinates:list.filter(f=>diveFeaturePoint(f)!==null).length,
+    unverifiedCoordinates:list.filter(f=>diveCoordinateAssessment(f).status==="unverified").length,
     withWildlife:list.filter(f=>diveFeatureWildlife(f).length>0).length
   };
 }
