@@ -1,7 +1,7 @@
-import {mountDiveLog} from "./dive-log.js?v=1a5d33cf26324c375016ebf9780d16b2bf5c8fad";
-import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js?v=1a5d33cf26324c375016ebf9780d16b2bf5c8fad";
-import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js?v=1a5d33cf26324c375016ebf9780d16b2bf5c8fad";
-import {diveMapLegendHTML,diveMarkerClass,diveMarkerHTML} from "./dive-marker-icons.js?v=1a5d33cf26324c375016ebf9780d16b2bf5c8fad";
+import {mountDiveLog} from "./dive-log.js?v=92b98c24b6fbb18970d095d40d777ac5016d011d";
+import {diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js?v=92b98c24b6fbb18970d095d40d777ac5016d011d";
+import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js?v=92b98c24b6fbb18970d095d40d777ac5016d011d";
+import {diveMapLegendHTML,diveMarkerClass,diveMarkerHTML} from "./dive-marker-icons.js?v=92b98c24b6fbb18970d095d40d777ac5016d011d";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -57,7 +57,8 @@ export function diveMapHTML(){
       <label><span>Wildlife</span><select id="dive-wildlife"><option value="all">All species</option></select></label>
       <label class="dive-exclude"><span>Species mode</span><select id="dive-wildlife-mode"><option value="include">With species</option><option value="exclude">Without species</option></select></label>
       <label><span>Sort</span><select id="dive-sort"><option value="name">Name</option><option value="depth">Depth</option><option value="level">Level</option><option value="quality">Evidence quality</option><option value="nearest">Nearest me</option></select></label>
-      <button class="btn dive-location-button" id="dive-locate" type="button">Use my location</button>
+      <button class="btn dive-location-button" id="dive-locate" type="button" aria-describedby="dive-location-status">Use my location</button>
+      <p class="dive-location-status" id="dive-location-status" role="status" aria-live="polite">Optional: location is requested only if you tap the button. Used locally for straight-line distances; not saved or exported.</p>
     </section>
     <section class="dive-stats-row">
       <div class="dive-stats" id="dive-stats">Loading dive dataset…</div>
@@ -75,10 +76,12 @@ export function diveMapHTML(){
   </main>`;
 }
 
-export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.geojson",onBack=()=>{},leaflet=null}={}){
+export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.geojson",onBack=()=>{},leaflet=null,geolocation=globalThis.navigator?.geolocation}={}){
   let disposed=false;
   let map=null;
   let layer=null;
+  let locating=false;
+  let locationRequestId=0;
   const state={query:"",level:"all",kind:"all",quality:"all",maxDepth:"",wildlife:"all",excludeWildlife:false,sort:"name",selected:null,origin:null};
   const response=await fetch(dataUrl,{cache:"no-cache"});
   if(!response.ok)throw new Error(`Dive dataset HTTP ${response.status}`);
@@ -90,7 +93,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
     query:root.querySelector("#dive-query"),level:root.querySelector("#dive-level"),kind:root.querySelector("#dive-kind"),quality:root.querySelector("#dive-quality"),
     depth:root.querySelector("#dive-depth"),wildlife:root.querySelector("#dive-wildlife"),wildlifeMode:root.querySelector("#dive-wildlife-mode"),sort:root.querySelector("#dive-sort"),locate:root.querySelector("#dive-locate"),stats:root.querySelector("#dive-stats"),
     list:root.querySelector("#dive-list"),inspector:root.querySelector("#dive-inspector"),map:root.querySelector("#dive-map-canvas"),
-    note:root.querySelector("#dive-map-note"),csv:root.querySelector("#dive-export-csv"),geojson:root.querySelector("#dive-export-geojson")
+    note:root.querySelector("#dive-map-note"),locationStatus:root.querySelector("#dive-location-status"),csv:root.querySelector("#dive-export-csv"),geojson:root.querySelector("#dive-export-geojson")
   };
   root.querySelector("[data-go-diverse]")?.addEventListener("click",onBack);
 
@@ -168,6 +171,81 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
   elements.wildlifeMode?.addEventListener("change",event=>{
     state.excludeWildlife=event.currentTarget.value==="exclude";render();
   });
+  // Geolocation is an explicit one-shot, per-mount action. Never request it
+  // on page load, persist coordinates or attach them to CSV/GeoJSON exports.
+  const setLocationButton=()=>{
+    if(!elements.locate)return;
+    elements.locate.disabled=locating;
+    elements.locate.textContent=locating?"Finding location…":
+      state.origin?"Clear my location":"Use my location";
+    elements.locate.setAttribute("aria-pressed",String(Boolean(state.origin)));
+  };
+  const locationMessage=message=>{
+    if(elements.locationStatus)elements.locationStatus.textContent=message;
+  };
+  elements.locate?.addEventListener("click",()=>{
+    if(disposed||locating)return;
+    if(state.origin){
+      // Clear both the in-memory coordinates and any nearest-only display.
+      locationRequestId++;
+      state.origin=null;
+      if(state.sort==="nearest"){
+        state.sort="name";
+        elements.sort.value="name";
+      }
+      setLocationButton();
+      locationMessage("Location cleared from this view. No coordinates were saved.");
+      render();
+      return;
+    }
+    if(typeof geolocation?.getCurrentPosition!=="function"){
+      locationMessage("Location unavailable in this browser. The dive list still works without it.");
+      return;
+    }
+    const requestId=++locationRequestId;
+    locating=true;
+    setLocationButton();
+    locationMessage("Requesting browser permission for a one-time approximate distance sort…");
+    const finish=()=>{
+      if(disposed||requestId!==locationRequestId)return false;
+      locating=false;
+      setLocationButton();
+      return true;
+    };
+    const success=position=>{
+      if(disposed||requestId!==locationRequestId)return;
+      const candidate={lat:position?.coords?.latitude,lon:position?.coords?.longitude};
+      if(diveDistanceKm(candidate,candidate)===null){
+        finish();
+        locationMessage("Browser returned an invalid position. The dive list is unchanged.");
+        return;
+      }
+      state.origin={lat:Number(candidate.lat),lon:Number(candidate.lon)};
+      state.sort="nearest";
+      elements.sort.value="nearest";
+      finish();
+      const accuracy=Number(position?.coords?.accuracy);
+      const estimated=Number.isFinite(accuracy)&&accuracy>=0
+        ?` (browser accuracy about ±${Math.ceil(accuracy)} m)`:"";
+      locationMessage("Sorted by straight-line distance"+estimated+
+        ". Position stays in this page memory until you clear it or leave.");
+      render();
+    };
+    const failure=error=>{
+      if(!finish())return;
+      const denied=error?.code===1;
+      locationMessage(denied
+        ?"Location permission declined. Dive sites remain available without location."
+        :"Could not determine your location. Dive sites remain available without location.");
+    };
+    try{
+      geolocation.getCurrentPosition(success,failure,{
+        enableHighAccuracy:false,timeout:10000,maximumAge:0
+      });
+    }catch(error){failure(error)}
+  });
+  setLocationButton();
+
   const wildlifeChoices=diveWildlifeIndex(features);
   elements.wildlife?.insertAdjacentHTML("beforeend",
     wildlifeChoices.map(item=>`<option value="${esc(item.key)}">${esc(item.label)} (${item.count})</option>`).join(""));
@@ -204,6 +282,9 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
 
   return ()=>{
     disposed=true;
+    locationRequestId++; // discard a delayed browser permission result
+    locating=false;
+    state.origin=null;
     diveLog.cleanup();
     map?.remove();
     map=null;
