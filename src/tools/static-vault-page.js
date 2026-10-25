@@ -1,4 +1,4 @@
-import {encryptVault} from "../viewers/vault-core.js?v=a47b0660d66be142e6d11464c67ab316d5f94002";
+import {encryptVault} from "../viewers/vault-core.js?v=542dc505dd26a315402debc65322c61cf5f197b2";
 function downloadBlob(blob,filename){
  const url=URL.createObjectURL(blob),a=document.createElement("a");
  a.href=url;a.download=filename;a.click();
