@@ -1,6 +1,6 @@
 import {
   THEME_ROLES,autoAssignTheme,kMeansPalette,normalizeTheme,
-  themeCss,themeJSON,themeRegistrySnippet
+  themeContrastReport,themeCss,themeJSON,themeRegistrySnippet
 } from "./theme-studio-core.js";
 
 const ROLE_LABELS={
@@ -21,25 +21,43 @@ function roleControls(theme,palette){
     return '<div class="theme-role-row">'+
       '<label><span>'+ROLE_LABELS[role]+'</span><input type="color" data-theme-role="'+role+'" value="'+selected+'"></label>'+
       (palette.length?'<div class="theme-palette-mini">'+palette.map(color=>
-        '<button type="button" data-theme-assign="'+role+'" data-theme-color="'+color+'" style="background:'+color+'" class="'+(color===selected?"selected":"")+'" title="'+color+'"></button>'
+        '<button type="button" data-theme-assign="'+role+'" data-theme-color="'+color+'" style="background:'+color+'" class="'+(color===selected?"selected":"")+'" aria-label="Assign '+color+' to '+ROLE_LABELS[role]+'" title="'+color+'"></button>'
       ).join("")+'</div>':"")+
     '</div>';
   }).join("");
 }
 
 function preview(theme){
-  return '<div class="theme-live-preview">'+
-    '<div class="theme-preview-navbar" style="background:linear-gradient(135deg,'+theme.colors.navbar1+','+theme.colors.navbar2+')">'+
+  const report=themeContrastReport(theme);
+  const c=report.colors;
+  const issueText=report.adjustments.length
+    ? '<p class="theme-contrast-note"><strong>Auto-adjusted for readability:</strong> '+
+      report.adjustments.map(esc).join(" ") +
+      ' Original source palette is preserved for editing/JSON; preview and generated CSS use the safe display colors.</p>'
+    : '<p class="theme-contrast-note">All sampled preview text uses a calculated readable foreground.</p>';
+  return '<div class="theme-live-preview" aria-hidden="true">'+
+    '<div class="theme-preview-navbar" style="color:'+c.navbarText+
+      ';background:linear-gradient(135deg,'+c.navbar1+','+c.navbar2+')">'+
       '<strong>FolkNettside</strong><span>Projects · Engineering · Courses</span>'+
     '</div>'+
     '<div class="theme-preview-body">'+
-      '<aside style="background:'+theme.colors.sidebar+'"><strong>Sidebar</strong><span>Overview</span><span>Resources</span><span>Tools</span></aside>'+
-      '<main style="background:'+theme.colors.background+'">'+
-        '<h2 style="color:'+theme.colors.primary+'">Theme preview</h2>'+
-        '<div class="theme-preview-card" style="border-left-color:'+theme.colors.primary+'"><strong>Engineering card</strong><p>The studio previews the same role mapping used by the legacy generators.</p><button style="background:'+theme.colors.primary+'">Action</button></div>'+
-      '</main>'+
+      '<aside style="background:'+c.sidebar+';color:'+c.sidebarText+'"><strong>Sidebar</strong><span>Overview</span><span>Resources</span><span>Tools</span></aside>'+
+      '<div class="theme-preview-main" style="background:'+theme.colors.background+';color:'+c.mainText+'">'+
+        '<h2 style="color:'+c.heading+'">Theme preview</h2>'+
+        '<div class="theme-preview-card" style="border-left-color:'+theme.colors.primary+'"><strong>Engineering card</strong><p>Preview of the generated theme palette.</p>'+
+          '<span class="theme-preview-action" style="background:'+theme.colors.primary+
+            ';color:'+c.actionText+'">Action</span></div>'+
+      '</div>'+
     '</div>'+
-  '</div>';
+  '</div>'+
+  '<section class="theme-contrast-audit" aria-label="Preview text contrast audit">'+
+    '<h2>Text contrast audit</h2>'+
+    '<p>Computed WCAG contrast ratios for the preview. Each sampled text pair must reach 4.5:1.</p>'+
+    '<div class="theme-contrast-checks">'+report.checks.map(item=>
+      '<div class="theme-contrast-check"><span>'+esc(item.label)+'</span><strong>'+
+      item.ratio.toFixed(2)+':1 '+(item.ratio>=4.5?'PASS':'CHECK')+'</strong></div>'
+    ).join("")+'</div>'+issueText+
+  '</section>';
 }
 
 export function themeStudioHTML(state={}){
@@ -54,8 +72,8 @@ export function themeStudioHTML(state={}){
       '<div class="tool-parity-banner"><strong>No-loss migration:</strong> manual authoring, image palette extraction, auto-assign, preview and CSS/JS/JSON outputs are preserved. Legacy links remain available during review.</div>'+
     '</div></header>'+
     '<div class="theme-mode-tabs">'+
-      '<button data-theme-mode="manual" class="'+(mode==="manual"?"active":"")+'">Manual theme</button>'+
-      '<button data-theme-mode="image" class="'+(mode==="image"?"active":"")+'">Image → theme</button>'+
+      '<button type="button" data-theme-mode="manual" aria-pressed="'+(mode==="manual"? "true":"false")+'" class="'+(mode==="manual"?"active":"")+'">Manual theme</button>'+
+      '<button type="button" data-theme-mode="image" aria-pressed="'+(mode==="image"?"true":"false")+'" class="'+(mode==="image"?"active":"")+'">Image → theme</button>'+
     '</div>'+
     '<section class="theme-studio-layout">'+
       '<aside class="tool-inputs theme-studio-controls">'+
