@@ -1,4 +1,4 @@
-import {executeHydroRequest} from "./hydro-service.js?v=721741552196dbd597cff4d24b45ff2897fac691";
+import {executeHydroRequest} from "./hydro-service.js?v=6579e44096be500c7c0b643d3313056d4b731598";
 
 let worker=null;
 let currentModel=null;
@@ -7,7 +7,7 @@ const pending=new Map();
 
 function ensureWorker(){
   if(worker||typeof Worker==="undefined")return worker;
-  worker=new Worker(new URL("./hydro-worker.js?v=721741552196dbd597cff4d24b45ff2897fac691",import.meta.url),{type:"module"});
+  worker=new Worker(new URL("./hydro-worker.js?v=6579e44096be500c7c0b643d3313056d4b731598",import.meta.url),{type:"module"});
   worker.onmessage=event=>{
     const {id,ok,result,error}=event.data||{};
     const entry=pending.get(id);
