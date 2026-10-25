@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>B18 mobile accessibility acceptance</title>
+<style>body{margin:8px;font:13px system-ui}#site{height:830px;display:block;border:0}#result{white-space:pre-wrap}</style>
+</head><body data-status="running">
+<iframe id="site" title="FolkNet V2 mobile accessibility audit" src="../../index.html#/portfolio"></iframe>
+<pre id="result">running</pre>
+<script type="module">
+const width=Number(new URLSearchParams(location.search).get("width")||390);
+const iframe=document.querySelector("#site");
+iframe.style.width=width+"px";
+const doc=()=>iframe.contentDocument;
+const win=()=>iframe.contentWindow;
+const get=sel=>doc()?.querySelector(sel);
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const assert=(ok,message)=>{if(!ok)throw Error(message)};
+async function wait(predicate,label){
+  for(let i=0;i<180;i++){try{if(predicate())return}catch{}
+    await sleep(90)}
+  throw Error("Timeout "+label+"; "+win()?.location.hash);
+}
+async function visit(path,selector){
+  win().location.hash="#"+path;
+  await wait(()=>win().location.hash==="#"+path&&get(selector),path);
+}
+function skipAndVerify(selector){
+  const skip=get("[data-skip-content]");
+  assert(skip?.tagName==="BUTTON","Missing native skip navigation button");
+  skip.focus();
+  assert(doc().activeElement===skip,"Skip link not keyboard-focusable");
+  skip.click();
+  const destination=get(selector);
+  assert(destination&&doc().activeElement===destination,
+    "Skip content did not transfer focus to "+selector);
+  assert(destination.getAttribute("tabindex")==="-1",
+    "Focused landmark must be programmatically focusable");
+}
+try{
+  await wait(()=>get(".topbar")&&get(".hero"),"initial portfolio");
+  assert(doc().documentElement.lang==="no","Site HTML language is not Norwegian");
+  skipAndVerify("main");
+  await visit("/courses",".course-grid");
+  skipAndVerify("main");
+  await visit("/engineering/hydro",".workspace");
+  await wait(()=>get(".mobile-workspace-actions"),"workspace drawers mounted");
+  skipAndVerify(".workspace");
+  const panels=[...doc().querySelectorAll(".workspace > .tree, .workspace > .inspector")];
+  const actions=[...doc().querySelectorAll(".mobile-workspace-actions button")];
+  assert(actions.length===panels.length&&panels.length>=1,
+    "Missing engineering drawer access actions");
+  const mobile=width<=760;
+  panels.forEach((panel,index)=>{
+    assert(panel.id===actions[index].getAttribute("aria-controls"),
+      "Drawer trigger lacks controlled element identifier");
+    assert(actions[index].getAttribute("aria-expanded")==="false",
+      "Closed drawer trigger incorrectly expanded");
+    assert(panel.inert===mobile,"Off-canvas drawer inert state wrong");
+    assert(panel.hasAttribute("aria-hidden")===mobile,
+      "Off-canvas drawer screen-reader visibility wrong");
+  });
+  if(mobile){
+    actions[0].click();
+    assert(!panels[0].inert&&panels[0].classList.contains("mobile-open"),
+      "Opened drawer remains inert or hidden");
+    assert(actions[0].getAttribute("aria-expanded")==="true",
+      "Opened drawer not announced as expanded");
+    const close=panels[0].querySelector(".mobile-panel-close");
+    assert(doc().activeElement===close,"Open did not focus visible Close button");
+    close.dispatchEvent(new (win().KeyboardEvent)("keydown",
+      {key:"Escape",bubbles:true,cancelable:true}));
+    assert(panels[0].inert&&!panels[0].classList.contains("mobile-open"),
+      "Escape did not hide the drawer");
+    assert(doc().activeElement===actions[0],
+      "Escape did not return focus to opener");
+    actions[0].click();
+    get("#home").dispatchEvent(new (win().PointerEvent)("pointerdown",{bubbles:true}));
+    assert(panels[0].inert,"Click outside did not close drawer");
+    if(actions.length>1){
+      actions[0].click();
+      actions[1].click();
+      assert(panels[0].inert&&!panels[1].inert,
+        "Switching drawer did not hide and disable previous panel");
+      panels[1].querySelector(".mobile-panel-close").click();
+      assert(panels[1].inert&&doc().activeElement===actions[1],
+        "Closing second panel did not restore focus");
+    }
+  }else{
+    assert(panels.every(panel=>!panel.inert&&!panel.hasAttribute("aria-hidden")),
+      "Desktop panels incorrectly excluded from accessibility tree");
+  }
+  await visit("/settings",".settings");
+  skipAndVerify(".settings");
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent=
+    "B18 shell and engineering mobile accessibility PASS at "+width+"px";
+}catch(error){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>
