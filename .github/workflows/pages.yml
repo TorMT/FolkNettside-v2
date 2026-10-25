@@ -386,11 +386,14 @@ jobs:
           grep '<pre id="result">' /tmp/section-sketch-smoke-dom.html || true
       - name: Fusion engineering bundle browser smoke
         run: |
-          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
-          test -n "$browser"
+          # Wait for explicit asynchronous pass/fail instead of capturing one DOM
+          # snapshot while the Fusion ZIP/WASM test is still "running".
+          command -v chromedriver
           python -m http.server 4188 --bind 127.0.0.1 >/tmp/fusion-bundle-server.log 2>&1 &
           server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/fusion-bundle-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python - <<'PY'
           import time,urllib.request
           for _ in range(50):
@@ -400,14 +403,8 @@ jobs:
               except Exception:time.sleep(.1)
           else:raise SystemExit("Fusion bundle smoke server did not start")
           PY
-          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=1100,750 --virtual-time-budget=20000 \
-            --dump-dom http://127.0.0.1:4188/tests/browser/fusion-engineering-bundle-smoke.html \
-            >/tmp/fusion-bundle-smoke-dom.html
-          grep -q 'data-status="pass"' /tmp/fusion-bundle-smoke-dom.html || {
-            cat /tmp/fusion-bundle-smoke-dom.html
-            exit 1
-          }
-          grep '<pre id="result">' /tmp/fusion-bundle-smoke-dom.html || true
+          python3 scripts/test_hydro_worker_browser.py \
+            http://127.0.0.1:4188/tests/browser/fusion-engineering-bundle-smoke.html 80 1100,750
       - name: Fusion helper script syntax and physical-property tests
         run: |
           python -m py_compile scripts/fusion_export_folknet.py
