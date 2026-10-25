@@ -7,12 +7,15 @@ import {createRequire} from "node:module";
 
 import {dataBounds,diagramDatasets} from "../src/tools/coolprop-diagram-core.js";
 import {
+  IAPWS_IF97_INDEPENDENT_CASES,IAPWS_IF97_SATURATION_CASES,IAPWS_IF97_LIMITS
+} from "../tests/fixtures/coolprop-iapws-if97-reference.mjs";
+import {
   TABLE_REFERENCE_PROFILES,
   applyBookBasis,
   phaseDescription,
   removeBookBasis,
   verifyTableReference,computeCourseReferenceTable,courseTableConfig,
-  courseTableDefaultRows,courseCalibrationSummary
+  courseTableDefaultRows,courseCalibrationSummary,propsSIOutput,computeState
 } from "../src/tools/coolprop-core.js";
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
@@ -182,6 +185,103 @@ try{
     assert.equal(courseCalibrationSummary(engine,fluid).status,"native-only",
       "Unverified textbook calibration must not be claimed for "+fluid);
   }
+  console.log("\nIndependent IAPWS-IF97 water/steam verification (different EOS, 6 states / 3 saturation)");
+  const comparePublished=(value,expected,key,label)=>{
+    const rel=IAPWS_IF97_LIMITS.relative[key]||0;
+    const abs=IAPWS_IF97_LIMITS.absolute[key]||0;
+    const allowance=Math.max(abs,Math.abs(expected)*rel);
+    closeEnough(value,expected,allowance,label+" against IF97");
+    return Math.abs(value-expected)/Math.max(Math.abs(expected),1);
+  };
+  let largest=0,count=0;
+  for(const sample of IAPWS_IF97_INDEPENDENT_CASES){
+    const raw=(key)=>{
+      if(key==="v")return 1/engine.propsSI("D","T",sample.T,"P",sample.P,"Water");
+      return propsSIOutput(engine,key,"T",sample.T,"P",sample.P,"Water").value;
+    };
+    for(const [key,expected] of Object.entries(sample.expected)){
+      const actual=raw(key);
+      const deviation=comparePublished(actual,expected,key,sample.id+"/"+key);
+      largest=Math.max(largest,deviation);
+      count++;
+    }
+    // Verify that the *visible* Water A-4/A-5 course workspace uses the same
+    // published dimensional basis, not just that native PropsSI looks correct.
+    const tableId=sample.phase==="compressed-liquid"?"A-5":"A-4";
+    const row=computeCourseReferenceTable(engine,{
+      fluid:"Water",tableId,
+      rows:`${(sample.T-273.15).toFixed(7)},${sample.P/1e5}`,
+      bookBasis:false
+    })[0];
+    assert.equal(row.Status,"OK",sample.id+"/"+tableId+": "+row.Error);
+    for(const key of ["v","H","U","S"]){
+      const visible=key==="v"?row.v:row[key]*1000;
+      // The UI's entropy unit default is kJ/(kg K), other U/H kJ/kg.
+      comparePublished(visible,sample.expected[key],key,sample.id+"/"+tableId+"/"+key);
+    }
+    console.log(`  ${sample.id.padEnd(20)} ${tableId} ${sample.phase}`);
+  }
+
+  for(const sample of IAPWS_IF97_SATURATION_CASES){
+    const pressure=engine.propsSI("P","T",sample.T,"Q",0,"Water");
+    closeEnough(pressure,sample.expectedP,
+      sample.expectedP*IAPWS_IF97_LIMITS.saturationRelative,sample.id+"/P");
+    const row=computeCourseReferenceTable(engine,{
+      fluid:"Water",tableId:"A-2",rows:String(sample.T-273.15),
+      bookBasis:false
+    })[0];
+    assert.equal(row.Status,"OK",sample.id+"/A-2: "+row.Error);
+    closeEnough(row.P*1e5,sample.expectedP,
+      sample.expectedP*IAPWS_IF97_LIMITS.saturationRelative,sample.id+"/A-2/P");
+    assert.ok(row.vg>row.vf&&row.hg>row.hf&&row.sg>row.sf,
+      sample.id+": saturated vapor/liquid ordering reversed");
+    count++;
+    console.log(`  ${sample.id.padEnd(20)} A-2 saturation`);
+  }
+
+  // Teaching case: wet steam as a quality-weighted liquid/vapor mixture.
+  // These are thermodynamic identity checks, NOT independent table references.
+  for(const p of [1e5,5e5,1e6]){
+    const x=0.35;
+    const liquid={H:engine.propsSI("H","P",p,"Q",0,"Water"),
+      U:engine.propsSI("U","P",p,"Q",0,"Water"),
+      S:engine.propsSI("S","P",p,"Q",0,"Water"),
+      v:1/engine.propsSI("D","P",p,"Q",0,"Water")};
+    const vapor={H:engine.propsSI("H","P",p,"Q",1,"Water"),
+      U:engine.propsSI("U","P",p,"Q",1,"Water"),
+      S:engine.propsSI("S","P",p,"Q",1,"Water"),
+      v:1/engine.propsSI("D","P",p,"Q",1,"Water")};
+    const mix={
+      H:engine.propsSI("H","P",p,"Q",x,"Water"),
+      U:engine.propsSI("U","P",p,"Q",x,"Water"),
+      S:engine.propsSI("S","P",p,"Q",x,"Water"),
+      v:1/engine.propsSI("D","P",p,"Q",x,"Water")
+    };
+    for(const key of ["H","U","S","v"]){
+      closeEnough(mix[key],liquid[key]+x*(vapor[key]-liquid[key]),
+        Math.max(0.001,Math.abs(mix[key])*1e-6),`quality mixture ${key} at ${p} Pa`);
+    }
+    closeEnough(mix.H,mix.U+p*mix.v,0.5,`h=u+p*v at ${p} Pa`);
+    console.log(`  Wet steam p=${p/1e5} bar, x=0.35: h/u/s/v mixtures and h=u+pv OK`);
+  }
+
+  // A physically valid process must not silently change enthalpy during
+  // textbook throttling, even when display inputs and outputs use kJ/kg.
+  for(const fluid of ["Water","Ammonia","R134a"]){
+    const start={fluid,input1:"T",value1:150,input2:"P",value2:10};
+    if(fluid==="R134a")start.value1=80;
+    const state=computeState(engine,start);
+    const recovered=computeState(engine,{
+      fluid,input1:"P",value1:5,input2:"H",value2:state.values.H
+    });
+    closeEnough(recovered.valuesSI.H,state.valuesSI.H,0.5,fluid+" textbook throttling Δh");
+    assert.ok(Number.isFinite(recovered.valuesSI.T),
+      fluid+" P-h inverse did not provide a valid final temperature");
+    console.log(`  ${fluid.padEnd(10)} throttling P-h consistency OK`);
+  }
+
+  console.log(`Independent published IF97 cross-check: ${count} state/saturation samples, ${largest*100|0}% upper rounded relative deviation; ${IAPWS_IF97_INDEPENDENT_CASES.length} states + ${IAPWS_IF97_SATURATION_CASES.length} saturation cases.`);
+
   console.log("\nCoolProp numerical and diagram reference verification passed.");
 } finally {
   rmSync(scratch,{recursive:true,force:true});
