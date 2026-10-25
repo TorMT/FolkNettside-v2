@@ -392,3 +392,9 @@
 @media(max-width:560px){
   .cad-geometry-stage .model-wave-actions .wave-motion-select{flex-basis:100%}
 }
+
+/* Native file inputs have a Chromium intrinsic width (~278px) which exceeds
+   the usable 305px CSS viewport once the CAD page and scrollbar are present. */
+.engineering-cad-page .cad-import-bar>label{box-sizing:border-box;min-width:0;max-width:100%}
+.engineering-cad-page .cad-import-bar input[type="file"]{
+  display:block;box-sizing:border-box;min-width:0;width:100%;max-width:100%}
