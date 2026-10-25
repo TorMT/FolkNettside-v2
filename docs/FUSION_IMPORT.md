@@ -52,9 +52,10 @@ web views. It is **read-only**: no uploads, edits, file deletion or background
 download jobs. The browser does **not** ask for or store Autodesk access
 tokens. A separately authenticated backend must be configured first.
 
-**Backend update, 12 October 2026:** The `autodesk-hub` Edge Function is
-ACTIVE on the verified FolkNet Supabase project. Its source and security
-checks are versioned in `supabase/functions/autodesk-hub/`. However, the
+**Backend update, 25 October 2026:** The previous `autodesk-hub` deployment
+was on an inaccessible OLD Supabase project; the function is **not deployed**
+on the new `aeuouzkiyddfjtjfdosp` project. Its source and security
+checks remain versioned in `supabase/functions/autodesk-hub/`. However, the
 Autodesk app credentials have **not** been provisioned and no real Autodesk
 consent or Fusion Hub access has been verified. The browser deliberately
 remains unconfigured until end-to-end acceptance tests pass.
@@ -69,7 +70,7 @@ See `docs/AUTODESK_HUB_BACKEND.md` for operational details.
 
 The backend must implement these read-only endpoints with one OAuth
 session per authorized Autodesk user. The implemented API base is
-`https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/`.
+`https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/autodesk-hub/`.
 The browser sends its **FolkNet Supabase Auth bearer** only to that exact
 backend, never an Autodesk token or a Google Drive token.
 
