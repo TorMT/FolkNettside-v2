@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {probeFolkCoreBackend} from "../src/platform/folkside-cloud.js";
 import {settingsPageHTML} from "../src/settings/settings-page.js";
-const config={url:"https://glfuvfmppkjmarujjqwg.supabase.co",
+const config={url:"https://aeuouzkiyddfjtjfdosp.supabase.co",
   publishableKey:"sb_publishable_"+"A".repeat(32)};
 const userId="11111111-2222-3333-4444-555555555555";
 const ok=body=>({ok:true,status:200,json:async()=>body});

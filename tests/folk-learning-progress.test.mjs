@@ -6,7 +6,7 @@ import {
  learningResourceKey,validateLearningProgress,createFolkLearningProgress
 } from "../src/platform/folk-learning-progress.js";
 
-const config={url:"https://glfuvfmppkjmarujjqwg.supabase.co",
+const config={url:"https://aeuouzkiyddfjtjfdosp.supabase.co",
  publishableKey:"sb_publishable_"+"Q".repeat(30)};
 const user="11111111-2222-3333-4444-555555555555";
 const resource={source:"ntnu",path:"/semestre/5/Marin-Dynamikk/quiz/quiz.json"};

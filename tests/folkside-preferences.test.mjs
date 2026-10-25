@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {createFolkAppearanceBackup,validateCloudAppearance}
  from "../src/platform/folkside-preferences.js";
-const config={url:"https://glfuvfmppkjmarujjqwg.supabase.co",
+const config={url:"https://aeuouzkiyddfjtjfdosp.supabase.co",
  publishableKey:"sb_publishable_"+"Z".repeat(30)};
 const id="11111111-2222-3333-4444-555555555555";
 const settings={mode:"system",accent:"teal",density:"comfortable",

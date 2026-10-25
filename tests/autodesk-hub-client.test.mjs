@@ -67,18 +67,18 @@ test("authorization failure stops browsing without leaking credentials",async()=
 });
 
 test("FolkNet mode locks bearer token to exact first-party Edge Function",()=>{
- const good="https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/";
+ const good="https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/autodesk-hub/";
  const cfg=validateHubConfig({apiBase:good,authMode:"folknet"});
  assert.equal(cfg.authMode,"folknet");
  for(const candidate of ["https://evil.example/functions/v1/autodesk-hub/",
-   "https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/evil/",
-   "https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/login/"]){
+   "https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/evil/",
+   "https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/autodesk-hub/login/"]){
    assert.throws(()=>validateHubConfig({apiBase:candidate,authMode:"folknet"}),
      /exact first-party/);
  }
 });
 test("Supabase bearer is only used for first-party session, catalog, OAuth initiation",async()=>{
- const base="https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/";
+ const base="https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/autodesk-hub/";
  const logs=[],token="a".repeat(50);
  const client=createAutodeskHubClient({apiBase:base,authMode:"folknet"},{
    tokenProvider:async()=>token,
@@ -107,7 +107,7 @@ test("Supabase bearer is only used for first-party session, catalog, OAuth initi
  assert.ok(logs.every(r=>r.url.startsWith(base)));
 });
 test("OAuth backend redirects cannot point to malicious origins",async()=>{
- const base="https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/";
+ const base="https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/autodesk-hub/";
  const client=createAutodeskHubClient({apiBase:base,authMode:"folknet"},{
    tokenProvider:async()=>"a".repeat(50),
    fetchImpl:async()=>({ok:true,status:200,json:async()=>({
@@ -121,7 +121,7 @@ test("long HMAC pagination cursor is accepted but malformed payload is rejected"
  const opaque="a".repeat(2500)+"."+"b".repeat(43);
  const parsed=parseCatalogResponse({entries:[],nextCursor:opaque});
  assert.equal(parsed.nextCursor,opaque);
- const base="https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/";
+ const base="https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/autodesk-hub/";
  const u=new URL(catalogRequestURL(base,"hubs",{},opaque));
  assert.equal(u.searchParams.get("cursor"),opaque);
  assert.throws(()=>parseCatalogResponse({entries:[],nextCursor:"javascript:alert(1)"}),
