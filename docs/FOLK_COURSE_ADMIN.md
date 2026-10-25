@@ -6,7 +6,7 @@
   URLs continue to point to `https://tormt.folk.ntnu.no/semestre/...`.
   This feature never uploads, renames, deletes or copies NTNU files.
 - GitHub Pages hosts the V2 UI and the indexed public metadata.
-- The dedicated FolkNet Supabase project `glfuvfmppkjmarujjqwg` stores
+- The dedicated FolkNet Supabase project `aeuouzkiyddfjtjfdosp` stores
   public cosmetic labels; **no course files or quiz answer content**.
 - Supabase Auth provides email/password sign-in already available under
   Settings → Account & connections. The editor is at `#/admin/courses`.
@@ -24,14 +24,16 @@ Opprett/verifiser først eierens konto der og registrer den faktiske Auth-UUID
 i admin-tabellen. Ingen passord, kontoeieridentitet eller adminrettigheter
 skal hardkodes i GitHub Pages.
 
-## Database not installed yet
+## Database installed in TorMT's Org — owner account pending
 
 The SQL candidate is `server/supabase/20261024_folk_course_labels_candidate.sql`.
-It has **not** been applied. The current connector can see only the separate
-LeseRavnen Supabase project, so it must NOT be used for FolkNet changes.
+The RLS-protected admin/label schema is already installed in the new FolkNet project
+as migration `20261025173633` (`folk_course_admin_labels_20261025`).
+The project's Auth currently has **zero users** and `folk_site_admins` has
+**zero admins**, so a real, verified owner account must still be provisioned.
+Never insert an invented UUID or use LeseRavnen's Auth users.
 
-For installation, connect/select FolkNet in Supabase and review the SQL in
-the correct project. Use an authenticated owner account with a verified
+For owner provisioning, open the new FolkNet project in Supabase and verify its existing RLS policies. Use an authenticated owner account with a verified
 email; do not publish a password, service-role key or database password.
 
 The two tables:
@@ -78,6 +80,6 @@ On saving, the editor reloads the page so the browser rebuilds its catalog.
 ## What this does not do
 
 - No registration or verification of an admin account is performed here.
-- No database deployment has been performed from GitHub.
+- The database schema was deployed directly to FolkNet before this frontend switch; no verified owner identity or admin grants have been provisioned yet.
 - No direct NTNU upload/edit/delete. Those require separate access-control
   and content-rights checks before adding any future file operations.

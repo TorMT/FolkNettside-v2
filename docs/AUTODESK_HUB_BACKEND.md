@@ -2,7 +2,7 @@
 
 ## Status and scope
 
-The **backend implementation is deployed** to the verified FolkNet Supabase project as `autodesk-hub` (ACTIVE, v1 on 2026-10-12) and version-controlled in `supabase/functions/autodesk-hub/`. Deployment is distinct from working Autodesk authorization: APS app secrets and live consent tests are still pending.
+The Autodesk backend is version-controlled in `supabase/functions/autodesk-hub/`, but is **not deployed to the replacement FolkNet project** (`aeuouzkiyddfjtjfdosp`). Earlier deployment notes refer to the superseded instance. APS app secrets, live consent and verified two-user isolation remain pending.
 It uses the existing FolkNet Supabase Auth account as its *first-party user identity*.
 The Autodesk three-legged authorization flow is a **separate consent step** and
 only requests `data:read`. Read-only hub → project → folder → file →
@@ -27,10 +27,10 @@ secret file into GitHub or browser JSON.
 
 ## Configuration (operator only)
 
-- Target: Supabase project `glfuvfmppkjmarujjqwg` only. Never target LeseRavnen.
+- Target: Supabase project `aeuouzkiyddfjtjfdosp` only. Never target LeseRavnen.
 - Autodesk APS app: register an appropriate confidential Web Application.
 - Exact Autodesk redirect URI:
-  `https://glfuvfmppkjmarujjqwg.supabase.co/functions/v1/autodesk-hub/callback`
+  `https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/autodesk-hub/callback`
 - Add these as **Supabase Edge secrets**, never files in GitHub or the client:
   `APS_CLIENT_ID`, `APS_CLIENT_SECRET`, `APS_REDIRECT_URI` (exact URI
   above), and `FOLK_AUTODESK_TOKEN_KEY` (cryptographically random 32 bytes,
@@ -85,7 +85,7 @@ After backend deployment, copy
 `data/autodesk-hub.example.json` to `data/autodesk-hub.json`. It contains
 only the public API base and `"authMode":"folknet"`, never keys. The browser
 then adds the **current FolkNet Supabase Auth** bearer only to the fixed
-`glfuvfmppkjmarujjqwg.supabase.co` host and exact `autodesk-hub` path.
+`aeuouzkiyddfjtjfdosp.supabase.co` host and exact `autodesk-hub` path.
 It never sends a Google Drive token, or the Autodesk access token, to this
 API. If the FolkNet user is signed out, they must sign in via Settings first.
 Because GitHub Pages uses `sessionStorage` for the FolkNet Auth session,

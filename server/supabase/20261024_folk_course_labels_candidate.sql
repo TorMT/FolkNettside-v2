@@ -1,4 +1,4 @@
--- FOLKNET ONLY: candidate schema for project glfuvfmppkjmarujjqwg.
+-- FOLKNET ONLY: schema for project aeuouzkiyddfjtjfdosp (already installed via 20261025173633).
 -- Not installed by GitHub Pages. Review and apply to the correct Supabase
 -- project, NEVER to LeseRavnen.
 --

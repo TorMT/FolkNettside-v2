@@ -1,5 +1,5 @@
 -- DEVELOPMENT CANDIDATE ONLY. Not applied to production Supabase.
--- Target: glfuvfmppkjmarujjqwg (FolkNettside), never the LeseRavnen project.
+-- Target: aeuouzkiyddfjtjfdosp (FolkNettside), never the LeseRavnen project.
 -- Run only after 2-user RLS and revision-conflict acceptance tests.
 -- Progress is non-sensitive summary data. Never store answers, dive details,
 -- medicine schedules, OAuth tokens or raw Drive objects in this table.
