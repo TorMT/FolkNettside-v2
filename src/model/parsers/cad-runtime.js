@@ -1,4 +1,4 @@
-import {occtToModelDocument,CAD_EXTENSIONS} from "./occt-cad.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f";
+import {occtToModelDocument,CAD_EXTENSIONS} from "./occt-cad.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
 export const CAD_IMPORT_MAX_BYTES=55*1024*1024;
 const FORMATS={step:"step",stp:"step",iges:"iges",igs:"iges",brep:"brep"};
 export async function parseCADBuffer(buffer,name="CAD model",{
@@ -12,7 +12,7 @@ export async function parseCADBuffer(buffer,name="CAD model",{
    throw Error("CAD file must be between 1 byte and 55 MiB");
  if(signal?.aborted)throw Error("CAD import cancelled");
  if(typeof Worker==="undefined"&&!workerFactory)throw Error("Browser Web Worker unavailable");
- const worker=workerFactory(new URL("./occt-worker.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f",import.meta.url));
+ const worker=workerFactory(new URL("./occt-worker.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5",import.meta.url));
  try{
    const result=await new Promise((resolve,reject)=>{
      let done=false;

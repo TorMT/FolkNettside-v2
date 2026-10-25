@@ -1,14 +1,16 @@
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f";
-import {parseSTL} from "../model/parsers/stl.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f";
-import {parse3MF} from "../model/parsers/three-mf.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f";
-import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f";
-import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f";
-import {downloadFusionScriptPackage} from "./fusion-installer.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f";
-import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f";
-import {createModelDocument} from "../model/model-document.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f";
-import {boxMesh} from "../hydro/fixtures.js?v=f29ecd276d5a523b71c4fea00546b45e61850a7f";
+import {MUNIN_PARTS,annotateMunin} from "./munin-parts.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {parseGLB} from "../model/parsers/gltf.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {parseSTL} from "../model/parsers/stl.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {parse3MF} from "../model/parsers/three-mf.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {downloadFusionScriptPackage} from "./fusion-installer.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {createModelDocument} from "../model/model-document.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
+import {boxMesh} from "../hydro/fixtures.js?v=e2b4e4db3eca785d7ba5da3bfbc7f8ef321cf8c5";
 
 /** Verified public originals on the NTNU file server; never mirrored to GitHub. */
 export const MUNIN_CAD_SOURCES=Object.freeze({
@@ -16,6 +18,7 @@ export const MUNIN_CAD_SOURCES=Object.freeze({
  step:"https://tormt.folk.ntnu.no/diverse/Njord/filer/MuninTing/NJ26_MUN_HULL_ASM_MASTER.step",
  drawing:"https://tormt.folk.ntnu.no/diverse/Njord/filer/MuninTing/NJ26_MUN_HULL_ASM_MASTER%20Drawing%20v1.pdf"
 });
+export const MUNIN_PREVIEW_URL=new URL("../../assets/models/munin-mobile-preview.glb",import.meta.url).href;
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
  <p class="crumbs">Engineering / CAD</p><h1>CAD workbench</h1>
@@ -44,14 +47,16 @@ export function cadToolHTML(){
   <span class="project-kicker">Eget CAD-prosjekt · Njord / Munin</span>
   <h2 id="cad-munin-heading">Munin – katamaran med thrusteroppsett</h2>
   <p>Originalmodell og tilhørende tegning ligger på NTNU og kopieres ikke til GitHub Pages.</p>
-  <p class="muted">For interaktiv 3D her: last ned STEP-filen og åpne den med lokal import. Fusion-arkivet (.f3z) kan inspiseres, men proprietære solids krever STEP for full geometrivisning.</p>
+  <p class="muted">Åpne en lett 3D-forhåndsvisning av den ekte modellen. Den lastes først når du trykker på knappen. Delene er gruppert fra originalens assembly-navn. Fargene er illustrative; originalene ligger under.</p>
+  <p>To skrog, fire T200-thrustere (to CW og to CCW), batteriboks og sensorer. Komponenttreet grupperer de 130 mesh-delene etter funksjon; enkelte strukturdeler har uavklart undergruppe.</p>
   <div class="cad-munin-actions">
+   <button class="btn primary" data-cad-munin-preview type="button">Vis Munin i 3D</button>
    <a class="btn primary" href="${MUNIN_CAD_SOURCES.step}" target="_blank" rel="noopener noreferrer">Hent Munin STEP (ca. 37 MB) ↗</a>
    <a class="btn" href="${MUNIN_CAD_SOURCES.f3z}" target="_blank" rel="noopener noreferrer">Fusion-assembly (.f3z) ↗</a>
    <a class="btn" href="${MUNIN_CAD_SOURCES.drawing}" target="_blank" rel="noopener noreferrer">Monteringstegning (PDF) ↗</a>
    <button class="btn" data-cad-munin-choose type="button">Åpne nedlastet modell</button>
   </div>
-  <p class="muted">På mobil anbefales PDF og F3Z som første kontroll. STEP-modellen er stor og kan kreve PC med mer ledig minne.</p>
+  <p class="muted">Forhåndsvisningen bruker meter. Lengde ca. 1,024 m, bredde 0,886 m og høyde 0,807 m. Dette er tessellert visningsgeometri; bruk original CAD for nøyaktige beregninger.</p>
  </section>
  <section class="cad-local-import" aria-labelledby="cad-import-heading">
   <header><div><h2 id="cad-import-heading">Open a model</h2>
@@ -86,6 +91,7 @@ export function mountCADTool(root){
  const dropZone=root.querySelector("#cad-drop-zone");
  const installer=root.querySelector("#cad-fusion-install");
  const muninChoose=root.querySelector("[data-cad-munin-choose]");
+ const muninPreview=root.querySelector("[data-cad-munin-preview]");
  const installerStatus=root.querySelector("[data-cad-fusion-install-status]");
  if(!picker||!stage)return ()=>{};
  let controller=null,cleanup=()=>{},request=0,disposed=false;
@@ -141,6 +147,33 @@ export function mountCADTool(root){
    controller?.abort();controller=null;
    cleanup();cleanup=()=>{};
    cancel.disabled=true;
+ }
+ async function loadMunin(){
+   const current=++request;stop();stage.replaceChildren();
+   controller=new AbortController();cancel.disabled=false;
+   status.textContent="Laster Munin-forhåndsvisning…";
+   stage.scrollIntoView({block:"start",behavior:"instant"});
+   const activeController=controller;
+   const timeout=setTimeout(()=>activeController.abort(),30000);
+   try{
+     const response=await fetch(MUNIN_PREVIEW_URL,{signal:controller.signal});
+     if(!response.ok)throw Error("HTTP "+response.status);
+     const buffer=await response.arrayBuffer();
+     if(current!==request||disposed)return;
+     if(buffer.byteLength>15_000_000)throw Error("Modellen overskrider størrelsesgrensen");
+     const model=await parseGLB(buffer,"Munin · Njord",{coordinateSystem:"z-up",
+       partMetadata:MUNIN_PARTS,
+       source:{url:MUNIN_CAD_SOURCES.step,notes:"Tessellert STEP. Illustrative farger og delnavn."}});
+     if(current!==request||disposed)return;
+     await presentModel(annotateMunin(model),current);
+     if(current===request&&!disposed)status.textContent="Munin lastet · "+
+       model.components.filter(c=>c.geometry).length+" deler · meter. Dra for å rotere, bruk Fit for å vise hele modellen.";
+   }catch(error){
+     if(current===request&&!disposed){
+       status.textContent="Kunne ikke åpne Munin: "+String(error?.message||error)+". Prøv igjen eller bruk originaltegningen og lokal import.";
+       showEmpty("Munin kunne ikke lastes. Originaltegning og STEP-lenke finnes over.");
+     }
+   }finally{clearTimeout(timeout);if(current===request&&!disposed){cancel.disabled=true;controller=null}}
  }
  const onCancel=()=>{request++;stop();showEmpty();status.textContent="Import cancelled"};
  cancel.addEventListener("click",onCancel);
@@ -233,6 +266,7 @@ export function mountCADTool(root){
  showEmpty();
  const onMuninChoose=()=>picker.click();
  muninChoose?.addEventListener("click",onMuninChoose);
+ muninPreview?.addEventListener("click",loadMunin);
  picker.addEventListener("change",onChange);
  dropZone?.addEventListener("dragover",onDrag);
  dropZone?.addEventListener("dragleave",onDrag);
@@ -248,5 +282,6 @@ export function mountCADTool(root){
    dropZone?.removeEventListener("drop",onDrop);
    installer?.removeEventListener("click",onInstall);
    muninChoose?.removeEventListener("click",onMuninChoose);
+   muninPreview?.removeEventListener("click",loadMunin);
  };
 }
