@@ -134,6 +134,45 @@ export function parseNTNUSemesterIndex(semesterId,raw,{titles=new Map(),origin=N
  return {id:sid,label:"Semester "+sid,courses};
 }
 
+// Public indexes are untrusted server responses. Bound bytes before JSON parsing
+// so a broken/misconfigured endpoint cannot exhaust memory on a phone.
+const MAX_INDEX_BYTES=4_000_000;
+async function readBoundedIndexBody(response){
+ const header=response.headers?.get?.("content-length");
+ if(header!==null&&header!==undefined&&Number.isFinite(Number(header))&&
+    Number(header)>MAX_INDEX_BYTES)
+   throw Error("NTNU index exceeds safety limit");
+ if(typeof response.body?.getReader==="function"){
+   const reader=response.body.getReader();
+   const decoder=new TextDecoder("utf-8",{fatal:true});
+   let bytes=0,text="";
+   try{
+     while(true){
+       const {done,value}=await reader.read();
+       if(done)break;
+       if(!(value instanceof Uint8Array))
+         throw Error("Invalid NTNU index byte stream");
+       bytes+=value.byteLength;
+       if(bytes>MAX_INDEX_BYTES)
+         throw Error("NTNU index exceeds safety limit");
+       text+=decoder.decode(value,{stream:true});
+     }
+     return text+decoder.decode();
+   }catch(error){
+     try{await reader.cancel()}catch{}
+     throw error;
+   }finally{
+     reader.releaseLock();
+   }
+ }
+ // Test doubles and older fetch implementations may not expose a stream.
+ const raw=await response.text();
+ if(raw.length>MAX_INDEX_BYTES||
+    new TextEncoder().encode(raw).byteLength>MAX_INDEX_BYTES)
+   throw Error("NTNU index exceeds safety limit");
+ return raw;
+}
+
 async function readIndex(url,{fetchImpl,origin}){
  const parsed=new URL(url,origin);
  if(parsed.origin!==origin||!/^\/semestre\/(?:index\.json|\d{1,2}\/index\.json)$/.test(parsed.pathname))
@@ -143,8 +182,7 @@ async function readIndex(url,{fetchImpl,origin}){
    redirect:"error",headers:{Accept:"application/json"}
  });
  if(!response.ok)throw Error("NTNU index HTTP "+response.status);
- const raw=await response.text();
- if(raw.length>4_000_000)throw Error("NTNU index exceeds safety limit");
+ const raw=await readBoundedIndexBody(response);
  try{return JSON.parse(raw)}catch{throw Error("Malformed NTNU JSON index")}
 }
 export async function loadNTNUCatalog({fetchImpl=fetch,origin=NTNU_ORIGIN,
