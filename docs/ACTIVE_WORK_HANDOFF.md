@@ -36,12 +36,13 @@ Continue finishing **all existing V2 capabilities**, incrementally. **One indepe
 - PR #115: persistent local-file opener in NTNU viewer header even if image/PDF/video preview silently fails. Chrome test selects local PNG; CI green.
 - PR #117: dispose/invalidate active course viewer on all SPA hash route changes, including native breadcrumbs and previous/next navigation; avoids leaked blob URLs, workers and keyboard callbacks. CI green.
 - PR #118: require literal `beskyttet:false` at both semester and course levels in legacy fallback; read-only audit excludes unknown statuses. Full Node/Chrome/mobile CI green.
+- PR #120: FolkNet owner-managed login UI removes public signup button and adds signed-in course admin link, with Node and full Chrome/mobile CI; Supabase Auth signup API must separately be restricted in the **correct** project. No backend provisioning.
 
 ## Active backlog (status is deliberately conservative)
 
 | ID | Priority | Area / acceptance criterion | Status as of 2026-10-24 | External blocker |
 | --- | --- | --- | --- | --- |
-| B01 | P0 | **One working admin**: Supabase `folk_site_admins` / `folk_course_labels` installed, seed verified owner UUID, RLS negative/positive tests, real cross-browser edit | UI + SQL **candidate**; PR #110 hardens label limits, REST timeouts, delete acknowledgment, and Settings admin entry. **Database still not installed** | Correct FolkNet Supabase project access and owner's verified Auth user needed |
+| B01 | P0 | **One working admin**: Supabase `folk_site_admins` / `folk_course_labels` installed, seed verified owner UUID, RLS negative/positive tests, real cross-browser edit | UI + SQL **candidate**; PRs #110 and #120 harden editor and make the Settings login owner-managed (no public sign-up UI). **Database still not installed** | Correct FolkNet Supabase project access and owner's verified Auth user needed |
 | B02 | P0 | NTNU catalog: approved new files automatically appear, no private disclosure, test with real nested files / custom pages / case variants and index guard | Scheduled crawler + safe ITGK fallback implemented; **PR #112** covers KISSsoft/CAD/media filenames, and **PR #118** enforces fail-closed public flags in legacy fallback and health audit (CI green). Custom pages without approved metadata and real new-file acceptance remain | Public listing or independently refreshed public metadata required |
 | B03 | P0 | Fully usable file viewers for real NTNU PDF/IPYNB/PY/Office/F3Z with deep folders, import fallback, retries, mobile | Many adapters + CI; **PRs #113–#115 and #117** support local downloaded copies, persistent header action and route-level cleanup (Python/DOCX/PNG and breadcrumb Chrome tests); **live CORS remains restricted** | NTNUs CORS or a **separate approved V2 same-origin** staging |
 | B04 | P0 | Identity: one account identity with Supabase login and optional explicit Google link. Verify token renewal, two accounts, no cross-user access | Client pieces only; live link unverified | Real OAuth config/consent, credentials, account |
@@ -86,7 +87,7 @@ No representation that this project provides certified stability, exact shell/so
 - Before each merge, inspect **latest head SHA** and **latest-head passing CI**, not earlier green runs.
 - After merge, verify Pages deployment and (where possible) public test route. Record separately if browser/service cannot be verified.
 
-## Next executable work after PR #118
+## Next executable work after PR #120
 
 - **B09:** Run GitHub Actions → `Munin mobile GLB candidate (manual)`. It downloads only the explicitly owner-approved public Munin STEP. Retrieve/inspect the GLB artifact, compare dimensions and geometry with source, and add a lazy-loading model card only after visual/mobile acceptance. Do not claim conversion happened until the workflow generated an artifact.
 - **B01:** FolkNet Supabase `glfuvfmppkjmarujjqwg` is **not visible** to the currently connected Supabase tool (only unrelated LeseRavnen appears). Do not modify that project's data. Once access is corrected, apply candidate RLS schema to FolkNet, seed one verified admin Auth UUID, then test real browser user/non-admin access.
@@ -114,6 +115,7 @@ No representation that this project provides certified stability, exact shell/so
 | 2026-10-25 | B03: show local downloaded-file opener in persistent header; silent native-image/PDF failures no longer hide fallback | [#115](https://github.com/TorMT/FolkNettside-v2/pull/115), source `8b25519f`, merge `52530083113e9bad1bf18b7992d6c77cd005a615` | Latest-head full CI **success**, PNG local-file Chrome regression + existing mobile 320/390/768; no V1 changes |
 | 2026-10-25 | B03: dispose course viewer on native breadcrumb/next file navigation; invalidate async adapters and clean up browser resources | [#117](https://github.com/TorMT/FolkNettside-v2/pull/117), source `66c7103d`, merge `e677c880bee3f75349cc6ea0327f4050cbb16816` | Latest-head full CI **success**; native breadcrumb cleanup Chrome regression and mobile matrix. No NTNU/V1 edits |
 | 2026-10-25 | B02: fail-closed legacy NTNU course + semester public-status validation and consistent read-only health metrics | [#118](https://github.com/TorMT/FolkNettside-v2/pull/118), source `8e9e9718` + fixtures `10d3a45c`, merge `555e981d1c77521faa9186a5ca45a1d21179f379` | First CI identified stale test fixtures; all fixed with explicit approved flags. Latest-head full Node/Chrome/mobile CI **success**; NTNU untouched |
+| 2026-10-25 | B01: owner-managed login interface and direct course admin link; no public registration in UI | [#120](https://github.com/TorMT/FolkNettside-v2/pull/120), merge `f156da35e168cc821dedf01519cb8c1ac9ebf921` | Full CI **success** on final head; backend **not installed**: Supabase connector exposes only LeseRavnen, direct FolkNet project access permission denied; no DB writes |
 
 | 2026-10-25 | B18: keyboard and screen-reader semantics for shell navigation; close mobile More on Escape/outside focus/click/route | [#116](https://github.com/TorMT/FolkNettside-v2/pull/116), source `a66f6d7`, merge `1c0dceae9bc922bebf73eab9f6487dd3ab3fe668` | Full 49-step latest-head PR CI **success** including Chrome at 320, 390, 768. Physical-device/screen-reader audit remains |
 
