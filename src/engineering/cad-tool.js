@@ -48,6 +48,7 @@ export function cadToolHTML(){
   <h2 id="cad-munin-heading">Munin – katamaran med thrusteroppsett</h2>
   <p>Originalmodell og tilhørende tegning ligger på NTNU og kopieres ikke til GitHub Pages.</p>
   <p class="muted">Åpne en lett 3D-forhåndsvisning av den ekte modellen. Den lastes først når du trykker på knappen. Delene er gruppert fra originalens assembly-navn. Fargene er illustrative; originalene ligger under.</p>
+  <p>To skrog, fire T200-thrustere (to CW og to CCW), batteriboks og sensorer. Komponenttreet grupperer de 130 mesh-delene etter funksjon; enkelte strukturdeler har uavklart undergruppe.</p>
   <div class="cad-munin-actions">
    <button class="btn primary" data-cad-munin-preview type="button">Vis Munin i 3D</button>
    <a class="btn primary" href="${MUNIN_CAD_SOURCES.step}" target="_blank" rel="noopener noreferrer">Hent Munin STEP (ca. 37 MB) ↗</a>

@@ -68,6 +68,20 @@ try{
  // Real Munin asset: lazy fetch, axis convention, component count and viewport.
  if(performance.getEntriesByType("resource").some(e=>e.name.endsWith("munin-mobile-preview.glb")))
    throw Error("Munin downloaded before opt-in");
+ const nativeFetch=window.fetch;
+ window.fetch=(url,options)=>String(url).endsWith("munin-mobile-preview.glb")?
+   Promise.resolve(new Response("unavailable",{status:503})):nativeFetch(url,options);
+ host.querySelector("[data-cad-munin-preview]").click();
+ for(let i=0;i<100&&!host.querySelector("#cad-import-status").textContent.includes("HTTP 503");i++)
+   await new Promise(resolve=>setTimeout(resolve,20));
+ if(!host.querySelector("#cad-import-status").textContent.includes("HTTP 503"))throw Error("Munin fetch failure not reported");
+ window.fetch=(url,options)=>String(url).endsWith("munin-mobile-preview.glb")?
+   new Promise((resolve,reject)=>options.signal.addEventListener("abort",()=>reject(new DOMException("Cancelled","AbortError")))):nativeFetch(url,options);
+ host.querySelector("[data-cad-munin-preview]").click();
+ host.querySelector("#cad-import-cancel").click();
+ await new Promise(resolve=>setTimeout(resolve,20));
+ if(host.querySelector("#cad-import-status").textContent!=="Import cancelled")throw Error("Munin cancellation overwritten");
+ window.fetch=nativeFetch;
  host.querySelector("[data-cad-munin-preview]").click();
  for(let i=0;i<300&&!host.querySelector("#cad-import-status").textContent.includes("Munin lastet");i++)
    await new Promise(resolve=>setTimeout(resolve,100));

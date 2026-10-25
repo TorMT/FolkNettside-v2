@@ -268,59 +268,63 @@ export const MUNIN_PARTS=[
   },
   {
     "node": "Munin-component-0020",
-    "label": "Platesett · del 4",
-    "viewerGroup": "Struktur / Platesett",
+    "label": "Strukturdel 0020 · undergruppe uavklart",
+    "viewerGroup": "Struktur / Undergruppe uavklart",
     "semantic": {
       "role": "component",
       "subsystem": "structure"
     },
     "sourcePath": [
       "NJ26_MUN_HULL_ASM_MASTER v51",
-      "NJ26_MUN_STR_ASM_PLATESET v44"
+      "Struktur: overlappende platesett/sensorramme eller sensorfeste"
     ],
-    "boundsMatchErrorMm": 0.0772
+    "boundsMatchErrorMm": 0.0772,
+    "sourcePathStatus": "ambiguous-overlapping-assembly-bounds"
   },
   {
     "node": "Munin-component-0021",
-    "label": "Platesett · del 5",
-    "viewerGroup": "Struktur / Platesett",
+    "label": "Strukturdel 0021 · undergruppe uavklart",
+    "viewerGroup": "Struktur / Undergruppe uavklart",
     "semantic": {
       "role": "component",
       "subsystem": "structure"
     },
     "sourcePath": [
       "NJ26_MUN_HULL_ASM_MASTER v51",
-      "NJ26_MUN_STR_ASM_PLATESET v44"
+      "Struktur: overlappende platesett/sensorramme eller sensorfeste"
     ],
-    "boundsMatchErrorMm": 0.0772
+    "boundsMatchErrorMm": 0.0772,
+    "sourcePathStatus": "ambiguous-overlapping-assembly-bounds"
   },
   {
     "node": "Munin-component-0022",
-    "label": "Platesett · del 6",
-    "viewerGroup": "Struktur / Platesett",
+    "label": "Strukturdel 0022 · undergruppe uavklart",
+    "viewerGroup": "Struktur / Undergruppe uavklart",
     "semantic": {
       "role": "component",
       "subsystem": "structure"
     },
     "sourcePath": [
       "NJ26_MUN_HULL_ASM_MASTER v51",
-      "NJ26_MUN_STR_ASM_PLATESET v44"
+      "Struktur: overlappende platesett/sensorramme eller sensorfeste"
     ],
-    "boundsMatchErrorMm": 0.0772
+    "boundsMatchErrorMm": 0.0772,
+    "sourcePathStatus": "ambiguous-overlapping-assembly-bounds"
   },
   {
     "node": "Munin-component-0023",
-    "label": "Platesett · del 7",
-    "viewerGroup": "Struktur / Platesett",
+    "label": "Strukturdel 0023 · undergruppe uavklart",
+    "viewerGroup": "Struktur / Undergruppe uavklart",
     "semantic": {
       "role": "component",
       "subsystem": "structure"
     },
     "sourcePath": [
       "NJ26_MUN_HULL_ASM_MASTER v51",
-      "NJ26_MUN_STR_ASM_PLATESET v44"
+      "Struktur: overlappende platesett/sensorramme eller sensorfeste"
     ],
-    "boundsMatchErrorMm": 0.0772
+    "boundsMatchErrorMm": 0.0772,
+    "sourcePathStatus": "ambiguous-overlapping-assembly-bounds"
   },
   {
     "node": "Munin-component-0024",
@@ -478,78 +482,78 @@ export const MUNIN_PARTS=[
   },
   {
     "node": "Munin-component-0035",
-    "label": "Sensorramme · del 1",
-    "viewerGroup": "Struktur / Sensorramme",
+    "label": "Strukturdel 0035 · undergruppe uavklart",
+    "viewerGroup": "Struktur / Undergruppe uavklart",
     "semantic": {
       "role": "component",
       "subsystem": "structure"
     },
     "sourcePath": [
       "NJ26_MUN_HULL_ASM_MASTER v51",
-      "NJ26_MUN_SNS_FRAME_SENSORPACK_v27 v101",
-      "320-102985-08-BaseplateOSX_Universal v1"
+      "Struktur: overlappende platesett/sensorramme eller sensorfeste"
     ],
-    "boundsMatchErrorMm": 0.0
+    "boundsMatchErrorMm": 0.0,
+    "sourcePathStatus": "ambiguous-overlapping-assembly-bounds"
   },
   {
     "node": "Munin-component-0036",
-    "label": "Sensorramme · del 2",
-    "viewerGroup": "Struktur / Sensorramme",
+    "label": "Strukturdel 0036 · undergruppe uavklart",
+    "viewerGroup": "Struktur / Undergruppe uavklart",
     "semantic": {
       "role": "component",
       "subsystem": "structure"
     },
     "sourcePath": [
       "NJ26_MUN_HULL_ASM_MASTER v51",
-      "NJ26_MUN_SNS_FRAME_SENSORPACK_v27 v101",
-      "COMPOUND"
+      "Struktur: overlappende platesett/sensorramme eller sensorfeste"
     ],
-    "boundsMatchErrorMm": 0.0772
+    "boundsMatchErrorMm": 0.0772,
+    "sourcePathStatus": "ambiguous-overlapping-assembly-bounds"
   },
   {
     "node": "Munin-component-0037",
-    "label": "Sensorramme · del 3",
-    "viewerGroup": "Struktur / Sensorramme",
+    "label": "Strukturdel 0037 · undergruppe uavklart",
+    "viewerGroup": "Struktur / Undergruppe uavklart",
     "semantic": {
       "role": "component",
       "subsystem": "structure"
     },
     "sourcePath": [
       "NJ26_MUN_HULL_ASM_MASTER v51",
-      "NJ26_MUN_SNS_FRAME_SENSORPACK_v27 v101",
-      "COMPOUND"
+      "Struktur: overlappende platesett/sensorramme eller sensorfeste"
     ],
-    "boundsMatchErrorMm": 0.0772
+    "boundsMatchErrorMm": 0.0772,
+    "sourcePathStatus": "ambiguous-overlapping-assembly-bounds"
   },
   {
     "node": "Munin-component-0038",
-    "label": "Sensorramme · del 4",
-    "viewerGroup": "Struktur / Sensorramme",
+    "label": "Strukturdel 0038 · undergruppe uavklart",
+    "viewerGroup": "Struktur / Undergruppe uavklart",
     "semantic": {
       "role": "component",
       "subsystem": "structure"
     },
     "sourcePath": [
       "NJ26_MUN_HULL_ASM_MASTER v51",
-      "NJ26_MUN_SNS_FRAME_SENSORPACK_v27 v101",
-      "COMPOUND"
+      "Struktur: overlappende platesett/sensorramme eller sensorfeste"
     ],
-    "boundsMatchErrorMm": 0.0772
+    "boundsMatchErrorMm": 0.0772,
+    "sourcePathStatus": "ambiguous-overlapping-assembly-bounds"
   },
   {
     "node": "Munin-component-0039",
-    "label": "Sensorramme · del 5",
-    "viewerGroup": "Struktur / Sensorramme",
+    "label": "Strukturdel 0039 · undergruppe uavklart",
+    "viewerGroup": "Struktur / Undergruppe uavklart",
     "semantic": {
       "role": "component",
       "subsystem": "structure"
     },
     "sourcePath": [
       "NJ26_MUN_HULL_ASM_MASTER v51",
-      "NJ26_MUN_SNS_FRAME_SENSORPACK_v27 v101",
-      "COMPOUND"
+      "Struktur: overlappende platesett/sensorramme eller sensorfeste"
     ],
-    "boundsMatchErrorMm": 0.0772
+    "boundsMatchErrorMm": 0.0772,
+    "sourcePathStatus": "ambiguous-overlapping-assembly-bounds"
   },
   {
     "node": "Munin-component-0040",
@@ -1551,17 +1555,18 @@ export const MUNIN_PARTS=[
   },
   {
     "node": "Munin-component-0110",
-    "label": "Sensorfester · del 1",
-    "viewerGroup": "Struktur / Sensorfester",
+    "label": "Strukturdel 0110 · undergruppe uavklart",
+    "viewerGroup": "Struktur / Undergruppe uavklart",
     "semantic": {
       "role": "component",
       "subsystem": "structure"
     },
     "sourcePath": [
       "NJ26_MUN_HULL_ASM_MASTER v51",
-      "320-102985-08-BaseplateOSX_Universal v1"
+      "Struktur: overlappende platesett/sensorramme eller sensorfeste"
     ],
-    "boundsMatchErrorMm": 0.0
+    "boundsMatchErrorMm": 0.0,
+    "sourcePathStatus": "ambiguous-overlapping-assembly-bounds"
   },
   {
     "node": "Munin-component-0111",

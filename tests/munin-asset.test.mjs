@@ -33,5 +33,6 @@ test('Munin source-backed groups classify all 130 meshes without invented thrust
  assert.equal(model.components.filter(c=>c.metadata.semantic.role==='hull').length,2);
  assert.equal(model.components.filter(c=>c.metadata.semantic.role==='thruster').length,56);
  assert.equal(identifiedThrusterIntakes(model).length,0); // No guessed directions, power or disk diameters.
+ assert.equal(MUNIN_PARTS.filter(p=>p.sourcePathStatus).length,10);
  for(const p of MUNIN_PARTS){assert.ok(p.sourcePath.length>1);assert.ok(p.boundsMatchErrorMm<3.3)}
 });

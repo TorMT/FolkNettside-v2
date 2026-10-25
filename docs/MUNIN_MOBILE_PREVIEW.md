@@ -55,3 +55,5 @@ CW/CCW-assemblyene), Elektrisk/batteriboks og Sensorer (OS1, GoPro, ZED2i, GPS).
 to CW og to CCW. Fester ligger under Struktur, ikke som thrustere.
 Ingen effekt, skyvekraft, propellakse, strømningsretning eller materialtetthet
 er gjettet. Disse må angis fra spesifikasjon/montering før fysisk analyse.
+
+Ti strukturdeler har like/overlappende bokser på tvers av platesett, sensorramme eller sensorfeste. Disse er bevisst gruppert som «Struktur / Undergruppe uavklart», uten påstand om eksakt underassembly. Skrog- og thrustergruppene har ingen slik tvetydighet.
