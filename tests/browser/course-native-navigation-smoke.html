@@ -33,6 +33,24 @@ try{
  file.click();
  await wait(()=>doc()?.querySelector("#viewer-back"),"Clicking file did not open viewer");
  check(win().location.hash.startsWith("#/viewer/5/TMR4182/"),"Viewer URL incorrect");
+ const firstHolder=doc().querySelector(".viewer")?.parentElement;
+ await wait(()=>doc()?.querySelector("#viewer-info")?.textContent!=="Loading…",
+   "Viewer adapter did not settle");
+ let nativeCleanups=0;
+ const firstCleanup=firstHolder.__viewerCleanup;
+ firstHolder.__viewerCleanup=()=>{nativeCleanups++;firstCleanup?.()};
+ const breadcrumb=doc().querySelector(".viewer-breadcrumb a[href='#/courses/5']");
+ check(breadcrumb,"Viewer semester breadcrumb missing");
+ breadcrumb.click();
+ await wait(()=>win().location.hash==="#/courses/5"&&doc()?.querySelector(".course-card"),
+   "Breadcrumb did not return to semester");
+ check(nativeCleanups===1,"Native breadcrumb did not dispose old viewer exactly once");
+ check(firstHolder.__viewerCleanup===null,"Old viewer retained cleanup after navigation");
+ // Ensure Back navigation still returns to the course as before.
+ win().location.hash="#/courses/5/TMR4182";
+ await wait(()=>doc()?.querySelector(".resource-viewer-link"),"Course did not reopen");
+ doc().querySelector(".resource-viewer-link").click();
+ await wait(()=>doc()?.querySelector("#viewer-back"),"Viewer did not reopen after breadcrumb");
  doc().querySelector("#viewer-back").click();
  await wait(()=>doc()?.querySelector(".course-header h1")?.textContent?.includes("Marin"),
    "Back did not return to course");
