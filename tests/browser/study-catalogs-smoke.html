@@ -6,6 +6,16 @@ import {studyCatalogPageHTML,mountStudyCatalog} from "../../src/diverse/study-ca
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 const originalFetch=globalThis.fetch;
 globalThis.fetch=async url=>{
+ if(String(url).includes("kok-link-audit")){
+   return new Response(JSON.stringify({
+     schemaVersion:1,checkedOn:"2026-10-26",
+     summary:{responded:0,http_410:1,inconclusive:1},
+     entries:[
+       {name:"Example B",url:"https://example.org/b",observation:"http_410"},
+       {name:"Example A",url:"https://example.org/a",observation:"inconclusive"}
+     ]
+   }),{status:200,headers:{"Content-Type":"application/json"}});
+ }
  const isKok=String(url).includes("kok-sites");
  return new Response(JSON.stringify({
    schemaVersion:1,verified:true,source:"deterministic browser fixture",items:isKok?[
@@ -19,6 +29,14 @@ try{
  root.innerHTML=studyCatalogPageHTML("kok");
  const first=await mountStudyCatalog(root,{kind:"kok"});
  assert(root.querySelectorAll(".study-catalog-card").length===2,"Expected two student sites");
+ assert(root.querySelectorAll(".study-catalog-link-caveat").length===2,
+   "Historic link observations missing from source cards");
+ assert(root.querySelector("#catalog-provenance").textContent.includes("1 ga HTTP 410"),
+   "Dated link audit summary missing");
+ assert(root.querySelectorAll("a[href^='https://example.org/']").length===2,
+   "Historic external URLs must not be removed based on health snapshot");
+ assert(root.querySelector(".study-catalog-results").textContent.includes("2026-10-26"),
+   "Historic link caveat missing its observation date");
  const study=root.querySelector("#catalog-study");study.value="Marine";study.dispatchEvent(new Event("change",{bubbles:true}));
  assert(root.querySelectorAll(".study-catalog-card").length===1,"Study filter failed");
  assert(root.querySelector(".study-catalog-card h3")?.textContent==="Example B","Wrong result");
