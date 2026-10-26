@@ -24,6 +24,7 @@ import {sacCurvePanelHTML} from "./engineering/sac-panel.js";
 import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js";
 import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js";
 import {renderProjectCard,renderProjectDetail} from "./components/project-card.js";
+import {bindProjectImageFallback} from "./components/project-image-fallback.js";
 import {buildSearchIndex} from "./search/search-index.js";
 import {createSearchController} from "./components/search-dialog.js";
 import {toolsIndexHTML} from "./tools/tools-index.js";
@@ -87,6 +88,8 @@ initSettings();
 initGoogleSession();
 
 const app=document.querySelector("#app");
+// One delegated handler survives Portfolio → Detail route replacements.
+bindProjectImageFallback(app);
 mountAnalyticsNotice();
 const content=await loadContent();
 const {site,semesters,navLabels,projects,courseSource}=content;
