@@ -1426,3 +1426,11 @@ a.project-row:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
   .course-source-warning{margin:10px 16px 0;padding:10px 12px;font-size:13px}
   .semester-tab-issue{width:15px;height:15px;margin-inline-start:4px;font-size:11px}
 }
+
+/* Standalone pitch drive model is interactive and kept within the project layout. */
+.project-model{margin-top:18px;padding:clamp(14px,2vw,22px);background:var(--surface);border:1px solid var(--line);border-radius:14px;min-width:0}
+.project-model h2{font-size:21px;margin:0 0 8px}
+.project-model>p{max-width:75ch;color:var(--ink-2);line-height:1.55}
+.project-model-frame{display:block;width:100%;height:clamp(400px,65vh,700px);border:1px solid var(--line);border-radius:10px;background:var(--surface-sunk)}
+.project-model-note{font-size:13px;margin-bottom:0}
+@media(max-width:760px){.project-model-frame{height:clamp(340px,58dvh,520px)}.project-model{margin-top:12px;padding:12px}}

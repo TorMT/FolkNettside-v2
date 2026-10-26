@@ -1,8 +1,8 @@
-import {loadAdapter,viewerKind} from "./registry.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
-import {escapeHTML} from "./utils.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
-import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
-import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
-import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
+import {loadAdapter,viewerKind} from "./registry.js?v=091329087a26af6a3b8817157dd7e4a7e90acebc";
+import {escapeHTML} from "./utils.js?v=091329087a26af6a3b8817157dd7e4a7e90acebc";
+import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=091329087a26af6a3b8817157dd7e4a7e90acebc";
+import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=091329087a26af6a3b8817157dd7e4a7e90acebc";
+import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js?v=091329087a26af6a3b8817157dd7e4a7e90acebc";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the

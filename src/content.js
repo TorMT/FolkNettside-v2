@@ -1,9 +1,10 @@
-import {MUNIN_MODEL} from "./engineering/munin-model.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
-import {onNTNUHost} from "./courses/ntnu-catalog.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
-import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
-import {loadPublicCourseLabels,mergeCloudCourseLabels} from "./platform/folk-course-admin.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
-import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
-import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
+import {MUNIN_MODEL} from "./engineering/munin-model.js?v=091329087a26af6a3b8817157dd7e4a7e90acebc";
+import {onNTNUHost} from "./courses/ntnu-catalog.js?v=091329087a26af6a3b8817157dd7e4a7e90acebc";
+import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=091329087a26af6a3b8817157dd7e4a7e90acebc";
+import {loadPublicCourseLabels,mergeCloudCourseLabels} from "./platform/folk-course-admin.js?v=091329087a26af6a3b8817157dd7e4a7e90acebc";
+import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=091329087a26af6a3b8817157dd7e4a7e90acebc";
+import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=091329087a26af6a3b8817157dd7e4a7e90acebc";
+import {addPitchDriveCourseModel} from "./courses/pitch-drive-course-model.js?v=091329087a26af6a3b8817157dd7e4a7e90acebc";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
@@ -132,6 +133,9 @@ export async function loadContent() {
       ...s,courses:s.courses.filter(c=>!(Number(s.id)===5&&c.code==="marin-maskineri"))
     }))};
   }
+
+  // Curated, same-origin model alongside the externally indexed course files.
+  manifest=addPitchDriveCourseModel(manifest);
 
   const manifestBySemester = new Map(manifest.semesters.map(s => [Number(s.id), s]));
   const semesters = site.semesterOrder.map(id => {
