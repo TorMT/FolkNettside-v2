@@ -41,6 +41,16 @@ class PublicResourceTests(unittest.TestCase):
                 self.assertEqual(issues[0][0],"<external URL redacted>")
                 self.assertNotIn("PRIVATE_EXAMPLE",repr(issues))
 
+    def test_mismatched_external_url_fields_are_validated_independently(self):
+        manifest={"semesters":[{"courses":[{"resources":[{
+            "source":"remote","path":"https://example.org/video?id=123",
+            "url":"https://example.org/video?api_key=PRIVATE_EXAMPLE"
+        }]}]}]}
+        issues=guard.validate_manifest(manifest)
+        self.assertEqual(len(issues),1)
+        self.assertEqual(issues[0][0],"<external URL redacted>")
+        self.assertNotIn("PRIVATE_EXAMPLE",repr(issues))
+
     def test_noncredentialed_external_links_and_local_paths_remain_valid(self):
         for url in [
             "https://example.org/watch?v=123&start=45#chapter",

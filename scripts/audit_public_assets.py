@@ -31,7 +31,7 @@ def external_url_violations(value):
     """
     if not isinstance(value,str) or not value or value!=value.strip() or len(value)>8192:
         return ["invalid external URL"]
-    if any(ord(char)<32 or ord(char)==127 or char=="\\\\" for char in value):
+    if any(ord(char)<32 or ord(char)==127 or char==chr(92) for char in value):
         return ["invalid external URL"]
     try:
         url=urlsplit(value)
@@ -78,12 +78,19 @@ def validate_manifest(manifest):
             for resource in course.get("resources",[]):
                 path=str(resource.get("path") or resource.get("url") or "")
                 remote=resource.get("source")=="remote" or bool(resource.get("url"))
-                violations=(external_url_violations(path) if remote
-                            else resource_violations(path))
-                for problem in violations:
-                    # A rejected URL can carry a real token: never expose it in CI.
-                    display="<external URL redacted>" if remote or path.startswith(("http:","https:")) else path
-                    problems.append((display,problem))
+                candidates=[path]
+                # Both fields can reach the frontend; validate either one even
+                # if a malformed/imported manifest supplies inconsistent URLs.
+                if remote and resource.get("url") is not None and resource.get("url")!=path:
+                    candidates.append(resource["url"])
+                for candidate in candidates:
+                    violations=(external_url_violations(candidate) if remote
+                                else resource_violations(candidate))
+                    for problem in violations:
+                        # Never write credential-bearing external URLs to CI logs.
+                        display=("<external URL redacted>" if remote or
+                                 path.startswith(("http:","https:")) else path)
+                        problems.append((display,problem))
     return problems
 
 def validate_sources(paths):
