@@ -1,5 +1,5 @@
 /** Local-only Drive destination; folder IDs are not secret but account-scoped. */
-import {validMedisinDriveFolder} from "./medisin-encrypted-drive.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {validMedisinDriveFolder} from "./medisin-encrypted-drive.js?v=ae4843bfa5383ce457bee87b94d92b4b8c307281";
 const prefix="folk-medisin-v2:drive-folder:";
 export function medisinDriveFolder(sub,storage=globalThis.localStorage){
   if(typeof sub!=="string"||!sub.trim())return null;

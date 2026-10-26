@@ -1,8 +1,8 @@
-import {escapeHTML,extension,fetchBoundedBuffer,previewContentURL} from "../utils.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
-import {OFFICE_LIMITS,validateOfficeArchive,limitedOfficeXML,assertOfficeWorksheetBounds} from "../office-safety.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
-import {getJSZip} from "../../vendor/jszip.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
-import {spreadsheetCellHTML} from "../xlsx-formulas.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
-import {createDomFinder} from "../dom-search.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {escapeHTML,extension,fetchBoundedBuffer,previewContentURL} from "../utils.js?v=ae4843bfa5383ce457bee87b94d92b4b8c307281";
+import {OFFICE_LIMITS,validateOfficeArchive,limitedOfficeXML,assertOfficeWorksheetBounds} from "../office-safety.js?v=ae4843bfa5383ce457bee87b94d92b4b8c307281";
+import {getJSZip} from "../../vendor/jszip.js?v=ae4843bfa5383ce457bee87b94d92b4b8c307281";
+import {spreadsheetCellHTML} from "../xlsx-formulas.js?v=ae4843bfa5383ce457bee87b94d92b4b8c307281";
+import {createDomFinder} from "../dom-search.js?v=ae4843bfa5383ce457bee87b94d92b4b8c307281";
 
 function parseXML(text){
   const doc=new DOMParser().parseFromString(text,"application/xml");
