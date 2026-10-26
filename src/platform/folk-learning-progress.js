@@ -117,19 +117,35 @@ export function createFolkLearningProgress({
    u.searchParams.set("resource_key","eq."+key);
    return u.toString();
  };
- async function call(url,{method="GET",body,prefer}={}){
+ async function call(url,{method="GET",body,prefer,ownerId}={}){
+   const assertOwner=()=>{
+     if(identity()!==ownerId)
+       throw Error("FolkNet account changed while loading progress. Reload before retrying.");
+   };
+   // The request must never carry a token for a different active account.
+   assertOwner();
    const token=await tokenProvider();
-   const response=await fetchImpl(url,{
-     method,cache:"no-store",
-     headers:{
-       apikey:normalized.publishableKey,
-       Authorization:"Bearer "+token,
-       Accept:"application/json",
-       ...(body?{"Content-Type":"application/json"}:{}),
-       ...(prefer?{Prefer:prefer}:{})
-     },
-     ...(body?{body:JSON.stringify(body)}:{})
-   });
+   assertOwner();
+   let response;
+   try{
+     response=await fetchImpl(url,{
+       method,cache:"no-store",redirect:"error",
+       signal:globalThis.AbortSignal?.timeout?.(10000),
+       headers:{
+         apikey:normalized.publishableKey,
+         Authorization:"Bearer "+token,
+         Accept:"application/json",
+         ...(body?{"Content-Type":"application/json"}:{}),
+         ...(prefer?{Prefer:prefer}:{})
+       },
+       ...(body?{body:JSON.stringify(body)}:{})
+     });
+   }catch(error){
+     if(error?.name==="TimeoutError"||error?.name==="AbortError")
+       throw Error("Progress request timed out. Reload before retrying.");
+     throw error;
+   }
+   assertOwner();
    if(!response.ok){
      const error=new Error(response.status===409?
        "Progress changed or already exists on another device. Reload before retrying.":
@@ -141,6 +157,7 @@ export function createFolkLearningProgress({
    }
    if(response.status===204)return [];
    const rows=await response.json();
+   assertOwner();
    if(!Array.isArray(rows))throw Error("Unexpected progress response");
    return rows;
  }
@@ -148,7 +165,7 @@ export function createFolkLearningProgress({
    async read(kind,resource){
      const userId=identity();
      const key=await learningResourceKey(kind,resource,{cryptoImpl});
-     const rows=await call(endpoint(userId,kind,key)+"&select=progress,revision,updated_at&limit=1");
+     const rows=await call(endpoint(userId,kind,key)+"&select=progress,revision,updated_at&limit=1",{ownerId:userId});
      if(rows.length>1)throw Error("Unexpected number of progress records");
      if(!rows.length)return null;
      if(!Number.isSafeInteger(rows[0].revision)||rows[0].revision<1)
@@ -167,12 +184,12 @@ export function createFolkLearningProgress({
      let rows;
      if(expectedRevision===null){
        // PK constraint makes duplicate first writes fail rather than overwrite.
-       rows=await call(base,{method:"POST",prefer:"return=representation",
+       rows=await call(base,{method:"POST",ownerId:userId,prefer:"return=representation",
          body:{user_id:userId,kind,resource_key:key,
            revision:1,progress:safe}});
      }else{
        rows=await call(endpoint(userId,kind,key)+"&revision=eq."+expectedRevision,{
-         method:"PATCH",prefer:"return=representation",
+         method:"PATCH",ownerId:userId,prefer:"return=representation",
          body:{revision:expectedRevision+1,progress:safe}});
      }
      if(rows.length!==1||rows[0]?.resource_key!==key||
