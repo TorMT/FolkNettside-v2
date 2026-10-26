@@ -150,3 +150,54 @@ test("same approved NTNU file has one hashed progress key for URL, relative and 
    await assert.rejects(learningResourceKey("quiz",item,{cryptoImpl:webcrypto}),/NTNU|Unsafe|stable/);
  }
 });
+
+
+test("Progress REST requests are bounded and never follow cross-origin redirects",async()=>{
+ let options;
+ const api=createFolkLearningProgress({...inputs,fetchImpl:async(_url,opts)=>{
+   options=opts;
+   return response([]);
+ }});
+ assert.equal(await api.read("quiz",resource),null);
+ assert.equal(options.redirect,"error");
+ assert.equal(typeof options.signal?.aborted,"boolean");
+});
+test("Progress timeout does not imply a successful save or automatic retry",async()=>{
+ let attempts=0;
+ const api=createFolkLearningProgress({...inputs,fetchImpl:async()=>{
+   attempts++;
+   const err=new Error("network timeout");err.name="TimeoutError";throw err;
+ }});
+ await assert.rejects(api.read("quiz",resource),/timed out.*Reload/);
+ assert.equal(attempts,1);
+});
+test("Session switch while loading progress rejects stale personal data",async()=>{
+ let activeUser=user,completeFetch;
+ const api=createFolkLearningProgress({...inputs,
+   snapshotProvider:()=>({status:"signed-in",user:{id:activeUser}}),
+   fetchImpl:async()=>new Promise(resolve=>{
+     completeFetch=()=>resolve(response([{revision:1,progress:data,updated_at:data.updatedAt}]));
+   })
+ });
+ const pending=api.read("quiz",resource);
+ for(let i=0;i<100&&!completeFetch;i++)
+   await new Promise(resolve=>setTimeout(resolve,2));
+ assert.equal(typeof completeFetch,"function");
+ activeUser="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+ completeFetch();
+ await assert.rejects(pending,/account changed/);
+});
+test("Sign-out during token refresh rejects progress before any network request",async()=>{
+ let current={status:"signed-in",user:{id:user}};
+ let requests=0;
+ const api=createFolkLearningProgress({...inputs,
+   snapshotProvider:()=>current,
+   tokenProvider:async()=>{
+     current={status:"signed-out",user:null};
+     return "previous-user-access-token";
+   },
+   fetchImpl:async()=>{requests++;return response([])}
+ });
+ await assert.rejects(api.read("quiz",resource),/Sign in|account changed/);
+ assert.equal(requests,0);
+});
