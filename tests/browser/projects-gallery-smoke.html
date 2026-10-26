@@ -27,11 +27,33 @@ try{
    "Project images must come from verified NTNU portfolio source");
  const first=doc().querySelector('.project-row[data-project="equipment-mount-fixture"]');
  check(first,"Dive computer project not found");
+ const cardImg=first.querySelector("img[data-project-image='card']");
+ // Remote image may already have failed before the harness checks it.
+ if(cardImg)cardImg.dispatchEvent(new Event("error"));
+ check(!first.querySelector("img[data-project-image='card']"),
+   "Broken card image should be removed, not left as a browser broken-image icon");
+ const cardFallback=first.querySelector("[data-project-image-fallback]");
+ check(cardFallback&&!cardFallback.hidden&&cardFallback.textContent.includes("utilgjengelig"),
+   "Card image failure should disclose an accessible image fallback");
+ check(first.matches('a[href="#/projects/equipment-mount-fixture"]'),
+   "Card link must still work even without its image");
  first.click();
  await wait(()=>doc()?.querySelector(".project-detail .project-gallery img"),
    "Clicking Project card did not show an image gallery");
  check(win().location.hash==="#/projects/equipment-mount-fixture",
    "Project route did not navigate");
+ const gallery=doc().querySelector(".project-detail .project-gallery-item");
+ const galleryImage=gallery?.querySelector("img[data-project-image='gallery']");
+ // Do not depend on NTNU network timing: either reproduce or inspect an
+ // already-fired image failure.
+ if(galleryImage)galleryImage.dispatchEvent(new Event("error"));
+ check(!gallery.querySelector('a[href$="dive-computer-mount.png"]'),
+   "Unreachable original screenshot must not remain a dead gallery link");
+ const galleryFallback=gallery.querySelector("[data-project-image-fallback]");
+ check(galleryFallback&&!galleryFallback.hidden&&galleryFallback.textContent.includes("kunne ikke lastes"),
+   "Failed gallery image should have a visible descriptive fallback");
+ check(gallery.querySelector("figcaption")?.textContent.includes("Dokumentert"),
+   "Original source caption must remain after media failure");
  check(doc().querySelector('.project-detail a[href$="dive-computer-mount.pdf"]'),
    "Existing project PDF unavailable");
  check(doc().querySelector('.project-detail a[href^="https://tormt.folk.ntnu.no/diverse/portfolio/"]'),
