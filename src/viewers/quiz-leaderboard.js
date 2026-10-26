@@ -1,5 +1,5 @@
 /** Optional PHP leaderboard, never required for local quiz progress. */
-import {escapeHTML} from "./utils.js?v=cc40b2b6f38f4b1e795cf2a77b6f7279339e38e0";
+import {escapeHTML} from "./utils.js?v=684ee9d5405f1e764659228f07aa3330df9ccb27";
 
 const NTNU_ORIGIN="https://tormt.folk.ntnu.no";
 

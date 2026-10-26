@@ -1,9 +1,12 @@
+import {legacyReadEndpoint} from "./legacy-read-client.js?v=684ee9d5405f1e764659228f07aa3330df9ccb27";
 /** Explicit V2-only Brewing endpoint mapping, never fall back to V1 /includes/. */
 const ROOTS={
   brewing:"./includes/brewing/api/",
   rapt:"./includes/rapt/api/"
 };
 export function brewingEndpoint(config,service,file,{baseURI=globalThis.document?.baseURI||globalThis.location?.href}={}){
+  const legacy=legacyReadEndpoint(config,service,file);
+  if(legacy)return legacy;
   const settings=config?.brewing;
   if(settings?.enabled!==true||!(service in ROOTS))return null;
   const base=service==="rapt"?settings.raptBase:settings.brewingBase;

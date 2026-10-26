@@ -38,7 +38,7 @@
   }
 
   async function fetchLogIndex() {
-    const response = await fetch(backend('logs.php'), { cache: 'no-store' });
+    const response = await (global.FolkBrewingFetch || fetch)(backend('logs.php'), { cache: 'no-store' });
     const text = await response.text();
     const data = parseJsonSafe(text);
     if (!response.ok) {
@@ -48,7 +48,7 @@
   }
 
   async function fetchLogDetail(slug) {
-    const response = await fetch(API_BASE + '/logs.php?slug=' + encodeURIComponent(slug), { cache: 'no-store' });
+    const response = await (global.FolkBrewingFetch || fetch)(backend('logs.php') + '?slug=' + encodeURIComponent(slug), { cache: 'no-store' });
     const text = await response.text();
     const data = parseJsonSafe(text);
     if (!response.ok) {
@@ -63,7 +63,7 @@
   }
 
   async function exportLog(payload) {
-    const response = await fetch(backend('export.php'), {
+    const response = await (global.FolkBrewingFetch || fetch)(backend('export.php'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -98,7 +98,7 @@
   }
 
   async function fetchStorageConfig() {
-    const response = await fetch(backend('storage.php'), { cache: 'no-store' });
+    const response = await (global.FolkBrewingFetch || fetch)(backend('storage.php'), { cache: 'no-store' });
     const text = await response.text();
     const data = parseJsonSafe(text);
     if (!response.ok) {
@@ -108,7 +108,7 @@
   }
 
   async function saveStorageConfig(payload) {
-    const response = await fetch(backend('storage.php'), {
+    const response = await (global.FolkBrewingFetch || fetch)(backend('storage.php'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -124,7 +124,7 @@
   }
 
   async function saveLogStorage(payload) {
-    const response = await fetch(backend('storage.php'), {
+    const response = await (global.FolkBrewingFetch || fetch)(backend('storage.php'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -140,7 +140,7 @@
   }
 
   async function prepareDriveSyncPackage(slug) {
-    const response = await fetch(backend('storage.php'), {
+    const response = await (global.FolkBrewingFetch || fetch)(backend('storage.php'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

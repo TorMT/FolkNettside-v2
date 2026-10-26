@@ -2,6 +2,7 @@
   'use strict';
 
   const CACHE_KEY = 'folk-v2:brewing-dashboard-cache.v1';
+  const PRIVATE_PROXY = global.FolkBrewingPrivateProxy === true;
   const CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000;
   const renderApi = global.BrewingHydrometerRender;
   const logApi = global.BrewingLogViewer;
@@ -165,6 +166,7 @@
   });
 
   function readCache() {
+    if(PRIVATE_PROXY)return null;
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (!raw) return null;
@@ -179,6 +181,7 @@
   }
 
   function writeCache(payload) {
+    if(PRIVATE_PROXY)return;
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({
         savedAt: Date.now(),
@@ -334,7 +337,7 @@
     try {
       const endpoint = global.FolkBrewingEndpoint && global.FolkBrewingEndpoint('rapt', 'dashboard.php');
       if (!endpoint) throw new Error('RAPT backend is not configured for V2');
-      const response = await fetch(endpoint + '?days=' + encodeURIComponent(state.maxDaysLoaded), { cache: 'no-store' });
+      const response = await (global.FolkBrewingFetch || fetch)(endpoint + '?days=' + encodeURIComponent(state.maxDaysLoaded), { cache: 'no-store' });
       const payload = await response.json();
       if (!response.ok) throw new Error((payload && payload.error) || ('HTTP ' + response.status));
       writeCache(payload);

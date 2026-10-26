@@ -13,7 +13,7 @@
     return url;
   }
   function fetchJson(url) {
-    return fetch(url, { cache: 'no-store' }).then(async function (response) {
+    return (global.FolkBrewingFetch || fetch)(url, { cache: 'no-store' }).then(async function (response) {
       const data = await response.json();
       if (!response.ok) {
         throw new Error((data && data.error) || ('HTTP ' + response.status));

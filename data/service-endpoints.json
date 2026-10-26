@@ -11,5 +11,9 @@
   "quizLeaderboard": {
     "enabled": false,
     "endpoint": null
+  },
+  "legacyReadProxy": {
+    "enabled": true,
+    "base": "https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/legacy-brewing/"
   }
 }
