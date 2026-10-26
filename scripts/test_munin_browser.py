@@ -21,7 +21,7 @@ def capture_call(method, path, body=None, timeout=30):
             encoded = original_call('GET', path + '/screenshot')
             folder = Path('/tmp/munin-review')
             folder.mkdir(exist_ok=True)
-            (folder / ('munin-' + sys.argv[3].replace(',', '-') + '.png')).write_bytes(base64.b64decode(encoded))
+            (folder / (('munin-hydro-' if 'munin-hydro-smoke' in sys.argv[1] else 'munin-') + sys.argv[3].replace(',', '-') + '.png')).write_bytes(base64.b64decode(encoded))
         finally:
             return original_call(method, path, body, timeout)
     return original_call(method, path, body, timeout)

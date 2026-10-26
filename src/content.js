@@ -1,3 +1,4 @@
+import {MUNIN_MODEL} from "./engineering/munin-model.js";
 import {onNTNUHost} from "./courses/ntnu-catalog.js";
 import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js";
 import {loadPublicCourseLabels,mergeCloudCourseLabels} from "./platform/folk-course-admin.js";
@@ -120,7 +121,8 @@ export async function loadContent() {
 
   const models=[
     {id:model.id||"fixture",label:model.label||model.name,...model},
-    {id:gunnerusModel.id||"gunnerus",label:gunnerusModel.label||gunnerusModel.name,...gunnerusModel}
+    {id:gunnerusModel.id||"gunnerus",label:gunnerusModel.label||gunnerusModel.name,...gunnerusModel},
+    MUNIN_MODEL
   ];
 
   // Presentation-only exclusion requested for V2. Never remove any

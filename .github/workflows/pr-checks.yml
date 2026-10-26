@@ -207,6 +207,10 @@ jobs:
           python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html?capture 70 390,844
           python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html?capture 70 320,740
           python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html?capture 70 768,1024
+          python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/munin-hydro-smoke.html 100 1400,950
+          python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/munin-hydro-smoke.html 100 390,844
+          python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/munin-hydro-smoke.html 100 320,740
+          python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/munin-hydro-smoke.html 100 768,1024
 
       - uses: actions/upload-artifact@v4
         with:
