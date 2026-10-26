@@ -14,6 +14,7 @@ const assert=(ok,message)=>{if(!ok)throw Error(message)};
 async function wait(fn,label){for(let i=0;i<300;i++){if(fn())return;await new Promise(r=>setTimeout(r,100))}throw Error('Timeout: '+label)}
 try{
  await wait(()=>doc()?.querySelector('#engineering-model-select option[value="munin"]'),'Munin selector');
+ doc().querySelector('.analytics-consent-actions button')?.click();
  let select=doc().querySelector('#engineering-model-select');
  select.value='munin';select.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
  await wait(()=>doc()?.querySelector('.inspector')?.textContent.includes('degenerate triangle'),'explicit hydro validation gate');
@@ -21,6 +22,7 @@ try{
  assert(doc().querySelector('#engineering-model-select').value==='munin','selection retained');
  assert(doc().querySelector('.results')?.textContent.includes('No hydrostatic result shown'),'no invalid hydro result');
  assert(!doc().querySelector('#hydro-gz'),'stability controls must not be enabled');
+ assert(doc().querySelector('.viewport').getBoundingClientRect().height>=240,'model viewport collapsed');
  assert(doc().documentElement.scrollWidth<=frame.clientWidth+1,'horizontal overflow');
  const model=await loadModelDocument({...MUNIN_MODEL,sourcePath:'../../assets/models/munin-mobile-preview.glb'});
  assert(model.components.filter(c=>c.geometry).length===130,'actual assembly must retain 130 parts');

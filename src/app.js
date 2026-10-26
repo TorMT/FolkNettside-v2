@@ -2083,7 +2083,7 @@ async function engineeringPage(){
   const resultContent=hydro?hydro.results:`<div class="chart"><svg viewBox="0 0 700 170"><path d="M20 135 C90 132 122 80 190 92 S315 60 372 82 S502 35 675 46" fill="none" stroke="var(--accent)" stroke-width="3"/><path d="M20 145H680M20 20V145" stroke="var(--line-strong)"/></svg></div>`;
   // Waterline is now an actual 3D surface/mesh contour, never a viewport-positioned CSS line.
 
-  app.innerHTML=top("engineering")+`<main class="workspace">
+  app.innerHTML=top("engineering")+`<main class="workspace ${model.id==="munin"?"munin-workspace":""}">
     <div class="workspace-bar"><strong>${documentModel.name}</strong>${engineeringModelSelectHTML()}${engineeringExportButtonHTML()}<div class="mode-tabs">
       ${modes.map(mode=>`<button data-engineering-mode="${mode}" class="${engineeringMode===mode?"active":""}">${mode}</button>`).join("")}
     </div></div>

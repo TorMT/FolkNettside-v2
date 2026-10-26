@@ -528,3 +528,25 @@
  .cad-hub-advanced{padding:10px}
 }
 @media(prefers-reduced-motion:reduce){.cad-drop-zone{transition:none}}
+
+/* Keep the sourced Munin model inspectable below the mobile control bar. */
+@media(max-width:760px){
+  .workspace.munin-workspace{
+    min-height:600px;
+    grid-template-rows:auto minmax(240px,1fr) 100px 24px!important;
+  }
+  .munin-workspace .engineering-model-control{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;
+  }
+  .munin-workspace .engineering-model-select,
+  .munin-workspace .engineering-mode-capability{grid-column:1/-1}
+  .munin-workspace .engineering-model-control>.btn{
+    min-width:0;min-height:44px;white-space:normal;text-align:center;
+  }
+  .munin-workspace .mobile-workspace-actions{bottom:132px}
+  .munin-workspace #engineering-scene,
+  .munin-workspace #engineering-scene .three-stage,
+  .munin-workspace #engineering-scene .three-canvas{
+    min-height:0!important;height:100%;max-height:100%;overflow:hidden;
+  }
+}
