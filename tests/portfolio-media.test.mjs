@@ -59,12 +59,12 @@ test("pitch drive has a dedicated safe model link and accessible embedded 3D det
  assert.equal(projectModelURL("javascript:alert(1)"),"");
  assert.equal(projectModelURL("https://evil.example/planetgirdrift-3d.html"),"");
  const card=renderProjectCard(project);
- assert.match(card,/href="#\\/projects\\/pitch-drive-wind-turbine"/);
+ assert.ok(card.includes('href="#/projects/pitch-drive-wind-turbine"'));
  const html=renderProjectDetail(project);
  assert.match(html,/Full modell/);
  assert.match(html,/class="project-model-frame"/);
  assert.match(html,/sandbox="allow-scripts"/);
  assert.match(html,/loading="lazy"/);
- assert.match(html,/125\\/25 = 5:1/);
+ assert.ok(html.includes("125/25 = 5:1"));
  assert.doesNotMatch(html,/allow-same-origin/);
 });
