@@ -38,8 +38,10 @@ export function renderProjectCard(project){
   return `<a class="project-row project-row-link" data-project="${esc(project.slug)}"
       href="${esc(projectRoute(project.slug))}" aria-label="Åpne prosjekt: ${esc(project.title)}">
     <div class="project-art project-art-${esc(project.type)}">
-      ${image?`<img class="project-card-image" src="${esc(image)}" alt="${esc(alt)}"
-           loading="lazy" decoding="async" referrerpolicy="no-referrer">`:
+      ${image?`<img class="project-card-image" data-project-image="card" src="${esc(image)}" alt="${esc(alt)}"
+           loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        <span class="project-image-fallback" data-project-image-fallback hidden role="img"
+          aria-label="${esc(alt)}">Bilde utilgjengelig · åpne prosjektet for beskrivelse</span>`:
         '<div class="project-art-mark" aria-hidden="true">⌁</div>'}
       <div class="project-type-badge">${esc(projectTypeLabel(project.type))}</div>
     </div>
@@ -58,9 +60,12 @@ export function renderProjectDetail(project){
     const src=projectImageURL(item?.src);
     return src?`<figure class="project-gallery-item">
        <a href="${esc(src)}" target="_blank" rel="noopener noreferrer" aria-label="Åpne bildet ${esc(item.alt||project.title)}">
-         <img src="${esc(src)}" alt="${esc(item.alt||project.title)}"
+         <img data-project-image="gallery" src="${esc(src)}" alt="${esc(item.alt||project.title)}"
            loading="lazy" decoding="async" referrerpolicy="no-referrer">
-       </a><figcaption>${esc(item.caption||"Project image")}</figcaption>
+       </a>
+       <div class="project-image-fallback" data-project-image-fallback hidden role="img"
+         aria-label="${esc(item.alt||project.title)}">Prosjektbildet kunne ikke lastes. Prosjektinformasjonen nedenfor er fortsatt tilgjengelig.</div>
+       <figcaption>${esc(item.caption||"Project image")}</figcaption>
      </figure>`:"";
   }).filter(Boolean).join("");
   const files=(project.files||[]).map(item=>{
