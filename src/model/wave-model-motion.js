@@ -1,4 +1,4 @@
-import {waveElevation} from "./wave-core.js?v=16905756e8ca0c03b44e439a98d4a14270553414";
+import {waveElevation} from "./wave-core.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
 
 const NO_MOTION=Object.freeze({heaveM:0,rollRad:0,pitchRad:0,slopeX:0,slopeY:0});
 

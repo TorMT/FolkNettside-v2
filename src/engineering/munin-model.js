@@ -1,4 +1,4 @@
-import {MUNIN_PARTS} from "./munin-parts.js?v=16905756e8ca0c03b44e439a98d4a14270553414";
+import {MUNIN_PARTS} from "./munin-parts.js?v=d0d5d42501a65af993688ac13345f9fcdc28162c";
 
 const hydroReason="Munin is available for visual inspection. Each of the two source hull meshes contains a degenerate triangle and currently fails geometry preflight. Hydrostatic calculations remain disabled until the external hull surfaces are repaired and independently checked.";
 
