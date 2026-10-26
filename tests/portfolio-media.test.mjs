@@ -32,9 +32,15 @@ test("project cards are accessible native anchors with real image and navigable 
  assert.match(card,/class="project-card-image"/);
  assert.match(card,/loading="lazy" decoding="async"/);
  assert.match(card,/alt="[^"]+"/);
+ assert.match(card,/data-project-image="card"/);
+ assert.match(card,/data-project-image-fallback hidden role="img"/);
+ assert.match(card,/Bilde utilgjengelig/);
  assert.doesNotMatch(card,/project-art-mark/);
  const detail=renderProjectDetail(project);
  assert.match(detail,/class="project-gallery"/);
+ assert.match(detail,/data-project-image="gallery"/);
+ assert.match(detail,/data-project-image-fallback hidden role="img"/);
+ assert.match(detail,/Prosjektbildet kunne ikke lastes/);
  assert.match(detail,/Project log|Prosjektrapport/);
  assert.match(detail,/dive-computer-mount\.pdf/);
  assert.match(detail,/Engineering Portfolio/);
