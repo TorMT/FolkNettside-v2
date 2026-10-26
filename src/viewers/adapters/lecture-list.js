@@ -1,6 +1,6 @@
-import {fetchText} from "../utils.js?v=835f14065a80706db17c31268d9d98db95531cc8";
-import {groupedLectures,normalizeLectureList,parseLectureText} from "../../video/lecture-list.js?v=835f14065a80706db17c31268d9d98db95531cc8";
-import {localVideoProgress} from "../../video/progress-store.js?v=835f14065a80706db17c31268d9d98db95531cc8";
+import {fetchText} from "../utils.js?v=9214b22b3345b780e50c71597f68f0d148af4659";
+import {groupedLectures,normalizeLectureList,parseLectureText} from "../../video/lecture-list.js?v=9214b22b3345b780e50c71597f68f0d148af4659";
+import {localVideoProgress} from "../../video/progress-store.js?v=9214b22b3345b780e50c71597f68f0d148af4659";
 
 /** Interactive, metadata-only V1 lecture playlist. Never executes file content. */
 export async function render(container,resource){
