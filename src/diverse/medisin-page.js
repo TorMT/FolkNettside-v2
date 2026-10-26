@@ -6,6 +6,7 @@ import {medisinDriveFolder,setMedisinDriveFolder} from "../platform/medisin-fold
 import {medisinCloudSyncAllowed,setMedisinCloudSyncAllowed} from "../platform/medisin-cloud-consent.js";
 import {CONCENTRATION_UNITS,medisinConcentrations,medisinSolutionVolume} from "./medisin-concentration.js";
 import {medisinStorageKey,medisinTimers,medisinDoses,medisinNextAt,medisinRemainingLevel,medisinChart,medisinApply,medisinCreateTimer,medisinCreateDose,medisinDelete} from "./medisin-model.js";
+import {reconcileMedisinLocalWrite} from "./medisin-local-sync.js";
 
 const LEGACY_URL="https://tormt.folk.ntnu.no/diverse/MedisinTimer/";
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -121,7 +122,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
   const status=root.querySelector("#medisin-sync-status");
   const feedback=root.querySelector("#medisin-feedback");
   let profile=accountId(),key=medisinStorageKey(profile),backup=newMedisinBackup();
-  let unreadableLocalRaw=null,recoveryExported=false;
+  let unreadableLocalRaw=null,recoveryExported=false,lastSeenRaw=null;
   let syncPromise=null,pendingSync=false,disposed=false,syncTimer=null;
   let vaultPassphrase=null;
   const signedIn=()=>Boolean(accountId());
@@ -130,7 +131,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     try{
       raw=localStorage.getItem(key);
       const valid=raw!==null?validateMedisinBackup(JSON.parse(raw)):newMedisinBackup();
-      unreadableLocalRaw=null;recoveryExported=false;
+      unreadableLocalRaw=null;recoveryExported=false;lastSeenRaw=raw;
       return valid;
     }catch(error){
       // Never silently turn corrupted persisted health data into an empty log:
@@ -144,9 +145,28 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
   function saveLocal(value){
     if(!backup)throw new Error("Lagring er sperret fordi lokal historikk ikke kan leses.");
     validateMedisinBackup(value);
-    localStorage.setItem(key,JSON.stringify(value));
-    backup=value;
+    // Another tab may have committed records or tombstones after this view
+    // loaded. Re-read and merge before every local write, including cloud
+    // downloads, instead of overwriting with an out-of-date in-memory copy.
+    const currentRaw=localStorage.getItem(key);
+    let final;
+    try{final=reconcileMedisinLocalWrite(value,currentRaw,{previouslySeenRaw:lastSeenRaw});}
+    catch(error){
+      if(currentRaw!==null){
+        try{validateMedisinBackup(JSON.parse(currentRaw))}
+        catch{
+          unreadableLocalRaw=currentRaw;recoveryExported=false;
+          backup=null;renderCards();updateStatus();
+        }
+      }
+      throw error;
+    }
+    const serialized=JSON.stringify(final);
+    localStorage.setItem(key,serialized);
+    lastSeenRaw=serialized;
+    backup=final;
     renderCards();
+    return final;
   }
   function renderCards(){
     const recovery=root.querySelector("#medisin-corrupt-recovery");
@@ -206,11 +226,11 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
       const local=readLocal();
       if(!local){backup=null;renderCards();throw new Error("Lokal historikk kan ikke leses. Synkronisering er sperret.");}
       const merged=remote?mergeMedisinBackups(local,remote.backup):local;
-      saveLocal(merged);
-      if(merged.entries.length&&(!remote||JSON.stringify(merged.entries)!==JSON.stringify(remote.backup.entries))){
+      const reconciled=saveLocal(merged);
+      if(reconciled.entries.length&&(!remote||JSON.stringify(reconciled.entries)!==JSON.stringify(remote.backup.entries))){
         if(disposed||accountId()!==syncProfile||vaultPassphrase!==passphrase||
           !medisinCloudSyncAllowed(syncProfile))return;
-        await writeEncryptedMedisinDriveBackup(syncProfile,passphrase,merged,{
+        await writeEncryptedMedisinDriveBackup(syncProfile,passphrase,reconciled,{
           folderId,allowReplace:Boolean(remote),expectedRevision:remote?.revision||null});
       }
       message("Kryptert Google Drive-backup synkronisert · "+date(Date.now()));
@@ -396,8 +416,26 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     }
     updateStatus();
   });
+  const onOtherTabChange=event=>{
+    if(disposed||event.key!==key||event.storageArea!==localStorage)return;
+    // A reset in another tab cannot be reconciled with the old mounted copy.
+    // Block the next write instead of silently resurrecting removed data.
+    if(event.newValue===null){
+      message("Profilen ble fjernet i en annen fane. Last inn siden på nytt før du lagrer.");
+      return;
+    }
+    backup=readLocal();
+    renderCards();updateStatus();
+    message(backup
+      ?"Endringer fra en annen fane er lest inn. Nye lagringer blir sammenslått."
+      :"En annen fane lagret ugyldig historikk; skriving er sperret.");
+  };
+  globalThis.addEventListener?.("storage",onOtherTabChange);
   const clock=setInterval(()=>{if(!disposed)renderCards();},60000);
   backup=readLocal();renderCards();updateStatus();
   // Never request Drive data until the user unlocks this browser session.
-  return {cleanup(){disposed=true;vaultPassphrase=null;clearTimeout(syncTimer);clearInterval(clock);unsubscribe();}};
+  return {cleanup(){
+    disposed=true;vaultPassphrase=null;clearTimeout(syncTimer);clearInterval(clock);
+    globalThis.removeEventListener?.("storage",onOtherTabChange);unsubscribe();
+  }};
 }

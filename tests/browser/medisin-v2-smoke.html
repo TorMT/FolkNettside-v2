@@ -5,7 +5,9 @@
 import {medisinPageHTML,mountMedisin} from "../../src/diverse/medisin-page.js";
 import {connectGoogleSession,disconnectGoogleSession} from "../../src/platform/google-session.js";
 import {medisinCloudConsentKey} from "../../src/platform/medisin-cloud-consent.js";
-import {decryptMedisinVault} from "../../src/platform/medisin-vault.js";
+import {decryptMedisinVault,encryptMedisinVault} from "../../src/platform/medisin-vault.js";
+import {newMedisinBackup} from "../../src/platform/medisin-drive.js";
+import {readEncryptedMedisinDriveBackup,writeEncryptedMedisinDriveBackup} from "../../src/platform/medisin-encrypted-drive.js";
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 try{
   localStorage.removeItem("folk-medisin-v2:guest");
@@ -73,13 +75,53 @@ try{
   protectedMount.cleanup();
   localStorage.removeItem(corruptKey);
 
+  // Two separately mounted tab-like views begin empty. A stale commit in B
+  // must not overwrite A; a tombstone made by A must survive B's stale edit.
+  const secondRoot=document.createElement("div");
+  document.body.append(secondRoot);
+  root.innerHTML=medisinPageHTML();
+  secondRoot.innerHTML=medisinPageHTML();
+  const tabA=mountMedisin(root),tabB=mountMedisin(secondRoot);
+  const submit=(host,name)=>{
+    const form=host.querySelector("#medisin-add-form");
+    form.elements.name.value=name;
+    form.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
+  };
+  submit(root,"Tab A original");
+  submit(secondRoot,"Tab B stale");
+  let persisted=JSON.parse(localStorage.getItem(corruptKey));
+  assert(persisted.entries.filter(e=>e.type==="timer"&&!e.deleted).length===2,
+    "Stale second tab overwrote first tab record");
+  const aId=persisted.entries.find(e=>e.name==="Tab A original").id;
+  const oldConfirmTabs=window.confirm;
+  window.confirm=()=>true;
+  try{
+    const removeA=root.querySelector('[data-medisin-delete="'+aId+'"]');
+    assert(removeA,"Tab A card removal button missing");
+    removeA.click();
+    submit(secondRoot,"Tab B after deletion");
+    persisted=JSON.parse(localStorage.getItem(corruptKey));
+    assert(persisted.entries.find(e=>e.id===aId).deleted===true,
+      "Second tab resurrected deleted record from stale state");
+    assert(persisted.entries.filter(e=>e.type==="timer"&&!e.deleted).length===2,
+      "Sequential stale-tab reconciliation lost a timer");
+  }finally{window.confirm=oldConfirmTabs;}
+  window.dispatchEvent(new StorageEvent("storage",{
+    key:corruptKey,newValue:localStorage.getItem(corruptKey),
+    storageArea:localStorage,url:location.href
+  }));
+  assert(root.querySelectorAll("[data-medisin-timer]").length===2,
+    "External storage event did not refresh the first tab");
+  tabA.cleanup();tabB.cleanup();secondRoot.remove();
+  localStorage.removeItem(corruptKey);
+
   // Separate integration regression: sign-in alone must not upload
   // health information as unencrypted Drive JSON.
   const cloudSub="medisin-browser-fixture";
   const cloudKey="folk-medisin-v2:google:"+cloudSub;
   localStorage.removeItem(cloudKey);
   localStorage.removeItem(medisinCloudConsentKey(cloudSub));
-  let driveRequests=0,uploads=0,uploadBody="";
+  let driveRequests=0,uploads=0,uploadBody="",remoteVault=null,patches=0;
   const originalFetch=window.fetch.bind(window);
   const originalConfirm=window.confirm;
   window.__FOLK_GOOGLE_AUTH_CONFIG__={clientId:"12345-fixture.apps.googleusercontent.com"};
@@ -97,12 +139,24 @@ try{
         status:200,headers:{"Content-Type":"application/json"}});
     if(url.includes("www.googleapis.com/drive/v3/files")){
       driveRequests++;
-      return new Response(JSON.stringify({files:[]}),{
+      if(url.includes("alt=media")){
+        return new Response(remoteVault??"{}",{
+          status:remoteVault?200:404,headers:{"Content-Type":"application/json"}});
+      }
+      return new Response(JSON.stringify({files:remoteVault?[{id:"test-file",name:"vault.enc.json"}]:[]}),{
         status:200,headers:{"Content-Type":"application/json"}});
     }
     if(url.includes("www.googleapis.com/upload/drive/v3/files")){
-      uploads++;
-      uploadBody=String(options?.body||"");
+      if(options?.method==="PATCH"){
+        patches++;
+        remoteVault=String(options?.body||"");
+      }else{
+        uploads++;
+        uploadBody=String(options?.body||"");
+        const start=uploadBody.indexOf('{"format":"folk-medisin-vault"');
+        const end=uploadBody.indexOf("\r\n--folkMedisinEncrypted",start);
+        if(start>=0&&end>start)remoteVault=uploadBody.slice(start,end);
+      }
       return new Response(JSON.stringify({id:"test-file"}),{
         status:200,headers:{"Content-Type":"application/json"}});
     }
@@ -140,6 +194,32 @@ try{
     const decrypted=await decryptMedisinVault(JSON.parse(uploadBody.slice(start,end)),testPassphrase);
     assert(decrypted.entries.some(e=>e.name==="Synthetic test timer"),
       "Drive ciphertext could not be decrypted back into the correct timer");
+    // Model two remote devices: B reads revision V1; A updates the remote
+    // vault; B must refuse to overwrite A's ciphertext with a stale version.
+    const revisionRead=await readEncryptedMedisinDriveBackup(cloudSub,testPassphrase,{
+      folderId:"sampleSharedFolderId123456789"
+    });
+    assert(revisionRead?.revision&&revisionRead.backup.entries.length===1,
+      "Remote revision snapshot not read");
+    const competing=newMedisinBackup([...revisionRead.backup.entries,{
+      id:"competing-device",type:"timer",name:"Synthetic second device",
+      durationSeconds:86400,halfLifeSeconds:0,amount:1,unit:"mg",
+      updatedAt:new Date().toISOString()
+    }]);
+    remoteVault=JSON.stringify(await encryptMedisinVault(competing,testPassphrase));
+    let conflict="";
+    try{
+      await writeEncryptedMedisinDriveBackup(cloudSub,testPassphrase,revisionRead.backup,{
+        folderId:"sampleSharedFolderId123456789",allowReplace:true,
+        expectedRevision:revisionRead.revision
+      });
+    }catch(error){conflict=String(error?.message||error);}
+    assert(conflict.includes("endret av en annen enhet"),
+      "Stale remote snapshot did not cause conflict refusal: "+conflict);
+    assert(patches===0,"Stale device issued destructive PATCH despite conflicting revision");
+    const preserved=await decryptMedisinVault(JSON.parse(remoteVault),testPassphrase);
+    assert(preserved.entries.some(e=>e.id==="competing-device"),
+      "Concurrent remote synthetic entry disappeared");
     const disable=root.querySelector("#medisin-cloud-disable");
     assert(disable.hidden===false,"Revocation control not visible");
     for(let i=0;i<50&&disable.disabled;i++)await new Promise(resolve=>setTimeout(resolve,20));
