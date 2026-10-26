@@ -1,5 +1,5 @@
-import {renderFusionPackage} from "../fusion-package-view.js?v=2a148f9fe14717df5c3d1cbeea15dca9ce4d1348";
-import {extension,previewContentURL} from "../utils.js?v=2a148f9fe14717df5c3d1cbeea15dca9ce4d1348";
+import {renderFusionPackage} from "../fusion-package-view.js?v=7e5797d31cff0963af5d9dffa467649e4ee3bed9";
+import {extension,previewContentURL} from "../utils.js?v=7e5797d31cff0963af5d9dffa467649e4ee3bed9";
 
 export async function render(container,resource){
  const source=previewContentURL(resource);

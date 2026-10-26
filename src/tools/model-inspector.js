@@ -1,8 +1,8 @@
-import {mountModelScene} from "../model/model-scene.js?v=2a148f9fe14717df5c3d1cbeea15dca9ce4d1348";
-import {mountWaveControls} from "../model/model-wave-controls.js?v=2a148f9fe14717df5c3d1cbeea15dca9ce4d1348";
-import {validateHydroModel} from "../model/hull-surface-validator.js?v=2a148f9fe14717df5c3d1cbeea15dca9ce4d1348";
-import {hydroPreflightHTML} from "../engineering/hydro-panel.js?v=2a148f9fe14717df5c3d1cbeea15dca9ce4d1348";
-import {modelHydroSummaryAtAttitude,parseModelBuffer} from "./model-inspector-core.js?v=2a148f9fe14717df5c3d1cbeea15dca9ce4d1348";
+import {mountModelScene} from "../model/model-scene.js?v=7e5797d31cff0963af5d9dffa467649e4ee3bed9";
+import {mountWaveControls} from "../model/model-wave-controls.js?v=7e5797d31cff0963af5d9dffa467649e4ee3bed9";
+import {validateHydroModel} from "../model/hull-surface-validator.js?v=7e5797d31cff0963af5d9dffa467649e4ee3bed9";
+import {hydroPreflightHTML} from "../engineering/hydro-panel.js?v=7e5797d31cff0963af5d9dffa467649e4ee3bed9";
+import {modelHydroSummaryAtAttitude,parseModelBuffer} from "./model-inspector-core.js?v=7e5797d31cff0963af5d9dffa467649e4ee3bed9";
 
 function fmt(value,digits=4){
   const n=Number(value);
