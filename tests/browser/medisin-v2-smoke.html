@@ -24,6 +24,55 @@ try{
   mounted.cleanup();
   localStorage.removeItem("folk-medisin-v2:guest");
 
+  // Fail closed: corrupt private local history must NOT be replaced with an
+  // empty backup when an ordinary form submit/import happens.
+  const corruptKey="folk-medisin-v2:guest";
+  const damaged='{not-valid-json:"keep these original bytes"';
+  localStorage.setItem(corruptKey,damaged);
+  root.innerHTML=medisinPageHTML();
+  const protectedMount=mountMedisin(root);
+  const recovery=root.querySelector("#medisin-corrupt-recovery");
+  assert(recovery&&!recovery.hidden,"Damaged data did not reveal recovery instructions");
+  assert(root.querySelector("#medisin-count").textContent.includes("sperret"),
+    "Corrupt profile was presented as a valid empty history");
+  assert(root.querySelector("#medisin-add-form button[type=submit]").disabled,
+    "Saving on damaged data must be disabled");
+  assert(root.querySelector("#medisin-import").disabled&&root.querySelector("#medisin-sync").disabled,
+    "Import/Drive could overwrite damaged history");
+  assert(root.querySelector("#medisin-recovery-reset").disabled,
+    "Reset must remain blocked until source bytes are exported");
+  const lockedForm=root.querySelector("#medisin-add-form");
+  lockedForm.elements.name.value="Must not overwrite";
+  lockedForm.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
+  assert(localStorage.getItem(corruptKey)===damaged,
+    "Programmatic submit silently replaced corrupt source");
+  assert(root.querySelector("#medisin-feedback").textContent.includes("sperret")||
+    root.querySelector("#medisin-feedback").textContent.includes("kan ikke leses"),
+    "Failure did not tell the user why saving was blocked");
+  const oldConfirm=window.confirm;
+  let decision=false,confirmCalls=0;
+  window.confirm=()=>{confirmCalls++;return decision;};
+  try{
+    root.querySelector("#medisin-recovery-export").click();
+    assert(!root.querySelector("#medisin-recovery-reset").disabled,
+      "Reset should only become available after the raw backup action");
+    root.querySelector("#medisin-recovery-reset").click();
+    assert(confirmCalls===1&&localStorage.getItem(corruptKey)===damaged,
+      "Declining explicit reset must preserve original local bytes");
+    decision=true;
+    root.querySelector("#medisin-recovery-reset").click();
+    assert(localStorage.getItem(corruptKey)===null,
+      "Confirmed profile reset did not clear invalid local JSON");
+    assert(root.querySelector("#medisin-corrupt-recovery").hidden,
+      "Editor did not reopen after explicit recovery reset");
+    lockedForm.elements.name.value="Recovered synthetic timer";
+    lockedForm.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
+    assert(localStorage.getItem(corruptKey)?.includes("Recovered synthetic timer"),
+      "Recovered profile cannot save new data");
+  }finally{window.confirm=oldConfirm;}
+  protectedMount.cleanup();
+  localStorage.removeItem(corruptKey);
+
   // Separate integration regression: sign-in alone must not upload
   // health information as unencrypted Drive JSON.
   const cloudSub="medisin-browser-fixture";
