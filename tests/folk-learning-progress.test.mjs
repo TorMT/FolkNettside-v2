@@ -128,3 +128,25 @@ test("versioned schema is self-owned, limited, and advances exactly one revision
  assert.match(sql,/pg_column_size\(progress\) <= 4096/);
  assert.match(sql,/\^\[a-f0-9\]\{64\}\$/);
 });
+
+
+test("same approved NTNU file has one hashed progress key for URL, relative and local blob preview",async()=>{
+ const base={source:"ntnu",path:"/semestre/5/Marin-Dynamikk/filer/%C3%98ving%205.py"};
+ const full={source:"ntnu",url:"https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/%C3%98ving%205.py"};
+ const local={...full,path:"blob:https://tormt.github.io/temporary-id",localPreview:true};
+ const unicode={source:"ntnu",path:"/semestre/5/Marin-Dynamikk/filer/Øving 5.py"};
+ const hashes=await Promise.all([base,full,local,unicode].map(x=>learningResourceKey("quiz",x,{cryptoImpl:webcrypto})));
+ assert.equal(new Set(hashes).size,1,"CORS retry and URL encoding must not reset progress");
+ for(const item of [
+  {...full,url:"https://evil.example/semestre/5/Marin-Dynamikk/filer/test.py"},
+  {...full,url:"https://tormt.folk.ntnu.no.evil.net/semestre/5/Marin-Dynamikk/filer/test.py"},
+  {...full,url:"https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/%2fpasswd.py"},
+  {...full,url:"https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/beskyttet.py"},
+  {...full,url:"https://tormt.folk.ntnu.no/semestre/0/Marin-Dynamikk/filer/test.py"},
+  {...full,url:"https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/file.py?auth=secret"},
+  {...full,url:"http://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/file.py"},
+  {...full,url:"https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/hidden/file.py"}
+ ]){
+   await assert.rejects(learningResourceKey("quiz",item,{cryptoImpl:webcrypto}),/NTNU|Unsafe|stable/);
+ }
+});
