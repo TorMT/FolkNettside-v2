@@ -64,7 +64,7 @@ import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsio
 import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js";
 import {renderTopShell,bindShellNavigation} from "./shell/navigation.js";
 import {portfolioInfoPageHTML,loadCV} from "./portfolio/profile-pages.js";
-import {analyticsConsent,analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent,registerAnalyticsCourses} from "./platform/analytics.js";
+import {analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent,registerAnalyticsCourses} from "./platform/analytics.js";
 import {mountAnalyticsNotice} from "./platform/analytics-notice.js";
 import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js";
 import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js";
@@ -1124,19 +1124,28 @@ function settingsPage(){
     settingsPage();
   });
 
-  const analyticsToggle=app.querySelector("#settings-analytics-toggle");
-  if(analyticsToggle){
+  const analyticsButtons=[...app.querySelectorAll("[data-analytics-choice]")];
+  if(analyticsButtons.length){
     const label=()=>{
-      const consent=analyticsConsentChoice();
-      analyticsToggle.disabled=!analyticsConfigured();
-      analyticsToggle.textContent=consent==="granted"?"Disable analytics":"Enable analytics";
+      const choice=analyticsConsentChoice();
+      for(const button of analyticsButtons){
+        button.disabled=!analyticsConfigured();
+        button.setAttribute("aria-pressed",String(button.dataset.analyticsChoice===choice));
+      }
       const state=app.querySelector("[data-analytics-status]");
       if(state)state.textContent=!analyticsConfigured()?"Not configured":
-        consent==="granted"?"Enabled by your choice":
-        consent==="denied"?"Disabled by your choice":"Off — no choice made yet";
+        choice==="granted"?"Full GA4 measurement (analytics cookies permitted)":
+        choice==="limited"?"Limited Google measurement (analytics cookies denied)":
+        choice==="denied"?"No statistics (manual page views off)":
+        "No analytics connection until you choose";
     };
     label();
-    analyticsToggle.addEventListener("click",()=>{setAnalyticsConsent(!analyticsConsent());label();});
+    for(const button of analyticsButtons){
+      button.addEventListener("click",()=>{
+        setAnalyticsConsent(button.dataset.analyticsChoice);
+        label();
+      });
+    }
   }
   app.querySelector("#settings-clear-study-progress")?.addEventListener("click",event=>{
     const removed=clearLocalStudyProgress();
