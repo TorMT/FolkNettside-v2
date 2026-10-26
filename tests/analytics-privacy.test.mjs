@@ -45,7 +45,7 @@ test("private, health, storage and account routes are never tracked",()=>{
   }
   assert.equal(safeAnalyticsPage(url("#/?q=email")+"?tracking=abc")?.route,"/");
 });
-test("Google script loads before consent but no GA4 config or page views until opt-in",()=>{
+test("full, limited and no-statistics choices have distinct verified network and event behavior",()=>{
   const prev={localStorage:globalThis.localStorage,document:globalThis.document,
     location:globalThis.location,gtag:globalThis.gtag,dataLayer:globalThis.dataLayer,
     __FOLK_ANALYTICS_ID__:globalThis.__FOLK_ANALYTICS_ID__};
@@ -63,52 +63,48 @@ test("Google script loads before consent but no GA4 config or page views until o
       head:{append:item=>requests.push(item)}
     };
     assert.equal(analyticsConsentChoice(storage),"unset");
-    assert.equal(loadAnalytics(),true,"load tag immediately with denied consent");
-    assert.equal(requests.length,1);
+    assert.equal(loadAnalytics(),false,"No Google connection should be made before selection");
+    assert.equal(enableAnalytics(),false);
+    assert.equal(requests.length,0);
+    assert.equal(calls.length,0);
+    assert.equal(setAnalyticsConsent("denied",storage),"denied");
+    assert.equal(loadAnalytics(),false);
+    assert.equal(requests.length,0,"Complete refusal cannot load the Google tag");
+
+    assert.equal(setAnalyticsConsent("limited",storage),"limited");
+    assert.equal(requests.length,1,"Limited mode loads Google only after explicit choice");
     assert.match(requests[0].src,/googletagmanager.com\/gtag\/js\?id=G-BJ41MZJP0L/);
     assert.equal(calls[0][0],"consent");
     assert.equal(calls[0][1],"default");
     assert.equal(calls[0][2].analytics_storage,"denied");
-    assert.equal(calls.filter(x=>x[0]==="event"||x[0]==="config").length,0,
-      "Before opt-in GA4 must not configure measurement or send page views");
-    assert.equal(enableAnalytics(),false);
-    assert.equal(loadAnalytics(),true);
-    assert.equal(requests.length,1,"script only loads once");
-    assert.equal(setAnalyticsConsent(false,storage),"denied");
-    assert.equal(enableAnalytics(),false);
-    assert.equal(requests.length,1);
-    assert.equal(calls.filter(x=>x[0]==="event"||x[0]==="config").length,0);
-    assert.equal(setAnalyticsConsent(true,storage),"granted");
-    assert.equal(requests.length,1);
+    assert.equal(calls.find(x=>x[0]==="consent"&&x[1]==="update")?.[2].analytics_storage,"denied");
     assert.equal(calls.filter(x=>x[0]==="config").length,1);
     const views=()=>calls.filter(x=>x[0]==="event"&&x[1]==="page_view");
     assert.equal(views().length,1);
     assert.equal(views()[0][2].page_path,path+"#/courses/course");
-    assert.equal(views()[0][2].site_version,"v2");
-    assert.equal(views()[0][2].course_code,"TMR4182");
-    assert.equal(views()[0][2].course_semester,"5");
-    assert.doesNotMatch(JSON.stringify(calls),/student=Jane|password=|course\/5\/TMR4182/);
-    assert.equal(trackPage(),false,"must not duplicate a hash-only page_view");
-    location.hash="#/diverse/medisin?name=Patient";
-    location.href=url(location.hash);
-    assert.equal(trackPage(),false);
-    assert.equal(views().length,1);
-    // Revisit the same public route after a private section: count a new view.
-    location.hash="#/courses/5/TMR4182";
-    location.href=url(location.hash);
-    assert.equal(trackPage(),true);
+    assert.equal(views()[0][2].course_code,undefined,"Limited measurement must avoid course-level dimensions");
+    assert.doesNotMatch(JSON.stringify(calls),/student=Jane|password=|\/courses\/5\/TMR4182/);
+    assert.equal(trackPage(),false,"Same page should not be sent twice");
+
+    setAnalyticsConsent("granted",storage);
+    assert.equal(requests.length,1,"Changing tiers must not load the script again");
+    assert.equal(calls.filter(x=>x[0]==="consent"&&x[1]==="update").at(-1)?.[2].analytics_storage,"granted");
     assert.equal(views().length,2);
-    location.hash="#/engineering/cad?file=blueprint.step";
-    location.href=url(location.hash);
+    assert.equal(views()[1][2].course_code,"TMR4182");
+    assert.equal(views()[1][2].course_semester,"5");
+
+    location.hash="#/diverse/medisin?name=Patient";location.href=url(location.hash);
+    assert.equal(trackPage(),false,"Sensitive routes cannot be measured");
+    location.hash="#/engineering/cad?file=blueprint.step";location.href=url(location.hash);
     assert.equal(trackPage(),true);
-    assert.equal(views().length,3);
-    assert.equal(views()[2][2].course_code,undefined,
-      "Non-course pages must not carry a stale course dimension");
+    assert.equal(views().at(-1)[2].page_path,path+"#/engineering/cad");
     assert.doesNotMatch(JSON.stringify(calls),/Patient|blueprint.step/);
-    setAnalyticsConsent(false,storage);
+
+    setAnalyticsConsent("denied",storage);
+    const before=views().length;
     location.hash="#/cv";location.href=url(location.hash);
-    assert.equal(trackPage(),false);
-    assert.equal(views().length,3,"must stop sending events after revocation");
+    assert.equal(trackPage(),false,"Explicit no-statistics must disable future manual events");
+    assert.equal(views().length,before);
     assert.equal(analyticsStatus().active,false);
   }finally{
     for(const [key,value] of Object.entries(prev)){
