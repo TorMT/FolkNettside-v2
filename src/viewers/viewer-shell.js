@@ -1,5 +1,5 @@
 import {loadAdapter,viewerKind} from "./registry.js";
-import {escapeHTML} from "./utils.js";
+import {escapeHTML,safeViewerOriginalURL} from "./utils.js";
 import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js";
 import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js";
 import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js";
@@ -17,6 +17,7 @@ export async function mountViewer(root,resource,onBack){
   }
 
   const isQuiz=viewerKind(resource)==="quiz";
+  const originalURL=safeViewerOriginalURL(resource);
   root.innerHTML=`<main class="viewer ${isQuiz?"viewer--quiz":""}">
     <header class="viewer-head">
       <div>
@@ -34,7 +35,7 @@ export async function mountViewer(root,resource,onBack){
           ${canRetryNTNUWithLocalFile(resource)?`<button class="btn" type="button" id="viewer-choose-local" aria-controls="viewer-local-file">Åpne nedlastet fil</button>
             <input id="viewer-local-file" type="file" aria-label="Velg nedlastet lokal kopi av filen" accept=".${escapeHTML(String(resource.name).split(".").at(-1).toLowerCase())}" hidden>
             <span class="viewer-local-status" id="viewer-local-status" role="status" aria-live="polite"></span>`:""}
-          <button class="btn" id="open-original">Open original</button>
+          <button class="btn" id="open-original" ${originalURL?"":'disabled aria-label="No safe original file URL available"'}>Open original</button>
           <button class="btn" id="viewer-back">Back</button>
         </div>
       </div>
@@ -146,7 +147,7 @@ export async function mountViewer(root,resource,onBack){
     root.__viewerCleanup=null;
     onBack();
   };
-  root.querySelector("#open-original").onclick=()=>window.open(resource.url||resource.path,"_blank","noopener");
+  if(originalURL)root.querySelector("#open-original").onclick=()=>window.open(originalURL,"_blank","noopener,noreferrer");
   root.querySelector("#viewer-full").onclick=()=>canvas.requestFullscreen?.();
 
   try{
@@ -243,7 +244,7 @@ export async function mountViewer(root,resource,onBack){
       ${canRetryNTNUWithLocalFile(resource)?'<p>Du kan åpne en nedlastet kopi via «Åpne nedlastet fil» i toppmenyen.</p>':""}
       <div class="viewer-error-actions">
         <button class="btn primary" id="viewer-retry">Retry</button>
-                <a class="btn" id="viewer-error-original" target="_blank" rel="noopener noreferrer" href="${escapeHTML(resource.url||resource.path||"#")}">Åpne original på NTNU ↗</a>
+        ${originalURL?`<a class="btn" id="viewer-error-original" target="_blank" rel="noopener noreferrer" href="${escapeHTML(originalURL)}">Åpne originalfil ↗</a>`:'<span class="muted">Ingen sikker originaladresse er tilgjengelig.</span>'}
       </div>
     </div>`;
     status.textContent="Error";
