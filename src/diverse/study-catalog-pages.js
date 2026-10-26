@@ -1,5 +1,5 @@
-import {courseExerciseResources,distinctValues,filterKokSites,filterLAOSAssignments,safeCatalogUrl,validateDiverseCatalog} from "./study-catalog-core.js?v=5b96d06e305aee0848639bf4863c1f9759641cf3";
-import {studyLinkAuditSummary,studyLinkObservation,validateStudyLinkAudit} from "./catalog-link-audit.js?v=5b96d06e305aee0848639bf4863c1f9759641cf3";
+import {courseExerciseResources,distinctValues,filterKokSites,filterLAOSAssignments,safeCatalogUrl,validateDiverseCatalog} from "./study-catalog-core.js?v=a01eb8a30ccba0ffa8d276a242b5128369b612e4";
+import {studyLinkAuditSummary,studyLinkObservation,validateStudyLinkAudit} from "./catalog-link-audit.js?v=a01eb8a30ccba0ffa8d276a242b5128369b612e4";
 const URLS={
   laos:{data:"./data/diverse/laos-assignments.json",legacy:"https://tormt.folk.ntnu.no/diverse/LAOS/"},
   kok:{data:"./data/diverse/kok-sites.json",audit:"./data/diverse/kok-link-audit-2026-10-26.json",legacy:"https://tormt.folk.ntnu.no/diverse/AndreKokSider/"}
