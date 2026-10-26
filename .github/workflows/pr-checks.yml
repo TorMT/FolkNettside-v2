@@ -22,6 +22,7 @@ jobs:
           php --version
           php -l server/quiz-leaderboard.php
           python3 -m unittest discover -s tests -p 'test_quiz_leaderboard_php.py' -v
+          python3 -m unittest discover -s tests -p 'test_legacy_public_google_import.py' -v
 
       - name: Check Munin mobile converter syntax and test contract
         run: |
