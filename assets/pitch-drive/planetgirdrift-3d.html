@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="no"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Planetgirdrift – 3D-modell</title>
+<style>
+:root{--bg:#e9edf2;--fg:#14233b;--card:#fffffff0;--bd:#c2ccda;--ac:#1f5fbf;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1621;--fg:#e7edf6;--card:#182233f0;--bd:#2f3d54;--ac:#7aa9f7}}
+:root[data-theme=dark]{--bg:#0f1621;--fg:#e7edf6;--card:#182233f0;--bd:#2f3d54;--ac:#7aa9f7}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+canvas{display:block;touch-action:none}
+.p{position:absolute;left:12px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px 12px}
+#top{top:calc(12px + env(safe-area-inset-top,0px));max-width:min(420px,calc(100% - 48px))}
+#cap{bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:min(560px,calc(100% - 48px))}
+h1{font-size:15px;margin:0 0 8px}
+#bt{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+button{font:inherit;color:var(--fg);background:transparent;border:1px solid var(--bd);border-radius:6px;padding:4px 10px;cursor:pointer}
+button:hover,button.on{border-color:var(--ac);color:var(--ac)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+label{display:inline-flex;align-items:center;gap:6px;margin-right:14px}
+#cap{max-height:42vh;overflow:auto}
+table{border-collapse:collapse;margin:6px 0;font-size:13px}
+td{padding:2px 14px 2px 0;vertical-align:top}td:first-child{opacity:.7}
+#cap button{padding:1px 8px;margin:2px 4px 2px 0;font-size:12px}
+</style></head><body>
+<div class="p" id="top"><h1>Planetgirdrift, 3 trinn og ringgir</h1><div id="bt"></div>
+<label>Hastighet <input id="sp" type="range" min="0" max="20" step=".5" value="4"></label>
+<label><input id="cu" type="checkbox" checked> Snitt</label></div>
+<div class="p" id="cap"></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const T=THREE,PI=Math.PI;
+const R=new T.WebGLRenderer({antialias:true,alpha:true});R.localClippingEnabled=true;
+R.setPixelRatio(Math.min(devicePixelRatio,2));document.body.prepend(R.domElement);
+const S=new T.Scene(),C=new T.PerspectiveCamera(38,1,10,12000),D=new T.Group();D.rotation.y=PI/2;S.add(D);
+const O=new T.OrbitControls(C,R.domElement);O.enableDamping=true;
+S.add(new T.HemisphereLight(0xffffff,0x667799,1));
+const L=new T.DirectionalLight(0xffffff,.9);L.position.set(500,900,700);S.add(L);
+const L2=new T.DirectionalLight(0xffffff,.4);L2.position.set(-600,300,-500);S.add(L2);
+const cut=new T.Plane(new T.Vector3(0,0,-1),0),cms=[];
+const BL=0x2f6fd6,RD=0xe0302b,GN=0x2f9e4f,GY=0x98a2ae,SH=0xc4cbd4,DK=0x39414d;
+const mat=(c,o)=>new T.MeshStandardMaterial(Object.assign({color:c,metalness:.35,roughness:.5,side:T.DoubleSide},o));
+const cm=(c,o)=>{const m=mat(c,o);cms.push(m);return m};
+const ext=(sh,z0,z1,m)=>{const g=new T.ExtrudeGeometry(sh,{depth:z1-z0,bevelEnabled:false,curveSegments:32});g.translate(0,0,z0);return new T.Mesh(g,m)};
+const cyl=(r,z0,z1,m,open)=>{const g=new T.CylinderGeometry(r,r,z1-z0,48,1,!!open);g.rotateX(PI/2);g.translate(0,0,(z0+z1)/2);return new T.Mesh(g,m)};
+const disc=(r,z0,z1,m,h)=>{const s=new T.Shape();s.absarc(0,0,r,0,2*PI);if(h){const p=new T.Path();p.absarc(0,0,h,0,2*PI,true);s.holes.push(p)}return ext(s,z0,z1,m)};
+function teeth(z,rr,rt){const p=2*PI/z,a=[];for(let k=0;k<z;k++)[[rr,-.3],[rt,-.15],[rt,.15],[rr,.3]].forEach(([r,f])=>{const q=k*p+f*p;a.push(new T.Vector2(r*Math.cos(q),r*Math.sin(q)))});return a}
+function gear(z,m,z0,z1,mt,ring,Ro){const rp=z*m/2;if(!ring)return ext(new T.Shape(teeth(z,rp-1.25*m,rp+m)),z0,z1,mt);
+ const s=new T.Shape();s.absarc(0,0,Ro,0,2*PI);s.holes.push(new T.Path(teeth(z,rp+1.25*m,rp-m)));return ext(s,z0,z1,mt)}
+const box=(w,h,d,x,y,z,m)=>{const b=new T.Mesh(new T.BoxGeometry(w,h,d),m);b.position.set(x,y,z);return b};
+
+const REG={},fm=x=>String(x).replace('.',','),tg=(id,o)=>o.traverse(m=>{if(m.isMesh)m.userData.id=id}),add=(id,...o)=>o.forEach(x=>{tg(id,x);D.add(x)});
+function I(id,par,name,rows){REG[id]={id,par,name,rows,kids:[]};if(par)REG[par].kids.push(id)}
+function stage(n,zc,zs,zp,zr,m,b,sh,io){
+ const a=m*(zs+zp)/2,rp=zp*m/2,rr=zr*m/2,Ro=rr+1.25*m+10,z0=zc-b/2,z1=zc+b/2,k=zs/zp;
+ const sun=new T.Group(),car=new T.Group(),pl=[],i0=[],q='t'+n;
+ I(q,0,'Trinn '+n,[['Utveksling i',fm((1+zr/zs).toFixed(1))],['Planeter','3'],['Akselavstand a',a+' mm'],['Modul mn',m+' mm'],['Tannbredde b',b+' mm'],['Inn (solhjul)',io[0]],['Ut (bærer)',io[1]]]);
+ I(q+'s',q,'Solhjul',[['Tannetall z',zs],['Delediameter d',fm(zs*m)+' mm'],['Rolle','Inngang, sitter på inngangsakselen']]);
+ I(q+'p',q,'Planethjul (3 stk)',[['Tannetall z',zp],['Delediameter d',fm(zp*m)+' mm'],['Spinn rel. bærer','−'+fm((zs/zp).toFixed(3))+' × (sol − bærer)'],['Rolle','Går i inngrep med sol og ring']]);
+ I(q+'r',q,'Ringgir',[['Tannetall z','−'+zr+' (innvendig)'],['Delediameter d',fm(zr*m)+' mm'],['Rolle','Fast i huset, tar reaksjonsmomentet']]);
+ I(q+'c',q,'Planetbærer',[['Rolle','Holder de 3 planetene på tapper'],['Utgang',io[1]]]);
+ I(q+'a',q,'Inngangsaksel',[['Rolle','Fører moment inn til solhjulet'],['Verdi',io[0]]]);
+ const sg=gear(zs,m,z0,z1,mat(BL)),sa=cyl(sh[0],sh[1],zc,mat(SH));tg(q+'s',sg);tg(q+'a',sa);sun.add(sg,sa);
+ const ring=gear(zr,m,z0,z1,cm(GN),1,Ro);tg(q+'r',ring);
+ [z0-14,z1+6].forEach(z=>{const d=disc(a+rp*.55,z,z+8,mat(GY));tg(q+'c',d);car.add(d)});
+ for(let j=0;j<3;j++){const f=j*2*PI/3,x=a*Math.cos(f),y=a*Math.sin(f);
+  const p=new T.Group(),pg=gear(zp,m,z0,z1,mat(RD));tg(q+'p',pg);p.position.set(x,y,0);p.add(pg);car.add(p);pl.push(p);
+  const pin=cyl(rp*.2,z0-14,z1+14,mat(SH));tg(q+'c',pin);pin.position.set(x,y,0);car.add(pin);
+  i0.push(f*(1+k)+PI*(1-1/zp))}
+ ring.rotation.z=2*PI*(i0[0]*zp/(2*PI)-.5)/zr;
+ D.add(sun,car,ring,cyl(Ro+6,z0-18,z1+18,cm(GY,{transparent:true,opacity:.3,depthWrite:false}),1));
+ return{sun,car,pl,i0,k}}
+const upd=(s,ths,thc)=>{s.sun.rotation.z=ths;s.car.rotation.z=thc;s.pl.forEach((p,j)=>p.rotation.z=s.i0[j]+s.k*(thc-ths))};
+
+// Motor, kobling, brems
+I('motor',0,'Servomotor',[['Type','Servo-/pitchmotor, permanentmagnet'],['Effekt','~25 kW'],['Turtall','~1500 o/min'],['Dimensjonerende moment','~145 Nm'],['Driftspunkt','1497,6 o/min, 130,9 Nm']]);
+I('mh','motor','Motorhus',[['Rolle','Stator med kjøleribber og deksler']]);
+I('mk','motor','Koblingsboks',[['Rolle','Elektrisk tilkobling']]);
+add('mh',cyl(95,-520,-290,mat(DK)),cyl(100,-300,-285,mat(GY)),cyl(78,-545,-520,mat(DK)));add('mk',box(90,50,90,0,115,-420,mat(DK)));
+for(let i=0;i<9;i++)add('mh',cyl(98,-510+i*25,-498+i*25,mat(DK)));
+I('br',0,'Bremse',[['Type','Fail-safe, fjærpåsatt, elektrisk løst'],['Holdemoment','~280–300 Nm'],['Plassering','Høyhastighetssiden, foran trinn 1']]);
+add('br',cyl(68,-225,-130,mat(0xcdbd9f)),cyl(72,-180,-170,mat(0xb5a587)));
+I('kob',0,'Fleksibel kobling',[['Type','Torsjonsmyk kobling'],['Plassering','Mellom motor og girkasse'],['Moment','130,9 Nm (drift)']]);
+I('kn','kob','Koblingsnav',[['Rolle','Fester koblingen til akslene']]);I('ke','kob','Elastisk element',[['Rolle','Demper støt og tåler små akselavvik']]);
+const s1=stage(1,0,25,35,95,2,35,[22,-285],['1497,6 o/min, 130,9 Nm','312 o/min, 628,4 Nm']),
+ s2=stage(2,185,24,36,96,3,55,[28,31.5],['312 o/min, 628,4 Nm','62,4 o/min, 3142 Nm']),
+ s3=stage(3,395,24,36,96,5,70,[44,226.5],['62,4 o/min, 3142 Nm','12,48 o/min, 15,71 kNm']);
+{const kn=cyl(40,-262,-230,mat(0x8a939e)),ke=cyl(46,-258,-234,mat(0xd8392b));tg('kn',kn);tg('ke',ke);s1.sun.add(kn,ke)}
+
+// Utgangsaksel, lagre, pinjong
+I('ut',0,'Utgangsaksel',[['Rolle','Bærer fra trinn 3 til pinjongen'],['Hastighet','12,48 o/min'],['Moment','15,71 kNm'],['Lagerspenn','≈ 150–200 mm']]);
+I('pin',0,'Pinjong',[['Type','Utvendig tannhjul'],['Tannetall z','25'],['Modul m','3,2 mm'],['Delediameter d','80 mm'],['Tannbredde b','80 mm'],['Hastighet','12,48 o/min'],['Moment','15,71 kNm']]);
+const out=new T.Group(),osh=cyl(36,444,850,mat(SH)),pn=gear(25,3.2,800,880,mat(BL));tg('ut',osh);tg('pin',pn);out.add(osh,pn);D.add(out);
+[['la',535,'Lager A','Radial + aksial lokalisering'],['lb',705,'Lager B','Radial lokalisering']].forEach(([k,z,nm,fn])=>{
+ I(k,0,nm,[['Funksjon',fn],['Radialkraft Fr','≈ 39,3 kN'],['Tangentialkraft Ft','≈ 14,3 kN'],['Aksialkraft Fa','≈ 0'],['Ekvivalent last Feq','≈ 41,8 kN']]);
+ I(k+'h',k,'Lagerhus',[['Rolle','Fører lagerlasten ned i sokkelen']]);I(k+'e',k,'Lager (rulleelement)',[['Rolle','Opptar radiallast fra utgangsakselen']]);I(k+'s',k,'Sokkel',[['Rolle','Feste og fundament for lagerhuset']]);
+ add(k+'h',cyl(66,z-40,z+40,mat(GY)));add(k+'e',cyl(46,z-46,z+46,mat(DK)));add(k+'s',box(150,100,100,0,-116,z,mat(GY)),box(190,20,130,0,-176,z,mat(DK)))});
+I('ring',0,'Indre ringgir',[['Type','Innvendig ringgir (stigningsringsegment)'],['Tannetall z','125'],['Modul m','3,2 mm'],['Delediameter d','400 mm'],['Tannbredde b','80 mm'],['Utgang (tegning)','1,0 o/min, 196,0 kNm'],['Merk','125/25 gir 5:1, tegningen oppgir 12,48:1']]);
+I('ringt','ring','Tannkrans',[['Rolle','Innvendige tenner i inngrep med pinjongen']]);I('ringf','ring','Flens',[['Rolle','Festeflate mot rotor/navet']]);I('ringb','ring','Bolter (16 stk)',[['Rolle','Fester flensen']]);
+const ringG=new T.Group(),rg=gear(125,3.2,800,880,cm(0xb6bec8),1,240),rf=disc(300,770,800,cm(GY),205);ringG.position.y=-160;tg('ringt',rg);tg('ringf',rf);ringG.add(rg,rf);
+for(let i=0;i<16;i++){const q=i*PI/8,bt=cyl(8,760,812,mat(DK));tg('ringb',bt);bt.position.set(270*Math.cos(q),270*Math.sin(q),0);ringG.add(bt)}
+D.add(ringG);const r0=PI/2-2*PI*6.75/125;
+
+// Kamera og fokus
+const F=[['Alt',180,-30,1500,'Hele drivlinjen: servomotor (~25 kW, 1497,6 o/min, 130,9 Nm), bremse, tre planettrinn (4,8 · 5 · 5 = 120:1), pinjong og indre ringgir. Dra for å rotere, scroll for å zoome, klikk på en del for data.'],
+['Motor',-330,0,750,'Servomotor ~25 kW, ~1500 o/min, ~145 Nm (dimensjonerende). Fleksibel kobling (rød) og fjærpåsatt, elektrisk løst sikkerhetsbrems med ~280–300 Nm holdemoment.'],
+['Trinn 1',0,0,650,'Trinn 1: i = 4,8. z 25 / 35 / −95, m 2 mm, b 35 mm, a 60 mm, 3 planeter. Ut: 312 o/min, 628,4 Nm.'],
+['Trinn 2',185,0,850,'Trinn 2: i = 5,0. z 24 / 36 / −96, m 3 mm, b 55 mm, a 90 mm, 3 planeter. Ut: 62,4 o/min, 3142 Nm.'],
+['Trinn 3',395,0,1100,'Trinn 3: i = 5,0. z 24 / 36 / −96, m 5 mm, b 70 mm, a 150 mm, 3 planeter. Ut: 12,48 o/min, 15,71 kNm.'],
+['Pinjong og ring',760,-90,1000,'Pinjong z 25, m 3,2 mm, d 80 mm, b 80 mm inne i ringgir z 125, d 400 mm, på aksel med lager A og B. Modellen følger tannetallene (5:1). Tegningens i₄ = 12,48 stemmer ikke med 125/25.']];
+const ID=[0,'motor','t1','t2','t3','pin'];let goal,gf=0;const cap=document.getElementById('cap'),bt=document.getElementById('bt');
+function go(i,now){const [,x,y,d,t]=F[i];show(ID[i],t);[...bt.children].forEach((b,j)=>b.classList.toggle('on',j==i));
+ goal={t:new T.Vector3(x,y,0),p:new T.Vector3(x+d*.15,d*.3,d*.95)};
+ if(now){O.target.copy(goal.t);C.position.copy(goal.p)}else gf=90}
+F.forEach((f,i)=>{const b=document.createElement('button');b.textContent=f[0];b.onclick=()=>go(i);bt.append(b)});
+function rs(){const w=innerWidth,h=innerHeight;R.setSize(w,h);C.aspect=w/h;C.updateProjectionMatrix()}
+addEventListener('resize',rs);rs();
+F[0][3]=Math.max(1500,2700/(innerWidth/innerHeight));go(0,true);
+const cu=document.getElementById('cu'),sp=document.getElementById('sp');
+cu.onchange=()=>cms.forEach(m=>{m.clippingPlanes=cu.checked?[cut]:[];m.needsUpdate=true});cu.onchange();
+const chip=(t,f)=>{const b=document.createElement('button');b.textContent=t;b.onclick=f;return b};
+function sel(id){D.traverse(m=>{if(m.isMesh&&m.material.emissive){const q=m.userData.id,r=REG[q];m.material.emissive.setHex(id&&r&&(q==id||r.par==id)?0x2a4a7a:0)}});
+ [...bt.children].forEach(b=>b.classList.remove('on'));if(!id)return;
+ const r=REG[id],p=r.par&&REG[r.par];cap.replaceChildren();
+ const h=document.createElement('div'),bd=document.createElement('b');if(p)h.append(chip(p.name,()=>sel(p.id)),' › ');bd.textContent=r.name;h.append(bd);cap.append(h);
+ const tb=document.createElement('table');r.rows.forEach(([k,v])=>{const tr=tb.insertRow();tr.insertCell().textContent=k;tr.insertCell().textContent=v});cap.append(tb);
+ const ks=r.kids.length?r.kids:p?p.kids.filter(k=>k!=id):[];
+ if(ks.length){const l=document.createElement('div');l.append(r.kids.length?'Inneholder: ':'Andre deler i '+p.name+': ');ks.forEach(k=>l.append(chip(REG[k].name,()=>sel(k))));cap.append(l)}}
+function show(id,t){if(id)sel(id);else{sel(null);cap.textContent=t}}
+const rc=new T.Raycaster(),pt=new T.Vector2();let dn;
+R.domElement.addEventListener('pointerdown',e=>dn=[e.clientX,e.clientY]);
+R.domElement.addEventListener('pointerup',e=>{if(!dn||Math.hypot(e.clientX-dn[0],e.clientY-dn[1])>5)return;
+ pt.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);rc.setFromCamera(pt,C);
+ const h=rc.intersectObject(D,true).find(x=>{const q=x.object.userData.id,cp=x.object.material.clippingPlanes;return q&&!(cp&&cp.some(p=>p.distanceToPoint(x.point)<0))});
+ if(h)sel(h.object.userData.id);else show(0,F[0][4])});
+let th=0,last=performance.now();
+(function loop(t){requestAnimationFrame(loop);const dt=Math.min((t-last)/1000,.05);last=t;th+=dt*sp.value;
+ const c1=th/4.8,c2=c1/5,c3=c2/5;
+ upd(s1,th,c1);upd(s2,c1,c2);upd(s3,c2,c3);out.rotation.z=c3;ringG.rotation.z=r0+c3/5;
+ if(gf>0){gf--;O.target.lerp(goal.t,.1);C.position.lerp(goal.p,.1)}
+ O.update();R.render(S,C)})(last);
+</script></body></html>
