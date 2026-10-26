@@ -19,19 +19,49 @@ export function previewContentURL(resource){
 
 const DEFAULT_MAX_TEXT_BYTES=8*1024*1024;
 const DEFAULT_MAX_JSON_BYTES=32*1024*1024;
+const TEXT_IDLE_TIMEOUT_MS=30_000;
+const BINARY_IDLE_TIMEOUT_MS=60_000;
 function sizeLimit(maxBytes){
   if(!Number.isSafeInteger(maxBytes)||maxBytes<1||maxBytes>128*1024*1024)
     throw new RangeError("Invalid preview size limit.");
   return (maxBytes/(1024*1024)).toLocaleString("en-US",{maximumFractionDigits:2})+" MiB";
 }
-export async function fetchText(path,{maxBytes=DEFAULT_MAX_TEXT_BYTES}={}){
+
+function checkIdleTimeout(idleTimeoutMs){
+  if(!Number.isSafeInteger(idleTimeoutMs)||idleTimeoutMs<1||idleTimeoutMs>300_000)
+    throw new RangeError("Invalid preview idle timeout.");
+}
+/** Bound each network operation, not just fetch headers: a stalled body can hang too. */
+async function timedPreviewIO(operation,controller,idleTimeoutMs){
+  let timer;
+  try{
+    return await Promise.race([
+      Promise.resolve().then(operation),
+      new Promise((_,reject)=>{
+        timer=setTimeout(()=>{
+          controller.abort();
+          reject(new Error("Preview timed out waiting for file data; open the original or retry."));
+        },idleTimeoutMs);
+      })
+    ]);
+  }finally{clearTimeout(timer)}
+}
+function cancelPreviewReader(reader){
+  try{void reader?.cancel?.().catch(()=>{});}catch{}
+}
+/** Read untrusted text under both byte and per-operation idle-time limits. */
+export async function fetchText(path,{maxBytes=DEFAULT_MAX_TEXT_BYTES,idleTimeoutMs=TEXT_IDLE_TIMEOUT_MS}={}){
   const label=sizeLimit(maxBytes);
-  const response=await fetch(path);
+  checkIdleTimeout(idleTimeoutMs);
+  const controller=new AbortController();
+  const io=operation=>timedPreviewIO(operation,controller,idleTimeoutMs);
+  const response=await io(()=>fetch(path,{signal:controller.signal}));
   if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${path}`);
   const size=Number(response.headers.get("content-length")||0);
-  if(size>maxBytes){await response.body?.cancel?.();throw new Error(`Preview exceeds the ${label} limit; download the original instead.`);}
+  if(size>maxBytes){controller.abort();
+    try{void response.body?.cancel?.().catch(()=>{});}catch{}throw new Error(`Preview exceeds the ${label} limit; download the original instead.`);}
   if(!response.body?.getReader){
-    const text=await response.text();
+    const text=await io(()=>response.text());
     if(new TextEncoder().encode(text).byteLength>maxBytes)throw new Error(`Preview exceeds the ${label} limit.`);
     return text;
   }
@@ -39,34 +69,38 @@ export async function fetchText(path,{maxBytes=DEFAULT_MAX_TEXT_BYTES}={}){
   let used=0;
   try{
     while(true){
-      const {done,value}=await reader.read();
+      const {done,value}=await io(()=>reader.read());
       if(done)break;
       used+=value.byteLength;
       if(used>maxBytes)throw new Error(`Preview exceeds the ${label} limit; download the original instead.`);
       chunks.push(value);
     }
-  }catch(error){await reader.cancel().catch(()=>{});throw error}
+  }catch(error){controller.abort();cancelPreviewReader(reader);throw error}
   const decoder=new TextDecoder();
   return chunks.map((chunk,index)=>decoder.decode(chunk,{stream:index<chunks.length-1})).join("")+decoder.decode();
 }
 
 /** Bounded parsing for untrusted course JSON and notebook archives. */
-export async function fetchJSON(path,{maxBytes=DEFAULT_MAX_JSON_BYTES}={}){
-  return JSON.parse(await fetchText(path,{maxBytes}));
+export async function fetchJSON(path,options={}){
+  return JSON.parse(await fetchText(path,{maxBytes:DEFAULT_MAX_JSON_BYTES,...options}));
 }
 
 /** Stream binary course files under a strict byte budget, including unknown-length responses. */
-export async function fetchBoundedBuffer(path,{maxBytes=80_000_000}={}){
+export async function fetchBoundedBuffer(path,{maxBytes=80_000_000,idleTimeoutMs=BINARY_IDLE_TIMEOUT_MS}={}){
   const label=sizeLimit(maxBytes);
-  const response=await fetch(path);
+  checkIdleTimeout(idleTimeoutMs);
+  const controller=new AbortController();
+  const io=operation=>timedPreviewIO(operation,controller,idleTimeoutMs);
+  const response=await io(()=>fetch(path,{signal:controller.signal}));
   if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${path}`);
   const declared=Number(response.headers.get("content-length")||0);
   if(declared>maxBytes){
-    await response.body?.cancel?.();
+    controller.abort();
+    try{void response.body?.cancel?.().catch(()=>{});}catch{}
     throw new Error(`Archive exceeds ${label} preview limit; download the original.`);
   }
   if(!response.body?.getReader){
-    const buffer=await response.arrayBuffer();
+    const buffer=await io(()=>response.arrayBuffer());
     if(buffer.byteLength>maxBytes)throw new Error(`Archive exceeds ${label} preview limit; download the original.`);
     return buffer;
   }
@@ -74,13 +108,13 @@ export async function fetchBoundedBuffer(path,{maxBytes=80_000_000}={}){
   const chunks=[];let used=0;
   try{
     while(true){
-      const {done,value}=await reader.read();
+      const {done,value}=await io(()=>reader.read());
       if(done)break;
       used+=value.byteLength;
       if(used>maxBytes)throw new Error(`Archive exceeds ${label} preview limit; download the original.`);
       chunks.push(value);
     }
-  }catch(error){await reader.cancel().catch(()=>{});throw error}
+  }catch(error){controller.abort();cancelPreviewReader(reader);throw error}
   const output=new Uint8Array(used);
   let offset=0;
   for(const chunk of chunks){output.set(chunk,offset);offset+=chunk.length}

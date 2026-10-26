@@ -6,6 +6,7 @@ import {medisinDriveFolder,setMedisinDriveFolder} from "../platform/medisin-fold
 import {medisinCloudSyncAllowed,setMedisinCloudSyncAllowed} from "../platform/medisin-cloud-consent.js";
 import {CONCENTRATION_UNITS,medisinConcentrations,medisinSolutionVolume} from "./medisin-concentration.js";
 import {medisinStorageKey,medisinTimers,medisinDoses,medisinNextAt,medisinRemainingLevel,medisinChart,medisinApply,medisinCreateTimer,medisinCreateDose,medisinDelete} from "./medisin-model.js";
+import {reconcileMedisinLocalWrite} from "./medisin-local-sync.js";
 
 const LEGACY_URL="https://tormt.folk.ntnu.no/diverse/MedisinTimer/";
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -38,6 +39,15 @@ export function medisinPageHTML(){
       <button class="btn" type="button" id="medisin-import">Importer JSON eller kryptert backup</button>
       <input type="file" accept=".json,application/json" id="medisin-import-file" hidden>
     </div></div>
+    <section id="medisin-corrupt-recovery" class="medisin-panel" hidden role="alert">
+      <h2>Lokale data kan ikke leses</h2>
+      <p>MedisinTimer har stoppet skriving og synkronisering for denne profilen for å unngå å overskrive den eksisterende historikken. Ingen data er nullstilt automatisk.</p>
+      <p>Last ned den opprinnelige, uleselige JSON-teksten først, og kontroller at kopien er lagret. Deretter kan du velge å starte med en tom lokal profil eller kontakte noen som kan reparere filen. Eksporten er ukryptert og kan inneholde sensitive opplysninger.</p>
+      <div class="medisin-buttons">
+        <button class="btn" id="medisin-recovery-export" type="button">Last ned original lokaltekst (ukryptert)</button>
+        <button class="btn" id="medisin-recovery-reset" type="button" disabled>Start tom lokal profil etter sikkerhetskopi</button>
+      </div>
+    </section>
     <div class="medisin-layout">
       <section class="medisin-panel">
         <h2>Ny timer</h2>
@@ -112,21 +122,66 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
   const status=root.querySelector("#medisin-sync-status");
   const feedback=root.querySelector("#medisin-feedback");
   let profile=accountId(),key=medisinStorageKey(profile),backup=newMedisinBackup();
+  let unreadableLocalRaw=null,recoveryExported=false,lastSeenRaw=null;
   let syncPromise=null,pendingSync=false,disposed=false,syncTimer=null;
   let vaultPassphrase=null;
   const signedIn=()=>Boolean(accountId());
   function readLocal(){
-    try{const value=localStorage.getItem(key);return value?validateMedisinBackup(JSON.parse(value)):newMedisinBackup();}
-    catch(error){message("Kunne ikke lese lokale data: "+error.message);return newMedisinBackup();}
+    let raw=null;
+    try{
+      raw=localStorage.getItem(key);
+      const valid=raw!==null?validateMedisinBackup(JSON.parse(raw)):newMedisinBackup();
+      unreadableLocalRaw=null;recoveryExported=false;lastSeenRaw=raw;
+      return valid;
+    }catch(error){
+      // Never silently turn corrupted persisted health data into an empty log:
+      // a subsequent Save would otherwise overwrite the only surviving copy.
+      unreadableLocalRaw=raw;recoveryExported=false;
+      message("Lokale data kan ikke leses. Skriving er sperret; originalen er ikke overskrevet.");
+      return null;
+    }
   }
   function message(text){if(!disposed)feedback.textContent=text;}
   function saveLocal(value){
+    if(!backup)throw new Error("Lagring er sperret fordi lokal historikk ikke kan leses.");
     validateMedisinBackup(value);
-    localStorage.setItem(key,JSON.stringify(value));
-    backup=value;
+    // Another tab may have committed records or tombstones after this view
+    // loaded. Re-read and merge before every local write, including cloud
+    // downloads, instead of overwriting with an out-of-date in-memory copy.
+    const currentRaw=localStorage.getItem(key);
+    let final;
+    try{final=reconcileMedisinLocalWrite(value,currentRaw,{previouslySeenRaw:lastSeenRaw});}
+    catch(error){
+      if(currentRaw!==null){
+        try{validateMedisinBackup(JSON.parse(currentRaw))}
+        catch{
+          unreadableLocalRaw=currentRaw;recoveryExported=false;
+          backup=null;renderCards();updateStatus();
+        }
+      }
+      throw error;
+    }
+    const serialized=JSON.stringify(final);
+    localStorage.setItem(key,serialized);
+    lastSeenRaw=serialized;
+    backup=final;
     renderCards();
+    return final;
   }
   function renderCards(){
+    const recovery=root.querySelector("#medisin-corrupt-recovery");
+    if(recovery)recovery.hidden=Boolean(backup);
+    const restore=root.querySelector("#medisin-recovery-reset");
+    if(restore)restore.disabled=!recoveryExported||unreadableLocalRaw===null;
+    for(const id of ["#medisin-add-form button[type=submit]","#medisin-import","#medisin-export","#medisin-export-encrypted"]){
+      const control=root.querySelector(id);
+      if(control)control.disabled=!backup;
+    }
+    if(!backup){
+      count.textContent="Historikken er sperret";
+      list.textContent="Dataene kan ikke leses. Eksporter originalteksten før du eventuelt starter en ny profil.";
+      return;
+    }
     const timers=medisinTimers(backup),now=Date.now();
     count.textContent=timers.length+" timere";
     list.innerHTML=timers.map(t=>card(backup,t,now)).join("")||'<p class="muted">Ingen timere ennå. Legg til en timer til venstre.</p>';
@@ -141,7 +196,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     if(folderInput&&!folderInput.matches(":focus"))folderInput.value=connected?(medisinDriveFolder(a.profile.sub)||""):"";
     if(passInput)passInput.disabled=!connected;
     const trigger=root.querySelector("#medisin-sync");
-    trigger.disabled=!connected||!!syncPromise;
+    trigger.disabled=!connected||!!syncPromise||!backup;
     trigger.textContent=unlocked?"Synk nå":allowed?"Lås opp kryptert backup":"Aktiver kryptert Drive-synk";
     const disable=root.querySelector("#medisin-cloud-disable");
     disable.hidden=!allowed;
@@ -156,7 +211,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
       :"Lokal lagring · logg inn under Innstillinger → Connections for valgfri synk.");
   }
   async function syncCloud(){
-    if(disposed||!signedIn()||!vaultPassphrase||!medisinCloudSyncAllowed(profile))return;
+    if(disposed||!backup||!signedIn()||!vaultPassphrase||!medisinCloudSyncAllowed(profile))return;
     if(syncPromise){pendingSync=true;return syncPromise;}
     const syncProfile=profile;
     const passphrase=vaultPassphrase;
@@ -169,12 +224,13 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
       // Decryption failure always stops here. No legacy plaintext fallback, and
       // no overwrite of a locked or incompatible encrypted remote backup.
       const local=readLocal();
+      if(!local){backup=null;renderCards();throw new Error("Lokal historikk kan ikke leses. Synkronisering er sperret.");}
       const merged=remote?mergeMedisinBackups(local,remote.backup):local;
-      saveLocal(merged);
-      if(merged.entries.length&&(!remote||JSON.stringify(merged.entries)!==JSON.stringify(remote.backup.entries))){
+      const reconciled=saveLocal(merged);
+      if(reconciled.entries.length&&(!remote||JSON.stringify(reconciled.entries)!==JSON.stringify(remote.backup.entries))){
         if(disposed||accountId()!==syncProfile||vaultPassphrase!==passphrase||
           !medisinCloudSyncAllowed(syncProfile))return;
-        await writeEncryptedMedisinDriveBackup(syncProfile,passphrase,merged,{
+        await writeEncryptedMedisinDriveBackup(syncProfile,passphrase,reconciled,{
           folderId,allowReplace:Boolean(remote),expectedRevision:remote?.revision||null});
       }
       message("Kryptert Google Drive-backup synkronisert · "+date(Date.now()));
@@ -194,12 +250,14 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     }
   }
   function scheduleSync(){
-    if(!signedIn()||!vaultPassphrase||!medisinCloudSyncAllowed(profile))return;
+    if(!backup||!signedIn()||!vaultPassphrase||!medisinCloudSyncAllowed(profile))return;
     clearTimeout(syncTimer);
     syncTimer=setTimeout(()=>{if(!disposed)syncCloud();},900);
   }
   function apply(record){
-    try{saveLocal(medisinApply(backup,record));message("Lagret lokalt.");scheduleSync();}
+    try{
+      if(!backup)throw new Error("Historikken kan ikke leses. Last ned den gamle lokalteksten først.");
+      saveLocal(medisinApply(backup,record));message("Lagret lokalt.");scheduleSync();}
     catch(error){message("Lagring feilet: "+error.message);}
   }
   root.querySelector("[data-medisin-back]")?.addEventListener("click",onBack);
@@ -213,6 +271,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     }catch(error){message(error.message);}
   });
   list.addEventListener("click",event=>{
+    if(!backup)return;
     const doseButton=event.target.closest("[data-medisin-dose]");
     if(doseButton){
       const timer=medisinTimers(backup).find(t=>t.id===doseButton.dataset.medisinDose);
@@ -294,6 +353,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     setTimeout(()=>URL.revokeObjectURL(href),1000);
   }
   root.querySelector("#medisin-export-encrypted")?.addEventListener("click",async()=>{
+    if(!backup){message("Historikken er sperret. Eksporter den opprinnelige lokalteksten.");return}
     const passphrase=vaultPassphrase||root.querySelector("#medisin-vault-passphrase").value;
     if(!passphrase||passphrase.length<12){message("Lås opp med passfrasen eller skriv en ny passfrase på minst 12 tegn før kryptert eksport.");return}
     try{downloadBackup(await encryptMedisinVault(backup,passphrase),"medisintimer-v2-kryptert.enc.json");
@@ -301,6 +361,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     catch(error){message("Kryptert eksport feilet: "+error.message)}
   });
   root.querySelector("#medisin-export")?.addEventListener("click",()=>{
+    if(!backup){message("Historikken er sperret. Eksporter den opprinnelige lokalteksten.");return}
     downloadBackup(backup,"medisintimer-v2-backup.json");
     message("Ukryptert JSON eksportert. Filen kan inneholde sensitive opplysninger.");
   });
@@ -315,10 +376,34 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
       const passphrase=vaultPassphrase||root.querySelector("#medisin-vault-passphrase").value;
       if(isEncryptedMedisinVault(parsed)&&!passphrase)throw new Error("Oppgi passfrasen til den krypterte filen først.");
       const imported=validateMedisinBackup(isEncryptedMedisinVault(parsed)?await decryptMedisinVault(parsed,passphrase):parsed);
+      if(!backup)throw new Error("Lokal historikk er sperret. Eksporter originalen og velg ny lokal profil før import.");
       const merged=mergeMedisinBackups(backup,imported);
       saveLocal(merged);scheduleSync();message("Importert "+imported.entries.length+" oppføringer (sammenslått uten å slette eksisterende).");
     }catch(error){message("Import mislyktes: "+error.message);}
     fileInput.value="";
+  });
+  // Recovery is explicit and profile-local. No invalid bytes are discarded
+  // merely because the page loads or the user attempts an ordinary action.
+  root.querySelector("#medisin-recovery-export")?.addEventListener("click",()=>{
+    if(unreadableLocalRaw===null||backup)return;
+    const blob=new Blob([unreadableLocalRaw],{type:"text/plain;charset=utf-8"});
+    const href=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=href;a.download="medisintimer-uleselig-original-ukryptert.txt";a.click();
+    setTimeout(()=>URL.revokeObjectURL(href),1000);
+    recoveryExported=true;renderCards();
+    message("Nedlasting startet. Kontroller at den ukrypterte originalfilen er lagret før du eventuelt nullstiller profilen.");
+  });
+  root.querySelector("#medisin-recovery-reset")?.addEventListener("click",()=>{
+    if(backup||!recoveryExported||unreadableLocalRaw===null)return;
+    if(globalThis.confirm?.("Har du kontrollert at den opprinnelige ukrypterte filen er lastet ned? Dette nullstiller bare den aktive lokale MedisinTimer-profilen. Ingen Drive-data slettes.")!==true)return;
+    try{
+      localStorage.removeItem(key);
+      backup=readLocal();
+      renderCards();updateStatus();
+      message("Tom lokal profil startet etter eksplisitt bekreftelse. Originalfilen er bare bevart i nedlastingen.");
+    }catch{
+      message("Kan ikke nullstille lokal lagring. Ingen data ble endret.");
+    }
   });
   const unsubscribe=subscribeGoogleSession(()=>{
     const newProfile=accountId();
@@ -331,8 +416,26 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
     }
     updateStatus();
   });
+  const onOtherTabChange=event=>{
+    if(disposed||event.key!==key||event.storageArea!==localStorage)return;
+    // A reset in another tab cannot be reconciled with the old mounted copy.
+    // Block the next write instead of silently resurrecting removed data.
+    if(event.newValue===null){
+      message("Profilen ble fjernet i en annen fane. Last inn siden på nytt før du lagrer.");
+      return;
+    }
+    backup=readLocal();
+    renderCards();updateStatus();
+    message(backup
+      ?"Endringer fra en annen fane er lest inn. Nye lagringer blir sammenslått."
+      :"En annen fane lagret ugyldig historikk; skriving er sperret.");
+  };
+  globalThis.addEventListener?.("storage",onOtherTabChange);
   const clock=setInterval(()=>{if(!disposed)renderCards();},60000);
   backup=readLocal();renderCards();updateStatus();
   // Never request Drive data until the user unlocks this browser session.
-  return {cleanup(){disposed=true;vaultPassphrase=null;clearTimeout(syncTimer);clearInterval(clock);unsubscribe();}};
+  return {cleanup(){
+    disposed=true;vaultPassphrase=null;clearTimeout(syncTimer);clearInterval(clock);
+    globalThis.removeEventListener?.("storage",onOtherTabChange);unsubscribe();
+  }};
 }

@@ -10,22 +10,52 @@ const TYPES=["course","quiz","video"];
 const isObj=v=>v!==null&&typeof v==="object"&&!Array.isArray(v);
 const nonnegative=v=>Number.isFinite(v)&&v>=0&&v<=100_000_000;
 const positiveInt=v=>Number.isSafeInteger(v)&&v>=0&&v<=1_000_000;
+const NTNU_ORIGIN="https://tormt.folk.ntnu.no";
+const BLOCKED_SEGMENTS=/(?:beskyttet|protected|private|privat|secret|token|password|passord|credential)/i;
+/** Use the original NTNU URL, not a temporary blob URL, as progress identity.
+ *  A filename with encoded Norwegian characters or spaces must hash exactly
+ *  like the equivalent same-origin relative path. Never download file bytes. */
+export function canonicalNTNUProgressPath(resource){
+ if(!isObj(resource)||resource.source!=="ntnu")
+   throw Error("A public NTNU resource is required");
+ const input=String(resource.url||resource.path||"");
+ if(input.length>1800||input.includes("\\")||input.includes("?")||
+    input.includes("#")||/[\u0000-\u001f\u007f]/.test(input))
+   throw Error("Unsafe NTNU progress path");
+ let path=input;
+ if(input.startsWith("https://")){
+   let url;
+   try{url=new URL(input)}catch{throw Error("Unsafe NTNU progress URL")}
+   if(url.origin!==NTNU_ORIGIN||url.username||url.password||
+      url.search||url.hash||url.protocol!=="https:"||
+      url.href!==input)
+     throw Error("NTNU progress URL must use the approved origin");
+   path=url.pathname;
+ }else if(!input.startsWith("/semestre/")){
+   throw Error("A stable NTNU resource path or approved progressId is required");
+ }
+ const rawParts=path.split("/").slice(1);
+ if(rawParts.length<5||rawParts[0]!=="semestre"||
+    !/^(?:[1-9]|1[0-9]|20)$/.test(rawParts[1])||
+    !["filer","quiz"].includes(rawParts[3]))
+   throw Error("Unsafe NTNU progress path");
+ let parts;
+ try{parts=rawParts.map(decodeURIComponent)}
+ catch{throw Error("Invalid NTNU filename encoding")}
+ if(parts.some((p,i)=>!p||p==="."||p===".."||
+    p.startsWith(".")||p.startsWith("~$")||
+    BLOCKED_SEGMENTS.test(p)||/[\/\\%?#\u0000-\u001f\u007f]/.test(p)||
+    (i===1&&!/^(?:[1-9]|1[0-9]|20)$/.test(p))))
+   throw Error("Unsafe NTNU progress path");
+ // Encode every segment canonically, independently of URL-vs-local source.
+ return "/"+parts.map(encodeURIComponent).join("/");
+}
 const stableID=resource=>{
  if(!isObj(resource))throw Error("Invalid progress resource");
  if(typeof resource.progressId==="string"&&
     /^folk:(course|quiz|video):[A-Za-z0-9_:/.-]{1,320}$/.test(resource.progressId))
    return resource.progressId;
- const path=resource.source==="ntnu"?(resource.path||resource.url):resource.path;
- if(typeof path!=="string"||!path.startsWith("/semestre/")||
-    path.length>1400||path.includes("?")||path.includes("#")||
-    path.includes("\\")||/(?:beskyttet|protected|private|privat|secret|token)/i.test(path))
-   throw Error("A stable NTNU resource path or approved progressId is required");
- const parts=path.split("/").slice(1);
- if(parts.length<4||parts[0]!=="semestre"||
-    !/^\d{1,2}$/.test(parts[1])||
-    parts.some(x=>!x||x==="."||x===".."||/%2[fFeE]|%5[cC]/.test(x)))
-   throw Error("Unsafe NTNU progress path");
- return "ntnu:"+path;
+ return "ntnu:"+canonicalNTNUProgressPath(resource);
 };
 export async function learningResourceKey(kind,resource,{cryptoImpl=globalThis.crypto}={}){
  if(!TYPES.includes(kind))throw Error("Invalid progress kind");
@@ -87,19 +117,35 @@ export function createFolkLearningProgress({
    u.searchParams.set("resource_key","eq."+key);
    return u.toString();
  };
- async function call(url,{method="GET",body,prefer}={}){
+ async function call(url,{method="GET",body,prefer,ownerId}={}){
+   const assertOwner=()=>{
+     if(identity()!==ownerId)
+       throw Error("FolkNet account changed while loading progress. Reload before retrying.");
+   };
+   // The request must never carry a token for a different active account.
+   assertOwner();
    const token=await tokenProvider();
-   const response=await fetchImpl(url,{
-     method,cache:"no-store",
-     headers:{
-       apikey:normalized.publishableKey,
-       Authorization:"Bearer "+token,
-       Accept:"application/json",
-       ...(body?{"Content-Type":"application/json"}:{}),
-       ...(prefer?{Prefer:prefer}:{})
-     },
-     ...(body?{body:JSON.stringify(body)}:{})
-   });
+   assertOwner();
+   let response;
+   try{
+     response=await fetchImpl(url,{
+       method,cache:"no-store",redirect:"error",
+       signal:globalThis.AbortSignal?.timeout?.(10000),
+       headers:{
+         apikey:normalized.publishableKey,
+         Authorization:"Bearer "+token,
+         Accept:"application/json",
+         ...(body?{"Content-Type":"application/json"}:{}),
+         ...(prefer?{Prefer:prefer}:{})
+       },
+       ...(body?{body:JSON.stringify(body)}:{})
+     });
+   }catch(error){
+     if(error?.name==="TimeoutError"||error?.name==="AbortError")
+       throw Error("Progress request timed out. Reload before retrying.");
+     throw error;
+   }
+   assertOwner();
    if(!response.ok){
      const error=new Error(response.status===409?
        "Progress changed or already exists on another device. Reload before retrying.":
@@ -111,6 +157,7 @@ export function createFolkLearningProgress({
    }
    if(response.status===204)return [];
    const rows=await response.json();
+   assertOwner();
    if(!Array.isArray(rows))throw Error("Unexpected progress response");
    return rows;
  }
@@ -118,7 +165,7 @@ export function createFolkLearningProgress({
    async read(kind,resource){
      const userId=identity();
      const key=await learningResourceKey(kind,resource,{cryptoImpl});
-     const rows=await call(endpoint(userId,kind,key)+"&select=progress,revision,updated_at&limit=1");
+     const rows=await call(endpoint(userId,kind,key)+"&select=progress,revision,updated_at&limit=1",{ownerId:userId});
      if(rows.length>1)throw Error("Unexpected number of progress records");
      if(!rows.length)return null;
      if(!Number.isSafeInteger(rows[0].revision)||rows[0].revision<1)
@@ -137,12 +184,12 @@ export function createFolkLearningProgress({
      let rows;
      if(expectedRevision===null){
        // PK constraint makes duplicate first writes fail rather than overwrite.
-       rows=await call(base,{method:"POST",prefer:"return=representation",
+       rows=await call(base,{method:"POST",ownerId:userId,prefer:"return=representation",
          body:{user_id:userId,kind,resource_key:key,
            revision:1,progress:safe}});
      }else{
        rows=await call(endpoint(userId,kind,key)+"&revision=eq."+expectedRevision,{
-         method:"PATCH",prefer:"return=representation",
+         method:"PATCH",ownerId:userId,prefer:"return=representation",
          body:{revision:expectedRevision+1,progress:safe}});
      }
      if(rows.length!==1||rows[0]?.resource_key!==key||

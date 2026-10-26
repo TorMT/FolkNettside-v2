@@ -128,3 +128,76 @@ test("versioned schema is self-owned, limited, and advances exactly one revision
  assert.match(sql,/pg_column_size\(progress\) <= 4096/);
  assert.match(sql,/\^\[a-f0-9\]\{64\}\$/);
 });
+
+
+test("same approved NTNU file has one hashed progress key for URL, relative and local blob preview",async()=>{
+ const base={source:"ntnu",path:"/semestre/5/Marin-Dynamikk/filer/%C3%98ving%205.py"};
+ const full={source:"ntnu",url:"https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/%C3%98ving%205.py"};
+ const local={...full,path:"blob:https://tormt.github.io/temporary-id",localPreview:true};
+ const unicode={source:"ntnu",path:"/semestre/5/Marin-Dynamikk/filer/Øving 5.py"};
+ const hashes=await Promise.all([base,full,local,unicode].map(x=>learningResourceKey("quiz",x,{cryptoImpl:webcrypto})));
+ assert.equal(new Set(hashes).size,1,"CORS retry and URL encoding must not reset progress");
+ for(const item of [
+  {...full,url:"https://evil.example/semestre/5/Marin-Dynamikk/filer/test.py"},
+  {...full,url:"https://tormt.folk.ntnu.no.evil.net/semestre/5/Marin-Dynamikk/filer/test.py"},
+  {...full,url:"https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/%2fpasswd.py"},
+  {...full,url:"https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/beskyttet.py"},
+  {...full,url:"https://tormt.folk.ntnu.no/semestre/0/Marin-Dynamikk/filer/test.py"},
+  {...full,url:"https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/file.py?auth=secret"},
+  {...full,url:"http://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/file.py"},
+  {...full,url:"https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/hidden/file.py"}
+ ]){
+   await assert.rejects(learningResourceKey("quiz",item,{cryptoImpl:webcrypto}),/NTNU|Unsafe|stable/);
+ }
+});
+
+
+test("Progress REST requests are bounded and never follow cross-origin redirects",async()=>{
+ let options;
+ const api=createFolkLearningProgress({...inputs,fetchImpl:async(_url,opts)=>{
+   options=opts;
+   return response([]);
+ }});
+ assert.equal(await api.read("quiz",resource),null);
+ assert.equal(options.redirect,"error");
+ assert.equal(typeof options.signal?.aborted,"boolean");
+});
+test("Progress timeout does not imply a successful save or automatic retry",async()=>{
+ let attempts=0;
+ const api=createFolkLearningProgress({...inputs,fetchImpl:async()=>{
+   attempts++;
+   const err=new Error("network timeout");err.name="TimeoutError";throw err;
+ }});
+ await assert.rejects(api.read("quiz",resource),/timed out.*Reload/);
+ assert.equal(attempts,1);
+});
+test("Session switch while loading progress rejects stale personal data",async()=>{
+ let activeUser=user,completeFetch;
+ const api=createFolkLearningProgress({...inputs,
+   snapshotProvider:()=>({status:"signed-in",user:{id:activeUser}}),
+   fetchImpl:async()=>new Promise(resolve=>{
+     completeFetch=()=>resolve(response([{revision:1,progress:data,updated_at:data.updatedAt}]));
+   })
+ });
+ const pending=api.read("quiz",resource);
+ for(let i=0;i<100&&!completeFetch;i++)
+   await new Promise(resolve=>setTimeout(resolve,2));
+ assert.equal(typeof completeFetch,"function");
+ activeUser="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+ completeFetch();
+ await assert.rejects(pending,/account changed/);
+});
+test("Sign-out during token refresh rejects progress before any network request",async()=>{
+ let current={status:"signed-in",user:{id:user}};
+ let requests=0;
+ const api=createFolkLearningProgress({...inputs,
+   snapshotProvider:()=>current,
+   tokenProvider:async()=>{
+     current={status:"signed-out",user:null};
+     return "previous-user-access-token";
+   },
+   fetchImpl:async()=>{requests++;return response([])}
+ });
+ await assert.rejects(api.read("quiz",resource),/Sign in|account changed/);
+ assert.equal(requests,0);
+});

@@ -29,6 +29,14 @@ unified. No automatic merge by matching emails.
   `updatedAt`. **Never raw answers or quiz content.**
 - `kind=course`: `completed`, `updatedAt`.
 
+Approved public NTNU files can be identified by either the original
+`https://tormt.folk.ntnu.no/semestre/...` URL or their absolute
+`/semestre/...` path. Both normalize to the same canonical URI-encoded path;
+a local CORS-retry `blob:` URL **never** changes the progress key. Unknown
+origins, hidden, protected, credential-like or malformed paths fail closed.
+This identification change is CI-tested; cloud syncing is still opt-in and
+the production progress table is **not yet deployed**.
+
 Each resource key is a SHA-256 digest of `kind` and a stable approved
 resource ID or full NTNU path. Resource titles are not used to key progress.
 Renaming or moving a live NTNU resource needs an explicit old→new alias

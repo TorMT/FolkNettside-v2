@@ -179,22 +179,46 @@ export async function readBoundedIndexBody(response){
  return raw;
 }
 
-async function readIndex(url,{fetchImpl,origin}){
+// Bound both the initial fetch and stalled response streams. A failed semester
+// must not keep the whole course catalog loading forever. Abort is best effort
+// for custom fetch implementations; Promise.race is the actual UI deadline.
+export const NTNU_INDEX_TIMEOUT_MS=10_000;
+export async function withNTNUIndexDeadline(task,timeoutMs=NTNU_INDEX_TIMEOUT_MS){
+ if(!Number.isFinite(timeoutMs)||timeoutMs<1)
+   throw Error("Invalid NTNU index timeout");
+ const controller=new AbortController();
+ let timer;
+ const deadline=new Promise((_,reject)=>{
+   timer=setTimeout(()=>{
+     reject(Error("NTNU index request timed out"));
+     controller.abort();
+   },timeoutMs);
+ });
+ try{
+   return await Promise.race([Promise.resolve().then(()=>task(controller.signal)),deadline]);
+ }finally{
+   clearTimeout(timer);
+ }
+}
+
+async function readIndex(url,{fetchImpl,origin,timeoutMs=NTNU_INDEX_TIMEOUT_MS}){
  const parsed=new URL(url,origin);
  if(parsed.origin!==origin||!/^\/semestre\/(?:index\.json|\d{1,2}\/index\.json)$/.test(parsed.pathname))
    throw Error("Unapproved NTNU index endpoint");
- const response=await fetchImpl(parsed.href,{
-   cache:"no-store",credentials:"same-origin",mode:"same-origin",
-   redirect:"error",headers:{Accept:"application/json"}
- });
- if(!response.ok)throw Error("NTNU index HTTP "+response.status);
- const raw=await readBoundedIndexBody(response);
- try{return JSON.parse(raw)}catch{throw Error("Malformed NTNU JSON index")}
+ return withNTNUIndexDeadline(async signal=>{
+   const response=await fetchImpl(parsed.href,{
+     cache:"no-store",credentials:"same-origin",mode:"same-origin",
+     redirect:"error",signal,headers:{Accept:"application/json"}
+   });
+   if(!response.ok)throw Error("NTNU index HTTP "+response.status);
+   const raw=await readBoundedIndexBody(response);
+   try{return JSON.parse(raw)}catch{throw Error("Malformed NTNU JSON index")}
+ },timeoutMs);
 }
 export async function loadNTNUCatalog({fetchImpl=fetch,origin=NTNU_ORIGIN,
-  navbarHtml=""}={}){
+  navbarHtml="",timeoutMs=NTNU_INDEX_TIMEOUT_MS}={}){
  if(origin!==NTNU_ORIGIN)throw Error("Unexpected NTNU catalog origin");
- const root=await readIndex("/semestre/index.json",{fetchImpl,origin});
+ const root=await readIndex("/semestre/index.json",{fetchImpl,origin,timeoutMs});
  if(!object(root))throw Error("Invalid NTNU catalog root");
  const ids=Object.keys(root).filter(x=>/^\d{1,2}$/.test(x)&&
    Number(x)>=1&&Number(x)<=20&&root[x]?.beskyttet===false)
@@ -205,7 +229,7 @@ export async function loadNTNUCatalog({fetchImpl=fetch,origin=NTNU_ORIGIN,
  // Each semester-specific index includes course filenames and nested folders.
  // Root-level /semestre/index.json may contain only a tiny subset for S5.
  const settled=await Promise.allSettled(ids.map(async id=>{
-   const data=await readIndex("/semestre/"+id+"/index.json",{fetchImpl,origin});
+   const data=await readIndex("/semestre/"+id+"/index.json",{fetchImpl,origin,timeoutMs});
    return parseNTNUSemesterIndex(id,data,{titles,origin});
  }));
  const semesters=[],failed=[];

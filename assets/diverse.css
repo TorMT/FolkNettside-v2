@@ -184,3 +184,17 @@
 .dive-location-button:focus-visible{
   outline:3px solid var(--accent);outline-offset:3px;
 }
+
+/* B15: clearly disclose dated link observations without hiding source entries. */
+.study-catalog-link-caveat{
+  margin:0;
+  max-width:70ch;
+  padding:8px 10px;
+  border-inline-start:3px solid var(--line);
+  background:var(--surface-sunk);
+  color:var(--ink-2);
+  border-radius:0 6px 6px 0;
+  font-size:11px;
+  line-height:1.55;
+  overflow-wrap:anywhere;
+}
