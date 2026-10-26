@@ -67,6 +67,31 @@ try{
  back.click();
  await wait(()=>doc()?.querySelectorAll(".project-row-link").length>=7,
    "Back to portfolio did not work");
+ // Guard the pitch model independently from image fallbacks: a subsequent
+ // portfolio edit must never silently remove the full interactive model.
+ const pitch=doc().querySelector('.project-row[data-project="pitch-drive-wind-turbine"]');
+ check(pitch,"Pitch drive card missing");
+ pitch.click();
+ const model=await wait(()=>doc()?.querySelector(".project-model-frame"),
+   "Pitch drive 'Full modell' iframe disappeared from project detail");
+ const section=model.closest(".project-model");
+ check(section?.querySelector("h2")?.textContent==="Full modell",
+   "Interactive model section title missing");
+ check(model.getAttribute("src")==="./assets/pitch-drive/planetgirdrift-3d.html",
+   "Interactive model is not using the reviewed local asset");
+ check(model.getAttribute("sandbox")==="allow-scripts",
+   "Embedded model must remain script-only sandboxed");
+ check(model.getAttribute("title")?.includes("pitch drive"),
+   "3D iframe needs an accessible descriptive title");
+ check(section.querySelector(".project-model-note")?.textContent?.includes("5:1"),
+   "Engineering limitations must remain visible");
+ const full=doc().querySelector('.project-detail-links a[href="./assets/pitch-drive/planetgirdrift-3d.html"]');
+ check(full?.textContent.includes("Full modell")&&full.target==="_blank"&&
+   full.rel.includes("noopener"),"Full-size model link missing or unsafe");
+ const frameWidth=model.getBoundingClientRect().width;
+ const sectionWidth=section.getBoundingClientRect().width;
+ check(frameWidth>200&&frameWidth<=sectionWidth+2,
+   "Pitch model overflows its responsive project panel");
  document.body.dataset.status="pass";
  document.getElementById("result").textContent="Projects: cards, images, details, links, and back navigation PASS";
 }catch(error){
