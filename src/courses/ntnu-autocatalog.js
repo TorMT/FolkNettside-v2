@@ -4,7 +4,7 @@
  * Invalid/unavailable auto-index -> existing per-semester public JSON indexes.
  */
 import {NTNU_ORIGIN,parseNTNUSemesterIndex,loadNTNUCatalog,readBoundedIndexBody,
-  isSafeNTNUSegment} from "./ntnu-catalog.js";
+  isSafeNTNUSegment,NTNU_INDEX_TIMEOUT_MS,withNTNUIndexDeadline} from "./ntnu-catalog.js";
 
 const MAX_FILES=25_000;
 const object=value=>value!==null&&typeof value==="object"&&!Array.isArray(value);
@@ -80,32 +80,34 @@ export function validateNTNUAutoCatalog(raw,{origin=NTNU_ORIGIN}={}){
 }
 
 export async function loadNTNUAutoCatalog({
- fetchImpl=fetch,origin=NTNU_ORIGIN
+ fetchImpl=fetch,origin=NTNU_ORIGIN,timeoutMs=NTNU_INDEX_TIMEOUT_MS
 }={}){
  if(origin!==NTNU_ORIGIN)throw Error("Unexpected NTNU origin");
  // Relative to the V2 app directory, never the existing V1 semester root.
- const response=await fetchImpl("./data/ntnu-autocatalog.json",{
-   cache:"no-store",credentials:"same-origin",mode:"same-origin",
-   redirect:"error",headers:{Accept:"application/json"}
- });
- if(!response.ok)throw Error("Auto-index unavailable HTTP "+response.status);
- const content=await readBoundedIndexBody(response);
- let parsed;
- try{parsed=JSON.parse(content)}catch{throw Error("Auto-index invalid JSON")}
- return validateNTNUAutoCatalog(parsed,{origin});
+ return withNTNUIndexDeadline(async signal=>{
+   const response=await fetchImpl("./data/ntnu-autocatalog.json",{
+     cache:"no-store",credentials:"same-origin",mode:"same-origin",
+     redirect:"error",signal,headers:{Accept:"application/json"}
+   });
+   if(!response.ok)throw Error("Auto-index unavailable HTTP "+response.status);
+   const content=await readBoundedIndexBody(response);
+   let parsed;
+   try{parsed=JSON.parse(content)}catch{throw Error("Auto-index invalid JSON")}
+   return validateNTNUAutoCatalog(parsed,{origin});
+ },timeoutMs);
 }
 
 /** Missing/invalid V2 catalog never prevents use of the existing V1 indexes. */
 export async function loadPreferredNTNUCatalog({
- fetchImpl=fetch,origin=NTNU_ORIGIN,navbarHtml=""
+ fetchImpl=fetch,origin=NTNU_ORIGIN,navbarHtml="",timeoutMs=NTNU_INDEX_TIMEOUT_MS
 }={}){
  try{
-   const manifest=await loadNTNUAutoCatalog({fetchImpl,origin});
+   const manifest=await loadNTNUAutoCatalog({fetchImpl,origin,timeoutMs});
    return {manifest,source:"auto",fallback:false};
  }catch(error){
    // Protect against accidental cross-origin use, not a recoverable error.
    if(origin!==NTNU_ORIGIN)throw error;
-   const manifest=await loadNTNUCatalog({fetchImpl,origin,navbarHtml});
+   const manifest=await loadNTNUCatalog({fetchImpl,origin,navbarHtml,timeoutMs});
    return {manifest,source:"legacy",fallback:true};
  }
 }
