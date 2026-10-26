@@ -204,7 +204,7 @@ export function mountMedisin(root,{onBack=()=>{}}={}){
       // Decryption failure always stops here. No legacy plaintext fallback, and
       // no overwrite of a locked or incompatible encrypted remote backup.
       const local=readLocal();
-      if(!local)throw new Error("Lokal historikk kan ikke leses. Synkronisering er sperret.");
+      if(!local){backup=null;renderCards();throw new Error("Lokal historikk kan ikke leses. Synkronisering er sperret.");}
       const merged=remote?mergeMedisinBackups(local,remote.backup):local;
       saveLocal(merged);
       if(merged.entries.length&&(!remote||JSON.stringify(merged.entries)!==JSON.stringify(remote.backup.entries))){
