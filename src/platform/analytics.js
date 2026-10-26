@@ -1,8 +1,8 @@
 /**
  * GA4, shared with legacy FolkNettside but never with its public Looker embed.
- * The tag may load before opt-in, but no manual page-view is emitted until
- * consent. Reporting access remains in
- * the owner's Google account. Page locations are deliberately coarse to avoid
+ * No Google Analytics third-party script is requested before opt-in,
+ * including on the first visit or after an explicit refusal. Reporting access
+ * remains in the owner's Google account. Page locations are deliberately coarse to avoid
  * disclosing course names, file paths, medical data or URL parameters.
  */
 const CONSENT_KEY="folk.analytics.consent.v1";
@@ -62,12 +62,15 @@ export function analyticsMeasurementId(value=globalThis.__FOLK_ANALYTICS_ID__){
 export function analyticsConsentChoice(storage){
   try{
     const choice=(storage===undefined?globalThis.localStorage:storage)?.getItem(CONSENT_KEY);
-    if(choice==="granted"||choice==="denied")return choice;
+    if(choice==="granted"||choice==="limited"||choice==="denied")return choice;
   }catch{}
   return sessionChoice??"unset";
 }
 export function analyticsConsent(){
   return analyticsConsentChoice()==="granted";
+}
+export function analyticsMeasurementAllowed(){
+  return ["granted","limited"].includes(analyticsConsentChoice());
 }
 export function analyticsConfigured(){return Boolean(analyticsMeasurementId())}
 
@@ -113,10 +116,10 @@ export function safeAnalyticsPage(url){
 }
 export function analyticsStatus(){
   return {configured:analyticsConfigured(),choice:analyticsConsentChoice(),
-    loaded,active:loaded&&analyticsConsent()};
+    loaded,active:loaded&&analyticsMeasurementAllowed()};
 }
 export function trackPage(){
-  if(!loaded||!analyticsConsent())return false;
+  if(!loaded||!analyticsMeasurementAllowed())return false;
   const page=safeAnalyticsPage(globalThis.location?.href);
   // Do not log a course route without its manifest-verified course_code.
   const currentRoute=String(globalThis.location?.hash||"").split(/[?#&]/,1)[0];
@@ -138,12 +141,15 @@ export function trackPage(){
     page_path:globalThis.location.pathname+"#"+page.route,
     page_title:page.title,page_referrer:"",
     site_version:"v2",site_area:page.section,
-    ...(course||{})
+    ...(analyticsConsent()?course||{}:{})
   });
   return true;
 }
-/** Preload the Google tag with analytics_storage denied, without measuring visits. */
+/** Load only after an explicit choice for full or limited statistics. */
 export function loadAnalytics(){
+  // Even cookieless GA communicates with Google, so do not load before an
+  // informed explicit choice or after a full-statistics refusal.
+  if(!analyticsMeasurementAllowed())return false;
   const id=analyticsMeasurementId();
   if(!id||typeof document==="undefined")return false;
   if(loaded)return true;
@@ -156,8 +162,7 @@ export function loadAnalytics(){
     ad_user_data:"denied",ad_personalization:"denied"
   });
   globalThis.gtag("js",new Date());
-  // Delay GA4 *configuration* as well as page views until opt-in. Loading
-  // third-party JS itself still makes a Google network request.
+  // Requests follow an explicit full/cookieless choice; never the first-load banner.
   const script=document.createElement("script");
   script.async=true;
   script.src="https://www.googletagmanager.com/gtag/js?id="+encodeURIComponent(id);
@@ -167,9 +172,9 @@ export function loadAnalytics(){
   return true;
 }
 export function enableAnalytics(){
-  if(!analyticsConsent()||!loadAnalytics())return false;
+  if(!analyticsMeasurementAllowed()||!loadAnalytics())return false;
   const id=analyticsMeasurementId();
-  globalThis.gtag("consent","update",{analytics_storage:"granted"});
+  globalThis.gtag("consent","update",{analytics_storage:analyticsConsent()?"granted":"denied"});
   if(!configured){
     configured=true;
     globalThis.gtag("config",id,{
@@ -183,12 +188,17 @@ export function enableAnalytics(){
   return true;
 }
 export function setAnalyticsConsent(value,storage){
-  const choice=value?"granted":"denied";
+  // Boolean callers remain supported; explicit string is used for the
+  // separate cookieless-vs-completely-off setting.
+  const choice=value==="limited"?"limited":
+    value==="denied"||value===false?"denied":"granted";
   sessionChoice=choice;
   try{(storage===undefined?globalThis.localStorage:storage)?.setItem(CONSENT_KEY,choice)}catch{}
-  if(!value){
-    lastRawRoute="";
+  lastRawRoute="";
+  if(choice==="denied"){
     if(loaded)globalThis.gtag?.("consent","update",{analytics_storage:"denied"});
+    // Stop manual events immediately. A script already executed cannot be
+    // unexecuted; a full page reload is required to remove Google's runtime.
   }else enableAnalytics();
   if(typeof window!=="undefined"&&typeof CustomEvent!=="undefined")
     window.dispatchEvent(new CustomEvent("folk:analytics-consent",{detail:choice}));
@@ -196,5 +206,7 @@ export function setAnalyticsConsent(value,storage){
 }
 if(typeof window!=="undefined"){
   window.addEventListener("hashchange",trackPage);
-  queueMicrotask(()=>{loadAnalytics();enableAnalytics()});
+  // Returning or already-consenting visitors may initialize automatically;
+  // everyone else stays network-silent until the actual consent action.
+  queueMicrotask(()=>enableAnalytics());
 }
