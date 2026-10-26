@@ -1,7 +1,7 @@
 import {analyticsConfigured,analyticsConsentChoice,setAnalyticsConsent} from "./analytics.js";
 
 /**
- * Compact consent choice. Google tag may preload with analytics denied.
+ * Compact opt-in choice. No Google Analytics network request occurs before opt-in.
  * The site works normally if the visitor declines analytics.
  */
 export function mountAnalyticsNotice(doc=globalThis.document){
@@ -13,7 +13,8 @@ export function mountAnalyticsNotice(doc=globalThis.document){
   notice.setAttribute("role","region");
   const message=doc.createElement("p");
   message.textContent="May we measure visits using Google Analytics? "+
-    "This is optional. Reports are private to the site owner; no public visitor statistics are shown.";
+    "No Google Analytics connection is made unless you allow it. "+
+    "Reports are private to the site owner; no public visitor statistics are shown.";
   const actions=doc.createElement("div");
   actions.className="analytics-consent-actions";
   const reject=doc.createElement("button");
