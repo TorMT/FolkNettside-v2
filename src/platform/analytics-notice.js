@@ -1,4 +1,4 @@
-import {analyticsConfigured,analyticsConsentChoice,setAnalyticsConsent} from "./analytics.js?v=ae4843bfa5383ce457bee87b94d92b4b8c307281";
+import {analyticsConfigured,analyticsConsentChoice,setAnalyticsConsent} from "./analytics.js?v=16905756e8ca0c03b44e439a98d4a14270553414";
 
 /**
  * Compact opt-in choice. No Google Analytics network request occurs before opt-in.
