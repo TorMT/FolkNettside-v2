@@ -34,7 +34,7 @@ test("one curated local pitch-drive model augments the right public course only"
    routeForResource:index=>"#/viewer/5/"+PITCH_DRIVE_COURSE+"/"+index
  });
  assert.match(html,/Full modell/);
- assert.match(html,/#\\/viewer\\/5\\/marin-machinery-design-and-condition-monitoring\\/1/);
+ assert.ok(html.includes("#/viewer/5/"+PITCH_DRIVE_COURSE+"/1"));
 });
 
 test("the published pitch drive HTML source is complete and locally hosted",()=>{
