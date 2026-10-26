@@ -21,7 +21,7 @@ The original LAOS index responded to the public fetch. All three *local V2 mirro
 
 - Store a **separate, versioned observation file** `data/diverse/kok-link-audit-2026-10-26.json`, referencing the original 29 URLs with observations `responded`, `http_410` or `inconclusive`. It is not a replacement for `kok-sites.json`.
 - The native AndreKokSider page shows a dated summary and a short warning for the three HTTP 410 observations and the inconclusive Pauljg entry. All original source URLs continue to be offered; no link is auto-redirected, hidden or claimed permanently dead.
-- Warning data is validated against the current **published** URL list. A missing, mismatched or stale/invalid JSON document is ignored without breaking the directory, and locally imported catalogue previews do not inherit warnings meant for unrelated sites.
+- Warning data is validated against the current **published** URL list. A missing, mismatched or invalid JSON document is ignored without breaking the directory, and locally imported catalogue previews do not inherit warnings meant for unrelated sites. An older but structurally valid observation remains visible **with its original date** rather than being presented as a current or continuously verified result.
 - No client-side cross-origin HEAD/GET scanner is used: CORS, bot rules and NTNU redirect policies would create false broken-link reports. Regular CI is deterministic/offline with fixture and Chrome UI checks, **not** dependent on third-party uptime.
 
 ## Manual refresh procedure
