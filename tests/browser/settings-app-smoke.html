@@ -23,27 +23,45 @@ try{
   const win=frame.contentWindow;
   const consent=doc.querySelector(".analytics-consent-notice");
   assert(consent,"New visits need an optional analytics consent choice");
-  await waitFor(()=>doc.querySelector('script[data-folk-analytics]'),
-    "Preloaded GA script in denied consent mode");
-  const gtagBefore=win.dataLayer||[];
-  assert(!gtagBefore.some(args=>args[0]==="config"||args[0]==="event"),
-    "GA4 config or page views must not run before consent");
+  assert(doc.querySelectorAll('script[data-folk-analytics]').length===0,
+    "No Google Analytics script before a first-visit choice");
+  assert(!(win.dataLayer||[]).some(args=>args[0]==="config"||args[0]==="event"),
+    "No GA4 config or page view before the choice");
   assert(!doc.querySelector('iframe[src*="lookerstudio"]'),
     "V2 must never expose the legacy public statistics dashboard");
-  consent.querySelector(".analytics-consent-actions button").click();
+  const controls=[...consent.querySelectorAll(".analytics-consent-actions button")];
+  assert(controls.length===3,"The notice must offer full, limited and no-statistics options");
+  assert(consent.textContent.includes("cookie-free")&&consent.textContent.includes("network/device"),
+    "The limited measurement must disclose Google network metadata");
+  controls[2].click(); // No statistics, not just no cookies.
   assert(win.localStorage.getItem("folk.analytics.consent.v1")==="denied",
-    "Reject choice must persist");
-  assert(doc.querySelectorAll('script[data-folk-analytics]').length===1,
-    "Google tag stays preloaded after rejection, without being reinserted");
-  assert(!(win.dataLayer||[]).some(args=>args[0]==="config"||args[0]==="event"),
-    "Rejecting must not configure GA measurement or emit page views");
+    "Complete refusal choice must persist");
+  assert(doc.querySelectorAll('script[data-folk-analytics]').length===0,
+    "Complete refusal must remain network-silent from a fresh page");
 
   doc.querySelector('[data-settings-section="privacy"]').click();
   await waitFor(()=>frame.contentDocument?.querySelector('[data-settings-panel="privacy"]'),"Privacy panel");
-  assert(frame.contentDocument.querySelector("[data-analytics-status]")?.textContent.includes("Disabled"),
-    "Privacy Settings must clearly display the visitor's Google Analytics preference");
-  assert(frame.contentDocument.querySelector("#settings-analytics-toggle")?.textContent==="Enable analytics",
-    "Visitor must be able to opt in later from Settings");
+  const privacy=frame.contentDocument;
+  assert(privacy.querySelector("[data-analytics-status]")?.textContent.includes("No statistics"),
+    "Privacy Settings must show actual no-statistics choice");
+  assert(privacy.querySelectorAll("[data-analytics-choice]").length===3,
+    "Privacy Settings must let visitors move between three measurement tiers");
+  privacy.querySelector('[data-analytics-choice="limited"]').click();
+  assert(win.localStorage.getItem("folk.analytics.consent.v1")==="limited",
+    "Limited tier must persist as a separate, explicit choice");
+  assert(doc.querySelectorAll('script[data-folk-analytics]').length===1,
+    "Limited choice should load exactly one Google script");
+  const calls=[...(win.dataLayer||[])];
+  assert(calls.some(args=>args[0]==="consent"&&args[1]==="default"&&
+    args[2]?.analytics_storage==="denied"),"Limited mode must deny analytics cookies");
+  assert(calls.some(args=>args[0]==="event"&&args[1]==="page_view"),
+    "Limited mode should submit coarse manual page views");
+  assert(!calls.some(args=>args[0]==="event"&&
+    /\/(medisin|diving|brewing)/.test(JSON.stringify(args))),
+    "Medical/private page names must not appear in analytic events");
+  privacy.querySelector('[data-analytics-choice="denied"]').click();
+  assert(privacy.querySelector("[data-analytics-status]").textContent.includes("No statistics"),
+    "Full refusal after limited measurement must visibly stop manual tracking");
 
   win.localStorage.setItem("folk-v2-video:smoke","{}");
   win.localStorage.setItem("folknet:quiz:smoke","{}");
