@@ -4,7 +4,7 @@
  * Invalid/unavailable auto-index -> existing per-semester public JSON indexes.
  */
 import {NTNU_ORIGIN,parseNTNUSemesterIndex,loadNTNUCatalog,readBoundedIndexBody,
-  isSafeNTNUSegment} from "./ntnu-catalog.js?v=84177f32400192672f680271d27ceb3986e41ee1";
+  isSafeNTNUSegment} from "./ntnu-catalog.js?v=601223c3c0d25c29a81dbdc3a8a37af1838977bc";
 
 const MAX_FILES=25_000;
 const object=value=>value!==null&&typeof value==="object"&&!Array.isArray(value);
