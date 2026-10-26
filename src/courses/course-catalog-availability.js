@@ -1,4 +1,4 @@
-import {escapeHTML} from "../viewers/utils.js?v=fab548193bd6e3df78c5033a3e7cfe010a9752e8";
+import {escapeHTML} from "../viewers/utils.js?v=84177f32400192672f680271d27ceb3986e41ee1";
 
 /**
  * A partial NTNU index read is not the same as an empty public semester.
