@@ -1,9 +1,9 @@
-import {extension} from "../viewers/utils.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {parseCADBuffer} from "./parsers/cad-runtime.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {parse3MF} from "./parsers/three-mf.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {parseSTL} from "./parsers/stl.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {parseGLB} from "./parsers/gltf.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
+import {extension} from "../viewers/utils.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {parseCADBuffer} from "./parsers/cad-runtime.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {parse3MF} from "./parsers/three-mf.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {parseSTL} from "./parsers/stl.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {parseGLB} from "./parsers/gltf.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
 
 export function applyModelRules(documentModel,rules=[]){
   for(const component of documentModel.components){
@@ -13,6 +13,7 @@ export function applyModelRules(documentModel,rules=[]){
       if(rule.type)component.type=rule.type;
       component.metadata={
         ...component.metadata,
+        ...(rule.viewerGroup?{viewerGroup:rule.viewerGroup}:{}),
         ...(rule.hydro!==undefined?{hydro:rule.hydro}:{}),
         ...(rule.propulsion?{propulsion:{...(component.metadata?.propulsion||{}),...rule.propulsion}}:{}),
         ...(rule.semantic?{semantic:{...(component.metadata?.semantic||{}),...rule.semantic}}:{})
@@ -29,7 +30,8 @@ export async function loadModelDocument(config){
   if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${config.sourcePath}`);
   const buffer=await response.arrayBuffer();
   const ext=extension(config.sourcePath);
-  let partMetadata=[];
+  let partMetadata=config.partMetadata||[];
+  if(!Array.isArray(partMetadata))throw new Error("partMetadata must be an array");
   if(config.partMetadataPath){
     const metadataResponse=await fetch(config.partMetadataPath);
     if(!metadataResponse.ok)throw new Error(`HTTP ${metadataResponse.status} while loading ${config.partMetadataPath}`);

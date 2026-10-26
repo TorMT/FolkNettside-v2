@@ -1,10 +1,10 @@
-import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {createHydroInclude} from "./hydro-selection.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {validateHydroModel} from "../model/hull-surface-validator.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {auditHydroCurve} from "./numerical-audit.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {gzCurve} from "./gz.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {integrateModelHullPressure} from "./pressure-integration.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
+import {analyzeModelDocument,hydroCurve,solveWaterlineForVolume} from "./hydrostatics.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {createHydroInclude} from "./hydro-selection.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {validateHydroModel} from "../model/hull-surface-validator.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {auditHydroCurve} from "./numerical-audit.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {gzCurve} from "./gz.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {attitudeCurve,attitudeHydro,solveAttitudeEquilibrium} from "./attitude.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {integrateModelHullPressure} from "./pressure-integration.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
 
 export function executeHydroRequest(modelDocument,type,payload={}){
   if(!modelDocument)throw new Error("Hydro service has no model loaded");

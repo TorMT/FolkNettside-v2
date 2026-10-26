@@ -1,6 +1,6 @@
-import {modelDocumentFromThree} from "../three-model-import.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {renderModelWorkbench} from "../model-workbench.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
-import {escapeHTML} from "../utils.js?v=e421bb76bc024b4565dc7ef6480ce3cf9de4eec7";
+import {modelDocumentFromThree} from "../three-model-import.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {renderModelWorkbench} from "../model-workbench.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
+import {escapeHTML} from "../utils.js?v=fbff7f8706a833fc7ca800c4248d5e87bdaa9b04";
 export async function render(container,resource){
   const url=resource.path||resource.url;
   const response=await fetch(url);
