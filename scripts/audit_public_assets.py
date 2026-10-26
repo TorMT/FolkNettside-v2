@@ -9,6 +9,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from urllib.parse import parse_qsl, urlsplit
 
 ROOT=Path(__file__).resolve().parents[1]
 PROTECTED_SEGMENTS={"beskyttet","protected","privat","private","confidential","hemmelig","restricted","secrets"}
@@ -16,10 +17,46 @@ SECRET_EXTENSIONS={".pem",".p12",".pfx",".p8",".keystore"}
 SECRET_NAMES={".env",".env.local",".env.production","id_rsa","id_ed25519","credentials.json","service-account.json"}
 TOKEN_RE=re.compile(r"(?i)(?:^|[^a-zA-Z])(password|passord|api[_-]?key|private[_-]?key|client[_-]?secret)(?:[^a-zA-Z]|$)")
 
+SENSITIVE_QUERY_NAMES={
+    "key", "apikey", "accesskey", "token", "accesstoken", "refreshtoken",
+    "clientsecret", "secret", "password", "passord", "passwd", "auth",
+    "authorization", "signature", "sig", "jwt", "sessiontoken", "code",
+}
+
+def external_url_violations(value):
+    """Fail closed before a URL with credentials enters a public manifest.
+
+    Only the reason is returned. Never return, print or log the supplied URL:
+    its userinfo, query and fragment could contain real access secrets.
+    """
+    if not isinstance(value,str) or not value or value!=value.strip() or len(value)>8192:
+        return ["invalid external URL"]
+    if any(ord(char)<32 or ord(char)==127 or char=="\\\\" for char in value):
+        return ["invalid external URL"]
+    try:
+        url=urlsplit(value)
+        if (url.scheme!="https" or not url.hostname or not url.netloc
+                or "@" in url.netloc or url.username is not None
+                or url.password is not None):
+            return ["external URL must be credential-free HTTPS"]
+        _=url.port  # Reject malformed port values rather than normalizing them.
+        parameters=parse_qsl(url.query,keep_blank_values=True,max_num_fields=128)
+        # A fragment is not sent to the server, but is still published in the manifest.
+        parameters+=parse_qsl(url.fragment,keep_blank_values=True,max_num_fields=128)
+        for name,_ in parameters:
+            normalized=name.casefold().replace("_","").replace("-","")
+            if (normalized in SENSITIVE_QUERY_NAMES
+                    or normalized.endswith(("token","secret","password","apikey","accesskey","signature"))):
+                return ["external URL contains a credential-like parameter"]
+    except (TypeError,ValueError):
+        return ["invalid external URL"]
+    return []
+
+
 def resource_violations(path):
     normalized=path.replace("\\","/")
-    if normalized.startswith("http:") or normalized.startswith("https:"):
-        return []
+    if normalized.startswith(("http:", "https:")):
+        return external_url_violations(path)
     parts=Path(normalized.removeprefix("./")).parts
     checks=[]
     for part in parts:
@@ -40,8 +77,13 @@ def validate_manifest(manifest):
         for course in semester.get("courses",[]):
             for resource in course.get("resources",[]):
                 path=str(resource.get("path") or resource.get("url") or "")
-                for problem in resource_violations(path):
-                    problems.append((path,problem))
+                remote=resource.get("source")=="remote" or bool(resource.get("url"))
+                violations=(external_url_violations(path) if remote
+                            else resource_violations(path))
+                for problem in violations:
+                    # A rejected URL can carry a real token: never expose it in CI.
+                    display="<external URL redacted>" if remote or path.startswith(("http:","https:")) else path
+                    problems.append((display,problem))
     return problems
 
 def validate_sources(paths):

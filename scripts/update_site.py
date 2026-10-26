@@ -110,9 +110,9 @@ def resource(
     }
 
 def external_resource(item: dict, course_dir: Path) -> dict:
-    url = str(item.get("url") or "").strip()
-    if not url.startswith("https://"):
-        raise ValueError(f"external resource must use https://: {url}")
+    url = item.get("url")
+    if not isinstance(url,str) or not url.startswith("https://"):
+        raise ValueError("External resource must have a public HTTPS URL")
     label = str(item.get("label") or url)
     provider = str(item.get("provider") or "remote").lower()
     resource_id = str(item.get("id") or f"{provider}:{url}")
