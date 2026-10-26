@@ -441,6 +441,14 @@ def catalog_keys(doc):
     }
 
 
+def catalog_course_keys(doc):
+    """Include empty approved courses so a disappearing course cannot go unnoticed."""
+    return {
+        (s["id"],c["code"])
+        for s in doc["semesters"] for c in s["courses"]
+    }
+
+
 def scan_and_write(config, output, *, fetch=fetch_public, allow_removals=False):
     previous_catalog=None
     if output.exists():
@@ -456,10 +464,14 @@ def scan_and_write(config, output, *, fetch=fetch_public, allow_removals=False):
         previous=catalog_keys(previous_catalog)
         if previous and not current:
             raise ValueError("Refusing empty replacement")
-        if (previous and (len(current)<.90*len(previous)
-             or len(previous-current)>max(10,.05*len(previous)))
-             and not allow_removals):
+        # Normal hourly runs are additive: even a single missing file or an
+        # empty course disappearing may signal a partial scan or stale index.
+        # A replacement with new files must not conceal lost original links.
+        if previous-current and not allow_removals:
             raise ValueError("Unexpected resource loss; preserving last good catalog")
+        if (catalog_course_keys(previous_catalog)-catalog_course_keys(doc)
+                and not allow_removals):
+            raise ValueError("Unexpected course loss; preserving last good catalog")
         if output.read_text(encoding="utf-8")==raw:
             return {"changed":False,"resources":len(current)}
     output.parent.mkdir(parents=True,exist_ok=True)
