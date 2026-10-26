@@ -1,5 +1,5 @@
-import {parseSTL} from "../../model/parsers/stl.js?v=e886443c06d2d06973a5f2ae209a40e69b502a24";
-import {renderModelWorkbench} from "../model-workbench.js?v=e886443c06d2d06973a5f2ae209a40e69b502a24";
+import {parseSTL} from "../../model/parsers/stl.js?v=2a148f9fe14717df5c3d1cbeea15dca9ce4d1348";
+import {renderModelWorkbench} from "../model-workbench.js?v=2a148f9fe14717df5c3d1cbeea15dca9ce4d1348";
 export async function render(container,resource){
   const response=await fetch(resource.path);if(!response.ok)throw new Error(`HTTP ${response.status}`);
   const model=parseSTL(await response.arrayBuffer(),resource.label||resource.name);
