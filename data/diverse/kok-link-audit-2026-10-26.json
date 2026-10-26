@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "checkedOn": "2026-10-26",
+  "method": "Public read-only content fetch; when initial folk.ntnu.no/<site>/ did not respond, checked https://<site>.folk.ntnu.no/. No credentials, no account access; not an assurance of full site content.",
+  "interpretation": "HTTP 410 is an observed server response, not evidence the owner deleted a site. Timeouts/empty content are INCONCLUSIVE. Source URLs remain preserved and clickable. Results become stale after the observation date.",
+  "count": 29,
+  "summary": {
+    "responded": 25,
+    "http_410": 3,
+    "inconclusive": 1
+  },
+  "laos": {
+    "sourceIndex": "https://tormt.folk.ntnu.no/diverse/LAOS/filer/index.json",
+    "indexObservation": "responded",
+    "mirroredAssets": "All three v2 PDF copies and welcome image already SHA-256 verified in CI; individual upstream PDFs were not re-fetched by this check."
+  },
+  "entries": [
+    {
+      "name": "Erlesorl",
+      "url": "https://folk.ntnu.no/erlesorl/",
+      "observation": "http_410",
+      "evidence": "HTTP 410 on listed URL and direct subdomain"
+    },
+    {
+      "name": "Jakobra",
+      "url": "https://folk.ntnu.no/jakobra/",
+      "observation": "http_410",
+      "evidence": "HTTP 410 on listed URL and direct subdomain"
+    },
+    {
+      "name": "Olaask",
+      "url": "https://folk.ntnu.no/olaask/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Haakoul",
+      "url": "https://folk.ntnu.no/haakoul/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Ingrisut",
+      "url": "https://folk.ntnu.no/ingrisut/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Pauljg",
+      "url": "https://folk.ntnu.no/pauljg/",
+      "observation": "inconclusive",
+      "evidence": "Listed URL timed out; direct subdomain gave empty content"
+    },
+    {
+      "name": "Williaft",
+      "url": "https://folk.ntnu.no/williaft/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Danieabr",
+      "url": "https://folk.ntnu.no/danieabr/",
+      "observation": "responded",
+      "evidence": "Listed URL timed out; direct subdomain responded"
+    },
+    {
+      "name": "Vegargje",
+      "url": "https://folk.ntnu.no/vegargje/",
+      "observation": "responded",
+      "evidence": "Listed URL timed out; direct subdomain responded"
+    },
+    {
+      "name": "Benjamli",
+      "url": "https://folk.ntnu.no/benjamli/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Kristbys",
+      "url": "https://folk.ntnu.no/kristbys/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Helleopd",
+      "url": "https://folk.ntnu.no/helleopd/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Andrhska",
+      "url": "https://folk.ntnu.no/andrhska/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Marikist",
+      "url": "https://folk.ntnu.no/marikist/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Evenble",
+      "url": "https://folk.ntnu.no/evenble/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Ingriksa",
+      "url": "https://folk.ntnu.no/ingriksa/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Elineke",
+      "url": "https://folk.ntnu.no/elineke/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Thushara",
+      "url": "https://folk.ntnu.no/thushara/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Annikemu",
+      "url": "https://folk.ntnu.no/annikemu/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Lasseihi",
+      "url": "https://folk.ntnu.no/lasseihi/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Astrimys",
+      "url": "https://folk.ntnu.no/astrimys/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Aleksaci",
+      "url": "https://folk.ntnu.no/aleksaci/",
+      "observation": "http_410",
+      "evidence": "HTTP 410 on listed URL and direct subdomain"
+    },
+    {
+      "name": "Madshart",
+      "url": "https://folk.ntnu.no/madshart/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Hannaae",
+      "url": "https://folk.ntnu.no/hannaae/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Perrur",
+      "url": "https://folk.ntnu.no/perrur/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Datthind",
+      "url": "https://folk.ntnu.no/datthind/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Gavinmk",
+      "url": "https://folk.ntnu.no/gavinmk/",
+      "observation": "responded",
+      "evidence": "Listed URL timed out; direct subdomain responded"
+    },
+    {
+      "name": "Mayate",
+      "url": "https://folk.ntnu.no/mayate/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    },
+    {
+      "name": "Sihathas",
+      "url": "https://folk.ntnu.no/sihathas/",
+      "observation": "responded",
+      "evidence": "Listed URL returned page content (may be a login/error page)"
+    }
+  ]
+}

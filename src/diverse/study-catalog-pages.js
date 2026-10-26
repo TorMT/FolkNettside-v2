@@ -1,7 +1,8 @@
 import {courseExerciseResources,distinctValues,filterKokSites,filterLAOSAssignments,safeCatalogUrl,validateDiverseCatalog} from "./study-catalog-core.js";
+import {studyLinkAuditSummary,studyLinkObservation,validateStudyLinkAudit} from "./catalog-link-audit.js";
 const URLS={
   laos:{data:"./data/diverse/laos-assignments.json",legacy:"https://tormt.folk.ntnu.no/diverse/LAOS/"},
-  kok:{data:"./data/diverse/kok-sites.json",legacy:"https://tormt.folk.ntnu.no/diverse/AndreKokSider/"}
+  kok:{data:"./data/diverse/kok-sites.json",audit:"./data/diverse/kok-link-audit-2026-10-26.json",legacy:"https://tormt.folk.ntnu.no/diverse/AndreKokSider/"}
 };
 const escapeHTML=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const esc=escapeHTML;
@@ -10,7 +11,7 @@ export function studyCatalogPageHTML(kind){
   const kok=kind==="kok";
   if(!URLS[kind])throw new Error("Unknown catalog module");
   const title=kok?"AndreKokSider":"LAOS";
-  const subtitle=kok?"Oversikt over studentenes koksider, med filtrering etter studie, spesialisering og årskull.":"Øvinger og obligatoriske ressurser samlet i den vanlige v2-studieflaten.";
+  const subtitle=kok?"Historisk oversikt over studentenes koksider, med filtrering etter studie, spesialisering og årskull. Eksterne lenker kan ha flyttet seg eller kreve tilgang.":"Øvinger og obligatoriske ressurser samlet i den vanlige v2-studieflaten.";
   const filterFields=kok?`
     <label>Studie<select id="catalog-study"><option value="all">Alle studier</option></select></label>
     <label>Spesialisering<select id="catalog-specialization"><option value="all">Alle spesialiseringer</option></select></label>
@@ -54,17 +55,18 @@ function options(select,values,label){
   values.forEach(value=>select.add(new Option(value,value)));
   if([...select.options].some(option=>option.value===previous))select.value=previous;
 }
-function renderCards(entries,{kind,onNavigate}){
+function renderCards(entries,{kind,onNavigate,linkAudit=null}){
   return entries.map(item=>{
     const external=Boolean(item.url);
     const href=external?safeCatalogUrl(item.url,{allowRelative:kind==="laos"}):"";
     if(external&&!href)return "";
+    const note=kind==="kok"?studyLinkObservation(linkAudit,item.url):null;
     const metadata=kind==="kok"?[item.study,item.specialization,item.cohort?("Klasse "+item.cohort):"",
       item.rating===null?"":("Rating "+item.rating+"/"+(item.ratingScale||5))]:[item.courseCode,item.semester?("Semester "+item.semester):"",item.category];
     const link=external?`<a class="btn" href="${esc(href)}" target="_blank" rel="noopener noreferrer">Åpne side ↗</a>`:
       (onNavigate&&item.route?`<button type="button" class="btn" data-catalog-route="${esc(item.route)}">Åpne i Viewer</button>`:"");
     return `<article class="study-catalog-card"><div class="study-catalog-card-main">
-      <h3>${esc(item.name)}</h3>${item.description?`<p class="study-catalog-description">${esc(item.description)}</p>`:""}<div class="study-catalog-chips">${metadata.filter(Boolean).map(value=>`<span>${esc(value)}</span>`).join("")}</div>
+      <h3>${esc(item.name)}</h3>${item.description?`<p class="study-catalog-description">${esc(item.description)}</p>`:""}${note?`<p class="study-catalog-link-caveat">${esc(note)}</p>`:""}<div class="study-catalog-chips">${metadata.filter(Boolean).map(value=>`<span>${esc(value)}</span>`).join("")}</div>
       ${item.source?`<small>Kilde: ${esc(item.source)}</small>`:""}</div>
       <div class="study-catalog-card-actions">${link}</div></article>`;
   }).join("");
@@ -76,7 +78,7 @@ export async function mountStudyCatalog(root,{kind,semesters=[],onBack=()=>{},on
   const status=root.querySelector("#catalog-status"),fileInput=root.querySelector("#catalog-import-file");
   const courseList=root.querySelector("#catalog-course-resources");
   const ac=new AbortController();
-  let current={items:[],verified:false,source:"",sourceUrl:""},published=null,disposed=false,localPreview=false;
+  let current={items:[],verified:false,source:"",sourceUrl:""},published=null,disposed=false,localPreview=false,linkAudit=null;
   const values=()=>({
     query:input.value.trim(),
     study:root.querySelector("#catalog-study")?.value??"all",
@@ -96,11 +98,12 @@ export async function mountStudyCatalog(root,{kind,semesters=[],onBack=()=>{},on
       const image=welcome.querySelector("img");
       if(current.welcomeImage&&image&&image.getAttribute("src")!==current.welcomeImage)image.setAttribute("src",current.welcomeImage);
     }
-    provenance.textContent=!current.items.length?
+    provenance.textContent=(!current.items.length?
       "Ingen katalogoppføringer tilgjengelig. Sjekk kildefilen og prøv på nytt.":
       current.verified&&!localPreview?"Katalog fra verifisert kilde: "+(current.source||"publisert uttrekk"):
-        "Dette er et ikke-verifisert lokalt eller foreløpig uttrekk. Kontroller lenkene før du bruker dem.";
-    list.innerHTML=items.length?renderCards(items,{kind,onNavigate}):`<div class="study-catalog-empty"><strong>${current.items.length?"Ingen treff.":"Katalogen er tom eller ikke tilgjengelig."}</strong>
+        "Dette er et ikke-verifisert lokalt eller foreløpig uttrekk. Kontroller lenkene før du bruker dem.")+
+      (kok&&!localPreview&&linkAudit?" "+studyLinkAuditSummary(linkAudit):"");
+    list.innerHTML=items.length?renderCards(items,{kind,onNavigate,linkAudit:kok&&!localPreview?linkAudit:null}):`<div class="study-catalog-empty"><strong>${current.items.length?"Ingen treff.":"Katalogen er tom eller ikke tilgjengelig."}</strong>
       <p>${current.items.length?"Endre søk eller filtre.":"Sjekk datakilden eller prøv igjen senere."}</p></div>`;
     if(kok){
       options(root.querySelector("#catalog-study"),distinctValues(current.items,"study"),"Alle studier");
@@ -147,7 +150,22 @@ export async function mountStudyCatalog(root,{kind,semesters=[],onBack=()=>{},on
     const response=await fetch(URLS[kind].data,{cache:"no-store",signal:ac.signal});
     if(!response.ok)throw new Error("HTTP "+response.status);
     published=validateDiverseCatalog(await response.json(),kind);
-    if(!disposed){current=published;localPreview=false;status.textContent="V2-katalogen er lest.";refresh();}
+    if(!disposed){
+      current=published;localPreview=false;status.textContent="V2-katalogen er lest.";refresh();
+    }
+    if(kind==="kok"&&!disposed){
+      try{
+        const auditResponse=await fetch(URLS[kind].audit,{cache:"no-store",signal:ac.signal});
+        if(auditResponse.ok){
+          const auditData=await auditResponse.json();
+          linkAudit=validateStudyLinkAudit(auditData,published.items);
+          if(!disposed)refresh();
+        }
+      }catch{
+        // Historical directory remains operational without this optional audit.
+        // Never mark entries broken merely because an audit fetch was blocked.
+      }
+    }
   }catch(error){
     if(!disposed){status.textContent="Kunne ikke lese katalogfilen: "+String(error.message||error);refresh();}
   }
