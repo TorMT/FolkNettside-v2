@@ -25,7 +25,7 @@ test("V2 projects reuse actual screenshot filenames from the NTNU engineering po
 });
 
 test("project cards are accessible native anchors with real image and navigable route",()=>{
- const project=projects[0];
+ const project=projects.find(p=>p.slug==="equipment-mount-fixture");
  const card=renderProjectCard(project);
  assert.match(card,/^<a class="project-row project-row-link"/);
  assert.match(card,/href="#\/projects\/equipment-mount-fixture"/);
@@ -45,7 +45,7 @@ test("untrusted image URLs and project links cannot inject HTML or link schemes"
    "https://tormt.folk.ntnu.no/private/example.png",
    "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/../secret.png"])
   assert.equal(projectImageURL(value),"",value);
- const bad={...projects[0],title:"<script>alert(1)</script>",
+ const bad={...projects.find(p=>p.slug==="equipment-mount-fixture"),title:"<script>alert(1)</script>",
    coverImage:"javascript:alert(1)",sourceUrl:"javascript:alert(1)",
    gallery:[{src:"javascript:alert(1)",alt:"<img>"}],files:[]};
  assert.doesNotMatch(renderProjectCard(bad),/<script>|href="javascript:|src="javascript:/);
