@@ -1,4 +1,4 @@
-import {quizStorageKey,answerMatches} from "./quiz-core.js?v=a01eb8a30ccba0ffa8d276a242b5128369b612e4";
+import {quizStorageKey,answerMatches} from "./quiz-core.js?v=ba349c176139a69567cab11f2e814e2115b29fd4";
 
 function storageKey(resource){return quizStorageKey(resource)+":mistake-bank.v1"}
 function hash(text){
