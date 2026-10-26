@@ -4,6 +4,7 @@ import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autoc
 import {loadPublicCourseLabels,mergeCloudCourseLabels} from "./platform/folk-course-admin.js";
 import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js";
 import {applyNTNUCourseVisibility} from "./courses/course-visibility.js";
+import {addPitchDriveCourseModel} from "./courses/pitch-drive-course-model.js";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
@@ -132,6 +133,9 @@ export async function loadContent() {
       ...s,courses:s.courses.filter(c=>!(Number(s.id)===5&&c.code==="marin-maskineri"))
     }))};
   }
+
+  // Curated, same-origin model alongside the externally indexed course files.
+  manifest=addPitchDriveCourseModel(manifest);
 
   const manifestBySemester = new Map(manifest.semesters.map(s => [Number(s.id), s]));
   const semesters = site.semesterOrder.map(id => {
