@@ -22,6 +22,9 @@ try{
  assert(doc().querySelector('#engineering-model-select').value==='munin','selection retained');
  assert(doc().querySelector('.results')?.textContent.includes('No hydrostatic result shown'),'no invalid hydro result');
  assert(!doc().querySelector('#hydro-gz'),'stability controls must not be enabled');
+ for(const control of doc().querySelectorAll('.engineering-model-control select,.engineering-model-control>.btn')){
+  const r=control.getBoundingClientRect();assert(r.left>=0&&r.right<=frame.clientWidth+1,'model control clipped');
+ }
  assert(doc().querySelector('.viewport').getBoundingClientRect().height>=240,'model viewport collapsed');
  assert(doc().documentElement.scrollWidth<=frame.clientWidth+1,'horizontal overflow');
  const model=await loadModelDocument({...MUNIN_MODEL,sourcePath:'../../assets/models/munin-mobile-preview.glb'});
