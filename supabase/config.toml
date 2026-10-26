@@ -10,3 +10,8 @@ verify_jwt = false
 # Every non-callback route validates a Supabase Auth bearer in its own code.
 [functions.autodesk-hub]
 verify_jwt = false
+
+# V1 bridge uses its own /auth/v1/user + RLS administrator check.
+# No browser/preflight token bypass: all data paths enforce bearer auth.
+[functions.legacy-brewing]
+verify_jwt = false
