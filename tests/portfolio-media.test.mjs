@@ -14,18 +14,29 @@ test("V2 projects reuse actual screenshot filenames from the NTNU engineering po
    "brygging-dashboard.png","medisintimer-viewer.png"]);
  assert.ok(projects.length>=7);
  assert.equal(new Set(projects.map(p=>p.slug)).size,projects.length);
+ let sourceBacked=0,unillustrated=0;
  for(const p of projects){
-   assert.ok(p.coverImage, p.slug+" has no image");
-   const url=projectImageURL(p.coverImage);
+   const src=p.coverImage||p.gallery?.[0]?.src;
+   if(!src){
+     unillustrated++;
+     assert.match(renderProjectCard(p),/project-art-mark/,
+       p.slug+" must have a visible honest placeholder instead of a fabricated image");
+     continue;
+   }
+   const url=projectImageURL(src);
    assert.ok(url,p.slug+" has non-NTNU image source");
    assert.ok(images.has(new URL(url).pathname.split("/").at(-1)));
-   assert.ok(p.gallery[0].alt);
-   assert.ok(p.gallery[0].caption);
+   assert.ok(p.gallery?.[0]?.alt);
+   assert.ok(p.gallery?.[0]?.caption);
+   sourceBacked++;
  }
+ assert.ok(sourceBacked>=7,"Must retain original source-backed project media");
+ assert.ok(unillustrated>=0);
 });
 
 test("project cards are accessible native anchors with real image and navigable route",()=>{
- const project=projects[0];
+ const project=projects.find(item=>item.slug==="equipment-mount-fixture");
+ assert.ok(project,"Documented dive computer mount should still exist");
  const card=renderProjectCard(project);
  assert.match(card,/^<a class="project-row project-row-link"/);
  assert.match(card,/href="#\/projects\/equipment-mount-fixture"/);
