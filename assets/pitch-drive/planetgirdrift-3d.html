@@ -22,6 +22,16 @@ label{display:inline-flex;align-items:center;gap:6px;margin-right:14px}
 table{border-collapse:collapse;margin:6px 0;font-size:13px}
 td{padding:2px 14px 2px 0;vertical-align:top}td:first-child{opacity:.7}
 #cap button{padding:1px 8px;margin:2px 4px 2px 0;font-size:12px}
+@media(max-width:680px){
+ #top{left:8px;right:8px;max-width:none;padding:8px}
+ #top h1{font-size:13px;margin:0 0 5px}
+ #bt{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding-bottom:3px;margin-bottom:5px}
+ #bt button{flex:0 0 auto;white-space:nowrap;min-height:34px;padding:5px 9px}
+ #top label{font-size:12px;margin-right:8px;white-space:nowrap}
+ #top input[type=range]{width:min(30vw,100px)}
+ #cap{left:8px;right:8px;max-width:none;max-height:min(29vh,180px);bottom:8px;padding:8px}
+ #cap table{font-size:12px}
+}
 </style></head><body>
 <div class="p" id="top"><h1>Planetgirdrift, 3 trinn og ringgir</h1><div id="bt"></div>
 <label>Hastighet <input id="sp" type="range" min="0" max="20" step=".5" value="4"></label>
