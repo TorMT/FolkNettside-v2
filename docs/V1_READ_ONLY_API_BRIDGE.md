@@ -60,6 +60,8 @@ this configuration is disabled. Browsing without a verified owner account
 returns a clear sign-in/403 error, not private data. Dashboard private
 telemetry is not put into legacy `localStorage` cache.
 
+**Deployment on 2026-10-26:** \`legacy-brewing\` v1 reports \`ACTIVE\` in the **correct** Supabase project (\`aeuouzkiyddfjtjfdosp\`). This verifies function installation only, not successful RAPT/Brewfather reads or browser authentication. The public V2 endpoint manifest is enabled. Before owner provisioning, requests are denied by the admin gate; the legacy fallback remains available.
+
 **Current prerequisites / known blockers (2026-10-26):**
 - Actual V1 PHP HTTP success and real data have **not** been verified here.
 - Live Supabase project had **zero Auth users and zero admin rows** at the
