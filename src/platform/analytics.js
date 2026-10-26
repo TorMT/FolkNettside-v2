@@ -1,8 +1,8 @@
 /**
  * GA4, shared with legacy FolkNettside but never with its public Looker embed.
- * The tag may load before opt-in, but no manual page-view is emitted until
- * consent. Reporting access remains in
- * the owner's Google account. Page locations are deliberately coarse to avoid
+ * No Google Analytics third-party script is requested before opt-in,
+ * including on the first visit or after an explicit refusal. Reporting access
+ * remains in the owner's Google account. Page locations are deliberately coarse to avoid
  * disclosing course names, file paths, medical data or URL parameters.
  */
 const CONSENT_KEY="folk.analytics.consent.v1";
@@ -142,8 +142,11 @@ export function trackPage(){
   });
   return true;
 }
-/** Preload the Google tag with analytics_storage denied, without measuring visits. */
+/** Request Google Analytics code only after an explicit persisted opt-in. */
 export function loadAnalytics(){
+  // Consent Mode with denied storage is NOT the same as network silence:
+  // requesting gtag.js before consent can disclose a visitor's IP/metadata.
+  if(!analyticsConsent())return false;
   const id=analyticsMeasurementId();
   if(!id||typeof document==="undefined")return false;
   if(loaded)return true;
@@ -156,8 +159,7 @@ export function loadAnalytics(){
     ad_user_data:"denied",ad_personalization:"denied"
   });
   globalThis.gtag("js",new Date());
-  // Delay GA4 *configuration* as well as page views until opt-in. Loading
-  // third-party JS itself still makes a Google network request.
+  // Only this opt-in path may initiate a Google Analytics network request.
   const script=document.createElement("script");
   script.async=true;
   script.src="https://www.googletagmanager.com/gtag/js?id="+encodeURIComponent(id);
@@ -196,5 +198,7 @@ export function setAnalyticsConsent(value,storage){
 }
 if(typeof window!=="undefined"){
   window.addEventListener("hashchange",trackPage);
-  queueMicrotask(()=>{loadAnalytics();enableAnalytics()});
+  // Returning or already-consenting visitors may initialize automatically;
+  // everyone else stays network-silent until the actual consent action.
+  queueMicrotask(()=>enableAnalytics());
 }
