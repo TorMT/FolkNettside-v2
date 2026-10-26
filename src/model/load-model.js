@@ -13,6 +13,7 @@ export function applyModelRules(documentModel,rules=[]){
       if(rule.type)component.type=rule.type;
       component.metadata={
         ...component.metadata,
+        ...(rule.viewerGroup?{viewerGroup:rule.viewerGroup}:{}),
         ...(rule.hydro!==undefined?{hydro:rule.hydro}:{}),
         ...(rule.propulsion?{propulsion:{...(component.metadata?.propulsion||{}),...rule.propulsion}}:{}),
         ...(rule.semantic?{semantic:{...(component.metadata?.semantic||{}),...rule.semantic}}:{})
@@ -29,7 +30,8 @@ export async function loadModelDocument(config){
   if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${config.sourcePath}`);
   const buffer=await response.arrayBuffer();
   const ext=extension(config.sourcePath);
-  let partMetadata=[];
+  let partMetadata=config.partMetadata||[];
+  if(!Array.isArray(partMetadata))throw new Error("partMetadata must be an array");
   if(config.partMetadataPath){
     const metadataResponse=await fetch(config.partMetadataPath);
     if(!metadataResponse.ok)throw new Error(`HTTP ${metadataResponse.status} while loading ${config.partMetadataPath}`);

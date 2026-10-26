@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="no"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Munin Hydro acceptance</title>
+<style>html,body{margin:0;width:100%;height:100%}iframe{border:0;width:100%;height:100%;display:block}#result{position:fixed;left:-10000px}</style>
+</head><body data-status="running">
+<iframe id="site" title="Munin i hydroviseren" src="../../index.html#/engineering/hydro"></iframe><pre id="result">running</pre>
+<script type="module">
+import {loadModelDocument} from '../../src/model/load-model.js';
+import {MUNIN_MODEL} from '../../src/engineering/munin-model.js';
+import {createHydroInclude} from '../../src/hydro/hydro-selection.js';
+const frame=document.querySelector('#site'),doc=()=>frame.contentDocument;
+const assert=(ok,message)=>{if(!ok)throw Error(message)};
+async function wait(fn,label){for(let i=0;i<300;i++){if(fn())return;await new Promise(r=>setTimeout(r,100))}throw Error('Timeout: '+label)}
+try{
+ await wait(()=>doc()?.querySelector('#engineering-model-select option[value="munin"]'),'Munin selector');
+ doc().querySelector('.analytics-consent-actions button')?.click();
+ let select=doc().querySelector('#engineering-model-select');
+ select.value='munin';select.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
+ await wait(()=>doc()?.querySelector('.inspector')?.textContent.includes('degenerate triangle'),'explicit hydro validation gate');
+ await wait(()=>doc()?.querySelector('canvas'),'WebGL model');
+ assert(doc().querySelector('#engineering-model-select').value==='munin','selection retained');
+ assert(doc().querySelector('.results')?.textContent.includes('No hydrostatic result shown'),'no invalid hydro result');
+ assert(!doc().querySelector('#hydro-gz'),'stability controls must not be enabled');
+ for(const control of doc().querySelectorAll('.engineering-model-control select,.engineering-model-control>.btn')){
+  const r=control.getBoundingClientRect();assert(r.left>=0&&r.right<=frame.clientWidth+1,'model control clipped');
+ }
+ assert(doc().querySelector('.viewport').getBoundingClientRect().height>=240,'model viewport collapsed');
+ assert(doc().documentElement.scrollWidth<=frame.clientWidth+1,'horizontal overflow');
+ const model=await loadModelDocument({...MUNIN_MODEL,sourcePath:'../../assets/models/munin-mobile-preview.glb'});
+ assert(model.components.filter(c=>c.geometry).length===130,'actual assembly must retain 130 parts');
+ assert(model.components.filter(createHydroInclude(model)).length===2,'only two hulls selected');
+ assert(model.components.some(c=>c.metadata.viewerGroup==='Thrustere / T200 CCW'),'thruster grouping retained');
+ select=doc().querySelector('#engineering-model-select');select.value='fixture';
+ select.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
+ await wait(()=>doc()?.querySelector('#hydro-draft'),'fixture hydro still works after switching');
+ select=doc().querySelector('#engineering-model-select');select.value='munin';
+ select.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
+ await wait(()=>doc()?.querySelector('.inspector')?.textContent.includes('degenerate triangle'),'return to Munin');
+ await wait(()=>doc()?.querySelector('canvas'),'return to WebGL model');
+ document.body.dataset.status='pass';document.querySelector('#result').textContent='Munin Hydro: full assembly, two hulls only, blocked invalid geometry, model switching, viewport '+frame.clientWidth;
+}catch(error){document.body.dataset.status='fail';document.querySelector('#result').textContent=error.stack||String(error)}
+</script></body></html>

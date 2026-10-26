@@ -57,3 +57,17 @@ Ingen effekt, skyvekraft, propellakse, strømningsretning eller materialtetthet
 er gjettet. Disse må angis fra spesifikasjon/montering før fysisk analyse.
 
 Ti strukturdeler har like/overlappende bokser på tvers av platesett, sensorramme eller sensorfeste. Disse er bevisst gruppert som «Struktur / Undergruppe uavklart», uten påstand om eksakt underassembly. Skrog- og thrustergruppene har ingen slik tvetydighet.
+
+## Hydro viewer
+
+Munin is also listed in the shared Engineering model selector, including
+`#/engineering/hydro`. It reuses the same GLB and source-based groups. Exactly
+components 0015 and 0016 are marked as candidate hydro surfaces; every thruster,
+structural and sensor component is excluded from hydro integration.
+
+The current original preview fails the unchanged hull validator: each hull has
+one degenerate triangle. Both have zero open/non-manifold edges and consistent
+winding, but this is insufficient to pass preflight. Calculations remain blocked
+with an explicit explanation while the complete assembly can be inspected.
+No stability, loading, structural or thruster force data have been invented.
+Waterline values refer to the centred GLB coordinates, not a certified baseline.
