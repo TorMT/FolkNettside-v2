@@ -1,4 +1,4 @@
-import {integrateWaterplaneContours} from "./waterplane-contours.js?v=919cdd95cbb48d558602a55fab44fb183ae39074";
+import {integrateWaterplaneContours} from "./waterplane-contours.js?v=9e915a2606f9faf3200b5685423c5d2906bd284a";
 
 const EPS=1e-10;
 

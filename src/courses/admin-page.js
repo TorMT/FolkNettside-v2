@@ -1,6 +1,6 @@
-import {escapeHTML as esc} from "../viewers/utils.js?v=919cdd95cbb48d558602a55fab44fb183ae39074";
-import {checkCourseAdmin,saveCourseLabel,deleteCourseLabel} from "../platform/folk-course-admin.js?v=919cdd95cbb48d558602a55fab44fb183ae39074";
-import {getFolkAccountSnapshot} from "../platform/folkside-auth.js?v=919cdd95cbb48d558602a55fab44fb183ae39074";
+import {escapeHTML as esc} from "../viewers/utils.js?v=9e915a2606f9faf3200b5685423c5d2906bd284a";
+import {checkCourseAdmin,saveCourseLabel,deleteCourseLabel} from "../platform/folk-course-admin.js?v=9e915a2606f9faf3200b5685423c5d2906bd284a";
+import {getFolkAccountSnapshot} from "../platform/folkside-auth.js?v=9e915a2606f9faf3200b5685423c5d2906bd284a";
 
 export function courseAdminTargets(course){
   if(!course||!Number.isInteger(Number(course.semester))||!course.code)return [];
