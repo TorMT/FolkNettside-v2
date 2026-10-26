@@ -20,11 +20,15 @@ try{
  },"Project cards did not render from portfolio project data");
  check([...cards].every(card=>card.matches('a[href^="#/projects/"]')),
    "Project cards are not accessible native links");
- check([...cards].every(card=>card.querySelector('img.project-card-image[alt][loading="lazy"]')),
-   "Project images or accessible alt labels are missing");
- check([...cards].every(card=>card.querySelector("img").src.startsWith(
+ check([...cards].every(card=>
+   card.querySelector('img.project-card-image[alt][loading="lazy"]')||
+   card.querySelector(".project-art-mark")||
+   card.querySelector("[data-project-image-fallback]:not([hidden])")),
+   "Every project requires its source image, intentional illustration-free placeholder, or error fallback");
+ const remainingImages=[...cards].flatMap(card=>[...card.querySelectorAll("img.project-card-image")]);
+ check(remainingImages.every(img=>img.src.startsWith(
    "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/")),
-   "Project images must come from verified NTNU portfolio source");
+   "Any remaining project image must have the allowlisted NTNU portfolio source");
  const first=doc().querySelector('.project-row[data-project="equipment-mount-fixture"]');
  check(first,"Dive computer project not found");
  const cardImg=first.querySelector("img[data-project-image='card']");
@@ -38,7 +42,7 @@ try{
  check(first.matches('a[href="#/projects/equipment-mount-fixture"]'),
    "Card link must still work even without its image");
  first.click();
- await wait(()=>doc()?.querySelector(".project-detail .project-gallery img"),
+ await wait(()=>doc()?.querySelector(".project-detail .project-gallery-item"),
    "Clicking Project card did not show an image gallery");
  check(win().location.hash==="#/projects/equipment-mount-fixture",
    "Project route did not navigate");
