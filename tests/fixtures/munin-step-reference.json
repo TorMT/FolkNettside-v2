@@ -1,0 +1,90 @@
+{
+  "source_sha256": "93fd88d40842c2be0753bc426edb256f00490e75837203c83fa6b7e9121e70b2",
+  "method": "OpenCascade STEP B-Rep volume integrals and boolean intersection with below-waterline boxes",
+  "coordinates": "metres, Z up, same centered frame as GLB",
+  "source_center_m": [
+    -0.013644054532051086,
+    0.0,
+    0.17725620418787003
+  ],
+  "hulls": [
+    {
+      "node": "Munin-component-0015",
+      "brep_valid": true,
+      "full": {
+        "volume_m3": 0.04463925733411441,
+        "center_of_buoyancy_m": [
+          0.0209292888897638,
+          0.3168152608845072,
+          -0.19145276602739067
+        ]
+      },
+      "samples": [
+        {
+          "waterline_m": -0.32,
+          "status": "inconclusive",
+          "reason": "B-Rep boolean returned an empty result inside the hull bounds; not a zero-volume reference"
+        },
+        {
+          "waterline_m": -0.22,
+          "volume_m3": 0.017429994926300093,
+          "center_of_buoyancy_m": [
+            0.010526268195187233,
+            0.3188968209881056,
+            -0.301140169275169
+          ],
+          "status": "reference"
+        },
+        {
+          "waterline_m": -0.12,
+          "volume_m3": 0.03125032557384069,
+          "center_of_buoyancy_m": [
+            0.018274325479414006,
+            0.3173622960259296,
+            -0.24193566570323732
+          ],
+          "status": "reference"
+        }
+      ]
+    },
+    {
+      "node": "Munin-component-0016",
+      "brep_valid": true,
+      "full": {
+        "volume_m3": 0.04456139563719419,
+        "center_of_buoyancy_m": [
+          0.021008972516231402,
+          -0.3168032991115996,
+          -0.19174095865671856
+        ]
+      },
+      "samples": [
+        {
+          "waterline_m": -0.32,
+          "status": "inconclusive",
+          "reason": "B-Rep boolean returned an empty result inside the hull bounds; not a zero-volume reference"
+        },
+        {
+          "waterline_m": -0.22,
+          "volume_m3": 0.01742885267626498,
+          "center_of_buoyancy_m": [
+            0.010543720754577528,
+            -0.31889038324409036,
+            -0.30114479685199474
+          ],
+          "status": "reference"
+        },
+        {
+          "waterline_m": -0.12,
+          "volume_m3": 0.031171483426222824,
+          "center_of_buoyancy_m": [
+            0.018350046308176222,
+            -0.3173620457356582,
+            -0.24246246958944842
+          ],
+          "status": "reference"
+        }
+      ]
+    }
+  ]
+}

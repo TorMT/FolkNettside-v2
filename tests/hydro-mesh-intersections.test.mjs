@@ -102,3 +102,21 @@ test("disjoint shells inside a single component remain valid",()=>{
   assert.equal(gate.metrics.edgeConnectedShells,2);
   assert.equal(gate.metrics.ambiguousShellPairs,0);
 });
+
+test('nearly coplanar float32 hull facets retain an in-plane separating axis',()=>{
+ const a=[[.4600495994091034,.33154726028442383,-.009999999776482582],
+ [.4589950740337372,.30054324865341187,-.019999999552965164],
+ [.4589950740337372,.3324401378631592,-.019999999552965164]];
+ const b=[[.4684859812259674,.3230627775192261,.07000000029802322],
+ [.4684859812259674,.30992060899734497,.07000000029802322],
+ [.4600495994091034,.3014361262321472,-.009999999776482582]];
+ for(const mirror of [1,-1]){
+  const transform=p=>[p[0],mirror*p[1],p[2]];
+  assert.equal(trianglesIntersect3D(a.map(transform),b.map(transform)),false);
+  assert.equal(trianglesIntersect3D(b.map(transform),a.map(transform)),false);
+ }
+ // A nearby overlapping facet must still be rejected even off the exact plane.
+ const inside=a.map(p=>p.map((x,i)=>.7*x+.3*a[0][i]));
+ inside[1][2]+=1e-9;
+ assert.equal(trianglesIntersect3D(a,inside),true);
+});

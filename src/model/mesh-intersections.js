@@ -45,7 +45,11 @@ export function trianglesIntersect3D(a,b,tolerance=1e-7){
     const project=p=>axis===0?[p[1],p[2]]:axis===1?[p[0],p[2]]:[p[0],p[1]];
     return triangle2dOverlap(a.map(project),b.map(project),tolerance);
   }
-  const axes=[na,nb];
+  // In-plane edge normals also provide valid separating axes. Near-coplanar
+  // float32 facets may miss the strict coplanar branch; normal/edge-cross-edge
+  // axes alone become ill-conditioned there and can report distant facets as
+  // intersecting. Extra axes cannot separate truly intersecting triangles.
+  const axes=[na,nb,...ae.map(edge=>cross(na,edge)),...be.map(edge=>cross(nb,edge))];
   for(const edgeA of ae)for(const edgeB of be)axes.push(cross(edgeA,edgeB));
   for(const axis of axes){
     const len=Math.hypot(...axis);
