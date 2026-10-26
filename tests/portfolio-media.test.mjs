@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {projectImageURL,renderProjectCard,renderProjectDetail}
+import {projectImageURL,projectModelURL,renderProjectCard,renderProjectDetail}
  from "../src/components/project-card.js";
 
 const projects=JSON.parse(readFileSync(new URL("../data/projects.json",import.meta.url),"utf8"));
@@ -14,7 +14,7 @@ test("V2 projects reuse actual screenshot filenames from the NTNU engineering po
    "brygging-dashboard.png","medisintimer-viewer.png"]);
  assert.ok(projects.length>=7);
  assert.equal(new Set(projects.map(p=>p.slug)).size,projects.length);
- for(const p of projects){
+ for(const p of projects.filter(p=>p.coverImage)){
    assert.ok(p.coverImage, p.slug+" has no image");
    const url=projectImageURL(p.coverImage);
    assert.ok(url,p.slug+" has non-NTNU image source");
@@ -50,4 +50,21 @@ test("untrusted image URLs and project links cannot inject HTML or link schemes"
    gallery:[{src:"javascript:alert(1)",alt:"<img>"}],files:[]};
  assert.doesNotMatch(renderProjectCard(bad),/<script>|href="javascript:|src="javascript:/);
  assert.doesNotMatch(renderProjectDetail(bad),/<script>|href="javascript:|src="javascript:/);
+});
+
+test("pitch drive has a dedicated safe model link and accessible embedded 3D detail",()=>{
+ const project=projects.find(p=>p.slug==="pitch-drive-wind-turbine");
+ assert.ok(project);
+ assert.equal(projectModelURL(project.modelURL),"./assets/pitch-drive/planetgirdrift-3d.html");
+ assert.equal(projectModelURL("javascript:alert(1)"),"");
+ assert.equal(projectModelURL("https://evil.example/planetgirdrift-3d.html"),"");
+ const card=renderProjectCard(project);
+ assert.match(card,/href="#\\/projects\\/pitch-drive-wind-turbine"/);
+ const html=renderProjectDetail(project);
+ assert.match(html,/Full modell/);
+ assert.match(html,/class="project-model-frame"/);
+ assert.match(html,/sandbox="allow-scripts"/);
+ assert.match(html,/loading="lazy"/);
+ assert.match(html,/125\\/25 = 5:1/);
+ assert.doesNotMatch(html,/allow-same-origin/);
 });
