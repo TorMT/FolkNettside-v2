@@ -1,13 +1,12 @@
 import {parseKisssoftBuffer} from "../../engineering/kisssoft-core.js";
+import {fetchBoundedBuffer,previewContentURL} from "../utils.js";
 import {kisssoftSummary,mountKisssoftVisual,bindKisssoftParameterSearch} from "../../engineering/kisssoft-tool.js";
 export async function render(container,resource){
- const path=resource.url||resource.path;
- const response=await fetch(path);
- if(!response.ok)throw Error("KISSsoft import failed: HTTP "+response.status);
- const size=Number(response.headers.get("content-length")||0);
- if(size>12_000_000)throw Error("KISSsoft file exceeds safe viewer limit");
- const data=await response.arrayBuffer();
- const model=parseKisssoftBuffer(data,resource.name||path);
+ // NTNU original stays in resource.url; an explicitly selected local
+ // copy lives at resource.path and must take precedence for preview bytes.
+ const source=previewContentURL(resource);
+ const data=await fetchBoundedBuffer(source,{maxBytes:12_000_000});
+ const model=parseKisssoftBuffer(data,resource.name||source);
  container.innerHTML=kisssoftSummary(model);
  bindKisssoftParameterSearch(container,model);
  const cleanup=await mountKisssoftVisual(container,model);
