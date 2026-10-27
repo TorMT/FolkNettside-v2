@@ -181,7 +181,7 @@ try{
   const revoked=[];
   URL.revokeObjectURL=(url)=>{revoked.push(url);return originalRevoke.call(URL,url)};
   window.fetch=(input,options)=>{
-    if(/tormt\.folk\.ntnu\.no\/semestre\/5\/Marin-Dynamikk\/filer\/CORS\.(?:py|docx)/.test(String(input)))
+    if(/tormt\.folk\.ntnu\.no\/semestre\/5\/Marin-Dynamikk\/filer\/CORS\.(?:py|docx|Z14)/.test(String(input)))
       return Promise.reject(new TypeError("Blocked by CORS"));
     return originalFetch(input,options);
   };
@@ -250,6 +250,30 @@ try{
     }finally{
       docxRoot.__viewerCleanup?.();docxRoot.remove();
     }
+    // The course KISSsoft adapter must honor the selected local blob and
+    // render gear parameters, not retry the CORS-blocked original NTNU URL.
+    const gearURL=ntURL.replace("CORS.py","CORS.Z14");
+    const gearRoot=document.createElement("div");document.body.append(gearRoot);
+    try{
+      await mountViewer(gearRoot,{name:"CORS.Z14",label:"KISSsoft local retry",kind:"FILE",
+        section:"Filer",semester:5,courseCode:"Marin-Dynamikk",
+        source:"ntnu",remoteArchive:true,url:gearURL,path:gearURL},()=>{});
+      assert(gearRoot.querySelector("#viewer-choose-local"),"KISSsoft local retry control missing");
+      const gearData=await (await originalFetch("../../examples/kisssoft/PlanetaryExample.Z14")).arrayBuffer();
+      const gearInput=gearRoot.querySelector("#viewer-local-file");
+      const gearSelection=new DataTransfer();
+      gearSelection.items.add(new File([gearData],"CORS.Z14",{type:"application/octet-stream"}));
+      gearInput.files=gearSelection.files;
+      gearInput.dispatchEvent(new Event("change",{bubbles:true}));
+      for(let i=0;i<100&&!gearRoot.querySelector(".kisssoft-summary");i++)
+        await new Promise(resolve=>setTimeout(resolve,30));
+      assert(gearRoot.querySelector(".kisssoft-summary"),
+        "KISSsoft local retry still fetched remote NTNU URL");
+      assert(gearRoot.querySelector("#viewer-canvas")?.textContent.includes("CORS.Z14"),
+        "KISSsoft preview missing selected local file name");
+      assert(gearRoot.querySelector(".viewer-status")?.textContent.includes(gearURL),
+        "Original KISSsoft NTNU URL was lost after local preview");
+    }finally{gearRoot.__viewerCleanup?.();gearRoot.remove()}
 
   }finally{
     window.fetch=originalFetch;URL.revokeObjectURL=originalRevoke;

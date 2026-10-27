@@ -34,6 +34,23 @@ test("remote Python and notebook files open NTNU original first, with V2 viewer 
  assert.match(html,/href="#\/viewer\/1\/itgk\/\d+"/);
 });
 
+test("remote KISSsoft course files open the V2 gear viewer first, keeping original links",()=>{
+ for(const ext of ["Z12","Z14","Z012RS","Z014RS","W10","KSYS"]){
+  const filename="Gearbox."+ext;
+  const url="https://tormt.folk.ntnu.no/semestre/5/TMR4330/filer/"+filename;
+  const file={name:filename,label:"Pitch gear",kind:"FILE",source:"ntnu",
+   remoteArchive:true,path:url,url,folders:[]};
+  const html=renderResourceTree([file],()=>0,{
+   routeForResource:i=>"#/viewer/5/TMR4330/"+i
+  });
+  assert.match(html,/class="resource-viewer-link"/,filename);
+  assert.match(html,/href="#\/viewer\/5\/TMR4330\/0"/,filename);
+  assert.match(html,/resource-original-link/,filename);
+  assert.doesNotMatch(html,/resource-row-direct-first/,filename);
+  assert.doesNotMatch(html,/resource-preview-alternate/,filename);
+ }
+});
+
 test("PDF keeps V2 preview primary with source fallback",()=>{
  const course=publicManifest.semesters[0].courses.find(c=>c.code==="exphil");
  const pdf=course.resources.find(r=>r.kind==="PDF");
