@@ -1,4 +1,4 @@
-import {diveCoordinateAssessment,diveSourceUrls} from "./dive-core.js?v=4bd96e34e1aafda4cdf2564b222565c1d724d8f7";
+import {diveCoordinateAssessment,diveSourceUrls} from "./dive-core.js?v=5fc23607c75d81a4662f41e493ad84cb08256b91";
 
 function publicDiveFeature(feature){
   // Never silently turn source-disclaimed or invalid coordinates into
