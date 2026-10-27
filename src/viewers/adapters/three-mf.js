@@ -1,5 +1,5 @@
-import {parse3MF} from "../../model/parsers/three-mf.js?v=36a66d74845a0e219347125577c997c97c9617ac";
-import {renderModelWorkbench} from "../model-workbench.js?v=36a66d74845a0e219347125577c997c97c9617ac";
+import {parse3MF} from "../../model/parsers/three-mf.js?v=4bd96e34e1aafda4cdf2564b222565c1d724d8f7";
+import {renderModelWorkbench} from "../model-workbench.js?v=4bd96e34e1aafda4cdf2564b222565c1d724d8f7";
 export async function render(container,resource){
   const response=await fetch(resource.path);if(!response.ok)throw new Error(`HTTP ${response.status}`);
   const model=await parse3MF(await response.arrayBuffer(),resource.label||resource.name);
