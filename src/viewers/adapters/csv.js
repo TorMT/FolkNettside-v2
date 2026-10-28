@@ -1,7 +1,8 @@
-import {escapeHTML,fetchText} from "../utils.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
-import {publicCodePreviewURL} from "../ntnu-public-code.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
-import {createDomFinder} from "../dom-search.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
-import {detectCSVDelimiter,filterDelimitedRows,parseDelimitedText} from "../csv-core.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {escapeHTML,fetchText} from "../utils.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
+import {createDomFinder} from "../dom-search.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
+import {detectCSVDelimiter,filterDelimitedRows,parseDelimitedText} from "../csv-core.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
+import {csvTableDisplayLimits} from "../csv-display-limits.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
 
 export async function render(container,resource){
   const source=await fetchText(publicCodePreviewURL(resource));
@@ -10,12 +11,13 @@ export async function render(container,resource){
   const headers=rows[0]||[];
   const count=Math.max(0,rows.length-1);
   const maxColumns=rows.reduce((largest,row)=>Math.max(largest,row.length),headers.length);
-  const header=Array.from({length:maxColumns},(_,i)=>headers[i]||"Column "+(i+1));
+  const visibleColumns=csvTableDisplayLimits(count,maxColumns).columns;
+  const header=Array.from({length:visibleColumns},(_,i)=>headers[i]||"Column "+(i+1));
   const rowNumbers=new Map(rows.map((row,index)=>[row,index]));
   container.innerHTML=`<div class="csv-workbench">
     <div class="csv-workbench-toolbar">
       <strong>Delimited data</strong>
-      <span class="csv-workbench-count">${count} rows · ${maxColumns} columns · separator ${delimiter==="\t"?"tab":escapeHTML(delimiter)}</span>
+      <span class="csv-workbench-count" aria-live="polite">${count} rows · ${maxColumns} columns · separator ${delimiter==="\t"?"tab":escapeHTML(delimiter)}</span>
       <label>Filter rows <input type="search" class="csv-filter" placeholder="Search visible cells"></label>
       <button type="button" class="csv-toggle-raw" aria-pressed="false">Raw text</button>
     </div>
@@ -37,13 +39,15 @@ export async function render(container,resource){
   function update(){
     const match=filterDelimitedRows(rows,input.value).slice(1);
     // Bound DOM work; search always covers the full source and shows count.
-    tbody.innerHTML=match.slice(0,1500).map((row,i)=>{
+    const shown=csvTableDisplayLimits(match.length,maxColumns).rows;
+    tbody.innerHTML=match.slice(0,shown).map((row)=>{
       const number=rowNumbers.get(row);
       return `<tr><td>${number}</td>${header.map((_,j)=>`<td>${escapeHTML(row[j]??"")}</td>`).join("")}</tr>`;
     }).join("");
-    empty.hidden=match.length!==0;
+    empty.hidden=raw.hidden===false||match.length!==0;
     countLabel.textContent=`${match.length} / ${count} rows · ${maxColumns} columns · separator ${delimiter==="\t"?"tab":delimiter}`+
-      (match.length>1500?" · first 1500 shown":"");
+      (match.length>shown?" · first "+shown+" rows shown":"")+
+      (maxColumns>visibleColumns?" · first "+visibleColumns+" columns shown (raw text has all)":"");
   }
   input.addEventListener("input",update);
   toggle.addEventListener("click",()=>{

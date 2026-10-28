@@ -1,8 +1,8 @@
-import {escapeHTML,fetchText,extension} from "../utils.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
-import {publicCodePreviewURL} from "../ntnu-public-code.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
-import {getHighlighter} from "../../vendor/highlight.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
-import {createDomFinder} from "../dom-search.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
-import {codeRows} from "../highlighted-lines.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {escapeHTML,fetchText,extension} from "../utils.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
+import {getHighlighter} from "../../vendor/highlight.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
+import {createDomFinder} from "../dom-search.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
+import {codeRows} from "../highlighted-lines.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
 
 const languageByExtension={
   py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",
