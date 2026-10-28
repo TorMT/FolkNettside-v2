@@ -1,4 +1,4 @@
-import {escapeHTML,extension} from "../utils.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
+import {escapeHTML,extension} from "../utils.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
 export async function render(container,resource){
   const ext=extension(resource.path||resource.url||resource.name||"");
   const path=resource.url||resource.path;

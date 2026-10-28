@@ -1,9 +1,10 @@
-import {escapeHTML,fetchText} from "../utils.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {createDomFinder} from "../dom-search.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {detectCSVDelimiter,filterDelimitedRows,parseDelimitedText} from "../csv-core.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
+import {escapeHTML,fetchText} from "../utils.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {createDomFinder} from "../dom-search.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {detectCSVDelimiter,filterDelimitedRows,parseDelimitedText} from "../csv-core.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
 
 export async function render(container,resource){
-  const source=await fetchText(resource.path||resource.url);
+  const source=await fetchText(publicCodePreviewURL(resource));
   const delimiter=detectCSVDelimiter(source,resource.path);
   const rows=parseDelimitedText(source,delimiter);
   const headers=rows[0]||[];

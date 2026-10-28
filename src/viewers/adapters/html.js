@@ -1,7 +1,8 @@
-import {fetchText} from "../utils.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
+import {fetchText} from "../utils.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
 
 export async function render(container,resource){
-  const source=await fetchText(resource.path);
+  const source=await fetchText(publicCodePreviewURL(resource));
   const frame=document.createElement("iframe");
   frame.className="html-preview";
   frame.sandbox="allow-scripts";

@@ -1,7 +1,8 @@
-import {escapeHTML,fetchText,extension} from "../utils.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {getHighlighter} from "../../vendor/highlight.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {createDomFinder} from "../dom-search.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {codeRows} from "../highlighted-lines.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
+import {escapeHTML,fetchText,extension} from "../utils.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {getHighlighter} from "../../vendor/highlight.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {createDomFinder} from "../dom-search.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {codeRows} from "../highlighted-lines.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
 
 const languageByExtension={
   py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",
@@ -16,8 +17,8 @@ const labelByExtension={
 };
 
 export async function render(container,resource){
-  const text=await fetchText(resource.path);
-  const ext=extension(resource.path);
+  const text=await fetchText(publicCodePreviewURL(resource));
+  const ext=extension(resource.name||resource.path);
   const language=languageByExtension[ext];
   let highlighted=escapeHTML(text);
 

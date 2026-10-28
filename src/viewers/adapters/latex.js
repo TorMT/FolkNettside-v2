@@ -1,8 +1,9 @@
-import {escapeHTML,fetchText} from "../utils.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {getKaTeX} from "../../vendor/katex.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {createDomFinder} from "../dom-search.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {latexBlocks,latexSectionTitle} from "../latex-core.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {simpleLatexMathHTML} from "../latex-native.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
+import {escapeHTML,fetchText} from "../utils.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {getKaTeX} from "../../vendor/katex.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {createDomFinder} from "../dom-search.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {latexBlocks,latexSectionTitle} from "../latex-core.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {simpleLatexMathHTML} from "../latex-native.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
 
 function textNodes(input){
  return input.split(/\n/).map(line=>{
@@ -36,7 +37,7 @@ export function latexPreviewHTML(source,katex=null){
  return nodes.join("")||'<p>No LaTeX document content found.</p>';
 }
 export async function render(container,resource){
- const source=await fetchText(resource.path||resource.url);
+ const source=await fetchText(publicCodePreviewURL(resource));
  let renderer=null,warning="";
  try{renderer=await getKaTeX()}catch{
    warning="KaTeX is unavailable (offline or CDN blocked). Using a limited built-in math preview; use Show LaTeX source for the complete document.";

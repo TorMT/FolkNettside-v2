@@ -1,9 +1,10 @@
-import {pythonSourceURL} from "../python-source.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {escapeHTML,fetchJSON} from "../utils.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {createDomFinder} from "../dom-search.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {createPythonSession} from "../python-session.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
-import {notebookMarkdownHTML} from "../notebook-markdown.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
+import {pythonSourceURL} from "../python-source.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {escapeHTML,fetchJSON} from "../utils.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {createDomFinder} from "../dom-search.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {createPythonSession} from "../python-session.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+import {notebookMarkdownHTML} from "../notebook-markdown.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
 
 export const cellText=value=>Array.isArray(value)?value.join(""):String(value||"");
 export function renderNotebookOutput(output={}){
@@ -23,7 +24,7 @@ export function renderMarkdownCell(source){
   return notebookMarkdownHTML(cellText(source));
 }
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
-  const notebook=await fetchJSON(resource.path||resource.url);
+  const notebook=await fetchJSON(publicCodePreviewURL(resource));
   const cells=Array.isArray(notebook.cells)?notebook.cells:[];
   const session=sessionFactory(),editable=[];
   let stopped=false,busy=false,disposed=false;
