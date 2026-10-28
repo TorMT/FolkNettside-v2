@@ -10,7 +10,10 @@ export function createPythonSession({workerFactory=()=>new Worker(
     if(disposed)throw new Error("Python session closed");
     if(worker)return worker;
     worker=workerFactory();
-    worker.onmessage=event=>{
+    const current=worker;
+    current.onmessage=event=>{
+      // Events queued by a terminated Worker cannot affect a new session.
+      if(worker!==current)return;
       const msg=event?.data||{};
       const entry=pending.get(msg.id);
       if(!entry)return;
@@ -20,7 +23,8 @@ export function createPythonSession({workerFactory=()=>new Worker(
       msg.ok?entry.resolve(msg):entry.reject(Object.assign(new Error(
         msg.error||"Python execution error"),{stdout:msg.stdout,stderr:msg.stderr}));
     };
-    worker.onerror=event=>{
+    current.onerror=event=>{
+      if(worker!==current)return;
       reset(new Error(event.message||"Python Worker crashed"));
     };
     return worker;
