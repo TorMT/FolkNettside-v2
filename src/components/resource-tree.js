@@ -1,4 +1,4 @@
-import {viewerKind} from "../viewers/registry.js?v=a4378975be23aedfd2ed9bc2fc9eec4e1ba3692e";
+import {viewerKind} from "../viewers/registry.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
 
 function escapeHTML(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));

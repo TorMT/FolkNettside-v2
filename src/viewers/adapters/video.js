@@ -1,5 +1,5 @@
-import {localVideoProgress} from "../../video/progress-store.js?v=a4378975be23aedfd2ed9bc2fc9eec4e1ba3692e";
-import {previewContentURL} from "../utils.js?v=a4378975be23aedfd2ed9bc2fc9eec4e1ba3692e";
+import {localVideoProgress} from "../../video/progress-store.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
+import {previewContentURL} from "../utils.js?v=439be6158911a81eeccd51736fd86516852c6ed7";
 
 export async function render(container,resource){
   const wrap=document.createElement("div");
