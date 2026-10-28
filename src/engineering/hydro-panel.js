@@ -1,7 +1,7 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=378e192972d27ddaafe3f143f6db13b0a140e4c5";
-import {gzMetrics} from "../hydro/gz.js?v=378e192972d27ddaafe3f143f6db13b0a140e4c5";
-import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=378e192972d27ddaafe3f143f6db13b0a140e4c5";
-import {hydroForcesHTML} from "./hydro-force-diagram.js?v=378e192972d27ddaafe3f143f6db13b0a140e4c5";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=12f46a197391dc034f9aa7438b7fbd238188581f";
+import {gzMetrics} from "../hydro/gz.js?v=12f46a197391dc034f9aa7438b7fbd238188581f";
+import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=12f46a197391dc034f9aa7438b7fbd238188581f";
+import {hydroForcesHTML} from "./hydro-force-diagram.js?v=12f46a197391dc034f9aa7438b7fbd238188581f";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -30,6 +30,8 @@ function fmt(value,digits=3){
   const n=Number(value);
   return Number.isFinite(n)?n.toFixed(digits):"—";
 }
+
+const massDigits=value=>Math.abs(Number(value))<1?4:2;
 
 function hydroCurveSVG(rows,key,title,unit,{digits=2}={}){
   const values=(rows||[]).map(row=>({x:Number(row.draft),y:Number(row[key])}))
@@ -61,7 +63,7 @@ function hydroCurveSVG(rows,key,title,unit,{digits=2}={}){
 function hydrostaticCurvesHTML(rows,{hasKg=false}={}){
   if(!rows?.length)return "";
   return `<div class="hydro-particular-curves">
-    ${hydroCurveSVG(rows,"displacementTonnes","Displacement","t",{digits:1})}
+    ${hydroCurveSVG(rows,"displacementTonnes","Displacement","t",{digits:Math.max(...rows.map(row=>massDigits(row.displacementTonnes)))})}
     ${hydroCurveSVG(rows,"waterplaneArea","Waterplane area","m²",{digits:1})}
     ${hydroCurveSVG(rows,"kb","KB","m",{digits:2})}
     ${hydroCurveSVG(rows,hasKg?"gmTransverse":"kmTransverse",hasKg?"GM transverse":"KM transverse","m",{digits:2})}
@@ -79,7 +81,7 @@ function hydrostaticTableHTML(rows,{hasKg=false}={}){
         <th>Draft m</th><th>Disp. t</th><th>Aw m²</th><th>LCB m</th><th>KB m</th><th>LCF m</th><th>TPC t/cm</th><th>${hasKg?"GMt":"KMt"} m</th><th>${hasKg?"GMl":"KMl"} m</th>
       </tr></thead>
       <tbody>${selected.map(row=>`<tr>
-        <td>${fmt(row.draft,2)}</td><td>${fmt(row.displacementTonnes,1)}</td><td>${fmt(row.waterplaneArea,2)}</td>
+        <td>${fmt(row.draft,2)}</td><td>${fmt(row.displacementTonnes,massDigits(row.displacementTonnes))}</td><td>${fmt(row.waterplaneArea,2)}</td>
         <td>${fmt(row.lcb,2)}</td><td>${fmt(row.kb,2)}</td><td>${fmt(row.lcf,2)}</td>
         <td>${fmt(row.tonnesPerCm,3)}</td><td>${fmt(hasKg?row.gmTransverse:row.kmTransverse,2)}</td><td>${fmt(hasKg?row.gmLongitudinal:row.kmLongitudinal,2)}</td>
       </tr>`).join("")}</tbody>
@@ -173,13 +175,14 @@ export function hydroPanelHTML({
     inspector:`
       <h3>Hydro case</h3>
       ${hydroPreflightHTML(hydroValidation)}
+      ${config.note?`<p class="muted hydro-note" data-hydro-model-note>${esc(config.note)}</p>`:""}
       <label class="field"><span>Draft / waterline</span><div><input id="hydro-draft" type="number" min="${minDraft}" max="${maxDraft}" step="0.05" value="${clamped.toFixed(2)}"><span> m</span></div></label>
       <div class="readout"><span>Water density</span><strong>${density} kg/m³</strong></div>
       <div class="readout"><span>Source</span><strong>${esc(modelDocument.name)}</strong></div>
       <div class="readout"><span>Included geometry</span><strong>${result.components.length} component(s)</strong></div>
       <div class="hydro-solver">
         <div class="hydro-section-label">Loading condition</div>
-        <label class="field"><span>Target displacement</span><div><input id="hydro-target" type="number" min="0" step="0.1" value="${esc(targetDisplacementTonnes)}"><span> t</span></div></label>
+        <label class="field"><span>Target displacement</span><div><input id="hydro-target" type="number" min="0" step="${span<1?0.001:0.1}" value="${esc(targetDisplacementTonnes)}"><span> t</span></div></label>
         <button class="btn" id="hydro-solve">Solve draft</button>
         ${solvedText?`<p class="hydro-solve-result">Draft: <strong>${solvedText}</strong></p>`:""}
         ${solveError?`<p class="hydro-solve-error">${esc(solveError)}</p>`:""}
@@ -248,7 +251,7 @@ export function hydroPanelHTML({
     summary:`
       <strong>Hydro summary</strong>
       <div class="readout"><span>Volume</span><strong>${particulars.volume.toFixed(3)} m³</strong></div>
-      <div class="readout"><span>Displacement</span><strong>${particulars.displacementTonnes.toFixed(2)} t</strong></div>
+      <div class="readout"><span>Displacement</span><strong>${fmt(particulars.displacementTonnes,massDigits(particulars.displacementTonnes))} t</strong></div>
       <div class="readout"><span>KB</span><strong>${particulars.kb.toFixed(3)} m</strong></div>
       <div class="readout"><span>TPC</span><strong>${particulars.tonnesPerCm.toFixed(3)} t/cm</strong></div>
     `,

@@ -1,25 +1,25 @@
-import {MUNIN_PARTS} from "./munin-parts.js?v=378e192972d27ddaafe3f143f6db13b0a140e4c5";
+import {MUNIN_PARTS} from "./munin-parts.js?v=12f46a197391dc034f9aa7438b7fbd238188581f";
 
-const hydroReason="Munin is available for visual inspection. Each of the two source hull meshes contains a degenerate triangle and currently fails geometry preflight. Hydrostatic calculations remain disabled until the external hull surfaces are repaired and independently checked.";
+const hydroReason="Exploratory hydrostatics on two repaired, closed hull meshes. The 15 mm preview is approximate; vessel loading and stability are not certified.";
 
 /** Shared engineering selector entry; reuses the approved CAD preview bytes. */
 export const MUNIN_MODEL={
   id:"munin",label:"Munin · Njord",name:"Munin · Njord",
   format:"GLB",sourcePath:"./assets/models/munin-mobile-preview.glb",
   coordinateSystem:"z-up",partMetadata:MUNIN_PARTS,defaultHydro:false,
-  source:{purpose:"Source-derived visual assembly; hydro surface validation pending"},
+  source:{purpose:"Source-derived visual assembly; repaired closed hull meshes; exploratory hydrostatics"},
   componentRules:MUNIN_PARTS.map(part=>({
     match:`^${part.node}$`,semantic:part.semantic,viewerGroup:part.viewerGroup,
     hydro:part.semantic.role==="hull"
   })),
   analysisCapabilities:{
     model:{enabled:true,status:"sourced",reason:"Approved Munin STEP-derived preview with 130 source-grouped components."},
-    hydro:{enabled:false,status:"awaiting hull validation",reason:hydroReason,
-      requirements:["Repair and validate both external hull meshes", "Confirm vessel baseline and loading condition", "Supply KG/LCG/TCG before stability calculations"]},
+    hydro:{enabled:true,status:"exploratory · geometry checked",reason:hydroReason},
     structure:{enabled:false,status:"visual only",reason:"No structural idealisation or material properties configured."},
     resistance:{enabled:false,status:"not configured",reason:"Requires validated wetted surfaces and a declared resistance method."},
     propulsion:{enabled:false,status:"identity only",reason:"T200 components are grouped; thrust maps and local thrust axes are not configured."}
   },
   // These are preview-coordinate waterline limits, not a vessel draft datum.
-  hydro:{enabled:false,reason:hydroReason,density:1025,defaultDraft:-.22,minDraft:-.4032562,maxDraft:-.0272562}
+  hydro:{enabled:true,reason:hydroReason,
+    note:"Approximate 15 mm tessellation. Waterline and all CG coordinates use the centered GLB frame (hull bottom Z = −0.4032562 m), not a keel datum. Enter actual mass and CG for stability. Only the two hulls contribute to buoyancy.",density:1025,defaultDraft:-.22,minDraft:-.404,maxDraft:-.027}
 };

@@ -1,7 +1,7 @@
-import {escapeHTML,fetchText} from "../utils.js?v=378e192972d27ddaafe3f143f6db13b0a140e4c5";
-import {publicCodePreviewURL} from "../ntnu-public-code.js?v=378e192972d27ddaafe3f143f6db13b0a140e4c5";
-import {createDomFinder} from "../dom-search.js?v=378e192972d27ddaafe3f143f6db13b0a140e4c5";
-import {detectCSVDelimiter,filterDelimitedRows,parseDelimitedText} from "../csv-core.js?v=378e192972d27ddaafe3f143f6db13b0a140e4c5";
+import {escapeHTML,fetchText} from "../utils.js?v=12f46a197391dc034f9aa7438b7fbd238188581f";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=12f46a197391dc034f9aa7438b7fbd238188581f";
+import {createDomFinder} from "../dom-search.js?v=12f46a197391dc034f9aa7438b7fbd238188581f";
+import {detectCSVDelimiter,filterDelimitedRows,parseDelimitedText} from "../csv-core.js?v=12f46a197391dc034f9aa7438b7fbd238188581f";
 
 export async function render(container,resource){
   const source=await fetchText(publicCodePreviewURL(resource));
