@@ -1,10 +1,10 @@
-import {analyzeModelDocument} from "../hydro/hydrostatics.js?v=ff65360f8997e54d67031643faf6320badda39f8";
-import {createHydroInclude} from "../hydro/hydro-selection.js?v=ff65360f8997e54d67031643faf6320badda39f8";
-import {validateHydroModel} from "../model/hull-surface-validator.js?v=ff65360f8997e54d67031643faf6320badda39f8";
-import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js?v=ff65360f8997e54d67031643faf6320badda39f8";
-import {parseSTL} from "../model/parsers/stl.js?v=ff65360f8997e54d67031643faf6320badda39f8";
-import {parse3MF} from "../model/parsers/three-mf.js?v=ff65360f8997e54d67031643faf6320badda39f8";
-import {attitudeMatrix,transformedModelDocument} from "../model/transforms.js?v=ff65360f8997e54d67031643faf6320badda39f8";
+import {analyzeModelDocument} from "../hydro/hydrostatics.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
+import {createHydroInclude} from "../hydro/hydro-selection.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
+import {validateHydroModel} from "../model/hull-surface-validator.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
+import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
+import {parseSTL} from "../model/parsers/stl.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
+import {parse3MF} from "../model/parsers/three-mf.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
+import {attitudeMatrix,transformedModelDocument} from "../model/transforms.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
 
 export function modelFileKind(name){
   const ext=String(name||"").split(".").pop()?.toLowerCase();
