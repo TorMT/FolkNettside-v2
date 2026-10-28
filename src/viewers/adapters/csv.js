@@ -1,9 +1,10 @@
 import {escapeHTML,fetchText} from "../utils.js";
+import {publicCodePreviewURL} from "../ntnu-public-code.js";
 import {createDomFinder} from "../dom-search.js";
 import {detectCSVDelimiter,filterDelimitedRows,parseDelimitedText} from "../csv-core.js";
 
 export async function render(container,resource){
-  const source=await fetchText(resource.path||resource.url);
+  const source=await fetchText(publicCodePreviewURL(resource));
   const delimiter=detectCSVDelimiter(source,resource.path);
   const rows=parseDelimitedText(source,delimiter);
   const headers=rows[0]||[];

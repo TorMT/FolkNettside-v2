@@ -18,20 +18,27 @@ test("real migrated course cards have stable navigable V2 course routes",()=>{
  assert.match(source,/Ingen offentlige filer registrert/);
 });
 
-test("remote Python and notebook files open NTNU original first, with V2 viewer optional",()=>{
- const course=publicManifest.semesters[0].courses.find(c=>c.code==="itgk");
- assert.ok(course);
- const py=course.resources.find(r=>r.name.endsWith(".ipynb"));
- assert.ok(py?.remoteArchive);
- const html=renderResourceTree([py],()=>course.resources.indexOf(py),{
-  routeForResource:index=>"#/viewer/1/itgk/"+index
- });
+test("approved public Python and Jupyter files open interactive V2 viewer first",()=>{
+ for(const ext of [".ipynb",".py"]){
+  const candidates=publicManifest.semesters.flatMap(s=>s.courses.map(c=>({s,c})));
+  const found=candidates.map(({s,c})=>({s,c,file:c.resources.find(r=>r.name.endsWith(ext))})).find(x=>x.file);
+  assert.ok(found?.file?.remoteArchive,ext);
+  const route="#/viewer/"+found.s.id+"/"+found.c.code+"/0";
+  const html=renderResourceTree([found.file],()=>0,{routeForResource:()=>route});
+  assert.match(html,/class="resource-viewer-link"/);
+  assert.ok(html.includes('href="'+route+'"'));
+  assert.match(html,/resource-original-link/);
+  assert.doesNotMatch(html,/resource-row-direct-first/);
+  assert.doesNotMatch(html,/resource-preview-alternate/);
+ }
+});
+
+test("unapproved NTNU Python files keep direct original as primary until reviewed",()=>{
+ const file={kind:"PY",name:"new-unreviewed.py",label:"New code",source:"ntnu",remoteArchive:true,
+  url:"https://tormt.folk.ntnu.no/semestre/5/marin-dynamikk/filer/new-unreviewed.py"};
+ const html=renderResourceTree([file],()=>0,{routeForResource:i=>"#/viewer/5/marin-dynamikk/"+i});
  assert.match(html,/resource-source-primary/);
- assert.match(html,/target="_blank" rel="noopener noreferrer"/);
- assert.match(html,/https:\/\/tormt\.folk\.ntnu\.no\/semestre\/1\/itgk\//);
  assert.match(html,/resource-preview-alternate/);
- assert.match(html,/V2-viser/);
- assert.match(html,/href="#\/viewer\/1\/itgk\/\d+"/);
 });
 
 test("remote KISSsoft course files open the V2 gear viewer first, keeping original links",()=>{

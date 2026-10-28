@@ -36,7 +36,7 @@ test("visibility config rejects traversal, private keys and duplicate entries",(
   schemaVersion:1,hiddenCourses:["5/marin-maskineri","5/marin-maskineri"]}),/Invalid hidden/);
 });
 
-test("file rows contain safe direct native hash navigation and separate original NTNU links",()=>{
+test("approved file rows contain native V2 hash navigation and separate original NTNU links",()=>{
  const manifest=asRemoteNTNUManifest(source());
  const course=manifest.semesters[4].courses.find(c=>c.code==="Marin-Dynamikk");
  const item=course.resources.find(r=>r.relativePath==="filer/Øving3/const_avg_acc.py");
@@ -44,8 +44,9 @@ test("file rows contain safe direct native hash navigation and separate original
  const html=renderResourceTree([item],()=>7,{
   routeForResource:index=>"#/viewer/5/Marin-Dynamikk/"+index
  });
- assert.match(html,/resource-source-primary/);
- assert.match(html,/resource-preview-alternate/);
+ assert.match(html,/resource-viewer-link/);
+ assert.match(html,/resource-original-link/);
+ assert.doesNotMatch(html,/resource-row-direct-first/);
  assert.match(html,/href="#\/viewer\/5\/Marin-Dynamikk\/7"/);
  assert.match(html,/href="https:\/\/tormt\.folk\.ntnu\.no\/semestre\/5\/Marin-Dynamikk\//);
  assert.match(html,/target="_blank" rel="noopener noreferrer"/);

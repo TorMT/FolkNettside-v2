@@ -1,4 +1,5 @@
 import {escapeHTML,fetchText,extension} from "../utils.js";
+import {publicCodePreviewURL} from "../ntnu-public-code.js";
 import {getHighlighter} from "../../vendor/highlight.js";
 import {createDomFinder} from "../dom-search.js";
 import {codeRows} from "../highlighted-lines.js";
@@ -16,8 +17,8 @@ const labelByExtension={
 };
 
 export async function render(container,resource){
-  const text=await fetchText(resource.path);
-  const ext=extension(resource.path);
+  const text=await fetchText(publicCodePreviewURL(resource));
+  const ext=extension(resource.name||resource.path);
   const language=languageByExtension[ext];
   let highlighted=escapeHTML(text);
 

@@ -1,4 +1,5 @@
 import {escapeHTML,fetchText} from "../utils.js";
+import {publicCodePreviewURL} from "../ntnu-public-code.js";
 import {getKaTeX} from "../../vendor/katex.js";
 import {createDomFinder} from "../dom-search.js";
 import {latexBlocks,latexSectionTitle} from "../latex-core.js";
@@ -36,7 +37,7 @@ export function latexPreviewHTML(source,katex=null){
  return nodes.join("")||'<p>No LaTeX document content found.</p>';
 }
 export async function render(container,resource){
- const source=await fetchText(resource.path||resource.url);
+ const source=await fetchText(publicCodePreviewURL(resource));
  let renderer=null,warning="";
  try{renderer=await getKaTeX()}catch{
    warning="KaTeX is unavailable (offline or CDN blocked). Using a limited built-in math preview; use Show LaTeX source for the complete document.";

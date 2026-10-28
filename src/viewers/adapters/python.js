@@ -1,12 +1,13 @@
 import {pythonSourceURL} from "../python-source.js";
 import {pythonUploadPaths} from "../python-folder-paths.js";
 import {fetchText} from "../utils.js";
+import {publicCodePreviewURL} from "../ntnu-public-code.js";
 import {mountPythonCodeCell} from "../python-code-cell.js";
 import {createPythonSession} from "../python-session.js";
 import {createDomFinder} from "../dom-search.js";
 
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
-  const source=resource.sourceText!==undefined?String(resource.sourceText):await fetchText(resource.path||resource.url);
+  const source=resource.sourceText!==undefined?String(resource.sourceText):await fetchText(publicCodePreviewURL(resource));
   const session=sessionFactory();
   container.innerHTML=`<section class="python-workbench">
     <div class="python-workbench-head"><div><strong>Python workbench</strong>
