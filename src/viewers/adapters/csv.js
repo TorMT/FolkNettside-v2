@@ -1,8 +1,8 @@
-import {escapeHTML,fetchText} from "../utils.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
-import {publicCodePreviewURL} from "../ntnu-public-code.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
-import {createDomFinder} from "../dom-search.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
-import {detectCSVDelimiter,filterDelimitedRows,parseDelimitedText} from "../csv-core.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
-import {csvTableDisplayLimits} from "../csv-display-limits.js?v=7aed4fe16527d7b166739c37de3aa7c273d4d5b7";
+import {escapeHTML,fetchText} from "../utils.js?v=ff51b5daa35664ca28a23c24f1a3361797476be3";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=ff51b5daa35664ca28a23c24f1a3361797476be3";
+import {createDomFinder} from "../dom-search.js?v=ff51b5daa35664ca28a23c24f1a3361797476be3";
+import {detectCSVDelimiter,filterDelimitedRows,parseDelimitedText} from "../csv-core.js?v=ff51b5daa35664ca28a23c24f1a3361797476be3";
+import {csvTableDisplayLimits} from "../csv-display-limits.js?v=ff51b5daa35664ca28a23c24f1a3361797476be3";
 
 export async function render(container,resource){
   const source=await fetchText(publicCodePreviewURL(resource));
