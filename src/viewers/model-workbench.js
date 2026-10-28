@@ -1,9 +1,9 @@
-import {mountModelScene} from "../model/model-scene.js?v=b5455b32738e9b17ad310c9ce9a2116db0c3c501";
-import {mountWaveControls} from "../model/model-wave-controls.js?v=b5455b32738e9b17ad310c9ce9a2116db0c3c501";
-import {mountAssemblyInspector} from "./assembly-inspector.js?v=b5455b32738e9b17ad310c9ce9a2116db0c3c501";
-import {connectSpaceMouse} from "../model/spacemouse-webhid.js?v=b5455b32738e9b17ad310c9ce9a2116db0c3c501";
-import {spaceMouseMovement} from "../model/spacemouse-motion.js?v=b5455b32738e9b17ad310c9ce9a2116db0c3c501";
-import {readSpaceMouseSettings,writeSpaceMouseSettings} from "../model/spacemouse-settings.js?v=b5455b32738e9b17ad310c9ce9a2116db0c3c501";
+import {mountModelScene} from "../model/model-scene.js?v=bc90dd63b57e70aa4a0538d08e077afedd120ff4";
+import {mountWaveControls} from "../model/model-wave-controls.js?v=bc90dd63b57e70aa4a0538d08e077afedd120ff4";
+import {mountAssemblyInspector} from "./assembly-inspector.js?v=bc90dd63b57e70aa4a0538d08e077afedd120ff4";
+import {connectSpaceMouse} from "../model/spacemouse-webhid.js?v=bc90dd63b57e70aa4a0538d08e077afedd120ff4";
+import {spaceMouseMovement} from "../model/spacemouse-motion.js?v=bc90dd63b57e70aa4a0538d08e077afedd120ff4";
+import {readSpaceMouseSettings,writeSpaceMouseSettings} from "../model/spacemouse-settings.js?v=bc90dd63b57e70aa4a0538d08e077afedd120ff4";
 
 export async function renderModelWorkbench(container,model,{showSidebar=false,mobileCompact=false}={}){
   container.innerHTML=`<div class="model-viewer-workbench ${mobileCompact?"model-viewer-mobile-compact":""}">
