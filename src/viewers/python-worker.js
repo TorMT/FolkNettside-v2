@@ -215,7 +215,16 @@ def _viewer_input(prompt=""):
         raise EOFError("No more supplied Python input lines")
 builtins.input = _viewer_input
 `);
-  await py.loadPackagesFromImports(code);
+  // loadPackagesFromImports(code) misses imports made by nearby modules.
+  // Inspect approved sibling sources with Python AST, without executing them,
+  // then preload distribution packages before main.py imports those modules.
+  py.globals.set("_viewer_source_for_imports",code);
+  let moduleList=null,sources=[];
+  try{
+    moduleList=py.runPython("_viewer_import_sources(_viewer_source_for_imports)");
+    sources=moduleList.toJs();
+  }finally{moduleList?.destroy?.()}
+  await py.loadPackagesFromImports([code,...sources].join("\n"));
   let result=null;
   try{
     const value=await py.runPythonAsync(code);
