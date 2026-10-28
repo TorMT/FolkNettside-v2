@@ -26,6 +26,11 @@ try{
  const preview=host.querySelector(".python-code-preview");
  check(preview&&preview.querySelector(".hljs-string")&&preview.querySelector(".hljs-number")&&preview.querySelector(".hljs-built_in"),"Python docstring, numbers and builtins not colored offline");
  check(preview.querySelectorAll(".python-code-line").length>5,"Python line numbers missing");
+ const rows=[...preview.querySelectorAll(".python-code-line")];
+ const lineHeight=parseFloat(getComputedStyle(rows[0]).lineHeight);
+ const spacing=rows[1].getBoundingClientRect().top-rows[0].getBoundingClientRect().top;
+ check(spacing<=lineHeight+2&&spacing>=lineHeight-2,
+   "Python code lines have extra gaps: "+spacing+" vs "+lineHeight);
  check(getComputedStyle(preview).backgroundColor==="rgb(30, 30, 30)","VS Code dark preview CSS missing");
  const edit=host.querySelector("[data-py-edit]");
  edit.click();
@@ -75,6 +80,12 @@ try{
    path:"../../examples/semesters/5/TMR4182/Kok/kok-example.md",name:"kok-example.md"
  });
  check(host.querySelector(".code-shell .code-line"),"Generic code viewer lost syntax layout");
+ const genericRows=[...host.querySelectorAll(".code-shell .code-line")];
+ check(genericRows.length>=2,"Generic viewer fixture needs more than one row");
+ const genericLineHeight=parseFloat(getComputedStyle(genericRows[0]).lineHeight);
+ check(Math.abs(genericRows[1].getBoundingClientRect().top-
+   genericRows[0].getBoundingClientRect().top-genericLineHeight)<2,
+   "Generic source viewer has blank grid rows");
  cleanup.push(text.cleanup);
  document.body.dataset.status="pass";
  report.textContent="VS Code-like Python, notebook markdown, edit/indent, line numbers, wrap, Run/Stop and text view PASS";
