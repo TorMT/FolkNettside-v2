@@ -1,5 +1,5 @@
-import {createModelDocument} from "../model-document.js?v=62932505e0a98b797eaaa5840646cc0fc7ae8a1a";
-import {getGLTFRuntime} from "../three-runtime.js?v=62932505e0a98b797eaaa5840646cc0fc7ae8a1a";
+import {createModelDocument} from "../model-document.js?v=ba1fa47143fb4e2535ce35d37c43fe037e897fcf";
+import {getGLTFRuntime} from "../three-runtime.js?v=ba1fa47143fb4e2535ce35d37c43fe037e897fcf";
 
 function identity(){
   return [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];

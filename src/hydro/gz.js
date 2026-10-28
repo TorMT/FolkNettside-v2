@@ -1,6 +1,6 @@
-import {prepareHydroModel,solvePreparedWaterlineForVolume} from "./hydrostatics.js?v=62932505e0a98b797eaaa5840646cc0fc7ae8a1a";
-import {createHydroInclude} from "./hydro-selection.js?v=62932505e0a98b797eaaa5840646cc0fc7ae8a1a";
-import {attitudeMatrix,transformPoint,transformedModelDocument} from "../model/transforms.js?v=62932505e0a98b797eaaa5840646cc0fc7ae8a1a";
+import {prepareHydroModel,solvePreparedWaterlineForVolume} from "./hydrostatics.js?v=ba1fa47143fb4e2535ce35d37c43fe037e897fcf";
+import {createHydroInclude} from "./hydro-selection.js?v=ba1fa47143fb4e2535ce35d37c43fe037e897fcf";
+import {attitudeMatrix,transformPoint,transformedModelDocument} from "../model/transforms.js?v=ba1fa47143fb4e2535ce35d37c43fe037e897fcf";
 
 function zBounds(prepared){
   let min=Infinity,max=-Infinity;

@@ -1,9 +1,9 @@
-import {escapeHTML,fetchText} from "../utils.js?v=62932505e0a98b797eaaa5840646cc0fc7ae8a1a";
-import {publicCodePreviewURL} from "../ntnu-public-code.js?v=62932505e0a98b797eaaa5840646cc0fc7ae8a1a";
-import {getKaTeX} from "../../vendor/katex.js?v=62932505e0a98b797eaaa5840646cc0fc7ae8a1a";
-import {createDomFinder} from "../dom-search.js?v=62932505e0a98b797eaaa5840646cc0fc7ae8a1a";
-import {latexBlocks,latexSectionTitle} from "../latex-core.js?v=62932505e0a98b797eaaa5840646cc0fc7ae8a1a";
-import {simpleLatexMathHTML} from "../latex-native.js?v=62932505e0a98b797eaaa5840646cc0fc7ae8a1a";
+import {escapeHTML,fetchText} from "../utils.js?v=ba1fa47143fb4e2535ce35d37c43fe037e897fcf";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=ba1fa47143fb4e2535ce35d37c43fe037e897fcf";
+import {getKaTeX} from "../../vendor/katex.js?v=ba1fa47143fb4e2535ce35d37c43fe037e897fcf";
+import {createDomFinder} from "../dom-search.js?v=ba1fa47143fb4e2535ce35d37c43fe037e897fcf";
+import {latexBlocks,latexSectionTitle} from "../latex-core.js?v=ba1fa47143fb4e2535ce35d37c43fe037e897fcf";
+import {simpleLatexMathHTML} from "../latex-native.js?v=ba1fa47143fb4e2535ce35d37c43fe037e897fcf";
 
 function textNodes(input){
  return input.split(/\n/).map(line=>{
