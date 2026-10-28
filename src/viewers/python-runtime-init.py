@@ -82,7 +82,12 @@ def _viewer_import_sources(source, workspace="/home/pyodide/workspace"):
             if isinstance(node, ast.Import):
                 names = [entry.name for entry in node.names]
             elif isinstance(node, ast.ImportFrom):
-                names = [("." * node.level) + (node.module or "")]
+                prefix = ("." * node.level) + (node.module or "")
+                names = [prefix] if node.module else []
+                # "from . import helper" and "from package import module"
+                # may import submodules that themselves need Pyodide packages.
+                names += [prefix + ("." if node.module else "") + entry.name
+                          for entry in node.names if entry.name != "*"]
             else:
                 continue
             for name in names:
