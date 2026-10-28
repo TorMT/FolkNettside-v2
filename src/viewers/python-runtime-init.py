@@ -95,8 +95,11 @@ def _viewer_import_sources(source, workspace="/home/pyodide/workspace"):
                     break
                 dots = len(name) - len(name.lstrip("."))
                 if dots:
-                    # Relative package imports stay inside the source tree.
-                    parts = parent.split("/")[:-dots] if parent else []
+                    # A relative import cannot climb past the source folder.
+                    ancestors = parent.split("/")[:-1] if parent else []
+                    if dots > len(ancestors) + 1:
+                        continue
+                    parts = ancestors[:len(ancestors) + 1 - dots]
                     tail = name[dots:]
                     if tail:
                         parts.extend(tail.split("."))
