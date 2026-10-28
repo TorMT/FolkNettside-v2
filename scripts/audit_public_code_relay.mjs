@@ -14,7 +14,11 @@ const SAMPLE_PATHS=Object.freeze([
 ]);
 const DENIED_PATH="/semestre/3/marine-konstruksjoner/filer/PythonProsjekt/NyVersjon/not-approved.py";
 const url=path=>ENDPOINT+"?path="+encodeURIComponent(path);
-const close=async response=>{try{await response.body?.cancel?.()}catch{}};
+const close=response=>{
+ // Cancellation is best effort: awaiting a tee'd Response.clone() cancel can
+ // remain unresolved until every other branch is consumed (Node test doubles).
+ try{void response.body?.cancel?.()?.catch?.(()=>{})}catch{}
+};
 const timeout=()=>AbortSignal.timeout(20000);
 
 /** Caller supplies fetch to keep the default CI entirely offline. */
@@ -30,7 +34,7 @@ export async function auditPublicCodeRelay({fetchImpl=fetch}={}){
         !/^text\/plain\b/i.test(response.headers.get("content-type")||""))
        throw Error("Approved public source GET/CORS check failed");
      success++;
-   }finally{await close(response)}
+   }finally{close(response)}
  }
  const denied=await fetchImpl(url(DENIED_PATH),{
    method:"GET",redirect:"error",signal:timeout(),headers:{Origin:ORIGIN}
@@ -39,7 +43,7 @@ export async function auditPublicCodeRelay({fetchImpl=fetch}={}){
    if(denied.status!==404||
       denied.headers.get("access-control-allow-origin")!==ORIGIN)
      throw Error("Unapproved path denial/CORS check failed");
- }finally{await close(denied)}
+ }finally{close(denied)}
  const forbidden=await fetchImpl(url(SAMPLE_PATHS[0]),{
    method:"GET",redirect:"error",signal:timeout(),
    headers:{Origin:"https://not-an-approved-origin.example"}
@@ -47,7 +51,7 @@ export async function auditPublicCodeRelay({fetchImpl=fetch}={}){
  try{
    if(forbidden.status!==403||forbidden.headers.get("access-control-allow-origin"))
      throw Error("Unapproved origin denial check failed");
- }finally{await close(forbidden)}
+ }finally{close(forbidden)}
  return {approvedGET:success,deniedPath:true,deniedOrigin:true};
 }
 if(process.argv[1]&&fileURLToPath(import.meta.url)===resolve(process.argv[1])){
