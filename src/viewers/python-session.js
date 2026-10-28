@@ -38,8 +38,8 @@ export function createPythonSession({workerFactory=()=>new Worker(
     });
   };
   return {
-    run(code,{status,stdin="",sourceURL="",onOutput}={}){
-      return request("run",{code,stdin,sourceURL},status,onOutput)
+    run(code,{status,stdin="",sourceURL="",siblingRelayURL="",onOutput}={}){
+      return request("run",{code,stdin,sourceURL,siblingRelayURL},status,onOutput)
     },
     mount(files,{status}={}){return request("mount",{files},status)},
     stop(){reset()},

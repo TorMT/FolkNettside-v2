@@ -1,6 +1,6 @@
 import {pythonSourceURL} from "../python-source.js";
 import {escapeHTML,fetchJSON} from "../utils.js";
-import {publicCodePreviewURL} from "../ntnu-public-code.js";
+import {publicCodePreviewURL,publicCodeRelayURL} from "../ntnu-public-code.js";
 import {createDomFinder} from "../dom-search.js";
 import {mountPythonCodeCell} from "../python-code-cell.js";
 import {createPythonSession} from "../python-session.js";
@@ -27,6 +27,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
   const notebook=await fetchJSON(publicCodePreviewURL(resource));
   const cells=Array.isArray(notebook.cells)?notebook.cells:[];
   const session=sessionFactory(),editable=[];
+  const siblingRelayURL=publicCodeRelayURL(resource);
   let stopped=false,busy=false,disposed=false;
   container.innerHTML=`<section class="python-workbench notebook-workbench">
     <div class="python-workbench-head">
@@ -59,7 +60,8 @@ export async function render(container,resource,{sessionFactory=createPythonSess
       const result=await session.run(entry.cell.getSource(),{
         status:s=>entry.cell.setStatus(s),
         stdin:container.querySelector("[data-nb-stdin]")?.value||"",
-        sourceURL:pythonSourceURL(resource,document.baseURI),
+        sourceURL:siblingRelayURL?resource.url:pythonSourceURL(resource,document.baseURI),
+        siblingRelayURL:siblingRelayURL||"",
         onOutput:output=>entry.cell.pushOutput(output)
       });
       if(!disposed&&!stopped)entry.cell.showOutput(result);
