@@ -81,7 +81,7 @@ export function renderPythonLines(source,{lineNumbers=true}={}){
   '<span class="python-code-line">'+
    '<span class="python-code-number" aria-hidden="true">'+(index+1)+'</span>'+
    '<span class="python-code-content">'+markup+'</span></span>'
- ).join("\n");
+ ).join("");
 }
 /** Return new editor value and selection for VS Code-style Tab/Shift+Tab. */
 export function changeIndent(source,start,end,{shift=false,tab="    "}={}){
