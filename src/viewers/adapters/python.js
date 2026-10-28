@@ -1,5 +1,6 @@
 import {pythonSourceURL} from "../python-source.js";
 import {pythonUploadPaths} from "../python-folder-paths.js";
+import {pythonDownloadFilename} from "../python-download-name.js";
 import {fetchText} from "../utils.js";
 import {publicCodePreviewURL,publicCodeRelayURL} from "../ntnu-public-code.js";
 import {mountPythonCodeCell} from "../python-code-cell.js";
@@ -58,7 +59,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
   container.querySelector("#python-download").addEventListener("click",()=>{
     const blob=new Blob([cell.getSource()],{type:"text/x-python;charset=utf-8"});
     const url=URL.createObjectURL(blob),link=document.createElement("a");
-    link.href=url;link.download=(resource.name||"script.py").replace(/[^\w.\-]+/g,"_");
+    link.href=url;link.download=pythonDownloadFilename(resource.name);
     link.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
   });
   if(resource.initialEdit)host.querySelector("[data-py-edit]")?.click();
