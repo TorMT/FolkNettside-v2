@@ -1,6 +1,6 @@
 import {
   getFolkAccessToken,getFolkAccountSnapshot,validateFolkAuthConfig
-} from "../../platform/folkside-auth.js?v=20c62fd1f2072e677ffaeec8435ff766e7624aed";
+} from "../../platform/folkside-auth.js?v=378e192972d27ddaafe3f143f6db13b0a140e4c5";
 
 export const LEGACY_READ_BASE=
   "https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/legacy-brewing/";
