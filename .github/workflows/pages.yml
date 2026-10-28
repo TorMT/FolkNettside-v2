@@ -48,7 +48,7 @@ jobs:
           else:
               raise SystemExit("Theme browser smoke server did not start")
           PY
-          # The image palette is decoded asynchronously. Chrome --dump-dom
+          # The image palette is decoded asynchronously. A single DOM snapshot
           # can capture data-status="running" before image.decode() finishes.
           # Wait for the existing smoke page's explicit pass/fail status.
           chromedriver --port=9515 --allowed-ips=127.0.0.1 \
