@@ -20,7 +20,7 @@ test("all original-first binary/media adapters select the local object URL",()=>
  const fusion=readFileSync(new URL("../src/viewers/adapters/fusion.js",import.meta.url),"utf8");
  assert.match(fusion,/extension\(resource\.localPreview===true\?resource\.name:/);
  const kisssoft=readFileSync(new URL("../src/viewers/adapters/kisssoft.js",import.meta.url),"utf8");
- assert.match(kisssoft,/fetchBoundedBuffer\(source,\{maxBytes:12_000_000\}\)/);
+ assert.match(kisssoft,/fetchBoundedBuffer\(relay\|\|source,\{maxBytes:12_000_000\}\)/);
  const browser=readFileSync(new URL("../tests/browser/viewer-matrix-smoke.html",import.meta.url),"utf8");
  assert.match(browser,/DOCX local retry still fetched remote NTNU URL/);
  assert.match(browser,/KISSsoft local retry still fetched remote NTNU URL/);
