@@ -15,3 +15,7 @@ verify_jwt = false
 # No browser/preflight token bypass: all data paths enforce bearer auth.
 [functions.legacy-brewing]
 verify_jwt = false
+
+# Four reviewed PUBLIC NTNU KISSsoft assets only. No arbitrary proxy URLs.
+[functions.ntnu-kisssoft]
+verify_jwt = false
