@@ -3,11 +3,15 @@
  * Public read; only allowlisted Supabase Auth users can write, enforced by Postgres RLS.
  * NTNU files/paths are never modified by this module.
  */
-import {validateNTNUDisplayNames} from "../courses/ntnu-display-names.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
-import {validateFolkAuthConfig,getFolkAccessToken,getFolkAccountSnapshot} from "./folkside-auth.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
+import {validateNTNUDisplayNames} from "../courses/ntnu-display-names.js?v=bce4c24ff48c46da2eb08d66dbf794d8ff46c161";
+import {validateFolkAuthConfig,getFolkAccessToken,getFolkAccountSnapshot} from "./folkside-auth.js?v=bce4c24ff48c46da2eb08d66dbf794d8ff46c161";
 
 const KINDS=new Set(["course-title","course-description","section","file"]);
 const MAX_ROWS=5000;
+const stillSignedInAs=id=>{
+  const current=getFolkAccountSnapshot();
+  return current.status==="signed-in"&&current.user?.id===id;
+};
 function validRow(row){
   if(!row||!KINDS.has(row.kind)||typeof row.key!=="string"||
      typeof row.label!=="string"||!row.label.trim()||
@@ -73,33 +77,50 @@ export async function loadPublicCourseLabels({fetchImpl=fetch,configLoader=null}
 export async function checkCourseAdmin({fetchImpl=fetch,configLoader=null}={}){
   const account=getFolkAccountSnapshot();
   if(account.status!=="signed-in"||!account.user?.id)return false;
+  const userId=account.user.id;
   const token=await getFolkAccessToken();
+  if(!stillSignedInAs(userId))return false;
   const env=await setup({fetchImpl,configLoader});
+  if(!stillSignedInAs(userId))return false;
   const rows=await request(env,"folk_site_admins?select=user_id&user_id=eq."+
-    encodeURIComponent(account.user.id)+"&limit=1",{token});
-  return Array.isArray(rows)&&rows.length===1&&rows[0]?.user_id===account.user.id;
+    encodeURIComponent(userId)+"&limit=1",{token});
+  return stillSignedInAs(userId)&&Array.isArray(rows)&&rows.length===1&&
+    rows[0]?.user_id===userId;
 }
 export async function saveCourseLabel(row,{fetchImpl=fetch,configLoader=null}={}){
   if(!validRow(row))throw Error("Invalid course label");
-  if(!await checkCourseAdmin({fetchImpl,configLoader}))throw Error("Admin access denied");
+  const userId=getFolkAccountSnapshot().user?.id;
+  if(!userId||!await checkCourseAdmin({fetchImpl,configLoader})||!stillSignedInAs(userId))
+    throw Error("Admin access denied");
   const token=await getFolkAccessToken();
+  if(!stillSignedInAs(userId))throw Error("Account changed before saving");
   const env=await setup({fetchImpl,configLoader});
+  if(!stillSignedInAs(userId))throw Error("Account changed before saving");
   const saved=await request(env,"folk_course_labels?on_conflict=kind,key",{
     token,method:"POST",body:{kind:row.kind,key:row.key,label:row.label.trim()},
     headers:{Prefer:"resolution=merge-duplicates,return=representation"}});
-  if(!Array.isArray(saved)||saved.length!==1)throw Error("Change not confirmed by server");
+  if(!stillSignedInAs(userId))throw Error("Account changed while saving");
+  if(!Array.isArray(saved)||saved.length!==1||saved[0].kind!==row.kind||
+     saved[0].key!==row.key||saved[0].label!==row.label.trim())
+    throw Error("Change not confirmed by server");
   return saved[0];
 }
 export async function deleteCourseLabel({kind,key},{fetchImpl=fetch,configLoader=null}={}){
   if(!validRow({kind,key,label:"Test"}))throw Error("Invalid course label identifier");
-  if(!await checkCourseAdmin({fetchImpl,configLoader}))throw Error("Admin access denied");
+  const userId=getFolkAccountSnapshot().user?.id;
+  if(!userId||!await checkCourseAdmin({fetchImpl,configLoader})||!stillSignedInAs(userId))
+    throw Error("Admin access denied");
   const token=await getFolkAccessToken();
+  if(!stillSignedInAs(userId))throw Error("Account changed before deleting");
   const env=await setup({fetchImpl,configLoader});
+  if(!stillSignedInAs(userId))throw Error("Account changed before deleting");
   const removed=await request(env,"folk_course_labels?kind=eq."+encodeURIComponent(kind)+
     "&key=eq."+encodeURIComponent(key),{
       token,method:"DELETE",headers:{Prefer:"return=representation"}
     });
-  if(!Array.isArray(removed)||removed.length!==1)
+  if(!stillSignedInAs(userId))throw Error("Account changed while deleting");
+  if(!Array.isArray(removed)||removed.length!==1||
+     removed[0].kind!==kind||removed[0].key!==key)
     throw Error("No matching course-label override was removed");
   return removed[0];
 }

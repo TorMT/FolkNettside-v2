@@ -1,4 +1,4 @@
-import {UNIT_SCALE_TO_METERS} from "./model-document.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
+import {UNIT_SCALE_TO_METERS} from "./model-document.js?v=bce4c24ff48c46da2eb08d66dbf794d8ff46c161";
 
 // Split a triangle-soup STL into edge-connected surface bodies. Objects which
 // merely overlap in 3D are not merged. Shared edge endpoints are welded within
