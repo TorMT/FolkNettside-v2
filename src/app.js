@@ -1826,6 +1826,7 @@ async function engineeringPage(){
     }else{
     const minWaterline=Number(config.minDraft??0);
     const maxWaterline=Number(config.maxDraft??10);
+    hydroDraft=Math.min(maxWaterline,Math.max(minWaterline,Number.isFinite(hydroDraft)?hydroDraft:minWaterline));
     const samples=Math.max(3,Number(config.curveSamples??9));
     const density=Number(config.density)||1025;
     let hydroValidation=null;
@@ -1961,6 +1962,8 @@ async function engineeringPage(){
         hydroValidation,
         config
       });
+      hydro.sceneState=attitudeState?.value||solvedState?.value||{waterline:hydroDraft};
+      hydro.sceneSource=attitudeState?.value?"Attitude solution":solvedState?.value?"Displacement solution":"Reference waterline";
       engineeringReport=engineeringCaseReport({
         modelConfig:model,
         modelDocument:documentModel,
@@ -2111,7 +2114,7 @@ async function engineeringPage(){
     <aside class="inspector">${inspector}
       ${engineeringMode==="Hydro"||engineeringMode==="Model"?
         `<section class="engineering-waterline-controls">
-          <strong>3D waterline · visual reference</strong>
+          <strong>3D waterline</strong>
           <label>Water surface elevation Z (m) <input id="engineering-water-z" type="number" step=".1" value="0"></label>
           <label><input id="engineering-water-show" type="checkbox" checked> Show hull intersection and still-water plane</label>
           <span id="engineering-water-status" role="status">Loading 3D hull intersection…</span>
@@ -2210,21 +2213,24 @@ async function engineeringPage(){
     let waves=null;
     if(engineeringMode==="Hydro"||engineeringMode==="Model"){
       const sceneBounds=handle.actions.getBounds();
-      const initialZ=engineeringMode==="Hydro"&&hydro?Number(hydro.draft):
+      const initialZ=engineeringMode==="Hydro"&&hydro?Number(hydro.sceneState?.waterline??hydro.draft):
         sceneBounds.min[2]+sceneBounds.size[2]/2;
       if(engineeringMode==="Hydro"&&hydro)
-        handle.actions.setRotation({x:Number(hydroHeel)||0,y:Number(hydroTrim)||0});
+        handle.actions.setRotation({x:hydro.sceneState?.heelDeg||0,y:hydro.sceneState?.trimDeg||0,
+          z:hydro.sceneState?.yawDeg||0,hydro:true});
       const waterInput=app.querySelector("#engineering-water-z");
       const waterToggle=app.querySelector("#engineering-water-show");
       const waterStatus=app.querySelector("#engineering-water-status");
       waterInput.value=String(initialZ);
+      waterInput.readOnly=engineeringMode==="Hydro";
+      waterInput.title=engineeringMode==="Hydro"?"Calculated elevation. Edit Draft / waterline or the load and attitude inputs.":"";
       function updateSceneWaterline(){
         try{
           const info=handle.actions.setWaterline({
             visible:waterToggle.checked,z:Number(waterInput.value)
           });
           waterStatus.textContent=info.status==="ok"?
-            info.loops.length+" actual 3D hull intersection contour(s)":
+            (hydro?.sceneSource?hydro.sceneSource+": ":"")+info.loops.length+" actual 3D hull intersection contour(s)":
             info.reason||"Waterline hidden";
         }catch(error){waterStatus.textContent=String(error?.message||error)}
       }

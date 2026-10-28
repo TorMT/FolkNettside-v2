@@ -176,7 +176,7 @@ export function hydroPanelHTML({
       <h3>Hydro case</h3>
       ${hydroPreflightHTML(hydroValidation)}
       ${config.note?`<p class="muted hydro-note" data-hydro-model-note>${esc(config.note)}</p>`:""}
-      <label class="field"><span>Draft / waterline</span><div><input id="hydro-draft" type="number" min="${minDraft}" max="${maxDraft}" step="0.05" value="${clamped.toFixed(2)}"><span> m</span></div></label>
+      <label class="field"><span>Draft / waterline</span><div><input id="hydro-draft" type="number" min="${minDraft}" max="${maxDraft}" step="any" value="${clamped}"><span> m</span></div></label>
       <div class="readout"><span>Water density</span><strong>${density} kg/m³</strong></div>
       <div class="readout"><span>Source</span><strong>${esc(modelDocument.name)}</strong></div>
       <div class="readout"><span>Included geometry</span><strong>${result.components.length} component(s)</strong></div>

@@ -31,6 +31,15 @@ try{
  doc().querySelector('#hydro-target').value='0.035';doc().querySelector('#hydro-solve').click();
  await wait(()=>doc()?.querySelector('.hydro-solve-result'),'35 kg displacement solve');
  assert(!doc().querySelector('.hydro-solve-error'),'target solve must converge');
+ await wait(()=>doc()?.querySelector('#engineering-water-status')?.textContent.includes('Displacement solution'),'solved waterline displayed');
+ const visual=doc().querySelector('#engineering-water-z');
+ assert(visual.readOnly,'Hydro preview must not allow a conflicting independent waterline');
+ assert(Math.abs(Number(visual.value)+.12)>.01,'preview still uses the reference instead of solved elevation');
+ const solvedText=doc().querySelector('.hydro-solve-result').textContent;
+ assert(solvedText.includes(Number(visual.value).toFixed(4)),'preview elevation differs from solved value');
+ const precise=doc().querySelector('#hydro-draft');precise.value='-0.12345';
+ precise.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));
+ await wait(()=>doc()?.querySelector('#hydro-draft')?.value==='-0.12345'&&doc()?.querySelector('canvas'),'precise draft preserved');
 
  for(const control of doc().querySelectorAll('.engineering-model-control select,.engineering-model-control>.btn')){
   const r=control.getBoundingClientRect();assert(r.left>=0&&r.right<=frame.clientWidth+1,'model control clipped');
