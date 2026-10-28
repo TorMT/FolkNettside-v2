@@ -3,14 +3,17 @@
  * Python globals; Stop destroys the Worker and therefore resets the session.
  */
 export function createPythonSession({workerFactory=()=>new Worker(
-  new URL("./python-worker.js?v=2e69355dfff68f7b24a4f8ed038f05081cb69e43",import.meta.url)
+  new URL("./python-worker.js?v=62932505e0a98b797eaaa5840646cc0fc7ae8a1a",import.meta.url)
 )}={}){
   let worker=null,seq=0,pending=new Map(),disposed=false;
   const init=()=>{
     if(disposed)throw new Error("Python session closed");
     if(worker)return worker;
     worker=workerFactory();
-    worker.onmessage=event=>{
+    const current=worker;
+    current.onmessage=event=>{
+      // Events queued by a terminated Worker cannot affect a new session.
+      if(worker!==current)return;
       const msg=event?.data||{};
       const entry=pending.get(msg.id);
       if(!entry)return;
@@ -20,7 +23,8 @@ export function createPythonSession({workerFactory=()=>new Worker(
       msg.ok?entry.resolve(msg):entry.reject(Object.assign(new Error(
         msg.error||"Python execution error"),{stdout:msg.stdout,stderr:msg.stderr}));
     };
-    worker.onerror=event=>{
+    current.onerror=event=>{
+      if(worker!==current)return;
       reset(new Error(event.message||"Python Worker crashed"));
     };
     return worker;
