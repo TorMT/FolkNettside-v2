@@ -6,8 +6,8 @@
  * Do NOT confuse Fusion solid volume (material) with displaced hull volume.
  * There is no automatic hull tagging, hydro enablement, or derived EI.
  */
-import {getJSZip} from "../../vendor/jszip.js?v=af205f8fa5f9c95418543446d58c9f0db93f34d9";
-import {parseCADBuffer} from "./cad-runtime.js?v=af205f8fa5f9c95418543446d58c9f0db93f34d9";
+import {getJSZip} from "../../vendor/jszip.js?v=2e69355dfff68f7b24a4f8ed038f05081cb69e43";
+import {parseCADBuffer} from "./cad-runtime.js?v=2e69355dfff68f7b24a4f8ed038f05081cb69e43";
 
 const MAX_ARCHIVE=55*1024*1024, MAX_STEP=25*1024*1024;
 const MAX_JSON=1024*1024, MAX_ENTRIES=30;
