@@ -1,10 +1,10 @@
-import {MUNIN_MODEL} from "./engineering/munin-model.js?v=ac814c72d15c6b6265a1c02b43bc1ac19d96fe4c";
-import {onNTNUHost} from "./courses/ntnu-catalog.js?v=ac814c72d15c6b6265a1c02b43bc1ac19d96fe4c";
-import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=ac814c72d15c6b6265a1c02b43bc1ac19d96fe4c";
-import {loadPublicCourseLabels,mergeCloudCourseLabels} from "./platform/folk-course-admin.js?v=ac814c72d15c6b6265a1c02b43bc1ac19d96fe4c";
-import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=ac814c72d15c6b6265a1c02b43bc1ac19d96fe4c";
-import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=ac814c72d15c6b6265a1c02b43bc1ac19d96fe4c";
-import {addPitchDriveCourseModel} from "./courses/pitch-drive-course-model.js?v=ac814c72d15c6b6265a1c02b43bc1ac19d96fe4c";
+import {MUNIN_MODEL} from "./engineering/munin-model.js?v=0fb0917ee01b583ac866336e4511d0378e051b76";
+import {onNTNUHost} from "./courses/ntnu-catalog.js?v=0fb0917ee01b583ac866336e4511d0378e051b76";
+import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=0fb0917ee01b583ac866336e4511d0378e051b76";
+import {loadPublicCourseLabels,mergeCloudCourseLabels} from "./platform/folk-course-admin.js?v=0fb0917ee01b583ac866336e4511d0378e051b76";
+import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=0fb0917ee01b583ac866336e4511d0378e051b76";
+import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=0fb0917ee01b583ac866336e4511d0378e051b76";
+import {addPitchDriveCourseModel} from "./courses/pitch-drive-course-model.js?v=0fb0917ee01b583ac866336e4511d0378e051b76";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
