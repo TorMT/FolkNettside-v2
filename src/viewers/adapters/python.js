@@ -1,10 +1,11 @@
-import {pythonSourceURL} from "../python-source.js?v=36f07c61157411137f4a79e6379500223e5fc1ce";
-import {pythonUploadPaths} from "../python-folder-paths.js?v=36f07c61157411137f4a79e6379500223e5fc1ce";
-import {fetchText} from "../utils.js?v=36f07c61157411137f4a79e6379500223e5fc1ce";
-import {publicCodePreviewURL,publicCodeRelayURL} from "../ntnu-public-code.js?v=36f07c61157411137f4a79e6379500223e5fc1ce";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=36f07c61157411137f4a79e6379500223e5fc1ce";
-import {createPythonSession} from "../python-session.js?v=36f07c61157411137f4a79e6379500223e5fc1ce";
-import {createDomFinder} from "../dom-search.js?v=36f07c61157411137f4a79e6379500223e5fc1ce";
+import {pythonSourceURL} from "../python-source.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
+import {pythonUploadPaths} from "../python-folder-paths.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
+import {pythonDownloadFilename} from "../python-download-name.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
+import {fetchText} from "../utils.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
+import {publicCodePreviewURL,publicCodeRelayURL} from "../ntnu-public-code.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
+import {createPythonSession} from "../python-session.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
+import {createDomFinder} from "../dom-search.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
 
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
   const source=resource.sourceText!==undefined?String(resource.sourceText):await fetchText(publicCodePreviewURL(resource));
@@ -58,7 +59,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
   container.querySelector("#python-download").addEventListener("click",()=>{
     const blob=new Blob([cell.getSource()],{type:"text/x-python;charset=utf-8"});
     const url=URL.createObjectURL(blob),link=document.createElement("a");
-    link.href=url;link.download=(resource.name||"script.py").replace(/[^\w.\-]+/g,"_");
+    link.href=url;link.download=pythonDownloadFilename(resource.name);
     link.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
   });
   if(resource.initialEdit)host.querySelector("[data-py-edit]")?.click();
