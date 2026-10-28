@@ -1,4 +1,5 @@
 import {viewerKind} from "../viewers/registry.js";
+import {isApprovedPublicCode} from "../viewers/ntnu-public-code.js";
 
 function escapeHTML(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -48,7 +49,7 @@ function renderNode(node,indexOfResource,depth=0,routeForResource=null){
         // KISSsoft files have a native V2 adapter. The primary action must
         // open that adapter, with NTNU retained as the original/download link.
         const directFirst=item.remoteArchive===true&&Boolean(original)&&
-          viewerKind(item)!=="kisssoft"&&
+          viewerKind(item)!=="kisssoft"&&!isApprovedPublicCode(item)&&
           !["PDF","IMAGE","VIDEO","AUDIO"].includes(String(item.kind||"").toUpperCase());
         if(directFirst){
           const originalURL=new URL(item.url);
