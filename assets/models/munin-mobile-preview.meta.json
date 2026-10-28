@@ -1,9 +1,9 @@
 {
   "source_name": "NJ26_MUN_HULL_ASM_MASTER.step",
   "source_sha256": "93fd88d40842c2be0753bc426edb256f00490e75837203c83fa6b7e9121e70b2",
-  "preview_sha256": "ec63e9193ed523d2f9f9ec5e84bbc1731940702e54ff9ca08a478e64f2873f33",
-  "preview_bytes": 4580856,
-  "triangles": 184958,
+  "preview_sha256": "c18ad7fc7ae263db9d3eadfc4037439e0050af43ae4b977c5b0ee626b162a00d",
+  "preview_bytes": 4580852,
+  "triangles": 184956,
   "components": 130,
   "units": "metres",
   "source_center_m": [
@@ -17,5 +17,32 @@
     0.8065124005079269
   ],
   "deflection_mm": 15.0,
-  "notes": "Visualization only. Generic colors, tessellated geometry, no certified CAD mass or strength."
+  "notes": "Approximate 15 mm tessellation for visualization and exploratory hull-only hydrostatics. Generic colors; no certified vessel mass, loading, stability or strength.",
+  "mesh_repair": {
+    "input_sha256": "ec63e9193ed523d2f9f9ec5e84bbc1731940702e54ff9ca08a478e64f2873f33",
+    "removed_triangles": [
+      {
+        "node": "Munin-component-0015",
+        "original_triangle": 1228,
+        "indices": [
+          1218,
+          1210,
+          1204
+        ],
+        "reason": "two exactly coincident corners; zero area"
+      },
+      {
+        "node": "Munin-component-0016",
+        "original_triangle": 1196,
+        "indices": [
+          1195,
+          1182,
+          1188
+        ],
+        "reason": "two exactly coincident corners; zero area"
+      }
+    ],
+    "coordinates_changed": false,
+    "volume_change_m3": 0
+  }
 }

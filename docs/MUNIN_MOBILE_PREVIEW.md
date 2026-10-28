@@ -2,7 +2,7 @@
 
 **Status 2026-10-25:** Ekte STEP konvertert lokalt med eksisterende OCP-skript. Godkjent visningskandidat ligger i `assets/models/munin-mobile-preview.glb` med hash/metadata. CAD-knappen laster filen først ved klikk. Nettleserakse er eksplisitt Z-up; alle 130 deler beholdes separat. CI/mobilresultater registreres i ACTIVE_WORK_HANDOFF.
 
-Valgt toleranse: 15 mm, 184 958 trekanter, 4 580 856 bytes. Forsøk med 1 og 5 mm overskred grensen på 250 000 trekanter og ble forkastet. Mål kontrollert mot originaltegning ark 2: 1024,16 × 885,97 × 806,51 mm. Bredde i toppvisning er 886,07 mm; avviket på 0,10 mm er under tesselleringsnøyaktigheten. Silhuett, to skrog, ramme, sensorutstyr og thrusterplassering visuelt sammenlignet med ark 1. Farger er illustrative og navn generiske; ingen påstand om originale materialer eller sertifiserte beregninger.
+Valgt toleranse: 15 mm, 184 956 trekanter, 4 580 852 bytes etter reparasjon av to nullareal-trekanter. Forsøk med 1 og 5 mm overskred grensen på 250 000 trekanter og ble forkastet. Mål kontrollert mot originaltegning ark 2: 1024,16 × 885,97 × 806,51 mm. Bredde i toppvisning er 886,07 mm; avviket på 0,10 mm er under tesselleringsnøyaktigheten. Silhuett, to skrog, ramme, sensorutstyr og thrusterplassering visuelt sammenlignet med ark 1. Farger er illustrative og navn generiske; ingen påstand om originale materialer eller sertifiserte beregninger.
 
 Skjermbilder fra Chrome CI lagres som `munin-mobile-review`. Fysiske iOS/Android-enheter er ikke testet. Original STEP/PDF er ikke kopiert til repoet.
 
@@ -37,7 +37,7 @@ Hvis GLB blir for stor eller geometrien for kompleks, øk `--deflection-mm` (for
 5. Kun dersom modellen er korrekt, tilstrekkelig liten og godkjent, legg GLB i V2 som *én* separat binær asset og koble til en tydelig, **lazily loaded** «Vis Munin i 3D»-knapp. Originalene forblir på NTNU.
 6. Hvis validering feiler: **behold** eksisterende F3Z/STEP/PDF-lenker og lokal import. Ikke generer en falsk/syntetisk Munin som erstatning.
 
-Koden `scripts/convert_munin_step.py` bruker OCCT tessellering til en ekte mesh, men **ikke** eksakt B-rep i nettleser. Dette er bare visuell forhåndsvisning, ikke volum-/styrkesertifisering. Det er bevisst ingen automatisk modellkonvertering via en hemmelig Autodesk-token.
+Koden `scripts/convert_munin_step.py` bruker OCCT tessellering til en ekte mesh, men **ikke** eksakt B-rep i nettleser. Dette er tilnærmet visnings- og hydrogeometri, ikke volum-/styrkesertifisering. Det er bevisst ingen automatisk modellkonvertering via en hemmelig Autodesk-token.
 
 ## Delgrupper og kildegrunnlag
 
@@ -65,9 +65,34 @@ Munin is also listed in the shared Engineering model selector, including
 components 0015 and 0016 are marked as candidate hydro surfaces; every thruster,
 structural and sensor component is excluded from hydro integration.
 
-The current original preview fails the unchanged hull validator: each hull has
-one degenerate triangle. Both have zero open/non-manifold edges and consistent
-winding, but this is insufficient to pass preflight. Calculations remain blocked
-with an explicit explanation while the complete assembly can be inspected.
-No stability, loading, structural or thruster force data have been invented.
-Waterline values refer to the centred GLB coordinates, not a certified baseline.
+The repaired preview removes two exactly zero-area triangles (original faces
+1228 and 1196). Each had two exactly coincident corners. Coordinates, normals,
+component transforms and enclosed volumes are unchanged. Reproduce with
+`scripts/repair_munin_preview.py` after the original 15 mm conversion; the script
+requires the exact approved input SHA and refuses unknown input.
+
+The intersection screen also now tests in-plane edge normals in its 3D SAT.
+Nearly coplanar float32 facets previously missed the strict coplanar branch and
+could trigger false positives. Additional valid separating axes resolve this;
+the geometric tolerance, closure checks and rejection of real intersections stay
+in place. Both repaired hulls pass closure, winding, self-intersection and
+single-shell checks. The worker still blocks calculations if geometry is broken.
+
+Hydro is enabled as **exploratory geometry-only**. Draft changes, volume curves
+and target-displacement solves use only the two hulls. Mass and CG are not
+invented; GZ remains unavailable until the user supplies CG. Small displacement
+values retain four decimals in tonnes instead of rounding Munin to zero.
+Waterline and CG coordinates refer to the centred GLB frame, not a keel datum;
+the hull bottom is Z = -0.4032562 m. Curve endpoints bracket the mesh at -0.404
+and -0.027 m rather than slicing micrometres from an extremity.
+
+Independent local OpenCascade B-Rep integration of the original STEP gives full
+hull volumes 0.0446392573 and 0.0445613956 m³. The mesh volumes are 0.0439533643
+and 0.0438897134 m³ (about 1.5% lower). At Z = -0.22 and -0.12 m, successful
+B-Rep boolean cuts agree with mesh displacement within 3%; CB differs by less
+than 5 mm. These are sampled checks, not an accuracy bound for every draft.
+The B-Rep boolean at -0.32 m unexpectedly returned empty and is recorded as
+**inconclusive**, never used as a zero-volume reference. Numerical evidence is
+in `tests/fixtures/munin-step-reference.json`, reproducible with
+`scripts/benchmark_munin_source.py` and the locally supplied original STEP.
+Original source bytes remain outside GitHub.
