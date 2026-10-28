@@ -1,4 +1,4 @@
-import {escapeHTML,previewContentURL} from "../utils.js?v=65d0c8e0f081dce644939afd1aabe4959c83ab95";
+import {escapeHTML,previewContentURL} from "../utils.js?v=ff65360f8997e54d67031643faf6320badda39f8";
 export async function render(container,resource){
   const path=previewContentURL(resource);
   if(!path)throw new Error("Audio file has no source URL");
