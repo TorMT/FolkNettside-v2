@@ -1,8 +1,9 @@
-import {escapeHTML,fetchText,extension} from "../utils.js?v=9803e61e702b8eb17b52157c4df7d7fc1bf6bcb4";
-import {publicCodePreviewURL} from "../ntnu-public-code.js?v=9803e61e702b8eb17b52157c4df7d7fc1bf6bcb4";
-import {getHighlighter} from "../../vendor/highlight.js?v=9803e61e702b8eb17b52157c4df7d7fc1bf6bcb4";
-import {createDomFinder} from "../dom-search.js?v=9803e61e702b8eb17b52157c4df7d7fc1bf6bcb4";
-import {codeRows} from "../highlighted-lines.js?v=9803e61e702b8eb17b52157c4df7d7fc1bf6bcb4";
+import {escapeHTML,fetchText,extension} from "../utils.js?v=af205f8fa5f9c95418543446d58c9f0db93f34d9";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=af205f8fa5f9c95418543446d58c9f0db93f34d9";
+import {getHighlighter} from "../../vendor/highlight.js?v=af205f8fa5f9c95418543446d58c9f0db93f34d9";
+import {createDomFinder} from "../dom-search.js?v=af205f8fa5f9c95418543446d58c9f0db93f34d9";
+import {codeRows} from "../highlighted-lines.js?v=af205f8fa5f9c95418543446d58c9f0db93f34d9";
+import {codePreview} from "../code-preview-limits.js?v=af205f8fa5f9c95418543446d58c9f0db93f34d9";
 
 const languageByExtension={
   py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",
@@ -20,14 +21,15 @@ export async function render(container,resource){
   const text=await fetchText(publicCodePreviewURL(resource));
   const ext=extension(resource.name||resource.path);
   const language=languageByExtension[ext];
-  let highlighted=escapeHTML(text);
+  const preview=codePreview(text);
+  let highlighted=escapeHTML(preview.text);
 
   if(language){
     try{
       const hljs=await getHighlighter();
-      highlighted=hljs.highlight(text,{language,ignoreIllegals:true}).value;
+      highlighted=hljs.highlight(preview.text,{language,ignoreIllegals:true}).value;
     }catch{
-      highlighted=escapeHTML(text);
+      highlighted=escapeHTML(preview.text);
     }
   }
 
@@ -39,6 +41,7 @@ export async function render(container,resource){
         <button type="button" class="code-copy">Copy</button>
       </div>
     </div>
+    ${preview.truncated?'<p class="muted code-preview-notice" role="status">Large file: showing only the first '+preview.displayedLines+' lines ('+preview.displayedChars.toLocaleString()+' of '+preview.totalChars.toLocaleString()+' characters). Find searches the preview; Copy includes the whole file. Use Open original to see everything.</p>':""}
     <pre class="code-view"><code>${codeRows(highlighted)}</code></pre>
   </div>`;
 
@@ -61,5 +64,6 @@ export async function render(container,resource){
     }catch{event.currentTarget.textContent="Copy unavailable"}
   };
 
-  return {info:`${labelByExtension[ext]||"Text"} · ${text.split("\n").length} lines · ${text.length.toLocaleString()} chars`,actions:{find:createDomFinder(container)}};
+  return {info:`${labelByExtension[ext]||"Text"} · ${preview.displayedLines} preview lines · ${text.length.toLocaleString()} total chars`+
+    (preview.truncated?" · preview shortened":""),actions:{find:createDomFinder(container)}};
 }
