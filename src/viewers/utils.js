@@ -74,7 +74,7 @@ export async function fetchText(path,{maxBytes=DEFAULT_MAX_TEXT_BYTES,idleTimeou
   const controller=new AbortController();
   const io=operation=>timedPreviewIO(operation,controller,idleTimeoutMs);
   const response=await io(()=>fetch(path,{signal:controller.signal}));
-  if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${path}`);
+  if(!response.ok)throw new Error(`HTTP ${response.status} while loading file preview.`);
   const size=Number(response.headers.get("content-length")||0);
   if(size>maxBytes){controller.abort();
     try{void response.body?.cancel?.().catch(()=>{});}catch{}throw new Error(`Preview exceeds the ${label} limit; download the original instead.`);}
@@ -110,7 +110,7 @@ export async function fetchBoundedBuffer(path,{maxBytes=80_000_000,idleTimeoutMs
   const controller=new AbortController();
   const io=operation=>timedPreviewIO(operation,controller,idleTimeoutMs);
   const response=await io(()=>fetch(path,{signal:controller.signal}));
-  if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${path}`);
+  if(!response.ok)throw new Error(`HTTP ${response.status} while loading file preview.`);
   const declared=Number(response.headers.get("content-length")||0);
   if(declared>maxBytes){
     controller.abort();
