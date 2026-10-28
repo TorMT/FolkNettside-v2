@@ -18,15 +18,15 @@ test("real migrated course cards have stable navigable V2 course routes",()=>{
  assert.match(source,/Ingen offentlige filer registrert/);
 });
 
-test("approved NTNU Python and Jupyter files open interactive V2 viewer first",()=>{
- const course=publicManifest.semesters[0].courses.find(c=>c.code==="itgk");
- assert.ok(course);
+test("approved public Python and Jupyter files open interactive V2 viewer first",()=>{
  for(const ext of [".ipynb",".py"]){
-  const source=course.resources.find(r=>r.name.endsWith(ext));
-  assert.ok(source?.remoteArchive,ext);
-  const html=renderResourceTree([source],()=>0,{routeForResource:i=>"#/viewer/1/itgk/"+i});
+  const candidates=publicManifest.semesters.flatMap(s=>s.courses.map(c=>({s,c})));
+  const found=candidates.map(({s,c})=>({s,c,file:c.resources.find(r=>r.name.endsWith(ext))})).find(x=>x.file);
+  assert.ok(found?.file?.remoteArchive,ext);
+  const route="#/viewer/"+found.s.id+"/"+found.c.code+"/0";
+  const html=renderResourceTree([found.file],()=>0,{routeForResource:()=>route});
   assert.match(html,/class="resource-viewer-link"/);
-  assert.match(html,/href="#\/viewer\/1\/itgk\/0"/);
+  assert.ok(html.includes('href="'+route+'"'));
   assert.match(html,/resource-original-link/);
   assert.doesNotMatch(html,/resource-row-direct-first/);
   assert.doesNotMatch(html,/resource-preview-alternate/);
