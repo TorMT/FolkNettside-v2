@@ -107,9 +107,11 @@ async function ensurePython(){
 function safeName(name){
   const value=String(name||"").replace(/\\/g,"/");
   const base=value.split("/").pop();
-  if(!base||base==="."||base===".."||!/[a-zA-Z0-9]/.test(base))
+  if(!base||base==="."||base===".."||!/[\p{L}\p{N}]/u.test(base))
     throw new Error("Invalid Python workspace filename");
-  return base.replace(/[^a-zA-Z0-9_.() +\-]/g,"_").slice(0,140);
+  // Keep the original Norwegian/Unicode course filename in Python's __file__;
+  // Pyodide's virtual FS already accepts these characters in mounted paths.
+  return base.replace(/[^\p{L}\p{M}\p{N}_.() +\-]/gu,"_").slice(0,140);
 }
 function safeMountPath(name){
   const value=String(name||"").replace(/\\/g,"/");
