@@ -1,5 +1,5 @@
-import {parseKisssoftBuffer} from "./kisssoft-core.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {externalGearPair,checkPlanetaryPitch} from "./gear-pitch-checks.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
+import {parseKisssoftBuffer} from "./kisssoft-core.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {externalGearPair,checkPlanetaryPitch} from "./gear-pitch-checks.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
 const esc=x=>String(x??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const mm=n=>Number.isFinite(n)?n.toFixed(2)+" mm":"unknown";
 function gearShape(cx,cy,r,z,{internal=false,fill="#75b9e0",phase=0}={}){
@@ -108,11 +108,11 @@ export async function mountKisssoftVisual(target,model){
  try{
   let cleanup;
   if(model.planetary&&model.consistent){
-    const {mountKisssoft3D}=await import("./kisssoft-3d.js?v=6ec3e4445933c12c117ae3d707ac899695076c42");
+    const {mountKisssoft3D}=await import("./kisssoft-3d.js?v=17424844b3d92523b8b57661368abfd83bf5b431");
     if(!stage.isConnected)return ()=>{};
     cleanup=await mountKisssoft3D(stage,model);
   }else{
-    const {mountKisssoftPair3D}=await import("./kisssoft-pair-3d.js?v=6ec3e4445933c12c117ae3d707ac899695076c42");
+    const {mountKisssoftPair3D}=await import("./kisssoft-pair-3d.js?v=17424844b3d92523b8b57661368abfd83bf5b431");
     if(!stage.isConnected)return ()=>{};
     cleanup=await mountKisssoftPair3D(stage,model);
   }

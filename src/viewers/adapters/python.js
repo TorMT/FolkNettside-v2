@@ -1,14 +1,15 @@
-import {pythonSourceURL} from "../python-source.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {pythonUploadPaths} from "../python-folder-paths.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {fetchText} from "../utils.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {publicCodePreviewURL} from "../ntnu-public-code.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {createPythonSession} from "../python-session.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {createDomFinder} from "../dom-search.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
+import {pythonSourceURL} from "../python-source.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {pythonUploadPaths} from "../python-folder-paths.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {fetchText} from "../utils.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {publicCodePreviewURL,publicCodeRelayURL} from "../ntnu-public-code.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {createPythonSession} from "../python-session.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {createDomFinder} from "../dom-search.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
 
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
   const source=resource.sourceText!==undefined?String(resource.sourceText):await fetchText(publicCodePreviewURL(resource));
   const session=sessionFactory();
+  const siblingRelayURL=publicCodeRelayURL(resource);
   container.innerHTML=`<section class="python-workbench">
     <div class="python-workbench-head"><div><strong>Python workbench</strong>
       <p>Python Worker · imports nearby .py files automatically · plt.show() displays inline · Run/Stop</p></div>
@@ -24,7 +25,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     <label class="python-stdin-label">Input lines for Python input() (one response per line)
       <textarea id="python-stdin" spellcheck="false" rows="2" placeholder="Optional stdin lines"></textarea>
     </label>
-    <p class="python-runtime-notice">Use only code you trust. Sibling Python modules and data are loaded automatically from this file’s own folder when available on the same site. Other files can be added manually. A Worker is not a security sandbox. Pyodide packages may need internet access.</p>
+    <p class="python-runtime-notice">Use only code you trust. Sibling Python modules and data load from this file’s folder on the same site, or via the allowlisted public NTNU relay when available. Other files can be added manually. A Worker is not a security sandbox. Pyodide packages may need internet access.</p>
   </section>`;
   const host=container.querySelector("#python-script-cell");
   const cell=mountPythonCodeCell(host,{
@@ -35,7 +36,8 @@ export async function render(container,resource,{sessionFactory=createPythonSess
         const value=await session.run(api.getSource(),{
           status:message=>api.setStatus(message),
           stdin:container.querySelector("#python-stdin").value,
-          sourceURL:pythonSourceURL(resource,document.baseURI),
+          sourceURL:siblingRelayURL?resource.url:pythonSourceURL(resource,document.baseURI),
+          siblingRelayURL:siblingRelayURL||"",
           onOutput:output=>api.pushOutput(output)
         });
         api.showOutput(value);

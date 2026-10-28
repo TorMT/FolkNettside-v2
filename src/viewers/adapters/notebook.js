@@ -1,10 +1,10 @@
-import {pythonSourceURL} from "../python-source.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {escapeHTML,fetchJSON} from "../utils.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {publicCodePreviewURL} from "../ntnu-public-code.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {createDomFinder} from "../dom-search.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {createPythonSession} from "../python-session.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
-import {notebookMarkdownHTML} from "../notebook-markdown.js?v=6ec3e4445933c12c117ae3d707ac899695076c42";
+import {pythonSourceURL} from "../python-source.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {escapeHTML,fetchJSON} from "../utils.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {publicCodePreviewURL,publicCodeRelayURL} from "../ntnu-public-code.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {createDomFinder} from "../dom-search.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {createPythonSession} from "../python-session.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
+import {notebookMarkdownHTML} from "../notebook-markdown.js?v=17424844b3d92523b8b57661368abfd83bf5b431";
 
 export const cellText=value=>Array.isArray(value)?value.join(""):String(value||"");
 export function renderNotebookOutput(output={}){
@@ -27,6 +27,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
   const notebook=await fetchJSON(publicCodePreviewURL(resource));
   const cells=Array.isArray(notebook.cells)?notebook.cells:[];
   const session=sessionFactory(),editable=[];
+  const siblingRelayURL=publicCodeRelayURL(resource);
   let stopped=false,busy=false,disposed=false;
   container.innerHTML=`<section class="python-workbench notebook-workbench">
     <div class="python-workbench-head">
@@ -59,7 +60,8 @@ export async function render(container,resource,{sessionFactory=createPythonSess
       const result=await session.run(entry.cell.getSource(),{
         status:s=>entry.cell.setStatus(s),
         stdin:container.querySelector("[data-nb-stdin]")?.value||"",
-        sourceURL:pythonSourceURL(resource,document.baseURI),
+        sourceURL:siblingRelayURL?resource.url:pythonSourceURL(resource,document.baseURI),
+        siblingRelayURL:siblingRelayURL||"",
         onOutput:output=>entry.cell.pushOutput(output)
       });
       if(!disposed&&!stopped)entry.cell.showOutput(result);
