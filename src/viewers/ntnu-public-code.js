@@ -1,4 +1,4 @@
-import {previewContentURL} from "./utils.js?v=ff51b5daa35664ca28a23c24f1a3361797476be3";
+import {previewContentURL} from "./utils.js?v=32de25f0c97c7dd494338dbc4a4ac2bb35c11c7a";
 /** V2's optional read-only relay for explicitly approved, public course source files. */
 export const APPROVED_PUBLIC_CODE_PATHS=Object.freeze([
   "/semestre/1/itgk/filer/%C3%98ving1/Avrundingsfeil%20-%20subtraksjon.ipynb",

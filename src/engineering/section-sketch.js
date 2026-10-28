@@ -1,10 +1,10 @@
 import {parseStructuralMembers,sectionProperties}
-  from "../structure/girder-section-properties.js?v=ff51b5daa35664ca28a23c24f1a3361797476be3";
+  from "../structure/girder-section-properties.js?v=32de25f0c97c7dd494338dbc4a4ac2bb35c11c7a";
 import {structuralOverlapAudit,memberFootprint}
-  from "../structure/girder-section-geometry.js?v=ff51b5daa35664ca28a23c24f1a3361797476be3";
+  from "../structure/girder-section-geometry.js?v=32de25f0c97c7dd494338dbc4a4ac2bb35c11c7a";
 import {insertSectionMember,updateSectionRow,translateSectionMember,
   sectionDrawBounds,sectionPixelToMeters,sectionMetersToPixel}
-  from "./section-sketch-core.js?v=ff51b5daa35664ca28a23c24f1a3361797476be3";
+  from "./section-sketch-core.js?v=32de25f0c97c7dd494338dbc4a4ac2bb35c11c7a";
 
 /**
  * An optional visual Y/Z editor for the authoritative human-readable member
