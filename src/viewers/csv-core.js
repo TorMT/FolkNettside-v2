@@ -27,7 +27,25 @@ export function detectCSVDelimiter(text,path=""){
   if(/\.tsv(?:$|[?#])/i.test(String(path)))return "\t";
   if(/\.psv(?:$|[?#])/i.test(String(path)))return "|";
   const candidates=[",",";","\t","|"];
-  const sample=String(text).slice(0,20000);
+  const source=String(text);
+  let sample=source.slice(0,20000);
+  // The sample may end inside a quoted, multiline field. Only sniff complete
+  // records when truncated; otherwise every candidate parser would reject a
+  // perfectly valid CSV and silently fall back to a comma separator.
+  if(sample.length<source.length){
+    let quoted=false,lastRecordEnd=0;
+    for(let i=0;i<sample.length;i++){
+      const ch=sample[i];
+      if(ch==='"'){
+        if(quoted&&sample[i+1]==='"'){i++;continue}
+        quoted=!quoted;
+      }else if(!quoted&&(ch==='\\n'||ch==='\\r')){
+        if(ch==='\\r'&&sample[i+1]==='\\n')i++;
+        lastRecordEnd=i+1;
+      }
+    }
+    if(lastRecordEnd)sample=sample.slice(0,lastRecordEnd);
+  }
   const ranked=candidates.map(delimiter=>{
     try{
       const rows=parseDelimitedText(sample,delimiter).slice(0,8);
