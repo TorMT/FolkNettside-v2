@@ -1,8 +1,8 @@
-import {loadAdapter,viewerKind} from "./registry.js?v=f8575958a8ef908f0b771b6c240fe7bfc8496f34";
-import {escapeHTML,safeViewerOriginalURL} from "./utils.js?v=f8575958a8ef908f0b771b6c240fe7bfc8496f34";
-import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=f8575958a8ef908f0b771b6c240fe7bfc8496f34";
-import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=f8575958a8ef908f0b771b6c240fe7bfc8496f34";
-import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js?v=f8575958a8ef908f0b771b6c240fe7bfc8496f34";
+import {loadAdapter,viewerKind} from "./registry.js?v=65d0c8e0f081dce644939afd1aabe4959c83ab95";
+import {escapeHTML,safeViewerOriginalURL} from "./utils.js?v=65d0c8e0f081dce644939afd1aabe4959c83ab95";
+import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=65d0c8e0f081dce644939afd1aabe4959c83ab95";
+import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=65d0c8e0f081dce644939afd1aabe4959c83ab95";
+import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js?v=65d0c8e0f081dce644939afd1aabe4959c83ab95";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the
@@ -16,9 +16,11 @@ export async function mountViewer(root,resource,onBack){
     root.__viewerCleanup=()=>URL.revokeObjectURL(resource.path);
   }
 
-  const isQuiz=viewerKind(resource)==="quiz";
+  const kind=viewerKind(resource);
+  const isQuiz=kind==="quiz";
+  const isSource=["python","notebook","text"].includes(kind);
   const originalURL=safeViewerOriginalURL(resource);
-  root.innerHTML=`<main class="viewer ${isQuiz?"viewer--quiz":""}">
+  root.innerHTML=`<main class="viewer ${isQuiz?"viewer--quiz":""} ${isSource?"viewer--source":""}">
     <header class="viewer-head">
       <div>
         ${viewerBreadcrumbHTML(resource)}
@@ -50,11 +52,12 @@ export async function mountViewer(root,resource,onBack){
       <button data-action="resetZoom" hidden>Reset view</button>
       <button data-action="resetProgress" hidden>Reset progress</button>
       <span class="top-spacer"></span>
+      ${isSource?'<button type="button" id="viewer-source-info" aria-controls="viewer-side-panel" aria-expanded="false">File details</button>':""}
       <button id="viewer-full">Fullscreen</button>
     </div>
     <div class="viewer-main">
       <section class="viewer-canvas" id="viewer-canvas"><div class="viewer-loading">Loading…</div></section>
-      <aside class="viewer-panel">
+      <aside class="viewer-panel" id="viewer-side-panel">
         <div class="panel-tabs"><button class="active" data-viewer-panel="file">File</button><button data-viewer-panel="info">Info</button></div>
         <div data-viewer-panel-content="file">
           <strong>${escapeHTML(resource.name)}</strong>
@@ -124,6 +127,23 @@ export async function mountViewer(root,resource,onBack){
     panelButtons.forEach(item=>item.classList.toggle("active",item===button));
     panelContents.forEach(content=>content.hidden=content.dataset.viewerPanelContent!==id);
   }));
+  const detailsToggle=root.querySelector("#viewer-source-info");
+  const detailsPanel=root.querySelector("#viewer-side-panel");
+  const closeSourceDetails=()=>{
+    root.querySelector(".viewer")?.classList.remove("viewer--source-info");
+    if(detailsToggle){detailsToggle.setAttribute("aria-expanded","false");detailsToggle.textContent="File details"}
+  };
+  detailsToggle?.addEventListener("click",()=>{
+    const expanded=root.querySelector(".viewer")?.classList.toggle("viewer--source-info");
+    detailsToggle.setAttribute("aria-expanded",String(Boolean(expanded)));
+    detailsToggle.textContent=expanded?"Hide details":"File details";
+    if(expanded)detailsPanel?.querySelector("[data-viewer-panel]")?.focus();
+  });
+  detailsPanel?.addEventListener("keydown",event=>{
+    if(isSource&&event.key==="Escape"){
+      closeSourceDetails();detailsToggle?.focus();event.stopPropagation();
+    }
+  });
   root.querySelector("#viewer-copy-path")?.addEventListener("click",async event=>{
     const value=resource.relativePath||resource.path||resource.url||"";
     try{

@@ -89,3 +89,46 @@
  .code-shell .code-line{grid-template-columns:36px minmax(0,1fr)}
  .code-shell .code-line-text{padding:0 9px}
 }
+
+/* Source viewers: reading is primary; metadata is available on demand.
+   Scope this to code/notebook/text, never PDF, CAD or quiz layouts. */
+.viewer--source .viewer-main{grid-template-columns:minmax(0,1fr)}
+.viewer--source .viewer-panel{display:none}
+.viewer--source.viewer--source-info .viewer-main{grid-template-columns:minmax(0,1fr) minmax(220px,260px)}
+.viewer--source.viewer--source-info .viewer-panel{display:block}
+.viewer--source .viewer-status span:last-child{display:none}
+.viewer--source .viewer-status{font-size:11px}
+.viewer--source #viewer-source-info[aria-expanded="true"]{
+ background:var(--surface-sunk);border-color:var(--accent);color:var(--ink)
+}
+/* Each source row is its own block-level grid. Never introduce anonymous
+   text nodes/extra rows between them inside the white-space:pre parent. */
+.vscode-python-cell .python-code-preview{padding:7px 0;font-size:13px;line-height:1.5}
+.vscode-python-cell .python-code-line{min-height:1.5em;line-height:1.5}
+.vscode-python-cell .python-code-number{padding-right:11px}
+.vscode-python-cell .python-code-content{padding:0 13px}
+.vscode-python-cell .python-editor-line{display:block;min-height:1.5em;line-height:1.5}
+.vscode-python-cell .python-edit-gutter span{min-height:1.5em;line-height:1.5}
+.vscode-python-cell .python-cell-toolbar{gap:6px;padding:7px 10px}
+.vscode-python-cell .python-cell-toolbar strong{font-size:12px;overflow-wrap:anywhere}
+.vscode-python-cell .python-code-stats{font-size:11px}
+.code-shell .code-view{line-height:1.5}
+.code-shell .code-line{min-height:1.5em;line-height:1.5}
+@media(max-width:760px){
+ .viewer--source .viewer-main{position:relative}
+ .viewer--source.viewer--source-info .viewer-main{grid-template-columns:minmax(0,1fr)!important}
+ .viewer--source.viewer--source-info .viewer-panel{
+   display:block!important;position:absolute;z-index:9;inset:0 0 0 auto;
+   box-sizing:border-box;width:min(320px,100%);max-height:100%;
+   overflow:auto;box-shadow:-12px 0 28px rgba(0,0,0,.25)
+ }
+ .vscode-python-cell .python-code-preview{font-size:12px;line-height:1.5}
+ .vscode-python-cell .python-code-line{grid-template-columns:36px minmax(0,1fr)}
+ .vscode-python-cell .python-code-number{padding-right:6px}
+ .vscode-python-cell .python-code-content{padding:0 9px}
+ .vscode-python-cell .python-cell-toolbar{gap:5px;padding:6px 8px}
+ .vscode-python-cell .python-cell-toolbar button{min-height:36px}
+ .vscode-python-cell .python-cell-toolbar strong{flex-basis:100%}
+ .code-shell .code-view{line-height:1.5}
+ .code-shell .code-line{grid-template-columns:36px minmax(0,1fr)}
+}

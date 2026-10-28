@@ -1,5 +1,5 @@
-import {escapeHTML} from "./utils.js?v=f8575958a8ef908f0b771b6c240fe7bfc8496f34";
-import {renderPythonLines,pythonHighlightedLines,changeIndent,insertPythonNewline} from "./python-syntax.js?v=f8575958a8ef908f0b771b6c240fe7bfc8496f34";
+import {escapeHTML} from "./utils.js?v=65d0c8e0f081dce644939afd1aabe4959c83ab95";
+import {renderPythonLines,pythonHighlightedLines,changeIndent,insertPythonNewline} from "./python-syntax.js?v=65d0c8e0f081dce644939afd1aabe4959c83ab95";
 
 export function mountPythonCodeCell(container,{
   source="",title="Python",onRun=async()=>{},onStop=()=>{},output="",maxEditorHeight=520
@@ -71,7 +71,7 @@ export function mountPythonCodeCell(container,{
     if(editor.value.length>380000){
       overlayCode.textContent=editor.value;
     }else{
-      overlayCode.innerHTML=lines.map(line=>'<span class="python-editor-line">'+line+'</span>').join("\n");
+      overlayCode.innerHTML=lines.map(line=>'<span class="python-editor-line">'+line+'</span>').join("");
     }
     gutter.innerHTML=Array.from({length:Math.min(lines.length,10000)},(_,i)=>'<span>'+(i+1)+'</span>').join("");
     updateSize();
