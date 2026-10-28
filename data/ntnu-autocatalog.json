@@ -9704,6 +9704,36 @@
             },
             {
               "folders": [
+                "Øving12"
+              ],
+              "kind": "PDF",
+              "label": "TMR4182 Lab3 Gruppe15 Forarbeid utfylt",
+              "modified": 0,
+              "name": "TMR4182_Lab3_Gruppe15_Forarbeid_utfylt.pdf",
+              "path": "/semestre/5/Marin-Dynamikk/filer/%C3%98ving12/TMR4182_Lab3_Gruppe15_Forarbeid_utfylt.pdf",
+              "relativePath": "filer/Øving12/TMR4182_Lab3_Gruppe15_Forarbeid_utfylt.pdf",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/%C3%98ving12/TMR4182_Lab3_Gruppe15_Forarbeid_utfylt.pdf"
+            },
+            {
+              "folders": [
+                "Øving12"
+              ],
+              "kind": "XLSX",
+              "label": "TMR4182 Lab3 Gruppe15 Labdata Excel",
+              "modified": 0,
+              "name": "TMR4182_Lab3_Gruppe15_Labdata_Excel.xlsx",
+              "path": "/semestre/5/Marin-Dynamikk/filer/%C3%98ving12/TMR4182_Lab3_Gruppe15_Labdata_Excel.xlsx",
+              "relativePath": "filer/Øving12/TMR4182_Lab3_Gruppe15_Labdata_Excel.xlsx",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/%C3%98ving12/TMR4182_Lab3_Gruppe15_Labdata_Excel.xlsx"
+            },
+            {
+              "folders": [
                 "Øving3"
               ],
               "kind": "PY",
@@ -10049,6 +10079,21 @@
               "size": 0,
               "source": "ntnu",
               "url": "https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/%C3%98ving8.pdf"
+            },
+            {
+              "folders": [
+                "Øving9"
+              ],
+              "kind": "PDF",
+              "label": "Exercise9 Gruppe26 utfylt svarark",
+              "modified": 0,
+              "name": "Exercise9_Gruppe26_utfylt_svarark.pdf",
+              "path": "/semestre/5/Marin-Dynamikk/filer/%C3%98ving9/Exercise9_Gruppe26_utfylt_svarark.pdf",
+              "relativePath": "filer/Øving9/Exercise9_Gruppe26_utfylt_svarark.pdf",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/Marin-Dynamikk/filer/%C3%98ving9/Exercise9_Gruppe26_utfylt_svarark.pdf"
             }
           ],
           "sections": [
