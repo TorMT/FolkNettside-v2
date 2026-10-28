@@ -24,14 +24,16 @@ function setSourceBase(url,siblingRelayURL=""){
   try{
     const target=new URL(url,self.location.href);
     if(!["https:","http:"].includes(target.protocol)||
-       target.username||target.password||target.search||target.hash)return;
+       target.username||target.password)return;
+    // Keep same-origin cache-busting query/fragment URLs working. Only the
+    // cross-origin NTNU relay requires a canonical URL without either.
     if(target.origin===self.location.origin){
       sourceBase=new URL(".",target);
       return;
     }
     // GitHub Pages can read only specifically approved public NTNU files
     // through the read-only Edge relay. The relay enforces the allowlist.
-    if(target.origin!==NTNU_SOURCE_ORIGIN||
+    if(target.search||target.hash||target.origin!==NTNU_SOURCE_ORIGIN||
        siblingRelayURL!==PUBLIC_CODE_RELAY+"?path="+encodeURIComponent(target.pathname))return;
     sourceBase=new URL(".",target);
     usePublicRelay=true;
