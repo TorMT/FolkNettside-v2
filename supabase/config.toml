@@ -19,3 +19,7 @@ verify_jwt = false
 # Four reviewed PUBLIC NTNU KISSsoft assets only. No arbitrary proxy URLs.
 [functions.ntnu-kisssoft]
 verify_jwt = false
+
+# Exact-path, read-only relay for reviewed public NTNU code and notebook sources.
+[functions.ntnu-public-code]
+verify_jwt = false
