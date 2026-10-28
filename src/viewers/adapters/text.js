@@ -1,8 +1,8 @@
-import {escapeHTML,fetchText,extension} from "../utils.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
-import {publicCodePreviewURL} from "../ntnu-public-code.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
-import {getHighlighter} from "../../vendor/highlight.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
-import {createDomFinder} from "../dom-search.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
-import {codeRows} from "../highlighted-lines.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
+import {escapeHTML,fetchText,extension} from "../utils.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
+import {getHighlighter} from "../../vendor/highlight.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
+import {createDomFinder} from "../dom-search.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
+import {codeRows} from "../highlighted-lines.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
 
 const languageByExtension={
   py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",

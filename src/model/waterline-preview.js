@@ -1,5 +1,5 @@
-import {trianglePlaneSegment} from "../hydro/hydrostatics.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
-import {stitchWaterplaneContours} from "../hydro/waterplane-contours.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
+import {trianglePlaneSegment} from "../hydro/hydrostatics.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
+import {stitchWaterplaneContours} from "../hydro/waterplane-contours.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
 
 // Same triangle/plane intersection and contour stitcher as Hydro. Never infer
 // a waterline using a horizontal line drawn over the camera viewport.

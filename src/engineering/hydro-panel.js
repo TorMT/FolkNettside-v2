@@ -1,7 +1,7 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
-import {gzMetrics} from "../hydro/gz.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
-import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
-import {hydroForcesHTML} from "./hydro-force-diagram.js?v=f6a6bcca8acf93bfdac3ac0f44c76dc5b3795187";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
+import {gzMetrics} from "../hydro/gz.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
+import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
+import {hydroForcesHTML} from "./hydro-force-diagram.js?v=ccc1ecac0233715636ff562a37129782179e56e9";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
