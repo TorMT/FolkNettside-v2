@@ -48,14 +48,15 @@ jobs:
           else:
               raise SystemExit("Theme browser smoke server did not start")
           PY
-          "$browser" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=10000 \
-            --dump-dom http://127.0.0.1:4173/tests/browser/theme-image-smoke.html \
-            >/tmp/theme-image-smoke-dom.html
-          grep -q 'data-status="pass"' /tmp/theme-image-smoke-dom.html || {
-            cat /tmp/theme-image-smoke-dom.html
-            exit 1
-          }
-          grep '<pre id="result">' /tmp/theme-image-smoke-dom.html || true
+          # The image palette is decoded asynchronously. Chrome --dump-dom
+          # can capture data-status="running" before image.decode() finishes.
+          # Wait for the existing smoke page's explicit pass/fail status.
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 \
+            >/tmp/theme-image-chromedriver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py \
+            'http://127.0.0.1:4173/tests/browser/theme-image-smoke.html' 30
       - name: Gunnerus GLB browser smoke
         run: |
           browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
