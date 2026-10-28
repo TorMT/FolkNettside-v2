@@ -1,6 +1,6 @@
 # FolkNettside V2 — ACTIVE HANDOFF / START HERE
 
-**Updated:** 2026-10-27. **Repository:** `TorMT/FolkNettside-v2`, branch `main`.  
+**Updated:** 2026-10-28. **Repository:** `TorMT/FolkNettside-v2`, branch `main`.  
 **Purpose:** Durable single entry point for ChatGPT/Codex/other coding agents when a conversation is truncated, ends, or times out. **Tracking issue:** [#107](https://github.com/TorMT/FolkNettside-v2/issues/107). Read this file *first* and update it after every merged work unit. Do not claim asynchronous work has been performed.
 
 ## Request from owner
@@ -34,6 +34,7 @@ Continue finishing **all existing V2 capabilities**, incrementally. **One indepe
 - PR #113: downloadable-file fallback for CORS-blocked public NTNU viewers, with local-only browser `blob:` preview, filename/type/size constraints, cleanup and real Chrome regression. CI green; not a CORS/server fix.
 - PR #114: fix six original-URL-first viewer adapters to honor locally selected file data (Office/Fusion/archive/image/audio/video); extended Chrome test for actual DOCX local retry. CI green.
 - PR #115: persistent local-file opener in NTNU viewer header even if image/PDF/video preview silently fails. Chrome test selects local PNG; CI green.
+- PR #166 **merged** (`a4378975`): read-only Supabase Edge `ntnu-kisssoft` relay for exactly four reviewed public NTNU PitchSystem files (Z12/Z14), with explicit path allowlist, no redirect/cookies, bounded 12 MB streaming and CORS for V2 GitHub Pages. V2 KISSsoft adapter uses relay only for these 4 remote course resources, retains original/direct and local-blob fallback, and keeps same-origin NTNU untouched. Real unauthenticated `Stage2PlanetaryGear.Z14` proxy returned HTTP 200; unapproved path HTTP 404 in Edge logs. PR latest-head **51/51 CI green on attempt 2** (attempt 1 unrelated ChromeDriver startup). Post-merge Pages/browser production acceptance still required.
 - PR #165 **merged** (`4bd96e34`): KISSsoft NTNU course files now use the V2 native viewer as the primary link, with NTNU original link retained; selected local `.Z12/.Z14/.Z012RS/.Z014RS/.W10/.KSYS` preview bytes are respected instead of retrying the cross-origin source. Shared 12 MB bounded binary reader and CORS/local Z14 Chrome regression; latest-head **51/51 CI steps green**. NTNU CORS itself is unchanged; authentic owner KISSsoft file acceptance still pending.
 - PR #117: dispose/invalidate active course viewer on all SPA hash route changes, including native breadcrumbs and previous/next navigation; avoids leaked blob URLs, workers and keyboard callbacks. CI green.
 - PR #118: require literal `beskyttet:false` at both semester and course levels in legacy fallback; read-only audit excludes unknown statuses. Full Node/Chrome/mobile CI green.
