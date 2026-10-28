@@ -39,8 +39,8 @@ export function detectCSVDelimiter(text,path=""){
       if(ch==='"'){
         if(quoted&&sample[i+1]==='"'){i++;continue}
         quoted=!quoted;
-      }else if(!quoted&&(ch==='\\n'||ch==='\\r')){
-        if(ch==='\\r'&&sample[i+1]==='\\n')i++;
+      }else if(!quoted&&(ch==='\n'||ch==='\r')){
+        if(ch==='\r'&&sample[i+1]==='\n')i++;
         lastRecordEnd=i+1;
       }
     }
