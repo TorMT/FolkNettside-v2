@@ -1,4 +1,4 @@
-import {legacyReadEndpoint} from "./legacy-read-client.js?v=96a91e1cce3fad30597988715d86bdab2e452e9e";
+import {legacyReadEndpoint} from "./legacy-read-client.js?v=9803e61e702b8eb17b52157c4df7d7fc1bf6bcb4";
 /** Explicit V2-only Brewing endpoint mapping, never fall back to V1 /includes/. */
 const ROOTS={
   brewing:"./includes/brewing/api/",

@@ -1,5 +1,5 @@
-import {componentSemantic} from "../model/semantic-assembly.js?v=96a91e1cce3fad30597988715d86bdab2e452e9e";
-import {actuatorDisk} from "./actuator-disk.js?v=96a91e1cce3fad30597988715d86bdab2e452e9e";
+import {componentSemantic} from "../model/semantic-assembly.js?v=9803e61e702b8eb17b52157c4df7d7fc1bf6bcb4";
+import {actuatorDisk} from "./actuator-disk.js?v=9803e61e702b8eb17b52157c4df7d7fc1bf6bcb4";
 
 const EPS=1e-12;
 const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
