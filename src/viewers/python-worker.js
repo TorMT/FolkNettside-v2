@@ -10,21 +10,34 @@ const WORKSPACE="/home/pyodide/workspace";
 const uploadedFiles=new Set();
 const fetchedFiles=new Set();
 const missingFiles=new Set();
-let sourceBase=null, fetchAttempts=0, activeRunId=null;
+let sourceBase=null, usePublicRelay=false, fetchAttempts=0, activeRunId=null;
+const NTNU_SOURCE_ORIGIN="https://tormt.folk.ntnu.no";
+const PUBLIC_CODE_RELAY="https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/ntnu-public-code";
 const send=(message)=>self.postMessage(message);
 
 // Browser-native synchronous file resolution is permitted in dedicated Workers.
 // Never resolve outside the original script's own folder or across origins.
 // A failed lookup is cached, limiting the overhead of absent modules.
-function setSourceBase(url){
-  if(!url){sourceBase=null;return}
+function setSourceBase(url,siblingRelayURL=""){
+  sourceBase=null;usePublicRelay=false;
+  if(!url)return;
   try{
     const target=new URL(url,self.location.href);
-    if(target.origin!==self.location.origin||
-       !["https:","http:"].includes(target.protocol))throw new Error("cross-origin");
+    if(!["https:","http:"].includes(target.protocol)||
+       target.username||target.password||target.search||target.hash)return;
+    if(target.origin===self.location.origin){
+      sourceBase=new URL(".",target);
+      return;
+    }
+    // GitHub Pages can read only specifically approved public NTNU files
+    // through the read-only Edge relay. The relay enforces the allowlist.
+    if(target.origin!==NTNU_SOURCE_ORIGIN||
+       siblingRelayURL!==PUBLIC_CODE_RELAY+"?path="+encodeURIComponent(target.pathname))return;
     sourceBase=new URL(".",target);
-  }catch{sourceBase=null}
+    usePublicRelay=true;
+  }catch{sourceBase=null;usePublicRelay=false}
 }
+
 // Filenames from NTNU can contain Æ/Ø/Å or other Unicode letters. They
 // must remain round-trip safe while rejecting traversal, hidden paths,
 // embedded escapes, control characters and URL syntax.
@@ -51,7 +64,9 @@ function loadSiblingFile(relative){
       return false;
     fetchAttempts++;
     const xhr=new XMLHttpRequest();
-    xhr.open("GET",url.href,false);
+    xhr.open("GET",usePublicRelay
+      ?PUBLIC_CODE_RELAY+"?path="+encodeURIComponent(url.pathname)
+      :url.href,false);
     xhr.responseType="arraybuffer";
     xhr.send();
     if(xhr.status!==200||!xhr.response||xhr.response.byteLength>8_000_000)
@@ -159,11 +174,11 @@ function generatedFiles(py){
   }
   return outputs;
 }
-async function run(code,stdin="",sourceURL=""){
+async function run(code,stdin="",sourceURL="",siblingRelayURL=""){
   const py=await ensurePython();
   if(typeof code!=="string"||code.length>500000)
     throw new Error("Python source must be text under 500 KB");
-  setSourceBase(sourceURL);
+  setSourceBase(sourceURL,siblingRelayURL);
   // Provide a real __file__ path so Path(__file__).parent works in local
   // course scripts, including those loading sibling CSV/JSON dependencies.
   let scriptName="scratch.py";
@@ -225,7 +240,7 @@ self.onmessage=async({data})=>{
       send({id,phase:"loading"});
       activeRunId=id;
       try{
-        const result=await run(data.code,data.stdin||"",data.sourceURL||"");
+        const result=await run(data.code,data.stdin||"",data.sourceURL||"",data.siblingRelayURL||"");
         send({id,phase:"done",ok:true,...result});
       }finally{activeRunId=null}
     }else if(command==="mount"){
