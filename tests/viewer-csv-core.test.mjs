@@ -21,11 +21,11 @@ test("unclosed quotes fail instead of returning silently corrupted rows",()=>{
 });
 
 test("delimiter detection ignores a truncated long quoted field",()=>{
- const data='name;description\\r\\n"Boat";"'+"x".repeat(21000)+'"\\r\\n"Ship";"another"';
+ const data='name;description\r\n"Boat";"'+"x".repeat(21000)+'"\r\n"Ship";"another"';
  assert.equal(detectCSVDelimiter(data,"long.csv"),";");
  assert.equal(parseDelimitedText(data,";")[1][1].length,21000);
 });
 test("delimiter detection skips embedded newlines inside the truncated quoted cell",()=>{
- const data='x|y\\n"first"|"hello\\n'+"x".repeat(21000)+'"\\n"next"|"ok"';
+ const data='x|y\n"first"|"hello\n'+"x".repeat(21000)+'"\n"next"|"ok"';
  assert.equal(detectCSVDelimiter(data,"long.csv"),"|");
 });
