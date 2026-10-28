@@ -21,7 +21,10 @@ Kilder til kontroll: config/ntnu-public-courses.json er en gjennomgått
 liste over 24 offentlig deklarerte fag, inkludert tre opprinnelig tomme\nsemester 5-fag. **Alle 32 eksisterende offentlige `filer/`- og `quiz/`-mapper\ner nå inkludert.** Hver kjøring kontrollerer på nytt
 at fag er markert beskyttet:false. Den følger ingen private mapper,
 symbolske lenker eller tredjepartsdomener og nekter å erstatte katalogen
-ved utilgjengelige mapper eller uforklarlige større filreduksjoner.
+ved utilgjengelige mapper eller bortfall av selv én tidligere publisert
+filreferanse eller fag (også fag uten filer). Normale timekjøringer kan legge
+til filer; gjennomgåtte slettinger krever eksplisitt `--allow-removals`.
+En fullstendig tom erstatning nektes fortsatt selv med dette flagget.
 
 **Ved nye filer i et godkjent offentlig fag:** Bare legg filen i
 filer/ eller quiz/. Ingen manuell indeksredigering er nødvendig.

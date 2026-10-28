@@ -16,6 +16,7 @@ import {brewingPageHTML,mountBrewing} from "./src/diverse/brewing-page.js";
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 const realFetch=window.fetch.bind(window);
 let legacyBackendRequests=0;
+let protectedProxyRequests=0;
 const jsonResponse=value=>new Response(JSON.stringify(value),{status:200,headers:{"Content-Type":"application/json"}});
 window.FolkGoogleSession={
   isSignedIn:()=>false,
@@ -26,6 +27,8 @@ window.fetch=async(input,init)=>{
   const url=String(typeof input==="string"?input:input?.url||"");
   if(url.startsWith("/includes/")||url.includes("/v2-staging/includes/")||url.includes("/FolkNettside-v2/includes/"))
     legacyBackendRequests++;
+  if(url.startsWith("https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/legacy-brewing/"))
+    protectedProxyRequests++;
   if(url.includes("/includes/rapt/api/dashboard.php")){
     return jsonResponse({devices:[],username:"browser-fixture",generatedAt:"2026-10-07T18:00:00Z"});
   }
@@ -61,8 +64,17 @@ try{
   assert(window.BrewingApp,"Brewing runtime did not initialise");
   assert(legacyBackendRequests===0,
     "Without explicit V2 service config, Brewing must not make legacy PHP requests");
-  assert(document.getElementById("brewing-backend-note")?.textContent.includes("not configured"),
-    "Missing live backend must show a clear fallback message");
+  // Owner-only read bridge is configured in V2, but a guest must receive an
+  // actionable login message and must never send a request to the private proxy.
+  const backendNote=document.getElementById("brewing-backend-note");
+  assert(backendNote&&(
+    backendNote.textContent.includes("Sign in to your FolkNet owner account")||
+    backendNote.textContent.includes("not configured")
+  ),"Signed-out Brewing must explain owner login or unavailable API");
+  assert(backendNote.dataset.kind!=="ready",
+    "Signed-out user must never see an authenticated backend success state");
+  assert(protectedProxyRequests===0,
+    "Signed-out Brewing must not contact the authenticated legacy bridge");
   assert(document.querySelectorAll("#viewTabs .view-tab").length===5,"Brewing tabs incomplete");
   assert(document.getElementById("brew-inventory-cloud")?.disabled,"Guest inventory must not sync to Drive");
   const ingredientForm=document.getElementById("brew-ingredient-form");

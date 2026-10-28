@@ -1426,3 +1426,27 @@ a.project-row:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
   .course-source-warning{margin:10px 16px 0;padding:10px 12px;font-size:13px}
   .semester-tab-issue{width:15px;height:15px;margin-inline-start:4px;font-size:11px}
 }
+
+/* Standalone pitch drive model is interactive and kept within the project layout. */
+.project-model{margin-top:18px;padding:clamp(14px,2vw,22px);background:var(--surface);border:1px solid var(--line);border-radius:14px;min-width:0}
+.project-model h2{font-size:21px;margin:0 0 8px}
+.project-model>p{max-width:75ch;color:var(--ink-2);line-height:1.55}
+.project-model-frame{display:block;width:100%;height:clamp(400px,65vh,700px);border:1px solid var(--line);border-radius:10px;background:var(--surface-sunk)}
+.project-model-note{font-size:13px;margin-bottom:0}
+@media(max-width:760px){.project-model-frame{height:clamp(520px,80dvh,680px)}.project-model{margin-top:12px;padding:12px}}
+
+/* B16: truthful fallback for remote portfolio images that fail to load.
+   The HTML hidden attribute must win against the visible fallback rules. */
+.project-image-fallback[hidden]{display:none!important}
+.project-art .project-image-fallback{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:18px 15px;text-align:center;line-height:1.5;font-size:12px;
+  font-weight:650;color:#f3f7f9;overflow-wrap:anywhere;
+}
+.project-gallery-item>.project-image-fallback{
+  display:flex;align-items:center;justify-content:center;
+  aspect-ratio:16/10;min-height:150px;
+  padding:18px;text-align:center;line-height:1.55;overflow-wrap:anywhere;
+  border:1px dashed var(--line);border-radius:10px;
+  background:var(--surface-sunk);color:var(--ink-2);font-size:13px;
+}

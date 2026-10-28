@@ -20,18 +20,44 @@ try{
  },"Project cards did not render from portfolio project data");
  check([...cards].every(card=>card.matches('a[href^="#/projects/"]')),
    "Project cards are not accessible native links");
- check([...cards].every(card=>card.querySelector('img.project-card-image[alt][loading="lazy"]')),
-   "Project images or accessible alt labels are missing");
- check([...cards].every(card=>card.querySelector("img").src.startsWith(
+ check([...cards].every(card=>
+   card.querySelector('img.project-card-image[alt][loading="lazy"]')||
+   card.querySelector(".project-art-mark")||
+   card.querySelector("[data-project-image-fallback]:not([hidden])")),
+   "Every project requires its source image, intentional illustration-free placeholder, or error fallback");
+ const remainingImages=[...cards].flatMap(card=>[...card.querySelectorAll("img.project-card-image")]);
+ check(remainingImages.every(img=>img.src.startsWith(
    "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/")),
-   "Project images must come from verified NTNU portfolio source");
+   "Any remaining project image must have the allowlisted NTNU portfolio source");
  const first=doc().querySelector('.project-row[data-project="equipment-mount-fixture"]');
  check(first,"Dive computer project not found");
+ const cardImg=first.querySelector("img[data-project-image='card']");
+ // Remote image may already have failed before the harness checks it.
+ if(cardImg)cardImg.dispatchEvent(new Event("error"));
+ check(!first.querySelector("img[data-project-image='card']"),
+   "Broken card image should be removed, not left as a browser broken-image icon");
+ const cardFallback=first.querySelector("[data-project-image-fallback]");
+ check(cardFallback&&!cardFallback.hidden&&cardFallback.textContent.includes("utilgjengelig"),
+   "Card image failure should disclose an accessible image fallback");
+ check(first.matches('a[href="#/projects/equipment-mount-fixture"]'),
+   "Card link must still work even without its image");
  first.click();
- await wait(()=>doc()?.querySelector(".project-detail .project-gallery img"),
+ await wait(()=>doc()?.querySelector(".project-detail .project-gallery-item"),
    "Clicking Project card did not show an image gallery");
  check(win().location.hash==="#/projects/equipment-mount-fixture",
    "Project route did not navigate");
+ const gallery=doc().querySelector(".project-detail .project-gallery-item");
+ const galleryImage=gallery?.querySelector("img[data-project-image='gallery']");
+ // Do not depend on NTNU network timing: either reproduce or inspect an
+ // already-fired image failure.
+ if(galleryImage)galleryImage.dispatchEvent(new Event("error"));
+ check(!gallery.querySelector('a[href$="dive-computer-mount.png"]'),
+   "Unreachable original screenshot must not remain a dead gallery link");
+ const galleryFallback=gallery.querySelector("[data-project-image-fallback]");
+ check(galleryFallback&&!galleryFallback.hidden&&galleryFallback.textContent.includes("kunne ikke lastes"),
+   "Failed gallery image should have a visible descriptive fallback");
+ check(gallery.querySelector("figcaption")?.textContent.includes("Dokumentert"),
+   "Original source caption must remain after media failure");
  check(doc().querySelector('.project-detail a[href$="dive-computer-mount.pdf"]'),
    "Existing project PDF unavailable");
  check(doc().querySelector('.project-detail a[href^="https://tormt.folk.ntnu.no/diverse/portfolio/"]'),
@@ -41,6 +67,31 @@ try{
  back.click();
  await wait(()=>doc()?.querySelectorAll(".project-row-link").length>=7,
    "Back to portfolio did not work");
+ // Guard the pitch model independently from image fallbacks: a subsequent
+ // portfolio edit must never silently remove the full interactive model.
+ const pitch=doc().querySelector('.project-row[data-project="pitch-drive-wind-turbine"]');
+ check(pitch,"Pitch drive card missing");
+ pitch.click();
+ const model=await wait(()=>doc()?.querySelector(".project-model-frame"),
+   "Pitch drive 'Full modell' iframe disappeared from project detail");
+ const section=model.closest(".project-model");
+ check(section?.querySelector("h2")?.textContent==="Full modell",
+   "Interactive model section title missing");
+ check(model.getAttribute("src")==="./assets/pitch-drive/planetgirdrift-3d.html",
+   "Interactive model is not using the reviewed local asset");
+ check(model.getAttribute("sandbox")==="allow-scripts",
+   "Embedded model must remain script-only sandboxed");
+ check(model.getAttribute("title")?.includes("pitch drive"),
+   "3D iframe needs an accessible descriptive title");
+ check(section.querySelector(".project-model-note")?.textContent?.includes("5:1"),
+   "Engineering limitations must remain visible");
+ const full=doc().querySelector('.project-detail-links a[href="./assets/pitch-drive/planetgirdrift-3d.html"]');
+ check(full?.textContent.includes("Full modell")&&full.target==="_blank"&&
+   full.rel.includes("noopener"),"Full-size model link missing or unsafe");
+ const frameWidth=model.getBoundingClientRect().width;
+ const sectionWidth=section.getBoundingClientRect().width;
+ check(frameWidth>200&&frameWidth<=sectionWidth+2,
+   "Pitch model overflows its responsive project panel");
  document.body.dataset.status="pass";
  document.getElementById("result").textContent="Projects: cards, images, details, links, and back navigation PASS";
 }catch(error){

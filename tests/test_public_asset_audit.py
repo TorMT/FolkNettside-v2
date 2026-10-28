@@ -19,6 +19,49 @@ class PublicResourceTests(unittest.TestCase):
           "./examples/semesters/5/TMR4182/Forelesninger/lecture-1.pdf",
           "https://example.org/links-only"]:
             self.assertEqual(guard.resource_violations(path),[],path)
+    def test_credentialed_external_urls_are_rejected_without_echoing_values(self):
+        unsafe=[
+            "http://example.org/watch?v=123",
+            "javascript:alert(1)",
+            "https://user:pass@example.org/file.pdf",
+            "https://example.org/file.pdf?api_key=PRIVATE_EXAMPLE",
+            "https://example.org/watch?access%5Ftoken=PRIVATE_EXAMPLE",
+            "https://example.org/watch#refresh_token=PRIVATE_EXAMPLE",
+            "https://example.org/watch?session-token=PRIVATE_EXAMPLE",
+            "https://example.org/watch\\n?x=1",
+            "https://example.org:bad-port/file",
+        ]
+        for url in unsafe:
+            with self.subTest(url=url):
+                self.assertTrue(guard.external_url_violations(url))
+                manifest={"semesters":[{"courses":[{"resources":[
+                    {"source":"remote","path":url,"url":url}]}]}]}
+                issues=guard.validate_manifest(manifest)
+                self.assertEqual(len(issues),1)
+                self.assertEqual(issues[0][0],"<external URL redacted>")
+                self.assertNotIn("PRIVATE_EXAMPLE",repr(issues))
+
+    def test_mismatched_external_url_fields_are_validated_independently(self):
+        manifest={"semesters":[{"courses":[{"resources":[{
+            "source":"remote","path":"https://example.org/video?id=123",
+            "url":"https://example.org/video?api_key=PRIVATE_EXAMPLE"
+        }]}]}]}
+        issues=guard.validate_manifest(manifest)
+        self.assertEqual(len(issues),1)
+        self.assertEqual(issues[0][0],"<external URL redacted>")
+        self.assertNotIn("PRIVATE_EXAMPLE",repr(issues))
+
+    def test_noncredentialed_external_links_and_local_paths_remain_valid(self):
+        for url in [
+            "https://example.org/watch?v=123&start=45#chapter",
+            "https://supavoxel.com/embed/cmv1etjl70023t67ha56kzmfh",
+            "https://example.org/files/%C3%98ving%201.pdf",
+        ]:
+            self.assertEqual(guard.external_url_violations(url),[])
+            self.assertEqual(guard.resource_violations(url),[])
+        self.assertEqual(guard.resource_violations(
+            "./examples/semesters/5/TMR4182/Kok/lecture.pdf"),[])
+
     def test_private_manifest_entry_is_rejected(self):
         manifest={"semesters":[{"courses":[{"resources":[
           {"path":"./examples/semesters/3/MAT/Beskyttet/fasit.pdf"}]}]}]}

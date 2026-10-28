@@ -126,6 +126,53 @@ class RemoteCatalogTests(unittest.TestCase):
                 crawler.scan_and_write(self.config,path,fetch=self.fetch)
             self.assertEqual(path.read_bytes(),before)
 
+    def test_single_lost_file_is_blocked_even_with_equal_total_count(self):
+        files=[f"exercise-{i}.pdf" for i in range(30)]
+        self.pages[self.directory]=listing(*files)
+        with tempfile.TemporaryDirectory() as root:
+            output=Path(root)/"catalog.json"
+            self.assertTrue(crawler.scan_and_write(self.config,output,
+                                                    fetch=self.fetch)["changed"])
+            original=output.read_bytes()
+            # The prior 5%/10-file tolerance silently accepted this loss.
+            self.pages[self.directory]=listing(*files[1:],"new.pdf")
+            with self.assertRaisesRegex(ValueError,"Unexpected resource loss"):
+                crawler.scan_and_write(self.config,output,fetch=self.fetch)
+            self.assertEqual(output.read_bytes(),original)
+            # A reviewed deletion can be explicitly approved while new files
+            # continue to be discovered by the crawler.
+            self.assertTrue(crawler.scan_and_write(self.config,output,
+                fetch=self.fetch,allow_removals=True)["changed"])
+            names={r["name"] for r in json.loads(output.read_text())
+                   ["semesters"][0]["courses"][0]["resources"]}
+            self.assertIn("new.pdf",names)
+            self.assertNotIn(files[0],names)
+
+    def test_empty_course_cannot_disappear_without_reviewed_removal(self):
+        two={"publicCourses":[
+            {"semester":5,"slug":"Marin-Dynamikk","sections":["filer"]},
+            {"semester":5,"slug":"teknologiledelse","sections":["filer"]}
+        ]}
+        index=crawler.ORIGIN+"/semestre/5/index.json"
+        self.pages[index]=json.dumps({
+            "Marin-Dynamikk":{"dir":"Marin-Dynamikk","beskyttet":False,"files":[]},
+            "teknologiledelse":{"dir":"teknologiledelse","beskyttet":False,"files":[]}
+        })
+        self.pages[self.directory]=listing("old.pdf")
+        second=crawler.ORIGIN+"/semestre/5/teknologiledelse/filer/"
+        self.pages[second]=listing("index.json")
+        with tempfile.TemporaryDirectory() as root:
+            output=Path(root)/"catalog.json"
+            crawler.scan_and_write(two,output,fetch=self.fetch)
+            original=output.read_bytes()
+            with self.assertRaisesRegex(ValueError,"Unexpected course loss"):
+                crawler.scan_and_write(self.config,output,fetch=self.fetch)
+            self.assertEqual(output.read_bytes(),original)
+            self.assertTrue(crawler.scan_and_write(self.config,output,
+                fetch=self.fetch,allow_removals=True)["changed"])
+            courses=json.loads(output.read_text())["semesters"][0]["courses"]
+            self.assertEqual([x["code"] for x in courses],["Marin-Dynamikk"])
+
     def test_custom_index_html_carries_only_previous_vetted_files(self):
         self.pages[self.directory]=listing("public/")
         child=self.directory+"public/"

@@ -181,7 +181,7 @@ try{
   const revoked=[];
   URL.revokeObjectURL=(url)=>{revoked.push(url);return originalRevoke.call(URL,url)};
   window.fetch=(input,options)=>{
-    if(/tormt\.folk\.ntnu\.no\/semestre\/5\/Marin-Dynamikk\/filer\/CORS\.(?:py|docx)/.test(String(input)))
+    if(/tormt\.folk\.ntnu\.no\/semestre\/5\/Marin-Dynamikk\/filer\/CORS\.(?:py|docx|Z14)/.test(String(input)))
       return Promise.reject(new TypeError("Blocked by CORS"));
     return originalFetch(input,options);
   };
@@ -250,10 +250,67 @@ try{
     }finally{
       docxRoot.__viewerCleanup?.();docxRoot.remove();
     }
+    // The course KISSsoft adapter must honor the selected local blob and
+    // render gear parameters, not retry the CORS-blocked original NTNU URL.
+    const gearURL=ntURL.replace("CORS.py","CORS.Z14");
+    const gearRoot=document.createElement("div");document.body.append(gearRoot);
+    try{
+      await mountViewer(gearRoot,{name:"CORS.Z14",label:"KISSsoft local retry",kind:"FILE",
+        section:"Filer",semester:5,courseCode:"Marin-Dynamikk",
+        source:"ntnu",remoteArchive:true,url:gearURL,path:gearURL},()=>{});
+      assert(gearRoot.querySelector("#viewer-choose-local"),"KISSsoft local retry control missing");
+      const gearData=await (await originalFetch("../../examples/kisssoft/PlanetaryExample.Z14")).arrayBuffer();
+      const gearInput=gearRoot.querySelector("#viewer-local-file");
+      const gearSelection=new DataTransfer();
+      gearSelection.items.add(new File([gearData],"CORS.Z14",{type:"application/octet-stream"}));
+      gearInput.files=gearSelection.files;
+      gearInput.dispatchEvent(new Event("change",{bubbles:true}));
+      for(let i=0;i<100&&!gearRoot.querySelector(".kisssoft-summary");i++)
+        await new Promise(resolve=>setTimeout(resolve,30));
+      assert(gearRoot.querySelector(".kisssoft-summary"),
+        "KISSsoft local retry still fetched remote NTNU URL");
+      assert(gearRoot.querySelector("#viewer-canvas")?.textContent.includes("CORS.Z14"),
+        "KISSsoft preview missing selected local file name");
+      assert(gearRoot.querySelector(".viewer-status")?.textContent.includes(gearURL),
+        "Original KISSsoft NTNU URL was lost after local preview");
+    }finally{gearRoot.__viewerCleanup?.();gearRoot.remove()}
 
   }finally{
     window.fetch=originalFetch;URL.revokeObjectURL=originalRevoke;
     ntRoot.__viewerCleanup?.();ntRoot.remove();
+  }
+  // Untrusted catalog metadata must not become executable "Open original" links.
+  // Keep a real, usable relative original while rejecting active URL schemes.
+  const unsafeRoot=document.createElement("div");
+  const safeRoot=document.createElement("div");
+  document.body.append(unsafeRoot,safeRoot);
+  const originalWindowOpen=window.open;
+  const opened=[];
+  window.open=(...args)=>{opened.push(args);return null};
+  try{
+    await mountViewer(unsafeRoot,{
+      kind:"FILE",name:"untrusted.txt",label:"Untrusted link",
+      path:"javascript:alert('should never execute')"
+    },()=>{});
+    const unsafeButton=unsafeRoot.querySelector("#open-original");
+    assert(unsafeButton?.disabled,"Unsafe original button must be disabled");
+    unsafeButton.click();
+    assert(!opened.length,"Unsafe original button opened a window");
+    assert(!unsafeRoot.querySelector("#viewer-error-original"),
+      "Unsafe original link leaked into the error fallback");
+    const relative=cases[0].path;
+    await mountViewer(safeRoot,{
+      kind:"FILE",name:"kok-example.md",label:"Safe link",path:relative
+    },()=>{});
+    assert(!safeRoot.querySelector("#open-original")?.disabled,
+      "Valid relative original should remain available");
+    safeRoot.querySelector("#open-original").click();
+    assert(opened.length===1&&opened[0][0]===relative&&opened[0][2]==="noopener,noreferrer",
+      "Safe original link did not open with no referrer");
+  }finally{
+    window.open=originalWindowOpen;
+    unsafeRoot.__viewerCleanup?.();safeRoot.__viewerCleanup?.();
+    unsafeRoot.remove();safeRoot.remove();
   }
   document.body.dataset.status="pass";
   result.textContent="viewer-matrix-smoke: "+report.join(", ")+"; URL-only DOCX and stale-viewer navigation";

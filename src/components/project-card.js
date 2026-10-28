@@ -20,6 +20,10 @@ function portfolioLink(value){
       url.href:"";
   }catch{return ""}
 }
+/** Only this checked-in, public, owner-provided model can be embedded. */
+export function projectModelURL(value){
+  return value==="./assets/pitch-drive/planetgirdrift-3d.html"?value:"";
+}
 function projectRoute(slug){
   return "#/projects/"+encodeURIComponent(String(slug||""));
 }
@@ -38,8 +42,10 @@ export function renderProjectCard(project){
   return `<a class="project-row project-row-link" data-project="${esc(project.slug)}"
       href="${esc(projectRoute(project.slug))}" aria-label="Åpne prosjekt: ${esc(project.title)}">
     <div class="project-art project-art-${esc(project.type)}">
-      ${image?`<img class="project-card-image" src="${esc(image)}" alt="${esc(alt)}"
-           loading="lazy" decoding="async" referrerpolicy="no-referrer">`:
+      ${image?`<img class="project-card-image" data-project-image="card" src="${esc(image)}" alt="${esc(alt)}"
+           loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        <span class="project-image-fallback" data-project-image-fallback hidden role="img"
+          aria-label="${esc(alt)}">Bilde utilgjengelig · åpne prosjektet for beskrivelse</span>`:
         '<div class="project-art-mark" aria-hidden="true">⌁</div>'}
       <div class="project-type-badge">${esc(projectTypeLabel(project.type))}</div>
     </div>
@@ -58,9 +64,12 @@ export function renderProjectDetail(project){
     const src=projectImageURL(item?.src);
     return src?`<figure class="project-gallery-item">
        <a href="${esc(src)}" target="_blank" rel="noopener noreferrer" aria-label="Åpne bildet ${esc(item.alt||project.title)}">
-         <img src="${esc(src)}" alt="${esc(item.alt||project.title)}"
+         <img data-project-image="gallery" src="${esc(src)}" alt="${esc(item.alt||project.title)}"
            loading="lazy" decoding="async" referrerpolicy="no-referrer">
-       </a><figcaption>${esc(item.caption||"Project image")}</figcaption>
+       </a>
+       <div class="project-image-fallback" data-project-image-fallback hidden role="img"
+         aria-label="${esc(item.alt||project.title)}">Prosjektbildet kunne ikke lastes. Prosjektinformasjonen nedenfor er fortsatt tilgjengelig.</div>
+       <figcaption>${esc(item.caption||"Project image")}</figcaption>
      </figure>`:"";
   }).filter(Boolean).join("");
   const files=(project.files||[]).map(item=>{
@@ -68,6 +77,7 @@ export function renderProjectDetail(project){
     return href?`<a class="btn" href="${esc(href)}" target="_blank"
         rel="noopener noreferrer">${esc(item.label||"Prosjektfil")} ↗</a>`:"";
   }).filter(Boolean).join("");
+  const modelURL=projectModelURL(project.modelURL);
   const source=portfolioLink(project.sourceUrl);
   const demo=typeof project.demoRoute==="string"&&
     /^\/(?:tools|courses|diverse)(?:\/[a-z0-9-]+)*$/.test(project.demoRoute)
@@ -84,6 +94,7 @@ export function renderProjectDetail(project){
           ${demo?`<a class="btn primary" href="#${esc(demo)}">Prøv verktøy i V2 →</a>`:""}
           ${source?`<a class="btn" href="${esc(source)}" target="_blank" rel="noopener noreferrer">Engineering Portfolio ↗</a>`:""}
           ${files}
+          ${modelURL?`<a class="btn primary" href="${esc(modelURL)}" target="_blank" rel="noopener noreferrer">Full modell ↗</a>`:""}
         </div>
       </div>
       <aside class="project-facts">
@@ -97,6 +108,13 @@ export function renderProjectDetail(project){
        <h2>Prosjektbilder</h2><div class="project-gallery-grid">${gallery}</div>
        <p class="muted">Originalbilder fra Engineering Portfolio på NTNU.</p>
      </section>`:""}
+    ${modelURL?`<section class="project-model" aria-label="Interaktiv pitch drive-modell">
+      <h2>Full modell</h2>
+      <p>Roter, zoom og velg komponenter for å inspisere motor, brems, planetgir, aksler, lagre og ringgir.</p>
+      <iframe class="project-model-frame" src="${esc(modelURL)}" title="Interaktiv 3D-modell av pitch drive"
+        loading="lazy" sandbox="allow-scripts" referrerpolicy="no-referrer" allowfullscreen></iframe>
+      ${project.modelNote?`<p class="project-model-note">${esc(project.modelNote)}</p>`:""}
+    </section>`:""}
     <section class="project-detail-grid">
       <article><h2>Problem</h2><p>${esc(project.problem||"Teknisk problem og bruksområde er dokumentert i prosjektbeskrivelsen.")}</p></article>
       <article><h2>Solution</h2><p>${esc(project.solution||"Se prosjektbeskrivelsen for teknisk løsning.")}</p></article>

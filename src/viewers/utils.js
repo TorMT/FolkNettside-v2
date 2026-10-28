@@ -17,6 +17,24 @@ export function previewContentURL(resource){
     ?resource.path:(resource?.url||resource?.path);
 }
 
+/**
+ * Original course-file links are metadata, not trusted HTML attributes.
+ * Accept ordinary HTTP(S) destinations and relative site paths, never active
+ * schemes such as javascript:/data:, credentials or protocol-relative URLs.
+ * Do not rewrite the accepted URL: legacy relative course paths must survive.
+ */
+export function safeViewerOriginalURL(resource){
+  const candidate=resource?.url||resource?.path;
+  if(typeof candidate!=="string"||!candidate||candidate!==candidate.trim()||
+     candidate.startsWith("//")||/[\\\\\u0000-\u001f\u007f]/.test(candidate))return null;
+  try{
+    const parsed=new URL(candidate,"https://viewer.invalid/");
+    if(!["https:","http:"].includes(parsed.protocol)||parsed.username||parsed.password)
+      return null;
+    return candidate;
+  }catch{return null}
+}
+
 const DEFAULT_MAX_TEXT_BYTES=8*1024*1024;
 const DEFAULT_MAX_JSON_BYTES=32*1024*1024;
 const TEXT_IDLE_TIMEOUT_MS=30_000;

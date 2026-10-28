@@ -1,5 +1,6 @@
 import {pythonSourceURL} from "../python-source.js";
 import {escapeHTML,fetchJSON} from "../utils.js";
+import {publicCodePreviewURL} from "../ntnu-public-code.js";
 import {createDomFinder} from "../dom-search.js";
 import {mountPythonCodeCell} from "../python-code-cell.js";
 import {createPythonSession} from "../python-session.js";
@@ -23,7 +24,7 @@ export function renderMarkdownCell(source){
   return notebookMarkdownHTML(cellText(source));
 }
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
-  const notebook=await fetchJSON(resource.path||resource.url);
+  const notebook=await fetchJSON(publicCodePreviewURL(resource));
   const cells=Array.isArray(notebook.cells)?notebook.cells:[];
   const session=sessionFactory(),editable=[];
   let stopped=false,busy=false,disposed=false;

@@ -1,5 +1,44 @@
 [
   {
+    "slug": "pitch-drive-wind-turbine",
+    "title": "Wind turbine pitch drive",
+    "type": "design",
+    "status": "Designprosjekt / konseptmodell",
+    "year": 2025,
+    "summary": "Dimensjonering av et pitch drive-system for en vindturbin, fra dimensjonerende last til motor, planetgir, pinjong og ringgir.",
+    "problem": "Vindturbinbladene må kunne vris kontrollert, også under høye vindlaster. Drivsystemet må overføre store momenter innenfor tilgjengelig plass og dimensjoneres for 25 års levetid.",
+    "solution": "Jeg utviklet et forslag med elektrisk pitchmotor, sikkerhetsbrems og en tretrinns planetgirkasse som overfører dreiemomentet gjennom en pinjong til et innvendig ringgir. Løsningen ble vurdert med hensyn til hastighet, utveksling, lastfordeling og plassbehov.",
+    "skills": [
+      "Maskindesign",
+      "Girdimensjonering",
+      "Planetgir",
+      "Aksler og lagre",
+      "ULS / designlaster"
+    ],
+    "tools": [
+      "KISSsoft",
+      "Python",
+      "3D-modellering"
+    ],
+    "materials": [],
+    "process": [
+      "Beregnet dimensjonerende pitchmoment og lastnivå for 25 års levetid.",
+      "Vurderte diameter og lastfordeling for ringgir og pinjonger.",
+      "Undersøkte utveksling, tanngeometri og lastoverføring gjennom flere planetgirtrinn.",
+      "Vurderte motor, brems, utgangsaksel og lagerlaster.",
+      "Utviklet en interaktiv 3D-modell som viser drivlinjen og lar deg inspisere delene."
+    ],
+    "results": [
+      "Et samlet konsept for pitchdriften, med komponentoversikt og beregningsgrunnlag.",
+      "Interaktiv modell med motor, brems, tre planetgirtrinn, pinjong, lager og indre ringgir.",
+      "FLS-prosedyre og ALS-prinsipper diskutert som del av prosjektrammen; modellen er ikke en validert produksjons-CAD."
+    ],
+    "gallery": [],
+    "files": [],
+    "modelURL": "./assets/pitch-drive/planetgirdrift-3d.html",
+    "modelNote": "Modellen er en skjematisk visualisering, ikke produksjonsklar tanngeometri. Ringgir/pinjong har tannforhold 125/25 = 5:1; et annet forhold (12,48:1) er oppgitt i modellteksten og må avklares før videre dimensjonering."
+  },
+  {
     "slug": "equipment-mount-fixture",
     "title": "3D-printed dive computer mount",
     "type": "physical",

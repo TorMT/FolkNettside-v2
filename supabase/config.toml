@@ -10,3 +10,16 @@ verify_jwt = false
 # Every non-callback route validates a Supabase Auth bearer in its own code.
 [functions.autodesk-hub]
 verify_jwt = false
+
+# V1 bridge uses its own /auth/v1/user + RLS administrator check.
+# No browser/preflight token bypass: all data paths enforce bearer auth.
+[functions.legacy-brewing]
+verify_jwt = false
+
+# Four reviewed PUBLIC NTNU KISSsoft assets only. No arbitrary proxy URLs.
+[functions.ntnu-kisssoft]
+verify_jwt = false
+
+# Exact-path, read-only relay for reviewed public NTNU code and notebook sources.
+[functions.ntnu-public-code]
+verify_jwt = false
