@@ -1,4 +1,4 @@
-/** Strictly read-only relay for four already indexed public NTNU course source files.
+/** Strictly read-only relay for 176 reviewed public NTNU course source files.
  * No arbitrary URLs, directory traversal, NTNU credentials or cookie forwarding.
  * New files require explicit review and a new Edge Function deployment.
  */
@@ -257,6 +257,6 @@ export async function handlePublicCodeRequest(request,{fetchUpstream=fetch}={}){
   }});
  }catch(e){
   return error(e instanceof RangeError?413:502,
-   e instanceof RangeError?"course source file exceeds the 12 MB preview limit":"Public NTNU file unavailable",origin);
+   e instanceof RangeError?"Public course file exceeds the 16 MB preview limit":"Public NTNU file unavailable",origin);
  }
 }
