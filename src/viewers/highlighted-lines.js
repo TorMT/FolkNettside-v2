@@ -31,5 +31,5 @@ export function codeRows(html){
  return splitHighlightedLines(html).map((line,index)=>
    '<span class="code-line"><span class="code-line-number" aria-hidden="true">'+
      (index+1)+'</span><span class="code-line-text">'+line+"</span></span>"
- ).join("\n");
+ ).join("");
 }
