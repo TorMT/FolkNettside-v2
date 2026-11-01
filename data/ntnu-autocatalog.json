@@ -10864,6 +10864,36 @@
               "url": "https://tormt.folk.ntnu.no/semestre/5/marin-teknikk-4-propulsjon/filer/%C3%98vingH1.pdf"
             },
             {
+              "folders": [
+                "ØvingH2"
+              ],
+              "kind": "PY",
+              "label": "Oppgave1b",
+              "modified": 0,
+              "name": "Oppgave1b.py",
+              "path": "/semestre/5/marin-teknikk-4-propulsjon/filer/%C3%98vingH2/Oppgave1b.py",
+              "relativePath": "filer/ØvingH2/Oppgave1b.py",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-teknikk-4-propulsjon/filer/%C3%98vingH2/Oppgave1b.py"
+            },
+            {
+              "folders": [
+                "ØvingH2"
+              ],
+              "kind": "PY",
+              "label": "Oppgave3a",
+              "modified": 0,
+              "name": "Oppgave3a.py",
+              "path": "/semestre/5/marin-teknikk-4-propulsjon/filer/%C3%98vingH2/Oppgave3a.py",
+              "relativePath": "filer/ØvingH2/Oppgave3a.py",
+              "section": "filer",
+              "size": 0,
+              "source": "ntnu",
+              "url": "https://tormt.folk.ntnu.no/semestre/5/marin-teknikk-4-propulsjon/filer/%C3%98vingH2/Oppgave3a.py"
+            },
+            {
               "folders": [],
               "kind": "PDF",
               "label": "ØvingM1",

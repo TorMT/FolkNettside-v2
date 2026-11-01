@@ -1,4 +1,4 @@
-import {MUNIN_PARTS} from "./munin-parts.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
+import {MUNIN_PARTS} from "./munin-parts.js?v=6b2348c5628eaef4869fdb2678154509d0b3bafa";
 
 const hydroReason="Exploratory hydrostatics on two repaired, closed hull meshes. The 15 mm preview is approximate; vessel loading and stability are not certified.";
 

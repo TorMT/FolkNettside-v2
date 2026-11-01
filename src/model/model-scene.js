@@ -1,13 +1,13 @@
-import {getThreeRuntime} from "./three-runtime.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
-import {modelWaterlineContours} from "./waterline-preview.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
-import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
-import {waveModelPose} from "./wave-model-motion.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
-import {interpolateMotionRAO,motionFromRAO} from "./motion-rao.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
-import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
-import {createThrusterFlowRings} from "./thruster-flow-rings.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
-import {explodeOffsets} from "./explode-layout.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
-import {connectCADKeyboard} from "./cad-navigation.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
-import {fitDistanceForBox} from "./cad-camera-fit.js?v=bed53df858f7f2543ac5f9591a597aa63742a8c5";
+import {getThreeRuntime} from "./three-runtime.js?v=6b2348c5628eaef4869fdb2678154509d0b3bafa";
+import {modelWaterlineContours} from "./waterline-preview.js?v=6b2348c5628eaef4869fdb2678154509d0b3bafa";
+import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=6b2348c5628eaef4869fdb2678154509d0b3bafa";
+import {waveModelPose} from "./wave-model-motion.js?v=6b2348c5628eaef4869fdb2678154509d0b3bafa";
+import {interpolateMotionRAO,motionFromRAO} from "./motion-rao.js?v=6b2348c5628eaef4869fdb2678154509d0b3bafa";
+import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=6b2348c5628eaef4869fdb2678154509d0b3bafa";
+import {createThrusterFlowRings} from "./thruster-flow-rings.js?v=6b2348c5628eaef4869fdb2678154509d0b3bafa";
+import {explodeOffsets} from "./explode-layout.js?v=6b2348c5628eaef4869fdb2678154509d0b3bafa";
+import {connectCADKeyboard} from "./cad-navigation.js?v=6b2348c5628eaef4869fdb2678154509d0b3bafa";
+import {fitDistanceForBox} from "./cad-camera-fit.js?v=6b2348c5628eaef4869fdb2678154509d0b3bafa";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;
