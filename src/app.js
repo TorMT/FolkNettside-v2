@@ -1,5 +1,6 @@
 import {initSettings,getSettings,setSetting} from "./settings.js";
 import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js";
+import {createStudyProgressBackup,importStudyProgressBackup} from "./settings/study-progress-backup.js";
 import {writeSpaceMouseSettings,resetSpaceMouseSettings} from "./model/spacemouse-settings.js";
 import {mountViewer} from "./viewer.js";
 import {courseViewerNeighbors} from "./viewers/course-file-navigation.js";
@@ -1162,6 +1163,51 @@ function settingsPage(){
       });
     }
   }
+  app.querySelector("#settings-export-study-progress")?.addEventListener("click",()=>{
+    const feedback=app.querySelector("#settings-feedback");
+    try{
+      const backup=createStudyProgressBackup();
+      if(!backup.records.length){
+        if(feedback)feedback.textContent="No local study progress to export.";
+        return;
+      }
+      const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+      const href=URL.createObjectURL(blob);
+      const link=document.createElement("a");
+      link.href=href;
+      link.download="folk-v2-study-progress.json";
+      link.click();
+      setTimeout(()=>URL.revokeObjectURL(href),1000);
+      if(feedback)feedback.textContent="Downloaded "+backup.records.length+
+        " progress records. Keep the unencrypted file private.";
+    }catch(error){
+      if(feedback)feedback.textContent="Backup failed: "+String(error?.message||error);
+    }
+  });
+  app.querySelector("#settings-choose-study-import")?.addEventListener("click",()=>{
+    app.querySelector("#settings-import-study-progress")?.click();
+  });
+  app.querySelector("#settings-import-study-progress")?.addEventListener("change",async event=>{
+    const input=event.currentTarget;
+    const feedback=app.querySelector("#settings-feedback");
+    const file=input.files?.[0];
+    if(!file)return;
+    input.disabled=true;
+    try{
+      if(file.size>2_500_000)throw Error("Backup exceeds 2.5 MB file limit.");
+      const backup=JSON.parse(await file.text());
+      if(!window.confirm("Import this local quiz/video progress backup? Newer dated records will be merged. Other local data will not be removed."))return;
+      const result=importStudyProgressBackup(backup);
+      if(feedback)feedback.textContent="Restored "+result.imported+
+        " records; preserved "+result.skipped+
+        " local conflicts; "+result.unchanged+" unchanged. Refresh an open quiz/video viewer to see restored progress.";
+    }catch(error){
+      if(feedback)feedback.textContent="Import failed: "+String(error?.message||error);
+    }finally{
+      input.value="";
+      if(input.isConnected)input.disabled=false;
+    }
+  });
   app.querySelector("#settings-clear-study-progress")?.addEventListener("click",event=>{
     const removed=clearLocalStudyProgress();
     const feedback=app.querySelector("#settings-feedback");

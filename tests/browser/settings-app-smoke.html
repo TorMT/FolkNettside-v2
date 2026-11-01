@@ -87,12 +87,76 @@ try{
   assert(privacy.querySelector("[data-analytics-status]").textContent.includes("No statistics"),
     "Full refusal after limited measurement must visibly stop manual tracking");
 
-  win.localStorage.setItem("folk-v2-video:smoke","{}");
-  win.localStorage.setItem("folknet:quiz:smoke","{}");
+  // Restoring an approved local JSON backup works without OAuth, cloud
+  // access or a page reload. Newer local video progress must win conflicts.
+  const importButton=privacy.querySelector("#settings-choose-study-import");
+  const importInput=privacy.querySelector("#settings-import-study-progress");
+  const exportButton=privacy.querySelector("#settings-export-study-progress");
+  assert(importButton?.tagName==="BUTTON"&&exportButton?.tagName==="BUTTON",
+    "Import and export must be keyboard-focusable real buttons");
+  assert(importInput?.type==="file",
+    "Import must use the browser's local file picker");
+  const localVideo=JSON.stringify({
+    position:60,duration:120,watched:false,updatedAt:600
+  });
+  win.localStorage.setItem("folk-v2-video:smoke",localVideo);
+  win.localStorage.setItem("folknet:quiz:smoke",JSON.stringify({
+    version:1,quizVersion:2,answers:[null],completed:false,updatedAt:100
+  }));
+  const backupPayload={
+    format:"folk-v2-study-progress",schemaVersion:1,
+    exportedAt:"2026-11-01T12:00:00.000Z",
+    records:[
+      {key:"folk-v2-video:smoke",value:JSON.stringify({
+        position:12,duration:120,watched:false,updatedAt:200
+      })},
+      {key:"folknet:quiz:smoke",value:JSON.stringify({
+        version:1,quizVersion:2,answers:[0],completed:true,updatedAt:900
+      })},
+      {key:"folk-v2-video:restored",value:JSON.stringify({
+        position:8,duration:80,watched:false,updatedAt:100
+      })}
+    ]
+  };
+  const chooseBackup=(value,name="study-backup.json")=>{
+    const transfer=new win.DataTransfer();
+    transfer.items.add(new win.File([JSON.stringify(value)],name,{
+      type:"application/json"
+    }));
+    importInput.files=transfer.files;
+    importInput.dispatchEvent(new win.Event("change",{bubbles:true}));
+  };
+  const previousConfirm=win.confirm;
+  try{
+    win.confirm=()=>true;
+    chooseBackup(backupPayload);
+    await waitFor(()=>win.localStorage.getItem("folk-v2-video:restored")!==null,
+      "Local study progress import");
+    assert(win.localStorage.getItem("folk-v2-video:smoke")===localVideo,
+      "Older imported video state must not overwrite newer local progress");
+    assert(JSON.parse(win.localStorage.getItem("folknet:quiz:smoke")).completed===true,
+      "Newer quiz attempt should be imported");
+    assert(privacy.querySelector("#settings-feedback")?.textContent.includes("Restored 2 records"),
+      "Import result must report merged and preserved records");
+    await waitFor(()=>!importInput.disabled,"Import file picker enabled after completion");
+    const beforeInvalid=win.localStorage.getItem("folknet:quiz:smoke");
+    chooseBackup({...backupPayload,records:[
+      ...backupPayload.records,
+      {key:"folk-v2-dive-log-v1",value:"{}"}
+    ]},"invalid.json");
+    await waitFor(()=>privacy.querySelector("#settings-feedback")?.textContent.includes("Import failed"),
+      "Malformed backup feedback");
+    assert(win.localStorage.getItem("folknet:quiz:smoke")===beforeInvalid,
+      "Invalid import must not partially modify quiz records");
+  }finally{
+    win.confirm=previousConfirm;
+  }
   const settingsBefore=win.localStorage.getItem("folk-v2-settings");
   frame.contentDocument.querySelector("#settings-clear-study-progress").click();
   assert(win.localStorage.getItem("folk-v2-video:smoke")===null,"Video progress was not cleared");
   assert(win.localStorage.getItem("folknet:quiz:smoke")===null,"Quiz progress was not cleared");
+  assert(win.localStorage.getItem("folk-v2-video:restored")===null,
+    "Imported video progress was not included in targeted study clearing");
   assert(win.localStorage.getItem("folk-v2-settings")===settingsBefore,"Settings were cleared with study progress");
 
   frame.contentDocument.querySelector('[data-settings-section="appearance"]').click();
