@@ -46,7 +46,30 @@ try{
     "Privacy Settings must show actual no-statistics choice");
   assert(privacy.querySelectorAll("[data-analytics-choice]").length===3,
     "Privacy Settings must let visitors move between three measurement tiers");
+  const assertChoiceHighlighted=selected=>{
+    const buttons=[...privacy.querySelectorAll("[data-analytics-choice]")];
+    const pressed=buttons.filter(button=>button.getAttribute("aria-pressed")==="true");
+    assert(pressed.length===1&&pressed[0].dataset.analyticsChoice===selected,
+      "Only the chosen tracking option should be marked pressed: "+selected);
+    const unselected=buttons.find(button=>button!==pressed[0]);
+    const activeStyle=win.getComputedStyle(pressed[0]);
+    const idleStyle=win.getComputedStyle(unselected);
+    assert(activeStyle.backgroundColor!==idleStyle.backgroundColor,
+      "Selected tracking option needs a visibly different background");
+    assert(activeStyle.borderColor!==idleStyle.borderColor,
+      "Selected tracking option needs a visibly different border");
+    assert(activeStyle.fontWeight!==idleStyle.fontWeight,
+      "Selected tracking option needs stronger visual weight");
+  };
+  assertChoiceHighlighted("denied");
   privacy.querySelector('[data-analytics-choice="limited"]').click();
+  assertChoiceHighlighted("limited");
+  const html=privacy.documentElement;
+  const originalMode=html.dataset.mode;
+  html.dataset.mode="dark";
+  assertChoiceHighlighted("limited");
+  if(originalMode===undefined)delete html.dataset.mode;
+  else html.dataset.mode=originalMode;
   assert(win.localStorage.getItem("folk.analytics.consent.v1")==="limited",
     "Limited tier must persist as a separate, explicit choice");
   assert(doc.querySelectorAll('script[data-folk-analytics]').length===1,
@@ -60,6 +83,7 @@ try{
     /\/(medisin|diving|brewing)/.test(JSON.stringify(args))),
     "Medical/private page names must not appear in analytic events");
   privacy.querySelector('[data-analytics-choice="denied"]').click();
+  assertChoiceHighlighted("denied");
   assert(privacy.querySelector("[data-analytics-status]").textContent.includes("No statistics"),
     "Full refusal after limited measurement must visibly stop manual tracking");
 
