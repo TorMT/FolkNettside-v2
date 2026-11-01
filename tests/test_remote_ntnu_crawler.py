@@ -379,6 +379,36 @@ class RemoteCatalogTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             crawler.approved_courses(config)
 
+    def test_allowlist_rejects_case_only_course_duplicates_without_fetching(self):
+        # Two case aliases for one public course would generate ambiguous
+        # IDs in the manifest. Reject them before any NTNU requests.
+        config={"publicCourses":[
+            {"semester":5,"slug":"Marin-Dynamikk","sections":["filer"]},
+            {"semester":5,"slug":"marin-dynamikk","sections":["filer"]},
+        ]}
+        with self.assertRaisesRegex(ValueError,"Unsafe/duplicate"):
+            crawler.crawl(config,fetch=self.fetch)
+        self.assertEqual(self.urls,[])
+        # Identical names in different semesters are not collisions.
+        self.assertEqual(len(crawler.approved_courses({"publicCourses":[
+            {"semester":4,"slug":"matte","sections":["filer"]},
+            {"semester":5,"slug":"MATTE","sections":["filer"]},
+        ]})),2)
+
+    def test_allowlist_rejects_misspelled_permission_options(self):
+        # Silent acceptance of unknown keys hides mistakes in the reviewed
+        # public-only crawler configuration.
+        for wrong_key in ("publicIndexFallbak","allowMissingEmptySection",
+                          "protected"):
+            config={"publicCourses":[{
+                "semester":5,"slug":"Marin-Dynamikk","sections":["filer"],
+                wrong_key:True,
+            }]}
+            with self.subTest(key=wrong_key):
+                with self.assertRaisesRegex(ValueError,"Unsafe public course allowlist keys"):
+                    crawler.crawl(config,fetch=self.fetch)
+        self.assertEqual(self.urls,[])
+
     def test_disallow_hostile_course_slugs_without_network_calls(self):
         for slug in ("../secrets","private-stuff","a/b","..","hidden%2e"):
             config={"publicCourses":[{"semester":5,"slug":slug,
