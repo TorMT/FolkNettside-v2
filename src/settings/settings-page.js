@@ -180,7 +180,7 @@ function privacyHTML(){
       <div class="setting-row"><div><strong>Google Analytics (optional)</strong><small>Choose full analytics with cookies, or limited cookie-free Google measurement signals. Even limited statistics contacts Google and may transmit device/network metadata. Selecting no statistics prevents future page measurements. Private and health-related routes are excluded from manual tracking.</small><small data-analytics-status role="status">Off by default</small></div><div class="settings-connection-actions" role="group" aria-label="Analytics preferences"><button class="btn" data-analytics-choice="granted" type="button">Full analytics</button><button class="btn" data-analytics-choice="limited" type="button">Limited — no cookies</button><button class="btn" data-analytics-choice="denied" type="button">No statistics</button></div></div>
       <div class="setting-row"><div><strong>Study progress</strong><small>Quiz attempts and video resume/watched state. Download an unencrypted JSON backup before changing browsers. Import merges newer dated records without erasing existing progress; undated conflicts keep the local copy.</small></div><div class="settings-connection-actions">
         <button class="btn" type="button" id="settings-export-study-progress">Export backup</button>
-        <label class="btn" for="settings-import-study-progress">Import backup</label>
+        <button class="btn" type="button" id="settings-choose-study-import">Import backup</button>
         <input id="settings-import-study-progress" type="file" accept=".json,application/json" aria-label="Select study progress backup JSON" hidden>
         <button class="btn" type="button" id="settings-clear-study-progress">Clear progress</button>
       </div></div>
