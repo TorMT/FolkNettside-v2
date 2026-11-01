@@ -96,17 +96,18 @@ export function parseNTNUSemesterIndex(semesterId,raw,{titles=new Map(),origin=N
      if(!parts||seen.has(file))continue;
      seen.add(file);
      const filename=parts.at(-1);
-     // Bare filenames such as "Øving7.pdf" belong to the Øving 7
-     // section even when the NTNU server has not put them in a folder.
-     // Preserve an existing Øving folder grouping if one is present.
-     const exercise=/^(?:øving|oving|øvelse|ovelse)[\s._-]*(\d{1,3})(?=$|[\s._(-])/iu
-       .exec(filename.replace(/\.[^.]+$/,""));
+     // No separate folder is required: Øving7.pdf, ØvingH1.pdf and
+     // ØvingR3.xlsx are recognized from their filenames. Do not confuse
+     // Øving12a or Øving2Full with numbered exercises.
+     const exercisePattern=/^(?:øving|oving|øvelse|ovelse)[\s._-]*([a-zæøå])?[\s._-]*(\d{1,3})(?=$|[\s._(-])/iu;
+     const exercise=exercisePattern.exec(filename.replace(/\.[^.]+$/,""));
+     // A genuine exercise folder keeps its original section identity.
+     const exerciseFolder=parts.length>2&&exercisePattern.test(parts[1]);
      const baseSection=parts[0]==="filer"?
        (parts[1]&&parts.length>2?parts[1]:"Filer og ressurser"):
        parts[0]==="quiz"?"Quiz":pretty(parts[0]);
-     const section=parts[0]==="filer"&&exercise&&
-       !(parts.length>2&&/^(?:øving|oving|øvelse|ovelse)[\s._-]*\d/iu.test(parts[1]||""))
-       ?"Øving "+Number(exercise[1]):baseSection;
+     const section=parts[0]==="filer"&&exercise&&!exerciseFolder
+       ?"Øving "+(exercise[1]?exercise[1].toUpperCase():"")+Number(exercise[2]):baseSection;
      const folders=parts[0]==="filer"?
        (parts.length>3?parts.slice(2,-1):[]):
        (parts.length>2?parts.slice(1,-1):[]);
