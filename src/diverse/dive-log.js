@@ -1,6 +1,6 @@
-import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=469b5cda80fe77c01ec0885ac97a54188e276d5f";
-import {readAccountVault,writeAccountVault,encryptAccountVault,decryptAccountVault,validateAccountVaultFolder} from "../platform/account-vault-sync.js?v=469b5cda80fe77c01ec0885ac97a54188e276d5f";
-import {addDiveEntry,createDiveEntry,deleteDiveEntry,mergeDiveLogs,newDiveLog,validateDiveLog,visibleDiveEntries} from "./dive-log-model.js?v=469b5cda80fe77c01ec0885ac97a54188e276d5f";
+import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=b7eb79d0ed4c054d239cf37dbe91fb119947a507";
+import {readAccountVault,writeAccountVault,encryptAccountVault,decryptAccountVault,validateAccountVaultFolder} from "../platform/account-vault-sync.js?v=b7eb79d0ed4c054d239cf37dbe91fb119947a507";
+import {addDiveEntry,createDiveEntry,deleteDiveEntry,mergeDiveLogs,newDiveLog,validateDiveLog,visibleDiveEntries} from "./dive-log-model.js?v=b7eb79d0ed4c054d239cf37dbe91fb119947a507";
 
 const PURPOSE="dive-log";
 const STORAGE="folk-v2-dive-log-v1";
@@ -16,6 +16,7 @@ function download(data,filename){
 export function mountDiveLog(root){
  if(!root)return{selectSite(){},cleanup(){}};
  let disposed=false,sub=accountId(),key=keyFor(sub),backup=newDiveLog(),password=null;
+ let unreadableLocalRaw=null,recoveryExported=false;
  let busy=false,pending=false,timer=null;
  root.innerHTML='<p>Personal dive records are stored locally per Google account. Cloud synchronization is optional and encrypted; public map data is never modified.</p>'+
  '<form id="dive-log-form" class="medisin-form">'+
@@ -27,6 +28,13 @@ export function mountDiveLog(root){
  '<label>Duration (minutes)<input name="durationMinutes" type="number" min="1" max="1440" step="any" required></label></div>'+
  '<label>Notes<input name="notes" maxlength="2000" placeholder="Conditions, equipment, observations…"></label>'+
  '<button class="btn primary" type="submit">Save dive</button></form>'+
+ '<section id="dive-log-recovery" class="medisin-panel" hidden role="alert">'+
+ '<strong>Local dive log cannot be read</strong>'+
+ '<p>Saving, importing and cloud sync are blocked to protect the existing records. No local history has been erased.</p>'+
+ '<p>Download the original unreadable text first. This export is unencrypted and may contain private information. Confirm that the file is saved before resetting this device profile.</p>'+
+ '<div class="medisin-buttons">'+
+ '<button class="btn" type="button" id="dive-log-recovery-export">Download original unreadable text</button>'+
+ '<button class="btn" type="button" id="dive-log-recovery-reset" disabled>Start empty local profile after backup</button></div></section>'+
  '<div id="dive-log-list"></div>'+
  '<div class="medisin-buttons">'+
  '<button class="btn" type="button" id="dive-log-export">Export JSON (unencrypted)</button>'+
@@ -52,22 +60,53 @@ export function mountDiveLog(root){
    catch{return null}
  };
  const readLocal=()=>{
+   let raw=null;
    try{
-     const value=localStorage.getItem(key);
-     return value?validateDiveLog(JSON.parse(value)):newDiveLog();
-   }catch(error){
-     notify("Local dive log is damaged: "+error.message+". No data was overwritten.");
+     raw=localStorage.getItem(key);
+     const valid=raw===null?newDiveLog():validateDiveLog(JSON.parse(raw));
+     unreadableLocalRaw=null;recoveryExported=false;
+     return valid;
+   }catch{
+     unreadableLocalRaw=raw;recoveryExported=false;backup=null;
+     notify("Local dive log cannot be read. Saving and sync are blocked; the original data is unchanged.");
      return null;
    }
  };
  const saveLocal=value=>{
+   if(!backup)throw Error("Local dive log unreadable; saving is blocked");
    validateDiveLog(value);
+   // Detect corruption introduced by another browser tab since this view
+   // loaded. Never replace its only surviving copy with a stale snapshot.
+   let raw=null;
+   try{
+     raw=localStorage.getItem(key);
+     if(raw!==null)validateDiveLog(JSON.parse(raw));
+   }catch{
+     unreadableLocalRaw=raw;recoveryExported=false;backup=null;render();
+     throw Error("Stored dive log changed or became unreadable; export the original before resetting");
+   }
    localStorage.setItem(key,JSON.stringify(value));
    backup=value;render();
  };
  const render=()=>{
    const list=root.querySelector("#dive-log-list");
-   if(!backup){list.textContent="Stored data could not be read. Back up the original local storage before retrying.";return}
+   const recovery=root.querySelector("#dive-log-recovery");
+   recovery.hidden=Boolean(backup);
+   root.querySelector("#dive-log-recovery-export").disabled=Boolean(backup)||unreadableLocalRaw===null;
+   root.querySelector("#dive-log-recovery-reset").disabled=Boolean(backup)||!recoveryExported||unreadableLocalRaw===null;
+   for(const id of ["#dive-log-form button[type=submit]","#dive-log-export",
+                    "#dive-log-export-secure","#dive-log-import"]){
+     root.querySelector(id).disabled=!backup;
+   }
+   root.querySelector("#dive-log-sync").disabled=!sub||busy||!backup;
+   root.querySelector("#dive-log-save-folder").disabled=!sub||busy||!backup;
+   root.querySelector("#dive-log-lock").disabled=!password;
+   folderInput.disabled=!sub||busy||!backup;
+   if(!backup){
+     list.textContent="Stored data cannot be read. Download the original text before choosing to reset.";
+     state.textContent="Local dive log unreadable · cloud synchronization blocked.";
+     return;
+   }
    const rows=visibleDiveEntries(backup);
    list.innerHTML=rows.length?'<ul class="medisin-history">'+rows.map(row=>
      '<li class="medisin-history-item"><span><strong>'+html(row.siteName)+'</strong> · '+
@@ -78,10 +117,6 @@ export function mountDiveLog(root){
    state.textContent=!sub?"Guest log · sign in in Settings for optional Drive sync.":
      password?"Unlocked for this tab · encrypted sync enabled.":
        "Signed in · cloud data locked until you opt in.";
-   root.querySelector("#dive-log-sync").disabled=!sub||busy||!backup;
-   root.querySelector("#dive-log-save-folder").disabled=!sub||busy;
-   root.querySelector("#dive-log-lock").disabled=!password;
-   folderInput.disabled=!sub||busy;
  };
  function schedule(){
    if(!sub||!password||!backup)return;
@@ -139,6 +174,36 @@ export function mountDiveLog(root){
      download(await encryptAccountVault(PURPOSE,backup,password||passInput.value),"folk-dive-log.enc.json");
      notify("Encrypted offline backup saved. The passphrase cannot be recovered.");
    }catch(error){notify("Encrypted export failed: "+error.message)}
+ });
+ // Recovery is local, explicit and does not remove any encrypted Drive file.
+ root.querySelector("#dive-log-recovery-export").addEventListener("click",()=>{
+   if(backup||unreadableLocalRaw===null)return;
+   const href=URL.createObjectURL(new Blob([unreadableLocalRaw],
+     {type:"text/plain;charset=utf-8"}));
+   const a=document.createElement("a");
+   a.href=href;a.download="folk-dive-log-unreadable-original.txt";a.click();
+   setTimeout(()=>URL.revokeObjectURL(href),1000);
+   recoveryExported=true;render();
+   notify("Download started. Check that the unencrypted original is saved before resetting.");
+ });
+ root.querySelector("#dive-log-recovery-reset").addEventListener("click",()=>{
+   if(backup||!recoveryExported||unreadableLocalRaw===null)return;
+   if(!confirm("Have you saved the original unreadable file? Reset only this local dive-log profile? Encrypted Drive data will not be deleted."))return;
+   try{
+     // Another tab may have edited the value since the backup action.
+     // Never remove bytes that are different from the exported snapshot.
+     if(localStorage.getItem(key)!==unreadableLocalRaw){
+       backup=readLocal();render();
+       notify("Local data changed since export. Recheck and export the current original before resetting.");
+       return;
+     }
+     localStorage.removeItem(key);
+     password=null;passInput.value="";clearTimeout(timer);pending=false;
+     backup=readLocal();render();
+     notify("Empty local dive-log profile opened after confirmation. Encrypted Drive data was not changed.");
+   }catch{
+     notify("Could not reset local storage. Existing data was not deliberately replaced.");
+   }
  });
  const fileInput=root.querySelector("#dive-log-import");
  fileInput.addEventListener("change",async()=>{
