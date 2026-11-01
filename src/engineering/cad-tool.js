@@ -1,16 +1,16 @@
-import {MUNIN_PARTS,annotateMunin} from "./munin-parts.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
-import {parseGLB} from "../model/parsers/gltf.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
-import {parseSTL} from "../model/parsers/stl.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
-import {parse3MF} from "../model/parsers/three-mf.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
-import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
-import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
-import {downloadFusionScriptPackage} from "./fusion-installer.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
-import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
-import {createModelDocument} from "../model/model-document.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
-import {boxMesh} from "../hydro/fixtures.js?v=71b3ca353c744cd3b6167899f0c6c190d53e8df1";
+import {MUNIN_PARTS,annotateMunin} from "./munin-parts.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {parseGLB} from "../model/parsers/gltf.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {parseSTL} from "../model/parsers/stl.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {parse3MF} from "../model/parsers/three-mf.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {downloadFusionScriptPackage} from "./fusion-installer.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {createModelDocument} from "../model/model-document.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {boxMesh} from "../hydro/fixtures.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
 
 /** Verified public originals on the NTNU file server; never mirrored to GitHub. */
 export const MUNIN_CAD_SOURCES=Object.freeze({
