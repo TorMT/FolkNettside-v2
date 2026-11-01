@@ -125,11 +125,15 @@ export function subscribeFolkAccount(listener){
 }
 export async function initializeFolkAccount({configLoader=null,fetchImpl=fetch}={}){
  if(initPromise)return initPromise;
- initPromise=(async()=>{
+ const startedAtRevision=revision;
+ const pending=(async()=>{
    try{
      const raw=configLoader?await configLoader():
        await fetchImpl(CONFIG_URL,{cache:"no-store",redirect:"error",signal:authTimeout(),headers:{Accept:"application/json"}})
          .then(r=>r.ok?r.json():null);
+     // Sign-out or a newer account operation during the fetch must prevent
+     // restoring a cached identity even if the response eventually arrives.
+     if(startedAtRevision!==revision)return getFolkAccountSnapshot();
      const config=normalizeConfig(raw);
      if(!config)throw Error("FolkNet account configuration unavailable.");
      auth={config,fetchImpl,session:fromStorage()};
@@ -141,11 +145,18 @@ export async function initializeFolkAccount({configLoader=null,fetchImpl=fetch}=
      }
      return getFolkAccountSnapshot();
    }catch(e){
+     if(startedAtRevision!==revision)return getFolkAccountSnapshot();
      auth=null;patch({status:"unavailable",configured:false,error:String(e.message||e)});
      return getFolkAccountSnapshot();
    }
  })();
- return initPromise;
+ initPromise=pending;
+ try{return await pending}
+ finally{
+   // Only a failed initialization is retryable. Successful client setup is
+   // intentionally retained; duplicate callers share the same pending work.
+   if(initPromise===pending&&!auth)initPromise=null;
+ }
 }
 export async function folkSignIn({email,password}={}){
  if(!auth)await initializeFolkAccount();
