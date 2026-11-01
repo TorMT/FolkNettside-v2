@@ -96,7 +96,12 @@ export function mergeDiveCatalog(collections){
   for(const raw of rankedLast){
     const f=structuredClone(raw),key=diveCountry(f)+"|"+normalized(f.properties?.Navn);
     const candidates=initial.map.get(key)||[];
-    if(candidates.length===1&&samePlace(candidates[0],f)){combine(candidates[0],f);continue;}
+    // The editorial Top 500 list lacks coordinates. Merge its rank only when
+    // exactly one longer-name candidate exists in the same country.
+    const uniquelyNamed=candidates.length===1&&normalized(f.properties?.Navn).length>=11;
+    if(candidates.length===1&&(samePlace(candidates[0],f)||uniquelyNamed)){
+      combine(candidates[0],f);continue;
+    }
     initial.result.push(f);
   }
   return initial.result;
