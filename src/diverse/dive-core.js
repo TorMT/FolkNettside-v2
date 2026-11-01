@@ -126,6 +126,7 @@ export function diveFeatureSource(feature){
   const p=feature?.properties||{},id=String(p.ID||feature?.id||""),ids=String(p.Kilde_IDer||"").toLowerCase();
   if(ids.includes("pingvin")||ids.includes("scarsbrook")||ids.includes("dykkekart")||ids.includes("reefradar"))return "local";
   if(ids.includes("opendivemap")||id.startsWith("OD"))return "opendivemap";
+  if(ids.includes("openstreetmap")||id.startsWith("OS"))return "osm";
   if(ids.includes("underwateratlas")||id.startsWith("GL"))return "atlas";
   if(id.startsWith("D")||id.startsWith("W")||id.startsWith("X"))return "original";
   return "dykkepedia";
@@ -143,6 +144,7 @@ export function filterDiveFeatures(features,{query="",level="all",kind="all",qua
       if(source==="original"&&!(id.startsWith("D")||id.startsWith("W")||id.startsWith("X")))return false;
       if(source==="local"&&!/pingvin|scarsbrook|dykkekart|reefradar/.test(ids))return false;
       if(source==="opendivemap"&&!ids.includes("opendivemap")&&!id.startsWith("OD"))return false;
+      if(source==="osm"&&!ids.includes("openstreetmap")&&!id.startsWith("OS"))return false;
       if(source==="atlas"&&!ids.includes("underwateratlas")&&!id.startsWith("GL"))return false;
       if(source==="dykkepedia"&&!ids.includes("dykkepedia")&&!id.startsWith("NO"))return false;
     }
