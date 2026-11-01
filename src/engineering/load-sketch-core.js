@@ -1,4 +1,4 @@
-import {normaliseAreaLoad} from "../hydro/hull-loading.js?v=31699fd9504dcf90e03825d504eed380d00e1645";
+import {normaliseAreaLoad} from "../hydro/hull-loading.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
 
 /** Longitudinal X is rightwards; transverse Y is upwards in plan view. */
 export function planBounds(bounds){
