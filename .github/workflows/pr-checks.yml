@@ -339,6 +339,11 @@ jobs:
           # The PBKDF2 WebCrypto calculation runs asynchronously outside the
           # headless Chrome virtual timer. Use real-time WebDriver polling.
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4190/tests/browser/medisin-v2-smoke.html 55 1440,900
+          # Verify private dive-log recovery at mobile and tablet widths.
+          for viewport in 320,800 390,844 768,900; do
+            python3 scripts/test_hydro_worker_browser.py \
+              http://127.0.0.1:4190/tests/browser/dive-log-recovery-smoke.html 30 "$viewport"
+          done
 
       - name: Native LAOS and student sites browser smoke
         run: |
