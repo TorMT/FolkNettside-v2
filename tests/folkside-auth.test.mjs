@@ -152,3 +152,52 @@ test("slow earlier login cannot replace newer owner session",async()=>{
  await assert.rejects(first,/Sign-in cancelled/);
  assert.equal(getFolkAccountSnapshot().user.id,user.id);
 });
+
+test("a failed account switch leaves no previous FolkNet bearer token available",async()=>{
+ await withAuth(async(address,options)=>{
+   if(address.includes("grant_type=password")){
+     const {email}=JSON.parse(options.body);
+     return email===user.email?reply(session):reply({message:"Invalid login credentials"},400);
+   }
+   throw Error("Unexpected endpoint");
+ });
+ await folkSignIn({email:user.email,password:"abcdefghij"});
+ assert.equal(await getFolkAccessToken(),session.access_token);
+ await assert.rejects(folkSignIn({email:"other@example.org",password:"abcdefghij"}),
+   /Invalid login credentials/);
+ assert.equal(getFolkAccountSnapshot().status,"signed-out");
+ assert.equal(getFolkAccountSnapshot().hasSession,false);
+ await assert.rejects(getFolkAccessToken(),/Sign in/);
+});
+
+test("an old in-flight refresh cannot poison a newer FolkNet account session",async()=>{
+ let resolveOldRefresh,refreshCalls=0;
+ const nextUser={id:"22222222-3333-4444-8555-666666666666",email:"next@example.org"};
+ const nextSession={...session,access_token:"newer-"+ "n".repeat(29),
+   refresh_token:"new-refresh-"+"x".repeat(25),user:nextUser};
+ await withAuth(async(address,options)=>{
+   if(address.includes("grant_type=password")){
+     const {email}=JSON.parse(options.body);
+     return reply(email===nextUser.email?nextSession:{...session,expires_in:1});
+   }
+   if(address.includes("grant_type=refresh_token")){
+     refreshCalls++;
+     return new Promise(resolve=>{resolveOldRefresh=()=>resolve(reply({
+       ...session,access_token:"older-"+ "o".repeat(29)
+     }))});
+   }
+   throw Error("Unexpected endpoint");
+ });
+ await folkSignIn({email:user.email,password:"abcdefghij"});
+ const oldRequest=getFolkAccessToken();
+ for(let i=0;i<30&&!resolveOldRefresh;i++)await Promise.resolve();
+ assert.equal(typeof resolveOldRefresh,"function");
+ const newer=await folkSignIn({email:nextUser.email,password:"abcdefghij"});
+ assert.equal(newer.user.id,nextUser.id);
+ assert.equal(await getFolkAccessToken(),nextSession.access_token);
+ resolveOldRefresh();
+ await assert.rejects(oldRequest,/Session changed during refresh/);
+ assert.equal(getFolkAccountSnapshot().user.id,nextUser.id);
+ assert.equal(await getFolkAccessToken(),nextSession.access_token);
+ assert.equal(refreshCalls,1);
+});

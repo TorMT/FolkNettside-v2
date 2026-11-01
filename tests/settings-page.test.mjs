@@ -69,6 +69,8 @@ test("FolkNet admin login is invite-only in V2 and available on narrow screens",
     folkAccount:{status:"signed-out"}});
   assert.match(signedOut,/data-folk-auth-form/);
   assert.match(signedOut,/data-folk-login/);
+  assert.match(signedOut,/data-folk-auth-error/);
+  assert.match(signedOut,/role="alert" aria-live="assertive"/);
   assert.match(signedOut,/Kun forhåndsopprettede FolkNet-kontoer/);
   assert.doesNotMatch(signedOut,/data-folk-signup/);
   const signedIn=settingsPageHTML({settings,section:"connections",
@@ -78,4 +80,12 @@ test("FolkNet admin login is invite-only in V2 and available on narrow screens",
   assert.doesNotMatch(signedIn,/data-folk-signup/);
   const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
   assert.doesNotMatch(app,/data-folk-signup/);
+});
+
+test("sign-in errors are shown inline and passwords cleared on retry",()=>{
+ const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
+ assert.match(app,/folkLoginPending/);
+ assert.match(app,/feedback\.textContent=String\(error\?\.message/);
+ assert.match(app,/password\.value=""/);
+ assert.match(app,/buttons\.forEach\(button=>button\.disabled=false\)/);
 });

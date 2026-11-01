@@ -1021,19 +1021,31 @@ function settingsPage(){
     email:folkAuthForm?.querySelector('[name="folk-email"]')?.value||"",
     password:folkAuthForm?.querySelector('[name="folk-password"]')?.value||""
   });
-  const folkAction=async (action)=>{
-    if(!folkAuthForm)return;
+  let folkLoginPending=false;
+  const folkAction=async ()=>{
+    if(!folkAuthForm||folkLoginPending)return;
+    folkLoginPending=true;
     const buttons=folkAuthForm.querySelectorAll("button");
-    buttons.forEach(b=>b.disabled=true);
+    const feedback=folkAuthForm.querySelector("[data-folk-auth-error]");
+    buttons.forEach(button=>button.disabled=true);
+    if(feedback)feedback.textContent="";
     try{
-      const credentials=folkCredentials();
-      await folkSignIn(credentials);
-    }catch{ /* Auth status is rendered from the shared account state. */ }
-    if(route().startsWith("/settings")&&settingsSection==="connections")settingsPage();
+      await folkSignIn(folkCredentials());
+      if(route().startsWith("/settings")&&settingsSection==="connections")settingsPage();
+    }catch(error){
+      // Keep email for retry, remove the rejected password, and show errors
+      // as text instead of injecting untrusted provider messages as markup.
+      if(folkAuthForm.isConnected){
+        const password=folkAuthForm.querySelector('[name="folk-password"]');
+        if(password)password.value="";
+        if(feedback)feedback.textContent=String(error?.message||"Sign-in failed.");
+        buttons.forEach(button=>button.disabled=false);
+      }
+    }finally{folkLoginPending=false}
   };
   folkAuthForm?.addEventListener("submit",event=>{
     event.preventDefault();
-    void folkAction("login");
+    void folkAction();
   });
   app.querySelector("[data-folk-signout]")?.addEventListener("click",async()=>{
     await folkSignOut();

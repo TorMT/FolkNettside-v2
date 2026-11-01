@@ -13,7 +13,7 @@ const authTimeout=()=>globalThis.AbortSignal?.timeout?.(10000);
 const listeners=new Set();
 const copyUser=user=>user?{id:String(user.id||""),email:String(user.email||"")}:null;
 let state={status:"loading",configured:null,user:null,error:""};
-let auth=null,initPromise=null,refreshPromise=null,revision=0;
+let auth=null,initPromise=null,refreshPromise=null,refreshRevision=-1,revision=0;
 
 function publish(){
  const snapshot=getFolkAccountSnapshot();
@@ -152,8 +152,13 @@ export async function folkSignIn({email,password}={}){
  if(!auth)throw Error("FolkNet account is unavailable");
  if(!emailValid(email)||typeof password!=="string"||password.length<6)
    throw Error("Enter a valid email and password.");
- // The earlier request must not overwrite a newer login or logout.
- const myRevision=++revision;patch({status:"connecting",error:""});
+ // Reject all previous in-flight refreshes and remove prior credentials
+ // before a deliberate account switch. Failed logins must not leave a
+ // different user's bearer token available to private cloud callers.
+ const myRevision=++revision;
+ refreshPromise=null;refreshRevision=-1;
+ if(auth.session)clearLocal();
+ patch({status:"connecting",error:""});
  try{
    const result=await request("token?grant_type=password",{
      method:"POST",body:{email:email.trim(),password}});
@@ -185,9 +190,9 @@ export async function getFolkAccessToken({forceRefresh=false}={}){
  const session=auth.session;
  if(!forceRefresh&&Date.now()/1000<session.expires_at-90)
    return session.access_token;
- if(refreshPromise)return refreshPromise;
  const myRevision=revision;
- refreshPromise=(async()=>{
+ if(refreshPromise&&refreshRevision===myRevision)return refreshPromise;
+ const pending=(async()=>{
    try{
      const result=await request("token?grant_type=refresh_token",{
        method:"POST",body:{refresh_token:session.refresh_token}});
@@ -203,7 +208,11 @@ export async function getFolkAccessToken({forceRefresh=false}={}){
      throw error;
    }
  })();
- try{return await refreshPromise}finally{refreshPromise=null}
+ refreshPromise=pending;refreshRevision=myRevision;
+ try{return await pending}
+ finally{
+   if(refreshPromise===pending){refreshPromise=null;refreshRevision=-1}
+ }
 }
 export async function getFolkAccountUser(){
  const token=await getFolkAccessToken();
@@ -230,7 +239,7 @@ export async function getFolkLinkedProviders(){
 }
 
 export async function folkSignOut(){
- revision++;
+ revision++;refreshPromise=null;refreshRevision=-1;
  const token=auth?.session?.access_token;
  // Clear locally first regardless of network availability.
  clearLocal();
@@ -238,7 +247,7 @@ export async function folkSignOut(){
  try{await request("logout",{method:"POST",token})}catch{}
 }
 export function resetFolkAccountForTests(){
- revision++;auth=null;initPromise=null;refreshPromise=null;
+ revision++;auth=null;initPromise=null;refreshPromise=null;refreshRevision=-1;
  saveSession(null);
  state={status:"loading",configured:null,user:null,error:""};
  listeners.clear();
