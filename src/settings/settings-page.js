@@ -178,7 +178,12 @@ function privacyHTML(){
     <p class="muted">Study progress and UI preferences are stored locally in this browser. No course login is required.</p>
     <div class="settings-card">
       <div class="setting-row"><div><strong>Google Analytics (optional)</strong><small>Choose full analytics with cookies, or limited cookie-free Google measurement signals. Even limited statistics contacts Google and may transmit device/network metadata. Selecting no statistics prevents future page measurements. Private and health-related routes are excluded from manual tracking.</small><small data-analytics-status role="status">Off by default</small></div><div class="settings-connection-actions" role="group" aria-label="Analytics preferences"><button class="btn" data-analytics-choice="granted" type="button">Full analytics</button><button class="btn" data-analytics-choice="limited" type="button">Limited — no cookies</button><button class="btn" data-analytics-choice="denied" type="button">No statistics</button></div></div>
-      <div class="setting-row"><div><strong>Study progress</strong><small>Quiz attempts and video resume/watched state.</small></div><button class="btn" id="settings-clear-study-progress">Clear progress</button></div>
+      <div class="setting-row"><div><strong>Study progress</strong><small>Quiz attempts and video resume/watched state. Download an unencrypted JSON backup before changing browsers. Import merges newer dated records without erasing existing progress; undated conflicts keep the local copy.</small></div><div class="settings-connection-actions">
+        <button class="btn" type="button" id="settings-export-study-progress">Export backup</button>
+        <button class="btn" type="button" id="settings-choose-study-import">Import backup</button>
+        <input id="settings-import-study-progress" type="file" accept=".json,application/json" aria-label="Select study progress backup JSON" hidden>
+        <button class="btn" type="button" id="settings-clear-study-progress">Clear progress</button>
+      </div></div>
       <div class="setting-row"><div><strong>Appearance preferences</strong><small>Stored locally so the interface remains consistent between visits.</small></div><span class="settings-status ready">Local</span></div>
     </div>
     <div class="settings-feedback" id="settings-feedback" aria-live="polite"></div>`;
