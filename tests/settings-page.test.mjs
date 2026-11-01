@@ -89,3 +89,16 @@ test("sign-in errors are shown inline and passwords cleared on retry",()=>{
  assert.match(app,/password\.value=""/);
  assert.match(app,/buttons\.forEach\(button=>button\.disabled=false\)/);
 });
+
+test("Privacy & data exposes keyboard-accessible local progress backup controls",()=>{
+ const html=settingsPageHTML({settings,section:"privacy"});
+ assert.match(html,/id="settings-export-study-progress"/);
+ assert.match(html,/<button[^>]*id="settings-choose-study-import"/);
+ assert.match(html,/id="settings-import-study-progress"[^>]*type="file"/);
+ assert.match(html,/unencrypted JSON backup/);
+ const app=readFileSync(new URL("../src/app.js",import.meta.url),"utf8");
+ assert.match(app,/createStudyProgressBackup\(\)/);
+ assert.match(app,/importStudyProgressBackup\(backup\)/);
+ assert.match(app,/file\.size>2_500_000/);
+ assert.match(app,/window\.confirm\("Import this local quiz\/video progress backup/);
+});
