@@ -201,3 +201,100 @@ test("an old in-flight refresh cannot poison a newer FolkNet account session",as
  assert.equal(await getFolkAccessToken(),nextSession.access_token);
  assert.equal(refreshCalls,1);
 });
+
+test("offline initial FolkNet config can be retried when connectivity returns",async()=>{
+ resetFolkAccountForTests();
+ let calls=0;
+ const load=async()=>{
+   calls++;
+   if(calls===1)throw Error("Network offline while loading FolkNet config");
+   return config;
+ };
+ const requests=[];
+ const fetchImpl=async address=>{
+   requests.push(address);
+   if(address.includes("grant_type=password"))return reply(session);
+   throw Error("Unexpected endpoint");
+ };
+ const first=await initializeFolkAccount({configLoader:load,fetchImpl});
+ assert.equal(first.status,"unavailable");
+ assert.match(first.error,/Network offline/);
+ const recovered=await initializeFolkAccount({configLoader:load,fetchImpl});
+ assert.equal(calls,2,"A failed first config must not permanently cache its promise");
+ assert.equal(recovered.status,"signed-out");
+ assert.equal(recovered.configured,true);
+ const loggedIn=await folkSignIn({email:user.email,password:"test-password"});
+ assert.equal(loggedIn.status,"signed-in");
+ assert.equal(loggedIn.user.id,user.id);
+ assert.equal(requests.length,1);
+});
+
+test("simultaneous configuration callers share one request even if it fails",async()=>{
+ resetFolkAccountForTests();
+ let calls=0,release;
+ const pending=initializeFolkAccount({
+   configLoader:async()=>{
+     calls++;
+     return await new Promise(resolve=>{release=resolve});
+   },fetchImpl:async()=>{throw Error("Never use fetch in this test")}
+ });
+ const other=initializeFolkAccount({
+   configLoader:async()=>{throw Error("Duplicate initialization must not run")}
+ });
+ for(let i=0;i<20&&!release;i++)await Promise.resolve();
+ assert.equal(calls,1);
+ release(null);
+ const [first,second]=await Promise.all([pending,other]);
+ assert.equal(first.status,"unavailable");
+ assert.equal(second.status,"unavailable");
+ assert.equal(getFolkAccountSnapshot().hasSession,false);
+ const restored=await initializeFolkAccount({
+   configLoader:async()=>config,fetchImpl:async()=>reply(session)
+ });
+ assert.equal(restored.status,"signed-out");
+});
+
+test("logout during delayed FolkNet configuration never resurrects an old tab session",async()=>{
+ resetFolkAccountForTests();
+ let release;
+ const oldStorage=globalThis.sessionStorage;
+ const storedSession={
+   access_token:"old-access-"+ "x".repeat(30),
+   refresh_token:"old-refresh-"+ "y".repeat(30),
+   expires_at:Math.floor(Date.now()/1000)+3600,
+   user
+ };
+ globalThis.sessionStorage={
+   getItem:()=>JSON.stringify(storedSession),
+   setItem(){throw Error("unexpected session write")},
+   removeItem(){},
+ };
+ let refreshes=0;
+ try{
+   const loading=initializeFolkAccount({
+     configLoader:()=>new Promise(resolve=>{release=resolve}),
+     fetchImpl:async()=>{
+       refreshes++;
+       return reply(session);
+     }
+   });
+   for(let i=0;i<20&&!release;i++)await Promise.resolve();
+   await folkSignOut();
+   release(config);
+   await loading;
+   assert.equal(refreshes,0,"Logout must discard a late configuration result");
+   assert.equal(getFolkAccountSnapshot().hasSession,false);
+   assert.equal(getFolkAccountSnapshot().user,null);
+   // A retry may configure the public backend, but must not restore
+   // credentials from the session storage that sign-out cleared.
+   globalThis.sessionStorage={getItem:()=>null,setItem(){},removeItem(){}};
+   const retry=await initializeFolkAccount({
+     configLoader:async()=>config,fetchImpl:async()=>{throw Error("No bearer refresh")}
+   });
+   assert.equal(retry.status,"signed-out");
+ }finally{
+   if(oldStorage===undefined)delete globalThis.sessionStorage;
+   else globalThis.sessionStorage=oldStorage;
+   resetFolkAccountForTests();
+ }
+});
