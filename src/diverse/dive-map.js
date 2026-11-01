@@ -1,3 +1,4 @@
+import {fetchDiveBathymetry} from "./dive-bathymetry.js";
 import {loadDiveCatalog} from "./dive-catalog.js";
 import {mountDiveLog} from "./dive-log.js";
 import {diveCoordinateAssessment,diveDistanceKm,diveFeatureCountry,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveSourceUrls,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js";
@@ -33,6 +34,7 @@ function featureDetail(feature,{origin=null}={}){
     ${coordinate.status==="unverified"?`<p><b>Location:</b> Unverified source coordinate — omitted from map and exports pending local verification.</p>`:""}
     ${coordinate.status==="invalid"?`<p><b>Location:</b> Invalid coordinates — map marker withheld.</p>`:""}
     ${p.Notater?`<p><b>Source note:</b> ${esc(p.Notater)}</p>`:""}
+    ${!depthMax&&point&&diveFeatureCountry(feature)==="Norge"?'<button class="btn" type="button" data-dive-depth-estimate>Estimate seabed depth at map pin</button><p data-dive-depth-result>EMODnet model cell; this is NOT the depth of a dive or the deepest point at the site.</p>':""}
     ${p.Status?`<p><b>Status:</b> ${esc(p.Status)}</p>`:""}
     ${p.Adkomst?`<p><b>Access:</b> ${esc(p.Adkomst)}</p>`:""}
     ${p.Bunn_terreng?`<p><b>Bottom / terrain:</b> ${esc(p.Bunn_terreng)}</p>`:""}
@@ -53,7 +55,7 @@ export function diveMapHTML(){
   return `<main class="dive-page">
     <header class="dive-hero">
       <div><span class="project-kicker">Diverse / Dive map</span><h1>Dive map</h1>
-      <p>Source-traceable dive sites and wrecks. Public coordinates can be approximate; verify local access, conditions, regulations and qualification before a dive.</p></div>
+      <p>Source-traceable dive sites and wrecks. Public coordinates can be approximate; verify local access, conditions, regulations and qualification before a dive. OpenDiveMap data © contributors (ODbL 1.0).</p></div>
       <button class="btn" data-go-diverse>Back to Diverse</button>
     </header>
     <section class="dive-controls">\n      <label><span>Country</span><select id="dive-country"><option value="all">All countries</option></select></label>\n      <label><span>Region / area</span><select id="dive-region"><option value="all">All regions</option></select></label>\n      <label><span>Source</span><select id="dive-source"><option value="all">All sources</option><option value="original">Trondheim master</option><option value="local">Local guides</option><option value="dykkepedia">Dykkepedia</option><option value="opendivemap">OpenDiveMap</option><option value="atlas">World ranking</option></select></label>
@@ -135,6 +137,25 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
     state.selected=feature?.properties?.ID==null?null:String(feature.properties.ID);
     diveLog.selectSite(feature);
     elements.inspector.innerHTML=featureDetail(feature,{origin:state.origin});
+    const estimate=elements.inspector.querySelector("[data-dive-depth-estimate]");
+    estimate?.addEventListener("click",async()=>{
+      const result=elements.inspector.querySelector("[data-dive-depth-result]");
+      if(!result)return;
+      estimate.disabled=true;
+      result.textContent="Looking up approximate seabed elevation in EMODnet…";
+      try{
+        const sample=await fetchDiveBathymetry(feature);
+        if(disposed||state.selected!==String(feature?.properties?.ID))return;
+        result.textContent=sample.status==="model"
+          ?`Estimated seabed depth at map coordinate: ~${sample.depth} m (EMODnet DTM cell mean${sample.spread!==null?`, cell range ${sample.spread} m`:""}). This is NOT a dive depth and may differ greatly from the nearby slope.`
+          :sample.status==="land-or-dry"||sample.status==="shoreline"
+            ?"The mapped GPS point is at/near land or too shallow for a reliable depth estimate. No depth assigned."
+            :"No usable seabed depth at this map position; no estimate assigned.";
+      }catch(error){
+        if(disposed)return;
+        result.textContent="Bathymetry lookup unavailable. No depth has been inferred; consult local nautical charts.";
+      }finally{if(!disposed)estimate.disabled=false;}
+    });
     root.querySelectorAll("[data-dive-id]").forEach(node=>node.classList.toggle("selected",node.dataset.diveId===state.selected));
     const marker=markers.get(state.selected);
     if(marker&&map){marker.openPopup();if(zoom)map.setView(marker.getLatLng(),Math.max(map.getZoom(),11),{animate:true})}
