@@ -48,6 +48,25 @@ test("V2 generated catalog reuses safe NTNU parser, preserving nested Norwegian 
  assert.equal(course.resources.find(x=>x.kind==="QUIZ").name,"quiz.json");
 });
 
+test("hourly generated auto-catalog displays loose letter-numbered exercises as sections",()=>{
+ const data=sample();
+ const course=data.semesters[0].courses[0];
+ course.resources=["ØvingH1.pdf","ØvingM2.pdf","ØvingR1.xlsx"].map(name=>{
+  const relativePath="filer/"+name;
+  const path="/semestre/5/Marin-Dynamikk/filer/"+encodeURIComponent(name);
+  return {source:"ntnu",name,relativePath,path,url:NTNU_ORIGIN+path,
+    label:name,kind:"PDF",size:0,modified:0};
+ });
+ const validated=validateNTNUAutoCatalog(data);
+ const rows=validated.semesters[0].courses[0].resources;
+ assert.deepEqual(new Map(rows.map(row=>[row.name,row.section])),
+  new Map([["ØvingH1.pdf","Øving H1"],["ØvingM2.pdf","Øving M2"],
+    ["ØvingR1.xlsx","Øving R1"]]));
+ assert.equal(rows.find(row=>row.name==="ØvingR1.xlsx").kind,"XLSX");
+ assert.equal(rows.find(row=>row.name==="ØvingR1.xlsx").url,
+  NTNU_ORIGIN+"/semestre/5/Marin-Dynamikk/filer/%C3%98vingR1.xlsx");
+});
+
 test("legacy filenames with parentheses match the generated Python catalog URLs",()=>{
  const manifest=sample(),file=manifest.semesters[0].courses[0].resources[0];
  file.relativePath="filer/Øving (1)/Beregningsark (2).py";

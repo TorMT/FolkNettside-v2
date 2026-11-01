@@ -28,6 +28,50 @@ test("flat exercise PDF and solution files become exercise sections without chan
   assert.ok(course.sections.includes("Øving 7"));
 });
 
+test("loose letter-numbered propulsion exercise files become exercise sections in V2",()=>{
+  // These are actual public catalog filename shapes; no NTNU file bytes.
+  const names=[
+    "filer/ØvingH1.pdf",
+    "filer/ØvingM1.pdf",
+    "filer/ØvingM2.pdf",
+    "filer/ØvingR1.xlsx",
+    "filer/ØvingR3.pdf",
+    "filer/ØvingH2/ØvingH2.pdf",
+    "filer/ØvingR2/ØvingR2.pdf",
+    "filer/Øving12a.pdf",
+    "filer/Øving2Full.pdf",
+    "filer/Øving R 04 løsning.pdf",
+    "filer/Oving_05.pdf",
+    "filer/notater.pdf"
+  ];
+  const parsed=parseNTNUSemesterIndex(5,{
+    "marin-teknikk-4-propulsjon":{
+      dir:"marin-teknikk-4-propulsjon",beskyttet:false,files:names
+    }
+  });
+  const course=parsed.courses[0];
+  const section=path=>course.resources.find(r=>r.relativePath===path)?.section;
+  assert.equal(section("filer/ØvingH1.pdf"),"Øving H1");
+  assert.equal(section("filer/ØvingM1.pdf"),"Øving M1");
+  assert.equal(section("filer/ØvingM2.pdf"),"Øving M2");
+  assert.equal(section("filer/ØvingR1.xlsx"),"Øving R1");
+  assert.equal(section("filer/ØvingR3.pdf"),"Øving R3");
+  assert.equal(section("filer/Øving R 04 løsning.pdf"),"Øving R4");
+  assert.equal(section("filer/Oving_05.pdf"),"Øving 5");
+  assert.equal(section("filer/ØvingH2/ØvingH2.pdf"),"ØvingH2",
+    "An existing exercise directory must retain its section");
+  assert.equal(section("filer/ØvingR2/ØvingR2.pdf"),"ØvingR2");
+  assert.equal(section("filer/Øving12a.pdf"),"Filer og ressurser");
+  assert.equal(section("filer/Øving2Full.pdf"),"Filer og ressurser");
+  assert.equal(section("filer/notater.pdf"),"Filer og ressurser");
+  const original=course.resources.find(r=>r.name==="ØvingR1.xlsx");
+  assert.equal(original.kind,"XLSX");
+  assert.equal(original.relativePath,"filer/ØvingR1.xlsx");
+  assert.equal(original.path,
+    "/semestre/5/marin-teknikk-4-propulsjon/filer/%C3%98vingR1.xlsx");
+  assert.ok(course.sections.includes("Øving R1"));
+});
+
 test("viewer breadcrumbs navigate to courses, semester, course and section",()=>{
   const html=viewerBreadcrumbHTML({
     semester:5,courseCode:"Marin-Dynamikk",courseTitle:"Marin dynamikk",
