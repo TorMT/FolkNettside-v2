@@ -11,8 +11,10 @@ import {MUNIN_MODEL} from '../../src/engineering/munin-model.js';
 import {executeHydroRequest} from '../../src/hydro/hydro-service.js';
 import {createHydroInclude} from '../../src/hydro/hydro-selection.js';
 const frame=document.querySelector('#site'),doc=()=>frame.contentDocument;
+const browserErrors=[];
+frame.addEventListener("load",()=>{frame.contentWindow.addEventListener("error",e=>browserErrors.push(e.message));frame.contentWindow.addEventListener("unhandledrejection",e=>browserErrors.push(String(e.reason)))});
 const assert=(ok,message)=>{if(!ok)throw Error(message)};
-async function wait(fn,label){for(let i=0;i<300;i++){if(fn())return;await new Promise(r=>setTimeout(r,100))}throw Error('Timeout: '+label)}
+async function wait(fn,label){for(let i=0;i<300;i++){if(fn())return;await new Promise(r=>setTimeout(r,100))}throw Error('Timeout: '+label+'; state='+JSON.stringify({draft:doc()?.querySelector('#hydro-draft')?.value,summary:doc()?.querySelector('.results-summary')?.textContent,scene:doc()?.querySelector('#engineering-water-status')?.textContent,errors:browserErrors,body:doc()?.body?.innerText.slice(-2500)}))}
 try{
  await wait(()=>doc()?.querySelector('#engineering-model-select option[value="munin"]'),'Munin selector');
  doc().querySelector('.analytics-consent-actions button')?.click();
