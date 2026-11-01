@@ -5,6 +5,8 @@
 <div id="host" style="width:min(1100px,95vw);height:680px"></div>
 <pre id="result">Loading shared WebGL viewer</pre>
 <script type="module">
+import {attitudeMatrix,transformPoint} from "../../src/model/transforms.js";
+import {modelWaterlineContours} from "../../src/model/waterline-preview.js";
 import {boxMesh} from "../../src/hydro/fixtures.js";
 import {renderModelWorkbench} from "../../src/viewers/model-workbench.js";
 import {readWaveCollection} from "../../src/model/wave-collection.js";
@@ -195,6 +197,34 @@ try{
  assert(details.querySelector("[data-wave-motion]").value==="anchored",
    "Removing RAO must switch to anchored mode");
  localStorage.removeItem("folknet-v2:wave-observations:v1");
+ workbench.cleanup();workbench=null;
+ // Offset geometry must remain fully covered, and use the Hydro solver frame.
+ const offset=boxMesh({L:10,B:4,H:3});
+ for(let i=0;i<offset.positions.length;i+=3){offset.positions[i]+=30;offset.positions[i+1]-=20;}
+ const shifted={...model,components:[{id:"hull",name:"Offset hull",geometry:offset,metadata:{hydro:true}},
+   {id:"excluded",name:"Excluded",geometry:boxMesh({L:1,B:1,H:3}),metadata:{hydro:false}}]};
+ workbench=await renderModelWorkbench(root,shifted);
+ workbench.actions.setWaterline({z:1.2345});
+ let display=workbench.actions.getWaterlineDisplay();
+ near(display.center[2],1.2345);
+ for(const point of workbench.actions.getWaterlineInfo().loops.flat()){
+   assert(Math.abs(point[0]-display.center[0])<display.size[0]/2,"Offset contour outside water surface X");
+   assert(Math.abs(point[1]-display.center[1])<display.size[1]/2,"Offset contour outside water surface Y");
+ }
+ assert(display.contours.length===1,"Explicitly excluded geometry entered contours");
+ for(const line of display.contours)for(let i=2;i<line.length;i+=3)near(line[i],1.2345,1e-6);
+ const matrix=attitudeMatrix({heel:5,trim:3,yaw:7});
+ const moved={...offset,positions:Array.from(offset.positions)};
+ for(let i=0;i<moved.positions.length;i+=3){
+   const p=transformPoint(matrix,Array.from(offset.positions.slice(i,i+3)));
+   moved.positions.splice(i,3,...p);
+ }
+ const level=transformPoint(matrix,[30,-20,1.5])[2];
+ workbench.actions.setRotation({x:5,y:3,z:7,hydro:true});
+ workbench.actions.setWaterline({z:level});
+ const expected=modelWaterlineContours([moved],level),actual=workbench.actions.getWaterlineInfo();
+ assert(actual.status==="ok"&&actual.loops.length===1,"Hydro pose contour missing");
+ for(const p of expected.loops[0])assert(actual.loops[0].some(q=>Math.hypot(p[0]-q[0],p[1]-q[1])<1e-5),"Viewer contour differs from Hydro frame");
  workbench.cleanup();workbench=null;
  document.body.dataset.status="pass";
  result.textContent="WebGL 3D contour, roll, water elevation, clip, measure, wave surface, wave probes and observed CSV import PASS";

@@ -1,3 +1,5 @@
+import {createHydroInclude} from "../hydro/hydro-selection.js";
+import {attitudeMatrix} from "./transforms.js";
 import {getThreeRuntime} from "./three-runtime.js";
 import {modelWaterlineContours} from "./waterline-preview.js";
 import {normaliseWaveCase,waveElevation} from "./wave-core.js";
@@ -381,6 +383,7 @@ export async function mountModelScene(container,documentModel,options={}){
     currentBounds=bounds();
     const span=Math.max(currentBounds.size.x,currentBounds.size.y,currentBounds.radius*2,1)*1.35;
     waterlineMesh.scale.set(span,span,1);
+    waterlineMesh.position.set(currentBounds.center.x,currentBounds.center.y,waterlineState.z);
   }
   // The contour is the actual triangle/plane intersection, using Hydro's
   // shared clipping + stitching algorithms, not a 2D line over the screenshot.
@@ -399,8 +402,8 @@ export async function mountModelScene(container,documentModel,options={}){
   }
   function transformedContourMeshes(){
     alignmentGroup.updateMatrixWorld(true);
-    const hullMeshes=meshes.filter(mesh=>mesh.userData.component?.metadata?.hydro===true);
-    const targets=hullMeshes.length?hullMeshes:meshes;
+    const include=createHydroInclude(documentModel);
+    const targets=meshes.filter(mesh=>include(mesh.userData.component));
     return targets.map(mesh=>{
       const position=mesh.geometry.getAttribute("position");
       const indices=mesh.geometry.index;
@@ -419,8 +422,9 @@ export async function mountModelScene(container,documentModel,options={}){
       waterlineInfo={status:"hidden",loops:[],segments:0,triangles:0};
       return waterlineInfo;
     }
-    const target=meshes.filter(m=>m.userData.component?.metadata?.hydro===true);
-    const drawMeshes=target.length?target:meshes;
+    updateWaterlineSize();
+    const include=createHydroInclude(documentModel);
+    const drawMeshes=meshes.filter(m=>include(m.userData.component));
     const count=drawMeshes.reduce((n,m)=>n+
       Math.floor((m.geometry.index?.count||m.geometry.getAttribute("position").count)/3),0);
     if(count>350000){
@@ -432,7 +436,7 @@ export async function mountModelScene(container,documentModel,options={}){
       waterlineInfo=modelWaterlineContours(transformedContourMeshes(),waterlineState.z);
       for(const loop of waterlineInfo.loops){
         const geometry=new THREE.BufferGeometry().setFromPoints(
-          loop.map(p=>new THREE.Vector3(p[0],p[1],waterlineState.z+0.002)));
+          loop.map(p=>new THREE.Vector3(p[0],p[1],waterlineState.z)));
         const curve=new THREE.LineLoop(geometry,contourMaterial);
         curve.renderOrder=6;contourGroup.add(curve);
       }
@@ -572,7 +576,6 @@ export async function mountModelScene(container,documentModel,options={}){
     waterlineState={visible:Boolean(visible),z:Number(z)};
     updateWaterlineSize();
     waterlineMesh.visible=waterlineState.visible&&!waveMesh.visible;
-    waterlineMesh.position.set(0,0,waterlineState.z);
     waveMesh.position.z=waterlineState.z;
     if(explodedFactor>0||scopedExplodeFactor>0||isolatedIds!==null){
       waterlineMesh.visible=false;contourGroup.visible=false;
@@ -639,7 +642,7 @@ export async function mountModelScene(container,documentModel,options={}){
     return best.score;
   }
 
-  function setRotation({x=0,y=0,z=0}={}){
+  function setRotation({x=0,y=0,z=0,hydro=false}={}){
     for(const angle of [x,y,z])
       if(!Number.isFinite(Number(angle))||Math.abs(Number(angle))>360)
         throw Error("Attitude must be a finite angle within ±360°");
@@ -647,9 +650,15 @@ export async function mountModelScene(container,documentModel,options={}){
       THREE.MathUtils.degToRad(Number(x)),
       THREE.MathUtils.degToRad(Number(y)),
       THREE.MathUtils.degToRad(Number(z)));
-    // Preserve hull centre in the same local frame during heel/trim/yaw.
+    if(hydro){
+      // Hydro rotates about the model origin, in Rz * Ry * Rx order.
+      attitudeGroup.quaternion.setFromRotationMatrix(new THREE.Matrix4().fromArray(
+        attitudeMatrix({heel:Number(x),trim:Number(y),yaw:Number(z)})));
+    }
+    // Preserve CAD centre; Hydro must use the solver origin.
     attitudeGroup.position.copy(attitudePivot).sub(
       attitudePivot.clone().applyQuaternion(attitudeGroup.quaternion));
+    if(hydro)attitudeGroup.position.set(0,0,0);
     attitudeGroup.updateMatrixWorld(true);
     refreshWaterlineContours();
     draw(); // Do not unexpectedly reset the user's chosen side/camera.
@@ -933,6 +942,10 @@ export async function mountModelScene(container,documentModel,options={}){
       setWaterline,
       setHullGirderContour,
       getWaterlineInfo:()=>waterlineInfo,
+      getWaterlineDisplay:()=>({
+        center:waterlineMesh.position.toArray(),size:waterlineMesh.scale.toArray(),
+        contours:contourGroup.children.map(line=>Array.from(line.geometry.attributes.position.array))
+      }),
       setWave,
       getWaveMotionOffset:()=>lastWavePose.heaveM,
       getWaveMotionPose:()=>({...lastWavePose,timeS:waveTimeS,mode:waveMotionMode}),
