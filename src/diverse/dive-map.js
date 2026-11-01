@@ -161,6 +161,10 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
         <small>${esc(p.Kategori||"")}${p.Global_rangering?` · world #${esc(p.Global_rangering)}`:""}${max===null?"":` · max ${max} m`} · quality ${diveFeatureQuality(feature)}${distance===null?"":` · ${distance.toFixed(1)} km`}${point?"":diveCoordinateAssessment(feature).status==="unverified"?" · coordinate unverified":" · no usable coordinates"}</small>
       </button>`;
     }).join("")||'<div class="dive-empty"><strong>No matching sites</strong><span>Adjust filters to show more locations.</span></div>';
+    if(visible.length>state.pageSize){
+      elements.list.insertAdjacentHTML("beforeend",`<button class="btn" id="dive-more" type="button">Show 200 more · ${state.pageSize} / ${visible.length}</button>`);
+      elements.list.querySelector("#dive-more")?.addEventListener("click",()=>{state.pageSize+=200;render()});
+    }
     elements.list.querySelectorAll("[data-dive-id]").forEach(button=>{
       button.addEventListener("click",()=>selectFeature(visible.find(feature=>feature.properties?.ID===button.dataset.diveId)));
     });
