@@ -1,6 +1,6 @@
 # FolkNettside V2 — ACTIVE HANDOFF / START HERE
 
-**Updated:** 2026-10-28. **Repository:** `TorMT/FolkNettside-v2`, branch `main`.  
+**Updated:** 2026-11-01. **Repository:** `TorMT/FolkNettside-v2`, branch `main`.  
 **Purpose:** Durable single entry point for ChatGPT/Codex/other coding agents when a conversation is truncated, ends, or times out. **Tracking issue:** [#107](https://github.com/TorMT/FolkNettside-v2/issues/107). Read this file *first* and update it after every merged work unit. Do not claim asynchronous work has been performed.
 
 ## Request from owner
@@ -110,6 +110,7 @@ No representation that this project provides certified stability, exact shell/so
 
 ## Work journal
 
+| 2026-11-01 | B02: guard the hourly NTNU public course allowlist against case-only duplicate course slugs within a semester and unknown/misspelled per-course configuration keys; reject before making network requests. Python regressions cover duplicates, different semesters and typoed settings. | [#184](https://github.com/TorMT/FolkNettside-v2/pull/184), branch `fix/ntnu-allowlist-collisions` | **Open / CI pending**; not merged or live-NTNU-tested. Public V1 unaffected. |
 | Date | Work unit | Commit / PR | CI and external acceptance |
 | --- | --- | --- | --- |
 | 2026-10-28 | B03/NTNU Python: Pyodide did not preload third-party packages imported only by same-folder sibling `.py` files (Marine konstruksjoner `main.py` → `plotDiagramElement.py` → `matplotlib`). Add bounded, AST-only preflight of local module import graph (32 files/80 probes, no student code execution), retain strict NTNU relay allowlist and use Pyodide loadPackagesFromImports before main execution. | [#183](https://github.com/TorMT/FolkNettside-v2/pull/183), squash `f8575958a8ef908f0b771b6c240fe7bfc8496f34` | Latest-head [CI 40680845975](https://github.com/TorMT/FolkNettside-v2/actions/runs/40680845975) **SUCCESS 51/51** incl. real Pyodide Chrome `main-nested-matplotlib.py` (imports `plot_nested.py` which alone imports matplotlib), Python AST recursion/relative/safe-path tests. Exact NTNU production file not browser-tested after deployment; CDN/network dependency remains. |
