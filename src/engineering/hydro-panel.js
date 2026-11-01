@@ -1,7 +1,7 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
-import {gzMetrics} from "../hydro/gz.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
-import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
-import {hydroForcesHTML} from "./hydro-force-diagram.js?v=00b50d48be5befc84b237bb477aea9f35b9fe3ba";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=469b5cda80fe77c01ec0885ac97a54188e276d5f";
+import {gzMetrics} from "../hydro/gz.js?v=469b5cda80fe77c01ec0885ac97a54188e276d5f";
+import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=469b5cda80fe77c01ec0885ac97a54188e276d5f";
+import {hydroForcesHTML} from "./hydro-force-diagram.js?v=469b5cda80fe77c01ec0885ac97a54188e276d5f";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -176,7 +176,7 @@ export function hydroPanelHTML({
       <h3>Hydro case</h3>
       ${hydroPreflightHTML(hydroValidation)}
       ${config.note?`<p class="muted hydro-note" data-hydro-model-note>${esc(config.note)}</p>`:""}
-      <label class="field"><span>Draft / waterline</span><div><input id="hydro-draft" type="number" min="${minDraft}" max="${maxDraft}" step="0.05" value="${clamped.toFixed(2)}"><span> m</span></div></label>
+      <label class="field"><span>Draft / waterline</span><div><input id="hydro-draft" type="number" min="${minDraft}" max="${maxDraft}" step="any" value="${clamped}"><span> m</span></div></label>
       <div class="readout"><span>Water density</span><strong>${density} kg/m³</strong></div>
       <div class="readout"><span>Source</span><strong>${esc(modelDocument.name)}</strong></div>
       <div class="readout"><span>Included geometry</span><strong>${result.components.length} component(s)</strong></div>
