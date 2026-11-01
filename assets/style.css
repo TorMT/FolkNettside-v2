@@ -897,6 +897,35 @@
 .account-chip{height:34px;max-width:150px;display:flex;align-items:center;gap:6px;border:1px solid rgb(255 255 255 / .14);background:rgb(255 255 255 / .06);color:#dce9ef;border-radius:999px;padding:3px 9px 3px 4px;cursor:pointer}
 .account-chip>span{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:rgb(255 255 255 / .1);font-size:11px;font-weight:800}
 .account-chip.signed-in>span{background:var(--accent);color:#fff}.account-chip em{max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-style:normal;font-size:10px}
+/* The active Google Analytics tracking choice is a persistent selection,
+   not just a hover/focus state. The app already sets aria-pressed on change. */
+.settings-connection-actions[aria-label="Analytics preferences"] .btn[aria-pressed="true"]{
+  background:var(--accent-soft);
+  border:2px solid var(--accent);
+  color:var(--accent-ink);
+  box-shadow:inset 0 0 0 1px var(--accent);
+  font-weight:800;
+}
+.settings-connection-actions[aria-label="Analytics preferences"] .btn[aria-pressed="true"]::before{
+  content:"✓";
+  display:inline-block;
+  margin-right:6px;
+}
+.settings-connection-actions[aria-label="Analytics preferences"] .btn:focus-visible{
+  outline:3px solid var(--accent);
+  outline-offset:3px;
+}
+@media (forced-colors:active){
+  .settings-connection-actions[aria-label="Analytics preferences"] .btn[aria-pressed="true"]{
+    background:Highlight;
+    border:2px solid Highlight;
+    color:HighlightText;
+    box-shadow:none;
+  }
+  .settings-connection-actions[aria-label="Analytics preferences"] .btn:focus-visible{
+    outline-color:Highlight;
+  }
+}
 .settings-connection-actions{display:flex;align-items:center;gap:8px}.settings-status{display:inline-flex;align-items:center;padding:5px 8px;border:1px solid var(--line);border-radius:999px;font-size:9px;font-weight:760;white-space:nowrap}.settings-status.ready{color:var(--ok);background:color-mix(in srgb,var(--ok) 8%,var(--surface))}.settings-status.planned{color:var(--ink-3);background:var(--surface-sunk)}
 .settings-note{display:grid;gap:4px;padding:13px 15px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:9px;background:var(--surface);font-size:11px}.settings-note span{color:var(--ink-2);line-height:1.5}
 .settings-shortcuts{display:flex;gap:7px;flex-wrap:wrap}
