@@ -1,8 +1,8 @@
-import {getThreeRuntime} from "../model/three-runtime.js?v=629edfb958bddabdc52f1005397529a1901ff610";
-import {mountStandaloneCADNavigation} from "../model/standalone-cad-navigation.js?v=629edfb958bddabdc52f1005397529a1901ff610";
-import {externalGearPair} from "./gear-pitch-checks.js?v=629edfb958bddabdc52f1005397529a1901ff610";
-import {conceptualHelicalToothGeometry} from "./gear-visual-shape.js?v=629edfb958bddabdc52f1005397529a1901ff610";
-import {gearPairFraming} from "./gear-pair-camera.js?v=629edfb958bddabdc52f1005397529a1901ff610";
+import {getThreeRuntime} from "../model/three-runtime.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
+import {mountStandaloneCADNavigation} from "../model/standalone-cad-navigation.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
+import {externalGearPair} from "./gear-pitch-checks.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
+import {conceptualHelicalToothGeometry} from "./gear-visual-shape.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
+import {gearPairFraming} from "./gear-pair-camera.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
 
 /** Visual approximation for a non-planetary external pair; not KISSsoft CAD. */
 export async function mountKisssoftPair3D(target,model){

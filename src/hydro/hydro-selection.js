@@ -1,4 +1,4 @@
-import {componentSemantic} from "../model/semantic-assembly.js?v=629edfb958bddabdc52f1005397529a1901ff610";
+import {componentSemantic} from "../model/semantic-assembly.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
 export function createHydroInclude(modelDocument){
   const components=modelDocument?.components||[];
   const hasExplicitHydro=components.some(component=>{

@@ -1,5 +1,5 @@
-import {fetchText} from "../utils.js?v=629edfb958bddabdc52f1005397529a1901ff610";
-import {publicCodePreviewURL} from "../ntnu-public-code.js?v=629edfb958bddabdc52f1005397529a1901ff610";
+import {fetchText} from "../utils.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
 
 export async function render(container,resource){
   const source=await fetchText(publicCodePreviewURL(resource));
