@@ -96,9 +96,68 @@ try{
     "Dive-log recovery creates horizontal overflow at this viewport");
 
   mounted.cleanup();mounted=null;
+
+  // Two mounted browser views can hold different valid snapshots. Sequential
+  // writes must preserve both additions, and a stale view must not revive
+  // another view's explicit deletion.
+  localStorage.removeItem(key);
+  const secondRoot=document.createElement("div");
+  secondRoot.id="second-dive-view";
+  document.body.append(secondRoot);
+  const submitTo=(host,name)=>{
+    const form=host.querySelector("#dive-log-form");
+    form.elements.siteName.value=name;
+    form.elements.siteId.value="fixture";
+    form.elements.divedAt.value="2026-10-29T12:00";
+    form.elements.maxDepthM.value="16";
+    form.elements.durationMinutes.value="42";
+    form.elements.notes.value="Synthetic data only";
+    form.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
+  };
+  mounted=mountDiveLog(root);
+  const otherMount=mountDiveLog(secondRoot);
+  try{
+    submitTo(root,"First tab dive");
+    submitTo(secondRoot,"Second tab dive");
+    let stored=JSON.parse(localStorage.getItem(key));
+    assert(stored.entries.length===2,"Second tab erased first valid dive");
+    const firstId=stored.entries.find(row=>row.siteName==="First tab dive").id;
+    assert(firstId,"First tab entry missing after second tab write");
+    window.confirm=()=>true;
+    root.querySelector('[data-dive-log-delete="'+firstId+'"]').click();
+    submitTo(secondRoot,"Third dive in stale tab");
+    stored=JSON.parse(localStorage.getItem(key));
+    assert(stored.entries.find(row=>row.id===firstId).deleted===true,
+      "Old tab resurrected an explicitly deleted dive");
+    assert(stored.entries.filter(row=>!row.deleted).length===2,
+      "Sequential valid tabs lost an independent dive");
+    window.dispatchEvent(new StorageEvent("storage",{
+      key,newValue:localStorage.getItem(key),
+      storageArea:localStorage,url:location.href
+    }));
+    assert(root.querySelectorAll("[data-dive-log-delete]").length===2,
+      "Browser storage event did not refresh updated dive history");
+
+    // External profile removal must not be converted into an empty backup,
+    // and it must not offer a destructive reset of unknown data.
+    localStorage.removeItem(key);
+    submitTo(secondRoot,"Forbidden resurrection after external removal");
+    assert(localStorage.getItem(key)===null,
+      "A stale tab recreated a profile removed by another tab");
+    assert(secondRoot.querySelector("#dive-log-form button[type=submit]").disabled,
+      "Externally removed profile must block further writes");
+    assert(secondRoot.querySelector("#dive-log-recovery").hidden,
+      "Profile removal should not masquerade as corrupted-data recovery");
+    assert(document.documentElement.scrollWidth<=window.innerWidth+2,
+      "Two dive log mounts overflow this viewport");
+  }finally{
+    otherMount.cleanup();
+    mounted.cleanup();mounted=null;
+    secondRoot.remove();
+  }
   document.body.dataset.status="pass";
   document.querySelector("#result").textContent=
-    "Dive log corrupted local recovery, export-before-reset, stale-tab protection: PASS";
+    "Dive log recovery, two-tab merging, deletion tombstones and removed-profile refusal: PASS";
 }catch(error){
   document.body.dataset.status="fail";
   document.querySelector("#result").textContent=String(error?.stack||error);
