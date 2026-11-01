@@ -152,9 +152,13 @@ def approved_courses(config):
     if not isinstance(approved,list) or not approved or len(approved)>500:
         raise ValueError("Explicit public course allowlist required")
     courses, seen = [],set()
+    allowed_keys = {"semester","slug","sections",
+                    "allowMissingEmptySections","publicIndexFallback"}
     for course in approved:
         if not isinstance(course,dict):
             raise ValueError("Invalid public course entry")
+        if set(course)-allowed_keys:
+            raise ValueError("Unsafe public course allowlist keys")
         sid,slug,sections = (course.get("semester"),course.get("slug"),
                              course.get("sections",[]))
         optional = course.get("allowMissingEmptySections", [])
@@ -166,9 +170,9 @@ def approved_courses(config):
                 or any(s not in sections for s in optional)
                 or type(use_index) is not bool
                 or (use_index and "filer" not in sections)
-                or (sid,slug) in seen):
+                or (sid,slug.casefold()) in seen):
             raise ValueError("Unsafe/duplicate course allowlist entry")
-        seen.add((sid,slug))
+        seen.add((sid,slug.casefold()))
         courses.append((sid,slug,sections))
     return courses
 
