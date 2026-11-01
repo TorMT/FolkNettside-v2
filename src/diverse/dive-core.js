@@ -2,7 +2,7 @@ function text(value){return String(value??"").toLowerCase().normalize("NFD").rep
 
 export function diveFeatureLevel(feature){
   const raw=String(feature?.properties?.Kilde_nivå||"").toLowerCase();
-  if(raw.includes("trimix")||raw.includes("teknisk")||raw.includes("technical"))return "TECH";
+  if(raw.includes("trimix")||raw.includes("teknisk")||raw.includes("technical")||raw.includes("cave")||raw.includes("grotte"))return "TECH";
   if(raw.includes("nivå 3")||raw.includes("niva 3")||/[23]\s*[–-]\s*3/.test(raw))return "P3";
   if(raw.includes("nivå 2")||raw.includes("niva 2"))return "P2";
   if(raw.includes("nivå 1")||raw.includes("niva 1"))return "P1";
@@ -118,23 +118,45 @@ export function diveSourceUrls(properties){
   });
 }
 
-export function filterDiveFeatures(features,{query="",level="all",kind="all",quality="all",maxDepth="",wildlife="all",excludeWildlife=false}={}){
+export function diveFeatureCountry(feature){
+  const country=String(feature?.properties?.Land||"Norge").trim();
+  return /^(norge|norway)$/i.test(country)?"Norge":country||"Ukjent";
+}
+export function diveFeatureSource(feature){
+  const p=feature?.properties||{},id=String(p.ID||feature?.id||""),ids=String(p.Kilde_IDer||"").toLowerCase();
+  if(ids.includes("pingvin")||ids.includes("scarsbrook")||ids.includes("dykkekart")||ids.includes("reefradar"))return "local";
+  if(ids.includes("opendivemap")||id.startsWith("OD"))return "opendivemap";
+  if(ids.includes("underwateratlas")||id.startsWith("GL"))return "atlas";
+  if(id.startsWith("D")||id.startsWith("W")||id.startsWith("X"))return "original";
+  return "dykkepedia";
+}
+export function filterDiveFeatures(features,{query="",level="all",kind="all",quality="all",maxDepth="",wildlife="all",excludeWildlife=false,country="all",region="all",source="all"}={}){
   const q=text(query).trim();
   const depthLimit=maxDepth===""?null:Number(maxDepth);
   const wildlifeKey=text(wildlife);
   return (features||[]).filter(feature=>{
     const p=feature.properties||{};
+    if(country!=="all"&&diveFeatureCountry(feature)!==country)return false;
+    if(region!=="all"&&String(p.Område||"")!==region)return false;
+    if(source!=="all"){
+      const ids=String(p.Kilde_IDer||"").toLowerCase(),id=String(p.ID||feature?.id||"");
+      if(source==="original"&&!(id.startsWith("D")||id.startsWith("W")||id.startsWith("X")))return false;
+      if(source==="local"&&!/pingvin|scarsbrook|dykkekart|reefradar/.test(ids))return false;
+      if(source==="opendivemap"&&!ids.includes("opendivemap")&&!id.startsWith("OD"))return false;
+      if(source==="atlas"&&!ids.includes("underwateratlas")&&!id.startsWith("GL"))return false;
+      if(source==="dykkepedia"&&!ids.includes("dykkepedia")&&!id.startsWith("NO"))return false;
+    }
     if(level!=="all"&&diveFeatureLevel(feature)!==level)return false;
     if(kind!=="all"&&diveFeatureKind(feature)!==kind)return false;
     if(quality!=="all"&&diveFeatureQuality(feature)!==quality)return false;
     const depth=diveFeatureMaxDepth(feature);
-    if(Number.isFinite(depthLimit)&&depthLimit>=0&&depth!==null&&depth>depthLimit)return false;
+    if(Number.isFinite(depthLimit)&&depthLimit>=0&&(depth===null||depth>depthLimit))return false;
     if(wildlife!=="all"){
       const matches=diveFeatureWildlife(feature).some(name=>text(name).includes(wildlifeKey));
       if(excludeWildlife?matches:!matches)return false;
     }
     if(q){
-      const hay=text([p.Navn,p.Område,p.Kategori,p.Status,p.Observert_dyreliv,p.Mulig_rapportert_dyreliv,p.Vrak_historie,p.Notater].join(" "));
+      const hay=text([p.Navn,p.Land,p.Område,p.Kategori,p.Status,p.Kilde_IDer,p.Observert_dyreliv,p.Mulig_rapportert_dyreliv,p.Vrak_historie,p.Notater].join(" "));
       if(!hay.includes(q))return false;
     }
     return true;
@@ -143,6 +165,7 @@ export function filterDiveFeatures(features,{query="",level="all",kind="all",qua
 
 export function sortDiveFeatures(features,mode="name",{origin=null}={}){
   const list=[...(features||[])];
+  if(mode==="global")return list.sort((a,b)=>(a.properties?.Global_rangering??Infinity)-(b.properties?.Global_rangering??Infinity)||String(a.properties?.Navn||"").localeCompare(String(b.properties?.Navn||""),"no"));
   if(mode==="depth")return list.sort((a,b)=>(diveFeatureMaxDepth(a)??Infinity)-(diveFeatureMaxDepth(b)??Infinity)||String(a.properties?.Navn||"").localeCompare(String(b.properties?.Navn||""),"no"));
   if(mode==="level"){
     const rank={P1:1,P2:2,P3:3,TECH:4,UNKNOWN:5};
