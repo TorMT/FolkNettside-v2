@@ -1,7 +1,7 @@
-import {connectCADKeyboard} from "./cad-navigation.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
-import {connectSpaceMouse} from "./spacemouse-webhid.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
-import {spaceMouseMovement} from "./spacemouse-motion.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
-import {readSpaceMouseSettings,writeSpaceMouseSettings} from "./spacemouse-settings.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
+import {connectCADKeyboard} from "./cad-navigation.js?v=31699fd9504dcf90e03825d504eed380d00e1645";
+import {connectSpaceMouse} from "./spacemouse-webhid.js?v=31699fd9504dcf90e03825d504eed380d00e1645";
+import {spaceMouseMovement} from "./spacemouse-motion.js?v=31699fd9504dcf90e03825d504eed380d00e1645";
+import {readSpaceMouseSettings,writeSpaceMouseSettings} from "./spacemouse-settings.js?v=31699fd9504dcf90e03825d504eed380d00e1645";
 
 /** Attach the same desktop CAD navigation to standalone WebGL gear views.
  * This does not rotate actual design objects, only the display camera.

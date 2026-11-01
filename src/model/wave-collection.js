@@ -1,5 +1,5 @@
-import {parseDelimitedText,detectCSVDelimiter} from "../viewers/csv-core.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
-import {normalizeWaveObservations,normaliseWaveCase,sampleWave} from "./wave-core.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
+import {parseDelimitedText,detectCSVDelimiter} from "../viewers/csv-core.js?v=31699fd9504dcf90e03825d504eed380d00e1645";
+import {normalizeWaveObservations,normaliseWaveCase,sampleWave} from "./wave-core.js?v=31699fd9504dcf90e03825d504eed380d00e1645";
 const KEY="folknet-v2:wave-observations:v1";
 export const MAX_WAVE_CASES=30;
 export function makeWaveRecord({name="Wave case",source="synthetic",wave=null,

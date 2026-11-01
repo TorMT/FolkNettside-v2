@@ -1,4 +1,4 @@
-import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=b69e3e03655a6accba2c4903d6e460c0a037e484";
+import {readSpaceMouseSettings} from "../model/spacemouse-settings.js?v=31699fd9504dcf90e03825d504eed380d00e1645";
 const SECTIONS=[
   ["appearance","Appearance"],
   ["connections","Account & connections"],
@@ -69,8 +69,8 @@ function connectionsHTML(account={},folkAccount={}){
            autocomplete="current-password" placeholder="FolkNet password"></label>
          <div class="settings-connection-actions">
           <button class="btn" type="submit" data-folk-login ${folkBusy?"disabled":""}>Sign in</button>
-
          </div>
+         <div class="settings-feedback" data-folk-auth-error role="alert" aria-live="assertive"></div>
          <small>Kun forhåndsopprettede FolkNet-kontoer. Administratorkontoen må
            opprettes og gis tilgang i riktig Supabase-prosjekt.</small>
        </form>`;
