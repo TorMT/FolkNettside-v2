@@ -4,6 +4,7 @@ export const DIVE_CATALOG_FILES=[
   "./data/diving/norway-additions.geojson",
   "./data/diving/local-enrichments.geojson",
   ...Array.from({length:7},(_,i)=>`./data/diving/open-divemap-${String(i+1).padStart(2,"0")}.geojson`),
+  ...Array.from({length:4},(_,i)=>`./data/diving/osm-vibe-${String(i+1).padStart(2,"0")}.geojson`),
   "./data/diving/world-top500.geojson"
 ];
 
