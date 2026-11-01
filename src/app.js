@@ -1184,6 +1184,9 @@ function settingsPage(){
       if(feedback)feedback.textContent="Backup failed: "+String(error?.message||error);
     }
   });
+  app.querySelector("#settings-choose-study-import")?.addEventListener("click",()=>{
+    app.querySelector("#settings-import-study-progress")?.click();
+  });
   app.querySelector("#settings-import-study-progress")?.addEventListener("change",async event=>{
     const input=event.currentTarget;
     const feedback=app.querySelector("#settings-feedback");
