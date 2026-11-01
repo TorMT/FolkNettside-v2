@@ -8,6 +8,7 @@ const listeners=new Set();
 let tokenClient=null;
 let configPromise=null;
 let accessPromise=null;
+let identityRefreshPromise=null;
 let sessionRevision=0;
 let rejectPendingToken=null;
 let state={
@@ -140,7 +141,7 @@ async function ensureGoogleIdentity(){
 async function requestToken(prompt){
   const revision=sessionRevision;
   if(accessPromise)return accessPromise;
-  accessPromise=(async()=>{
+  const pending=(async()=>{
     await ensureGoogleIdentity();
     if(revision!==sessionRevision)throw new Error("Google authentication was cancelled.");
     return new Promise((resolve,reject)=>{
@@ -169,32 +170,37 @@ async function requestToken(prompt){
           finish(new Error("Google returned no access token."));
           return;
         }
-        state.accessToken=response.access_token;
-        state.accessTokenExpiresAt=Date.now()+Math.max(1,Number(response.expires_in)||3600)*1000;
-        finish(null,state.accessToken);
+        // Stage issued credentials until Google userinfo verifies the subject.
+        // No other caller may use an unverified token for Drive operations.
+        finish(null,{
+          accessToken:response.access_token,
+          expiresAt:Date.now()+Math.max(1,Number(response.expires_in)||3600)*1000
+        });
       };
       try{tokenClient.requestAccessToken({prompt})}
       catch(error){finish(error)}
     });
   })();
-  try{return await accessPromise}
-  catch(error){accessPromise=null;throw error}
+  accessPromise=pending;
+  try{return await pending}
+  finally{if(accessPromise===pending)accessPromise=null}
 }
 
 async function loadProfile(token){
-  try{
-    const response=await fetch(USERINFO_URL,{headers:{Authorization:`Bearer ${token}`},cache:"no-store"});
-    if(!response.ok)throw new Error(`userinfo HTTP ${response.status}`);
-    const profile=await response.json();
-    return {
-      sub:String(profile.sub||""),
-      name:String(profile.name||""),
-      email:String(profile.email||""),
-      picture:String(profile.picture||"")
-    };
-  }catch{
-    return {sub:"",name:"Google account",email:"",picture:""};
-  }
+  const response=await fetch(USERINFO_URL,{
+    headers:{Authorization:`Bearer ${token}`},cache:"no-store",
+    redirect:"error",signal:globalThis.AbortSignal?.timeout?.(10000)
+  });
+  if(!response.ok)throw Error("Google identity verification failed (HTTP "+response.status+").");
+  const profile=await response.json();
+  if(typeof profile?.sub!=="string"||!profile.sub.trim()||profile.sub.length>255)
+    throw Error("Google did not return a verified account ID. Sign in again.");
+  return {
+    sub:profile.sub,
+    name:String(profile.name||""),
+    email:String(profile.email||""),
+    picture:String(profile.picture||"")
+  };
 }
 
 export async function connectGoogleSession(){
@@ -202,10 +208,11 @@ export async function connectGoogleSession(){
   setState({status:"connecting",error:""});
   try{
     await loadGoogleSessionConfig({force:state.configured===false});
-    const token=await requestToken("consent");
-    const profile=await loadProfile(token);
+    const issued=await requestToken("consent");
+    const profile=await loadProfile(issued.accessToken);
     if(revision!==sessionRevision)throw new Error("Google sign-in was cancelled.");
-    setState({status:"signed-in",profile,error:"",configured:true});
+    setState({status:"signed-in",profile,error:"",configured:true,
+      accessToken:issued.accessToken,accessTokenExpiresAt:issued.expiresAt});
     return cloneState();
   }catch(error){
     if(revision===sessionRevision)
@@ -225,15 +232,38 @@ export async function getGoogleAccessToken({interactive=false}={}){
     error.code="AUTH_REQUIRED";
     throw error;
   }
-  const token=await requestToken("");
-  setState({status:"signed-in",error:""});
-  return token;
+  if(identityRefreshPromise)return identityRefreshPromise;
+  const revision=sessionRevision;
+  const originalSub=state.profile?.sub;
+  const pending=(async()=>{
+    try{
+      const issued=await requestToken("");
+      const verified=await loadProfile(issued.accessToken);
+      if(revision!==sessionRevision)throw Error("Google session changed during refresh.");
+      if(!originalSub||verified.sub!==originalSub)
+        throw Error("Google account changed. Sign in again before using Drive.");
+      setState({status:"signed-in",profile:verified,error:"",
+        accessToken:issued.accessToken,accessTokenExpiresAt:issued.expiresAt});
+      return issued.accessToken;
+    }catch(error){
+      if(revision===sessionRevision){
+        // Do not keep an unverified or possibly switched Drive account alive.
+        disconnectGoogleSession();
+        setState({error:String(error?.message||error)});
+      }
+      throw error;
+    }
+  })();
+  identityRefreshPromise=pending;
+  try{return await pending}
+  finally{if(identityRefreshPromise===pending)identityRefreshPromise=null}
 }
 
 export function disconnectGoogleSession(){
   sessionRevision++;
   rejectPendingToken?.();
   accessPromise=null;
+  identityRefreshPromise=null;
   const token=state.accessToken;
   try{
     if(token&&globalThis.google?.accounts?.oauth2?.revoke)globalThis.google.accounts.oauth2.revoke(token,()=>{});
