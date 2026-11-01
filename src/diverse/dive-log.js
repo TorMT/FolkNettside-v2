@@ -1,6 +1,7 @@
 import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js";
 import {readAccountVault,writeAccountVault,encryptAccountVault,decryptAccountVault,validateAccountVaultFolder} from "../platform/account-vault-sync.js";
 import {addDiveEntry,createDiveEntry,deleteDiveEntry,mergeDiveLogs,newDiveLog,validateDiveLog,visibleDiveEntries} from "./dive-log-model.js";
+import {reconcileDiveLogLocalWrite} from "./dive-log-local-sync.js";
 
 const PURPOSE="dive-log";
 const STORAGE="folk-v2-dive-log-v1";
@@ -16,7 +17,7 @@ function download(data,filename){
 export function mountDiveLog(root){
  if(!root)return{selectSite(){},cleanup(){}};
  let disposed=false,sub=accountId(),key=keyFor(sub),backup=newDiveLog(),password=null;
- let unreadableLocalRaw=null,recoveryExported=false;
+ let unreadableLocalRaw=null,recoveryExported=false,lastSeenRaw=null,removedExternally=false;
  let busy=false,pending=false,timer=null;
  root.innerHTML='<p>Personal dive records are stored locally per Google account. Cloud synchronization is optional and encrypted; public map data is never modified.</p>'+
  '<form id="dive-log-form" class="medisin-form">'+
@@ -63,7 +64,15 @@ export function mountDiveLog(root){
    let raw=null;
    try{
      raw=localStorage.getItem(key);
+     // A missing key after previously loading records is an external reset,
+     // not evidence that an empty profile should be silently resurrected.
+     if(raw===null&&lastSeenRaw!==null){
+       removedExternally=true;backup=null;
+       notify("Dive log was removed in another tab. Reload before saving or syncing.");
+       return null;
+     }
      const valid=raw===null?newDiveLog():validateDiveLog(JSON.parse(raw));
+     lastSeenRaw=raw;removedExternally=false;
      unreadableLocalRaw=null;recoveryExported=false;
      return valid;
    }catch{
@@ -73,25 +82,33 @@ export function mountDiveLog(root){
    }
  };
  const saveLocal=value=>{
-   if(!backup)throw Error("Local dive log unreadable; saving is blocked");
-   validateDiveLog(value);
-   // Detect corruption introduced by another browser tab since this view
-   // loaded. Never replace its only surviving copy with a stale snapshot.
-   let raw=null;
+   if(!backup)throw Error("Local dive log unavailable; saving is blocked");
+   let raw=null,merged;
    try{
      raw=localStorage.getItem(key);
-     if(raw!==null)validateDiveLog(JSON.parse(raw));
-   }catch{
-     unreadableLocalRaw=raw;recoveryExported=false;backup=null;render();
-     throw Error("Stored dive log changed or became unreadable; export the original before resetting");
+     merged=reconcileDiveLogLocalWrite(value,raw,{previouslySeenRaw:lastSeenRaw});
+   }catch(error){
+     if(raw===null&&lastSeenRaw!==null){
+       removedExternally=true;password=null;passInput.value="";
+       clearTimeout(timer);pending=false;backup=null;render();
+     }else if(raw!==null){
+       try{validateDiveLog(JSON.parse(raw))}
+       catch{
+         unreadableLocalRaw=raw;recoveryExported=false;backup=null;render();
+       }
+     }
+     throw error;
    }
-   localStorage.setItem(key,JSON.stringify(value));
-   backup=value;render();
+   const serialized=JSON.stringify(merged);
+   localStorage.setItem(key,serialized);
+   lastSeenRaw=serialized;
+   backup=merged;render();
+   return merged;
  };
  const render=()=>{
    const list=root.querySelector("#dive-log-list");
    const recovery=root.querySelector("#dive-log-recovery");
-   recovery.hidden=Boolean(backup);
+   recovery.hidden=Boolean(backup)||removedExternally;
    root.querySelector("#dive-log-recovery-export").disabled=Boolean(backup)||unreadableLocalRaw===null;
    root.querySelector("#dive-log-recovery-reset").disabled=Boolean(backup)||!recoveryExported||unreadableLocalRaw===null;
    for(const id of ["#dive-log-form button[type=submit]","#dive-log-export",
@@ -103,8 +120,12 @@ export function mountDiveLog(root){
    root.querySelector("#dive-log-lock").disabled=!password;
    folderInput.disabled=!sub||busy||!backup;
    if(!backup){
-     list.textContent="Stored data cannot be read. Download the original text before choosing to reset.";
-     state.textContent="Local dive log unreadable · cloud synchronization blocked.";
+     list.textContent=removedExternally
+       ?"Another tab removed this dive-log profile. Reload the page before making changes."
+       :"Stored data cannot be read. Download the original text before choosing to reset.";
+     state.textContent=removedExternally
+       ?"Local profile changed in another tab · synchronization blocked."
+       :"Local dive log unreadable · cloud synchronization blocked.";
      return;
    }
    const rows=visibleDiveEntries(backup);
@@ -123,8 +144,8 @@ export function mountDiveLog(root){
    clearTimeout(timer);timer=setTimeout(()=>{void syncCloud()},900);
  }
  function apply(value){
-   try{saveLocal(value);notify("Dive saved locally.");schedule()}
-   catch(error){notify("Save failed: "+error.message)}
+   try{saveLocal(value);notify("Dive saved locally.");schedule();return true}
+   catch(error){notify("Save failed: "+error.message);return false}
  }
  async function syncCloud(){
    if(busy){pending=true;return}
@@ -137,9 +158,9 @@ export function mountDiveLog(root){
      const local=readLocal();
      if(!local)throw Error("Local log unreadable; sync blocked");
      const combined=remote?mergeDiveLogs(local,validateDiveLog(remote.data)):local;
-     saveLocal(combined);
-     if(combined.entries.length&&(!remote||JSON.stringify(combined.entries)!==JSON.stringify(remote.data.entries))){
-       await writeAccountVault(account,PURPOSE,secret,combined,{folderId,expectedRevision:remote?.revision||null});
+     const persisted=saveLocal(combined);
+     if(persisted.entries.length&&(!remote||JSON.stringify(persisted.entries)!==JSON.stringify(remote.data.entries))){
+       await writeAccountVault(account,PURPOSE,secret,persisted,{folderId,expectedRevision:remote?.revision||null});
      }
      notify("Encrypted Drive dive log synchronized.");
    }catch(error){
@@ -154,8 +175,9 @@ export function mountDiveLog(root){
    event.preventDefault();
    if(!backup)return;
    try{
-     apply(addDiveEntry(backup,createDiveEntry(Object.fromEntries(new FormData(form)))));
-     form.reset();
+     if(apply(addDiveEntry(backup,createDiveEntry(Object.fromEntries(new FormData(form)))))){
+       form.reset();
+     }
    }catch(error){notify(error.message)}
  });
  root.querySelector("#dive-log-list").addEventListener("click",event=>{
@@ -199,6 +221,7 @@ export function mountDiveLog(root){
      }
      localStorage.removeItem(key);
      password=null;passInput.value="";clearTimeout(timer);pending=false;
+     lastSeenRaw=null;removedExternally=false;
      backup=readLocal();render();
      notify("Empty local dive-log profile opened after confirmation. Encrypted Drive data was not changed.");
    }catch{
@@ -216,8 +239,8 @@ export function mountDiveLog(root){
        await decryptAccountVault(PURPOSE,parsed,password||passInput.value):parsed;
      const imported=validateDiveLog(decoded);
      if(!confirm("Merge imported dives with this local account?"))return;
-     apply(mergeDiveLogs(backup,imported));
-     notify("Dive-log records merged without dropping older independent entries.");
+     if(apply(mergeDiveLogs(backup,imported)))
+       notify("Dive-log records merged without dropping older independent entries.");
    }catch(error){notify("Import failed: "+error.message)}
    finally{fileInput.value=""}
  });
@@ -247,9 +270,22 @@ export function mountDiveLog(root){
  const unsubscribe=subscribeGoogleSession(()=>{
    const next=accountId();if(next===sub)return;
    clearTimeout(timer);pending=false;password=null;passInput.value="";
-   sub=next;key=keyFor(sub);backup=readLocal();folderInput.value=folder()||"";
+   sub=next;key=keyFor(sub);lastSeenRaw=null;removedExternally=false;
+   backup=readLocal();folderInput.value=folder()||"";
    render();notify("Dive log switched to the current storage profile.");
  });
+ const onOtherTabChange=event=>{
+   if(disposed||event.key!==key||event.storageArea!==localStorage)return;
+   if(event.newValue===null&&lastSeenRaw!==null){
+     removedExternally=true;backup=null;password=null;passInput.value="";
+     clearTimeout(timer);pending=false;
+     render();notify("Dive log removed in another tab. Reload before saving or syncing.");
+     return;
+   }
+   backup=readLocal();render();
+   if(backup)notify("Dive log updated from another browser tab.");
+ };
+ window.addEventListener("storage",onOtherTabChange);
  backup=readLocal();folderInput.value=folder()||"";render();
  return {
    selectSite(feature){
@@ -258,6 +294,10 @@ export function mountDiveLog(root){
      form.elements.siteName.value=name;
      form.elements.siteId.value=String(feature.properties?.ID||"");
    },
-   cleanup(){disposed=true;password=null;clearTimeout(timer);unsubscribe()}
+   cleanup(){
+     disposed=true;password=null;clearTimeout(timer);
+     window.removeEventListener("storage",onOtherTabChange);
+     unsubscribe();
+   }
  };
 }
