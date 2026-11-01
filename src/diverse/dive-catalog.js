@@ -8,8 +8,12 @@ export const DIVE_CATALOG_FILES=[
   "./data/diving/world-top500.geojson"
 ];
 
-const normalized=value=>String(value||"").toLowerCase().normalize("NFD")
-  .replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}]+/gu," ").trim();
+// Canonical key is only a candidate generator; geography still decides matches.
+const normalized=value=>String(value||"").toLowerCase()
+  .replace(/[’‘\u0060´']/g,"").replace(/ø/g,"o").replace(/æ/g,"ae").replace(/ß/g,"ss")
+  .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+  .replace(/^(?:d\/s|m\/s|s\/s)\s+/,"")
+  .replace(/[^\p{L}\p{N}]+/gu,"").trim();
 
 export function diveCountry(feature){
   const raw=String(feature?.properties?.Land||"Norge").trim();
@@ -26,6 +30,7 @@ export function diveSourceGroup(feature){
   if(id.startsWith("D")||id.startsWith("W")||id.startsWith("X"))return "original";
   if(ids.includes("pingvin")||ids.includes("scarsbrook")||ids.includes("dykkekart"))return "local";
   if(ids.includes("opendivemap")||id.startsWith("OD"))return "opendivemap";
+  if(ids.includes("openstreetmap")||id.startsWith("OS"))return "osm";
   if(ids.includes("underwateratlas")||id.startsWith("GL"))return "atlas";
   return "dykkepedia";
 }
@@ -35,13 +40,16 @@ function samePlace(a,b){
   const aPoint=diveFeaturePoint(a),bPoint=diveFeaturePoint(b);
   if(aPoint&&bPoint){
     const km=diveDistanceKm(aPoint,bPoint);
-    return km!==null&&km<8;
+    const name=normalized(a.properties?.Navn);
+    // Generic names frequently repeat: never merge two distant pinnacles
+    // or wrecks merely because both are named "Shark Point", "The Wall", etc.
+    const limit=name.length<=10?0.35:1.2;
+    return km!==null&&km<=limit;
   }
-  // An unlocated global-ranking item may be attached only to one unambiguous
-  // exact name/country match. Ordinary missing-location records remain separate
-  // unless their area matches.
-  const atlas=diveSourceGroup(a)==="atlas"||diveSourceGroup(b)==="atlas";
-  return atlas||normalized(diveRegion(a))===normalized(diveRegion(b));
+  // An unknown point is NOT the same thing as a nearby named site. Only
+  // merge with an identical named region; the ranked index is addressed
+  // separately when a unique country/name candidate is available.
+  return normalized(diveRegion(a))===normalized(diveRegion(b));
 }
 function combine(a,b){
   const p=a.properties,q=b.properties;
@@ -53,13 +61,16 @@ function combine(a,b){
   if(p.Dybde_max_m==null&&q.Dybde_max_m!=null)p.Dybde_max_m=q.Dybde_max_m;
   if(!a.geometry&&b.geometry){a.geometry=b.geometry;p.Lat=q.Lat;p.Lon=q.Lon;}
   if(q.Global_rangering&&!p.Global_rangering)p.Global_rangering=q.Global_rangering;
+  if(q.Navn!==p.Navn){
+    p.Alternative_navn=[...new Set([...(p.Alternative_navn||[]),q.Navn].filter(Boolean))];
+  }
   p.Kilde_IDer=[...new Set([p.Kilde_IDer,q.Kilde_IDer].filter(Boolean))].join(";");
   p.Antall_kilder=p.source_urls.length;
   return a;
 }
 // Preserve original IDs and positions; prevent same-place pins from multiple data sources.
 export function mergeDiveCatalog(collections){
-  const output=[],byName=new Map(),rankedLast=[];
+  const output=[],rankedLast=[];
   const all=collections.flatMap(c=>c?.features||[]);
   // Global ranking has no published map coordinates in its index. Add it last
   // so better referenced coordinates/depths are preferred.
