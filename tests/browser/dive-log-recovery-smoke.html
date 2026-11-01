@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dive log corrupt local backup recovery smoke</title>
+<link rel="stylesheet" href="../../assets/style.css"></head>
+<body data-status="running"><main><div id="mount"></div><pre id="result">Running</pre></main>
+<script type="module">
+import {mountDiveLog} from "../../src/diverse/dive-log.js";
+const assert=(condition,message)=>{if(!condition)throw Error(message)};
+const key="folk-v2-dive-log-v1";
+const root=document.getElementById("mount");
+const submit=name=>{
+  const form=root.querySelector("#dive-log-form");
+  form.elements.siteName.value=name;
+  form.elements.siteId.value="fixture";
+  form.elements.divedAt.value="2026-10-29T12:00";
+  form.elements.maxDepthM.value="16";
+  form.elements.durationMinutes.value="42";
+  form.elements.notes.value="Synthetic data only";
+  form.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
+};
+const originalConfirm=window.confirm;
+let mounted=null;
+try{
+  localStorage.removeItem(key);
+  mounted=mountDiveLog(root);
+  submit("Normal guest dive");
+  assert(JSON.parse(localStorage.getItem(key)).entries.length===1,
+    "Normal local dive save failed");
+  mounted.cleanup();mounted=null;
+  localStorage.removeItem(key);
+
+  const damaged='{"private-site":"preserve exact raw text",broken';
+  localStorage.setItem(key,damaged);
+  mounted=mountDiveLog(root);
+  const panel=root.querySelector("#dive-log-recovery");
+  const exportButton=root.querySelector("#dive-log-recovery-export");
+  const resetButton=root.querySelector("#dive-log-recovery-reset");
+  assert(panel&&!panel.hidden,"Unreadable local dive log did not show recovery panel");
+  for(const selector of ["#dive-log-form button[type=submit]",
+    "#dive-log-export","#dive-log-export-secure","#dive-log-import",
+    "#dive-log-sync","#dive-log-recovery-reset"]){
+    assert(root.querySelector(selector).disabled,
+      "Unreadable log left unsafe control enabled: "+selector);
+  }
+  submit("Must not overwrite");
+  assert(localStorage.getItem(key)===damaged,
+    "Saving overwrote damaged original local text");
+  const notices=root.querySelector("#dive-log-message");
+  assert(notices.textContent.includes("blocked"),
+    "The user did not receive a reason for blocked writes");
+
+  let accept=false,confirmCount=0;
+  window.confirm=()=>{confirmCount++;return accept};
+  exportButton.click();
+  assert(!resetButton.disabled,"Export action did not enable intentional reset");
+  resetButton.click();
+  assert(confirmCount===1&&localStorage.getItem(key)===damaged,
+    "Declining reset must preserve original data");
+
+  accept=true;
+  const changed='{different damaged data from second tab';
+  localStorage.setItem(key,changed);
+  resetButton.click();
+  assert(localStorage.getItem(key)===changed,
+    "Reset deleted a newer local value not covered by exported backup");
+  assert(resetButton.disabled,
+    "After another tab changes data, require a fresh export");
+
+  exportButton.click();
+  resetButton.click();
+  assert(localStorage.getItem(key)===null,
+    "Approved reset after fresh backup did not clear only this local profile");
+  assert(panel.hidden&&!root.querySelector("#dive-log-form button[type=submit]").disabled,
+    "Form did not reopen after explicit local recovery");
+  submit("Recovered synthetic dive");
+  assert(localStorage.getItem(key).includes("Recovered synthetic dive"),
+    "Recovered profile cannot save new records");
+  mounted.cleanup();mounted=null;
+
+  // Corruption after mounting must be caught at the next write, not
+  // overwritten by a valid but stale snapshot already held in memory.
+  localStorage.removeItem(key);
+  mounted=mountDiveLog(root);
+  submit("Before other tab");
+  const laterDamage='{later damaged local contents';
+  localStorage.setItem(key,laterDamage);
+  submit("Unsafe stale-tab write");
+  assert(localStorage.getItem(key)===laterDamage,
+    "A stale tab overwrote newly corrupted local history");
+  assert(!root.querySelector("#dive-log-recovery").hidden,
+    "A late corrupted value did not switch the page into recovery mode");
+  assert(root.querySelector("#dive-log-recovery-reset").disabled,
+    "Late corrupt data cannot be reset before its own export");
+  assert(document.documentElement.scrollWidth<=window.innerWidth+2,
+    "Dive-log recovery creates horizontal overflow at this viewport");
+
+  mounted.cleanup();mounted=null;
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent=
+    "Dive log corrupted local recovery, export-before-reset, stale-tab protection: PASS";
+}catch(error){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(error?.stack||error);
+}finally{
+  if(mounted)mounted.cleanup();
+  window.confirm=originalConfirm;
+  localStorage.removeItem(key);
+}
+</script></body></html>
