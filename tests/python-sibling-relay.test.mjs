@@ -74,3 +74,12 @@ test("Python session forwards the optional sibling relay without auto-running co
  assert.equal((await promise).stdout,"42");
  session.dispose();
 });
+
+test("same-origin URL query and fragment do not disable sibling imports",()=>{
+ for(const tail of ["?v=2","#cell-1","?v=2#cell-1"]){
+   const {worker,requested}=fakeWorker();
+   worker.setSourceBase("https://tormt.github.io/FolkNettside-v2/project/main.py"+tail);
+   assert.equal(worker.loadSiblingFile("utils.py"),true);
+   assert.equal(requested[0].url,"https://tormt.github.io/FolkNettside-v2/project/utils.py");
+ }
+});

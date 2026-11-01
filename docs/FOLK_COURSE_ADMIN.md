@@ -83,3 +83,41 @@ On saving, the editor reloads the page so the browser rebuilds its catalog.
 - The database schema was deployed directly to FolkNet before this frontend switch; no verified owner identity or admin grants have been provisioned yet.
 - No direct NTNU upload/edit/delete. Those require separate access-control
   and content-rights checks before adding any future file operations.
+
+## Live verification 2026-10-28 — owner account still required
+
+A read-only check of the **active FolkNet project** `aeuouzkiyddfjtjfdosp`
+returned `auth.users = 0`, `folk_site_admins = 0`, and
+`folk_course_labels = 0`. Both public tables have RLS enabled. Database
+grants allow anonymous **SELECT only** for `folk_course_labels`;
+authenticated users have SELECT of their own administrator row, but cannot
+insert/update/delete `folk_site_admins`. Label writes have RLS policies
+requiring their authenticated UUID to be present in that administrator table.
+The security advisor reported only informational no-policy notices on two
+private, non-exposed OAuth tables; these are not public write grants.
+
+**Only the owner can finish initial identity provisioning securely:**
+
+1. Open [FolkNet Authentication → Users](https://supabase.com/dashboard/project/aeuouzkiyddfjtjfdosp/auth/users).
+   Provision one owner email/password identity through the trusted dashboard,
+   then complete email verification. An invitation is an option, but do not
+   rely on invitation redirects as a substitute for testing normal password
+   sign-in in the V2 Settings page.
+2. Under [Auth settings](https://supabase.com/dashboard/project/aeuouzkiyddfjtjfdosp/auth/providers),
+   confirm public signup is disabled, email confirmation is required and the
+   intended V2 Pages URL/redirect settings are correct. Hiding the UI signup
+   button is not sufficient. Do not put the password in chat or GitHub.
+3. Verify that the account's exact `auth.users.id` belongs to the intended
+   verified owner in this project. Seed that UUID using the single-admin SQL
+   already documented above. Never generate a synthetic Auth UUID.
+4. Sign in from Settings → Account & connections; check the editor on a
+   second browser, verify a harmless label save/restore, and check signed-out,
+   non-admin and two-account isolation. Run the security advisor again.
+   The full B01 requirement remains **open** until this passes with a real
+   session. The client-only stale-auth hardening merged in PR #176 does not
+   grant admin permissions.
+
+2026-10-28 PR #176 regression evidence: an expired account context or a
+delayed Supabase response cannot confirm old administrator privileges or
+report a label change with a mismatched key/value. The server's RLS remains
+the actual authorization boundary.

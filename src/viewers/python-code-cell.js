@@ -71,7 +71,7 @@ export function mountPythonCodeCell(container,{
     if(editor.value.length>380000){
       overlayCode.textContent=editor.value;
     }else{
-      overlayCode.innerHTML=lines.map(line=>'<span class="python-editor-line">'+line+'</span>').join("\n");
+      overlayCode.innerHTML=lines.map(line=>'<span class="python-editor-line">'+line+'</span>').join("");
     }
     gutter.innerHTML=Array.from({length:Math.min(lines.length,10000)},(_,i)=>'<span>'+(i+1)+'</span>').join("");
     updateSize();

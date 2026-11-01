@@ -3,6 +3,7 @@ import {publicCodePreviewURL} from "../ntnu-public-code.js";
 import {getHighlighter} from "../../vendor/highlight.js";
 import {createDomFinder} from "../dom-search.js";
 import {codeRows} from "../highlighted-lines.js";
+import {codePreview} from "../code-preview-limits.js";
 
 const languageByExtension={
   py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",
@@ -20,14 +21,15 @@ export async function render(container,resource){
   const text=await fetchText(publicCodePreviewURL(resource));
   const ext=extension(resource.name||resource.path);
   const language=languageByExtension[ext];
-  let highlighted=escapeHTML(text);
+  const preview=codePreview(text);
+  let highlighted=escapeHTML(preview.text);
 
   if(language){
     try{
       const hljs=await getHighlighter();
-      highlighted=hljs.highlight(text,{language,ignoreIllegals:true}).value;
+      highlighted=hljs.highlight(preview.text,{language,ignoreIllegals:true}).value;
     }catch{
-      highlighted=escapeHTML(text);
+      highlighted=escapeHTML(preview.text);
     }
   }
 
@@ -39,6 +41,7 @@ export async function render(container,resource){
         <button type="button" class="code-copy">Copy</button>
       </div>
     </div>
+    ${preview.truncated?'<p class="muted code-preview-notice" role="status">Large file: showing only the first '+preview.displayedLines+' lines ('+preview.displayedChars.toLocaleString()+' of '+preview.totalChars.toLocaleString()+' characters). Find searches the preview; Copy includes the whole file. Use Open original to see everything.</p>':""}
     <pre class="code-view"><code>${codeRows(highlighted)}</code></pre>
   </div>`;
 
@@ -61,5 +64,6 @@ export async function render(container,resource){
     }catch{event.currentTarget.textContent="Copy unavailable"}
   };
 
-  return {info:`${labelByExtension[ext]||"Text"} · ${text.split("\n").length} lines · ${text.length.toLocaleString()} chars`,actions:{find:createDomFinder(container)}};
+  return {info:`${labelByExtension[ext]||"Text"} · ${preview.displayedLines} preview lines · ${text.length.toLocaleString()} total chars`+
+    (preview.truncated?" · preview shortened":""),actions:{find:createDomFinder(container)}};
 }

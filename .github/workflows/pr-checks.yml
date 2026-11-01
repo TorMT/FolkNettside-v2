@@ -59,7 +59,9 @@ jobs:
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4217/tests/browser/vscode-code-viewer-smoke.html 50 1280,900
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4217/tests/browser/vscode-code-viewer-smoke.html 50 320,720
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4217/tests/browser/vscode-code-viewer-smoke.html 50 390,844
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4217/tests/browser/vscode-code-viewer-smoke.html 50 768,900
 
       - name: Validate interactive SiteUpdater and nested resource indexing
         run: python3 -m unittest discover -s tests -p 'test_update_site_interactive.py' -v

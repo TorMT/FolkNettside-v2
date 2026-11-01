@@ -55,6 +55,87 @@ class _ViewerSiblingFinder(_abc.MetaPathFinder):
 
 _sys.meta_path.append(_ViewerSiblingFinder())
 
+
+def _viewer_import_sources(source, workspace="/home/pyodide/workspace"):
+    """Inspect nearby import sources without executing imported student code.
+
+    Every fetch is constrained by the existing JS same-folder/NTNU allowlist.
+    Size, depth and file count are independently bounded.
+    """
+    import ast
+    import re
+    import posixpath
+
+    checked = set()
+    collected = []
+    total_bytes = 0
+    queue = [(str(source), "", 0)]
+    while queue and len(collected) < 32:
+        text, parent, depth = queue.pop(0)
+        if depth > 5:
+            continue
+        try:
+            tree = ast.parse(text)
+        except (SyntaxError, ValueError, TypeError):
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                names = [entry.name for entry in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                prefix = ("." * node.level) + (node.module or "")
+                names = [prefix] if node.module else []
+                # "from . import helper" and "from package import module"
+                # may import submodules that themselves need Pyodide packages.
+                names += [prefix + ("." if node.module else "") + entry.name
+                          for entry in node.names if entry.name != "*"]
+            else:
+                continue
+            for name in names:
+                if len(checked) >= 80 or len(collected) >= 32:
+                    break
+                dots = len(name) - len(name.lstrip("."))
+                if dots:
+                    # A relative import cannot climb past the source folder.
+                    ancestors = parent.split("/")[:-1] if parent else []
+                    if dots > len(ancestors) + 1:
+                        continue
+                    parts = ancestors[:len(ancestors) + 1 - dots]
+                    tail = name[dots:]
+                    if tail:
+                        parts.extend(tail.split("."))
+                else:
+                    parts = name.split(".")
+                if not parts or len(parts) > 10 or any(
+                    not re.fullmatch(r"[^\W\d]\w*", part, flags=re.UNICODE)
+                    for part in parts
+                ):
+                    continue
+                stem = "/".join(parts)
+                candidates = ["/".join(parts[:i]) + "/__init__.py"
+                              for i in range(1, len(parts))]
+                candidates += [stem + ".py", stem + "/__init__.py"]
+                for candidate in candidates:
+                    if candidate in checked or len(collected) >= 32:
+                        continue
+                    checked.add(candidate)
+                    path = posixpath.join(workspace, candidate)
+                    if not _os.path.isfile(path) and not _viewer_fetch_file(candidate):
+                        continue
+                    try:
+                        with _viewer_original_open(path, "rb") as handle:
+                            data = handle.read(500_001)
+                        if len(data) > 500_000:
+                            continue
+                        child_source = data.decode("utf-8-sig")
+                    except (OSError, UnicodeError):
+                        continue
+                    total_bytes += len(data)
+                    if total_bytes > 2_000_000:
+                        return collected
+                    collected.append(child_source)
+                    queue.append((child_source, candidate, depth + 1))
+    return collected
+
 def _viewer_capture(fig):
     import base64
     from matplotlib.backends.backend_agg import FigureCanvasAgg

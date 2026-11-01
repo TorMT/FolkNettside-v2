@@ -5,18 +5,21 @@ import {createDomFinder} from "../dom-search.js";
 import {mountPythonCodeCell} from "../python-code-cell.js";
 import {createPythonSession} from "../python-session.js";
 import {notebookMarkdownHTML} from "../notebook-markdown.js";
+import {notebookPreviewCells,notebookSavedOutputs,limitedNotebookText,notebookPNGData} from "../notebook-preview-limits.js";
 
 export const cellText=value=>Array.isArray(value)?value.join(""):String(value||"");
 export function renderNotebookOutput(output={}){
-  const stdout=cellText(output.text)||cellText(output.data?.["text/plain"]);
-  const source=output.data?.["image/png"];
-  const image=Array.isArray(source)?source.join(""):source;
+  const candidate=output?.text||output?.data?.["text/plain"];
+  const {text:stdout,truncated}=limitedNotebookText(candidate);
+  const {data:image,omitted:imageOmitted}=notebookPNGData(output?.data?.["image/png"]);
   let html=stdout?`<pre class="notebook-saved-output">${escapeHTML(stdout)}</pre>`:"";
-  if(typeof image==="string"&&/^[a-zA-Z0-9+/=\r\n]+$/.test(image)){
-    html+=`<img class="notebook-saved-plot" src="data:image/png;base64,${image.replace(/\s/g,"")}" alt="Saved notebook plot">`;
-  }
-  if(output.ename||output.evalue){
-    html+=`<pre class="notebook-saved-error">${escapeHTML(output.ename||"Error")}: ${escapeHTML(output.evalue||"")}</pre>`;
+  if(truncated)html+='<p class="muted notebook-output-truncated" role="note">Saved text shortened in preview; open the original notebook for full output.</p>';
+  if(image)html+=`<img class="notebook-saved-plot" src="data:image/png;base64,${image}" alt="Saved notebook plot">`;
+  else if(imageOmitted)html+='<p class="muted notebook-output-truncated" role="note">Large saved plot omitted from preview; open the original notebook.</p>';
+  if(output?.ename||output?.evalue){
+    const detail=limitedNotebookText(String(output.ename||"Error")+": "+String(output.evalue||""));
+    html+=`<pre class="notebook-saved-error">${escapeHTML(detail.text)}</pre>`;
+    if(detail.truncated)html+='<p class="muted notebook-output-truncated" role="note">Saved error shortened in preview.</p>';
   }
   return html;
 }
@@ -25,13 +28,14 @@ export function renderMarkdownCell(source){
 }
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
   const notebook=await fetchJSON(publicCodePreviewURL(resource));
-  const cells=Array.isArray(notebook.cells)?notebook.cells:[];
+  const preview=notebookPreviewCells(notebook.cells);
+  const cells=preview.items;
   const session=sessionFactory(),editable=[];
   const siblingRelayURL=publicCodeRelayURL(resource);
   let stopped=false,busy=false,disposed=false;
   container.innerHTML=`<section class="python-workbench notebook-workbench">
     <div class="python-workbench-head">
-      <div><strong>Jupyter notebook</strong><p>${cells.length} cells · outputs from the file stay visible · edit and rerun code cells</p></div>
+      <div><strong>Jupyter notebook</strong><p>${preview.total} cells · preview ${cells.length} · edit and rerun visible code cells</p></div>
       <div class="python-workbench-actions">
         <button type="button" data-nb-run-all>Run all</button>
         <button type="button" data-nb-stop>Stop</button>
@@ -42,6 +46,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     <label class="python-stdin-label">Input lines for Python input() (one response per line)
       <textarea data-nb-stdin spellcheck="false" rows="2" placeholder="Optional stdin for the next code cell"></textarea>
     </label>
+    ${preview.omitted?'<p class="python-runtime-notice notebook-output-truncated" role="status">Preview limited to the first '+cells.length+' cells ('+preview.omitted+' omitted). Open original for the complete notebook.</p>':""}
     <div class="notebook-cells"></div>
     <p class="python-runtime-notice">Execution uses Pyodide in a disposable Web Worker and only starts when requested. Run trusted code only.</p>
   </section>`;
@@ -72,7 +77,7 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     }
   }
   for(let i=0;i<cells.length;i++){
-    const data=cells[i],section=document.createElement("section");
+    const data=cells[i]&&typeof cells[i]==="object"?cells[i]:{},section=document.createElement("section");
     section.className="notebook-entry nb-cell";section.dataset.cellIndex=String(i);
     const title=document.createElement("div");title.className="nb-kind";
     title.textContent=(data.cell_type||"cell")+" · cell "+(i+1);
@@ -93,9 +98,11 @@ export async function render(container,resource,{sessionFactory=createPythonSess
         onStop:()=>{stopped=true;session.stop();toggle(false)}
       });
       if(Array.isArray(data.outputs)&&data.outputs.length){
+        const previewOutputs=notebookSavedOutputs(data.outputs);
         const saved=document.createElement("section");saved.className="notebook-saved";
         saved.innerHTML='<div class="python-output-label">Saved notebook output</div>'+
-          data.outputs.map(renderNotebookOutput).join("");
+          previewOutputs.items.map(renderNotebookOutput).join("")+
+          (previewOutputs.omitted?'<p class="muted notebook-output-truncated" role="note">'+previewOutputs.omitted+' additional saved outputs omitted from preview. Open original for all outputs.</p>':"");
         body.append(saved);
       }
       editable.push({cell,index:i});
@@ -127,7 +134,8 @@ export async function render(container,resource,{sessionFactory=createPythonSess
     stopped=true;session.stop();toggle(false);
     for(const {cell} of editable)cell.setStatus("Python reset");
   });
-  return {info:cells.length+" cells · "+editable.length+" executable Python",
+  return {info:preview.total+" cells · "+editable.length+" executable in preview"+
+      (preview.omitted?" · "+preview.omitted+" omitted":""),
     cleanup:()=>{disposed=true;stopped=true;editable.forEach(x=>x.cell.dispose());session.dispose()},
     actions:{find:createDomFinder(container)}
   };

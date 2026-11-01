@@ -24,14 +24,16 @@ function setSourceBase(url,siblingRelayURL=""){
   try{
     const target=new URL(url,self.location.href);
     if(!["https:","http:"].includes(target.protocol)||
-       target.username||target.password||target.search||target.hash)return;
+       target.username||target.password)return;
+    // Keep same-origin cache-busting query/fragment URLs working. Only the
+    // cross-origin NTNU relay requires a canonical URL without either.
     if(target.origin===self.location.origin){
       sourceBase=new URL(".",target);
       return;
     }
     // GitHub Pages can read only specifically approved public NTNU files
     // through the read-only Edge relay. The relay enforces the allowlist.
-    if(target.origin!==NTNU_SOURCE_ORIGIN||
+    if(target.search||target.hash||target.origin!==NTNU_SOURCE_ORIGIN||
        siblingRelayURL!==PUBLIC_CODE_RELAY+"?path="+encodeURIComponent(target.pathname))return;
     sourceBase=new URL(".",target);
     usePublicRelay=true;
@@ -107,9 +109,11 @@ async function ensurePython(){
 function safeName(name){
   const value=String(name||"").replace(/\\/g,"/");
   const base=value.split("/").pop();
-  if(!base||base==="."||base===".."||!/[a-zA-Z0-9]/.test(base))
+  if(!base||base==="."||base===".."||!/[\p{L}\p{N}]/u.test(base))
     throw new Error("Invalid Python workspace filename");
-  return base.replace(/[^a-zA-Z0-9_.() +\-]/g,"_").slice(0,140);
+  // Keep the original Norwegian/Unicode course filename in Python's __file__;
+  // Pyodide's virtual FS already accepts these characters in mounted paths.
+  return base.replace(/[^\p{L}\p{M}\p{N}_.() +\-]/gu,"_").slice(0,140);
 }
 function safeMountPath(name){
   const value=String(name||"").replace(/\\/g,"/");
@@ -211,7 +215,16 @@ def _viewer_input(prompt=""):
         raise EOFError("No more supplied Python input lines")
 builtins.input = _viewer_input
 `);
-  await py.loadPackagesFromImports(code);
+  // loadPackagesFromImports(code) misses imports made by nearby modules.
+  // Inspect approved sibling sources with Python AST, without executing them,
+  // then preload distribution packages before main.py imports those modules.
+  py.globals.set("_viewer_source_for_imports",code);
+  let moduleList=null,sources=[];
+  try{
+    moduleList=py.runPython("_viewer_import_sources(_viewer_source_for_imports)");
+    sources=moduleList.toJs();
+  }finally{moduleList?.destroy?.()}
+  await py.loadPackagesFromImports([code,...sources].join("\n"));
   let result=null;
   try{
     const value=await py.runPythonAsync(code);

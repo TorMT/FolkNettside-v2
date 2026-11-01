@@ -43,6 +43,12 @@ try{
  const csv=workspace.files?.find(file=>file.name==="calculation.csv");
  if(!csv||!new TextDecoder().decode(csv.bytes).includes("area,40"))
    throw new Error("Generated CSV was not returned to viewer for download");
+ const nestedURL=new URL("./python-deps/main-nested-matplotlib.py",location.href).href;
+ const nestedSource=await (await fetch(nestedURL)).text();
+ const nestedResult=await session.run(nestedSource,{sourceURL:nestedURL});
+ if(!nestedResult.stdout.includes("NESTED_MATPLOTLIB=0"))
+   throw new Error("Nested sibling matplotlib package not auto-loaded: "+
+     JSON.stringify({stdout:nestedResult.stdout,stderr:nestedResult.stderr}));
  const plot=await session.run([
    "import matplotlib",
    "matplotlib.use('Agg')",
