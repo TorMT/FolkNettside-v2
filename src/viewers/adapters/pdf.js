@@ -140,6 +140,7 @@ export async function render(container,resource){
       if(Math.abs(width-priorWidth)<2||disposed)return;
       priorWidth=width;generation++;loaded.clear();
       for(const task of tasks.values())task.cancel();
+      tasks.clear();
       for(const holder of holders){
         holder.replaceChildren();
         const marker=document.createElement("span");
