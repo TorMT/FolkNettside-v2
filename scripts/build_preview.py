@@ -114,7 +114,7 @@ def build(version: str, output: Path) -> None:
     audit = runpy.run_path(str(ROOT / "scripts" / "audit_preview_links.py"))["audit_preview_links"]
     problems = audit(output)
     if problems:
-        raise ValueError("Broken local links in Pages preview:\\n" + "\\n".join(problems[:20]))
+        raise ValueError("Broken local links in Pages preview:\n" + "\n".join(problems[:20]))
 
     (output / "build.txt").write_text(version + "\n", encoding="utf-8")
     (output / ".nojekyll").write_text("", encoding="utf-8")
