@@ -106,6 +106,16 @@ def build(version: str, output: Path) -> None:
     index = output / "index.html"
     index.write_text(stamp_index(index.read_text(encoding="utf-8"), version), encoding="utf-8")
 
+    # A clean copy is not sufficient: reject missing locally reachable
+    # CSS, JS, worker, image and other static asset references before publish.
+    # External URLs, computed JS imports and NTNU course file URLs remain
+    # outside this offline check.
+    import runpy
+    audit = runpy.run_path(str(ROOT / "scripts" / "audit_preview_links.py"))["audit_preview_links"]
+    problems = audit(output)
+    if problems:
+        raise ValueError("Broken local links in Pages preview:\n" + "\n".join(problems[:20]))
+
     (output / "build.txt").write_text(version + "\n", encoding="utf-8")
     (output / ".nojekyll").write_text("", encoding="utf-8")
 

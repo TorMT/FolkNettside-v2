@@ -70,6 +70,11 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_public_asset_audit.py' -v
           python3 scripts/audit_public_assets.py
 
+      - name: Audit built GitHub Pages local asset links
+        run: |
+          python3 -m unittest discover -s tests -p 'test_preview_links.py' -v
+          python3 -m unittest discover -s tests -p 'test_build_preview.py' -v
+
       - name: V2 original NTNU filename alias editor browser smoke
         run: |
           command -v chromedriver
