@@ -25,6 +25,11 @@ footer{margin-top:2rem;border-top:1px solid #8885;padding-top:1rem}
 <article><div class="chart-title">SAC — neddykket tverrsnittsareal</div><svg viewBox="0 0 500 310" id="sac" role="img" aria-label="Neddykket tverrsnittsareal som funksjon av x-posisjon"></svg>
 <p class="muted">X-akse i meter i Fusion-rammen. SAC fra den opplastede skrogmesh, ved beregnet PETG-vannlinje.</p></article>
 </div>
+<article style="margin-top:16px">
+<div class="chart-title">Initial GM som funksjon av dypgang</div>
+<div style="max-width:680px"><svg viewBox="0 0 500 310" id="gm" role="img" aria-label="Initial tverrskips metasersenterhøyde i meter mot dypgang i meter, med konstant CAD-tyngdepunkt"></svg></div>
+<p class="muted">Tverrskips GM er evaluert for flere dypganger med <strong>konstant, antatt KG</strong>. Hvert punkt representerer derfor et annet deplasement; hele kurven er ikke én lasttilstand. Designpunktet ved ca. 0,152 m dypgang gir GM ca. 0,196 m.</p>
+</article>
 <h2>Beregningsgrunnlag</h2>
 <table><tbody>
 <tr><th scope="row">Fusion-katalogført totalmasse</th><td>207,585 kg (materialtilordningen var feil for plast)</td></tr>
@@ -64,6 +69,11 @@ function plot(id,pts,{xmin,xmax,ymin=0,ymax,xtitle,ytitle,limit=null}){
 }
 plot("gz",gz,{xmin:0,xmax:90,ymax:.11,xtitle:"Krengningsvinkel [°]",ytitle:"GZ [m]",limit:38});
 plot("sac",sac,{xmin:-.65,xmax:.45,ymax:.045,xtitle:"Lengdeposisjon x [m]",ytitle:"Neddykket areal [m²]"});
+const gm=[[.086,.3424],[.1029,.3826],[.1197,.3081],[.1365,.2408],
+ [.152,.1958],[.1534,.1925],[.1702,.1628],[.1871,.1449],[.2039,.1342],
+ [.2208,.1280],[.2376,.1250],[.2545,.1242],[.2713,.1251],
+ [.2882,.1272],[.305,.1299]];
+plot("gm",gm,{xmin:.08,xmax:.31,ymax:.42,xtitle:"Dypgang [m]",ytitle:"GM [m]"});
 </script><script>
 (async function(){
  const cvs=document.getElementById('asv-model-canvas'),ctx=cvs.getContext('2d');
