@@ -152,12 +152,43 @@ try{
     win.confirm=previousConfirm;
   }
   const settingsBefore=win.localStorage.getItem("folk-v2-settings");
-  frame.contentDocument.querySelector("#settings-clear-study-progress").click();
-  assert(win.localStorage.getItem("folk-v2-video:smoke")===null,"Video progress was not cleared");
-  assert(win.localStorage.getItem("folknet:quiz:smoke")===null,"Quiz progress was not cleared");
-  assert(win.localStorage.getItem("folk-v2-video:restored")===null,
-    "Imported video progress was not included in targeted study clearing");
-  assert(win.localStorage.getItem("folk-v2-settings")===settingsBefore,"Settings were cleared with study progress");
+  const clearProgress=frame.contentDocument.querySelector("#settings-clear-study-progress");
+  const originalConfirmClear=win.confirm;
+  let clearConfirmations=0;
+  try{
+    // An accidental click or explicit Cancel must not destroy the data.
+    win.confirm=message=>{
+      clearConfirmations++;
+      assert(message.includes("cannot be undone")&&message.includes("backup"),
+        "Destructive clear must warn about lost progress and backup");
+      return false;
+    };
+    clearProgress.click();
+    assert(clearConfirmations===1,"Clear progress did not require confirmation");
+    assert(win.localStorage.getItem("folk-v2-video:smoke")===localVideo,
+      "Cancel must preserve video position");
+    assert(win.localStorage.getItem("folk-v2-video:restored")!==null,
+      "Cancel must preserve imported video progress");
+    assert(win.localStorage.getItem("folknet:quiz:smoke")!==null,
+      "Cancel must preserve quiz attempts");
+    assert(privacy.querySelector("#settings-feedback").textContent.includes("cancelled"),
+      "Clear cancellation must give visible feedback");
+    assert(clearProgress.textContent==="Clear progress",
+      "Cancel must not relabel the button as Cleared");
+    win.confirm=()=>{clearConfirmations++;return true};
+    clearProgress.click();
+    assert(clearConfirmations===2,"Confirmed clear should require a new confirmation");
+    assert(win.localStorage.getItem("folk-v2-video:smoke")===null,
+      "Confirmed clear must remove video progress");
+    assert(win.localStorage.getItem("folknet:quiz:smoke")===null,
+      "Confirmed clear must remove quiz attempts");
+    assert(win.localStorage.getItem("folk-v2-video:restored")===null,
+      "Confirmed clear must remove imported video progress");
+    assert(win.localStorage.getItem("folk-v2-settings")===settingsBefore,
+      "Confirmed clear must not remove settings");
+  }finally{
+    win.confirm=originalConfirmClear;
+  }
 
   frame.contentDocument.querySelector('[data-settings-section="appearance"]').click();
   await waitFor(()=>frame.contentDocument?.querySelector('[data-settings-panel="appearance"]'),"Appearance panel after navigation");

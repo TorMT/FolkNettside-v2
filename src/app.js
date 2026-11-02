@@ -1209,8 +1209,16 @@ function settingsPage(){
     }
   });
   app.querySelector("#settings-clear-study-progress")?.addEventListener("click",event=>{
-    const removed=clearLocalStudyProgress();
     const feedback=app.querySelector("#settings-feedback");
+    // Local quiz and video progress cannot be recovered after this operation
+    // unless the visitor has exported a backup. Never clear on an accidental tap.
+    if(!window.confirm(
+      "Delete all quiz attempts, question selections and video resume progress saved in this browser? This cannot be undone. Export a study progress backup first if you want to keep it."
+    )){
+      if(feedback)feedback.textContent="Clear cancelled. Your study progress was not deleted.";
+      return;
+    }
+    const removed=clearLocalStudyProgress();
     if(feedback)feedback.textContent=removed?`Cleared ${removed} local progress record${removed===1?"":"s"}.`:"No local study progress was stored.";
     event.currentTarget.textContent="Cleared";
     setTimeout(()=>{if(event.currentTarget?.isConnected)event.currentTarget.textContent="Clear progress"},1200);
