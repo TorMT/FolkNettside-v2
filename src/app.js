@@ -2350,7 +2350,7 @@ async function engineeringPage(){
   app.querySelector("#engineering-export-mesh-repair")?.addEventListener("click",()=>{
     if(!importedHydroDocument||!importedHydroBeforeRepair)return;
     downloadTextFile(repairedHullSTL(importedHydroDocument,
-      selectedHydroSurfaceIds(importedHydroDocument)),"repaired-hull-meters.stl");
+      selectedHydroSurfaceIds(importedHydroDocument)),"repaired-hull-meters.stl","model/stl");
   });
   app.querySelector("#engineering-confirm-import")?.addEventListener("click",()=>{
     if(model.id!==LOCAL_HYDRO_MODEL_ID)return;
