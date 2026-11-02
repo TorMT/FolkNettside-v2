@@ -421,3 +421,50 @@
   .viewer-help-body{padding:11px 14px 20px;font-size:14px}
   #viewer-help-button{min-height:40px}
 }
+
+
+/* Native Fusion F3Z/F3D inspection is a document workflow, not a fixed-height
+   WebGL canvas. The original fixed CAD viewport clipped nested previews and
+   any real neutral-mesh viewer appended below the archive summary. */
+.cad-geometry-stage.is-fusion-archive{
+  height:auto;min-height:0;max-height:none;overflow:visible;
+  padding:clamp(12px,2vw,22px);box-sizing:border-box
+}
+.fusion-inspector{display:grid;gap:14px;min-width:0;color:var(--ink)}
+.fusion-inspector-heading{display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:12px;min-width:0}
+.fusion-inspector-heading h2{margin:4px 0;overflow-wrap:anywhere}
+.fusion-geometry-state{padding:13px 16px;border:1px solid var(--line);
+  border-radius:10px;background:var(--surface);display:grid;gap:8px}
+.fusion-geometry-state p{margin:0;line-height:1.5;color:var(--ink-2)}
+.fusion-geometry-state .btn{justify-self:start}
+.fusion-inspector-layout{display:grid;grid-template-columns:minmax(170px,245px) minmax(0,1fr);
+  gap:16px;min-width:0;align-items:start}
+.fusion-design-list{display:grid;gap:7px;max-height:550px;overflow:auto;
+  padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.fusion-design-list h3{margin:0 0 6px}
+.fusion-design-list button{display:grid;gap:4px;min-width:0;text-align:left;
+  padding:9px 11px;border:1px solid var(--line);border-radius:7px;
+  background:var(--surface-sunk);color:var(--ink);cursor:pointer}
+.fusion-design-list button[aria-pressed="true"]{border-color:var(--accent);
+  box-shadow:inset 3px 0 0 var(--accent)}
+.fusion-design-list button span,.fusion-design-list button small{overflow-wrap:anywhere}
+.fusion-design-list button small{color:var(--ink-2)}
+.fusion-design-content{padding:14px;min-width:0;min-height:220px;
+  border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.fusion-design-content h3{margin-top:0;overflow-wrap:anywhere}
+.fusion-native-thumbnail{display:block;max-width:100%;max-height:420px;
+  width:auto;height:auto;object-fit:contain;border:1px solid var(--line);
+  background:var(--surface-sunk);border-radius:6px}
+.fusion-design-content p{overflow-wrap:anywhere}
+.fusion-live-model:not([hidden]){height:clamp(520px,70dvh,880px);min-height:520px;
+  min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:10px}
+.fusion-live-model .model-viewer-workbench{height:100%;min-height:0}
+@media(max-width:900px){
+ .fusion-inspector-layout{grid-template-columns:minmax(0,1fr)}
+ .fusion-design-list{max-height:200px}
+ .fusion-live-model:not([hidden]){height:auto;min-height:0}
+ .fusion-live-model .model-viewer-workbench{height:auto;min-height:0}
+ .fusion-live-model .model-viewer-stage,.fusion-live-model .three-stage,
+ .fusion-live-model .three-canvas{height:clamp(340px,55dvh,660px);min-height:340px}
+}
