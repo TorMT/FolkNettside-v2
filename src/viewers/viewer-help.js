@@ -68,11 +68,22 @@ export function bindViewerHelp(root){
     trigger.setAttribute("aria-expanded","true");
     dialog.showModal();
   });
-  dialog.addEventListener("close",()=>{
+  const restoreFocus=()=>{
     trigger.setAttribute("aria-expanded","false");
     if(trigger.isConnected)trigger.focus();
+  };
+  const closeNow=()=>{
+    if(dialog.open)dialog.close();
+    restoreFocus();
+  };
+  // A submit with method=dialog can dispatch its close event on a later task.
+  // Explicit close keeps the trigger state and focus in sync immediately.
+  dialog.querySelector('form button')?.addEventListener("click",event=>{
+    event.preventDefault();
+    closeNow();
   });
+  dialog.addEventListener("close",restoreFocus); // Esc / browser-native close
   dialog.addEventListener("click",event=>{
-    if(event.target===dialog)dialog.close();
+    if(event.target===dialog)closeNow();
   });
 }
