@@ -58,3 +58,39 @@ test("nonzero CG elevation and removed mass use transverse YZ parallel-axis iner
     +2*((2-cy)**2+(1-cz)**2);
   near(result.rollInertiaTonnesM2,expected);
 });
+
+test("Hydro inspector exposes period and uses recalculated loaded GM, never stale reference GM",async()=>{
+  const {boxMesh}=await import("../src/hydro/fixtures.js");
+  const {executeHydroRequest}=await import("../src/hydro/hydro-service.js");
+  const {hydrostaticParticulars}=await import("../src/hydro/stability.js");
+  const {hydroPanelHTML}=await import("../src/engineering/hydro-panel.js");
+  const hull={name:"10 x 4 m box",unitScaleToMeters:1,components:[{
+    id:"hull",name:"Hull",geometry:boxMesh({L:10,B:4,H:3}),metadata:{hydro:true}
+  }]};
+  const initial=executeHydroRequest(hull,"analyze",{waterline:1});
+  const curve=executeHydroRequest(hull,"curve",{minWaterline:.5,maxWaterline:2,samples:9});
+  const reference=hydroPanelHTML({modelDocument:hull,result:initial,curve,
+    draft:1,kg:.5,rollRadiusM:"1",config:{minDraft:0,maxDraft:3,density:1025}});
+  assert.match(reference.inspector,/id="hydro-roll-radius"/);
+  near(reference.rollPeriod.massTonnes,41);
+  assert.match(reference.inspector,/Reference small-angle period/);
+
+  const loading=combineHullLoading({hullMassTonnes:41,hullCG:[0,0,.5],
+    pointWeights:[{massTonnes:1,x:0,y:1,z:2}]});
+  const newDraft=executeHydroRequest(hull,"solve",{targetVolume:42*1000/1025,
+    minWaterline:0,maxWaterline:3,tolerance:1e-8,maxIterations:80}).waterline;
+  const hydro=executeHydroRequest(hull,"analyze",{waterline:newDraft});
+  const loadedGM=hydrostaticParticulars(hydro,{kg:loading.centerOfGravity[2],density:1025});
+  const loaded=hydroPanelHTML({modelDocument:hull,result:initial,curve,
+    draft:1,kg:loading.centerOfGravity[2],pointWeightSummary:loading,
+    loadedGM,rollRadiusM:"1",config:{minDraft:0,maxDraft:3,density:1025}});
+  near(loaded.rollPeriod.massTonnes,42);
+  near(loaded.rollPeriod.gmTransverse,loadedGM.gmTransverse);
+  assert.match(loaded.inspector,/Loaded small-angle period/);
+
+  const unsolved=hydroPanelHTML({modelDocument:hull,result:initial,curve,
+    draft:1,kg:loading.centerOfGravity[2],pointWeightSummary:loading,
+    rollRadiusM:"1",config:{minDraft:0,maxDraft:3,density:1025}});
+  assert.equal(unsolved.rollPeriod,null);
+  assert.match(unsolved.inspector,/Loaded GM must be solved/);
+});
