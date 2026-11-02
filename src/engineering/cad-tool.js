@@ -144,7 +144,7 @@ export function mountCADTool(root){
    }
  }
  function stop(){
-   stage.classList.remove("is-fusion-archive");
+   stage.classList.remove("is-fusion-archive","is-fusion-bundle");
    controller?.abort();controller=null;
    cleanup();cleanup=()=>{};
    cancel.disabled=true;
@@ -191,14 +191,17 @@ export function mountCADTool(root){
      const buffer=await file.arrayBuffer();
      if(current!==request||disposed)return;
      if(ext==="zip"){
+       stage.classList.add("is-fusion-bundle");
        status.textContent="Reading Fusion Engineering ZIP: validating provenance and STEP geometry…";
        const documentModel=await parseFusionEngineeringBundle(buffer,file.name,{
          signal:controller.signal
        });
        if(current!==request||disposed)return;
        const report=document.createElement("div");
+       report.className="cad-fusion-report";
        report.innerHTML=fusionEngineeringReportHTML(documentModel.fusionEngineering);
        const viewer=document.createElement("div");
+       viewer.className="cad-fusion-model";
        stage.replaceChildren(report,viewer);
        const result=await renderModelWorkbench(viewer,documentModel,{mobileCompact:true});
        if(current!==request||disposed){result?.cleanup?.();return}
