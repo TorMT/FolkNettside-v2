@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 import {DIVE_CATALOG_FILES,diveCountry,mergeDiveCatalog,loadDiveCatalog} from "../src/diverse/dive-catalog.js";
 import {diveBathymetryUrl,assessDiveBathymetry} from "../src/diverse/dive-bathymetry.js";
-import {diveFeatureCountry,filterDiveFeatures,sortDiveFeatures} from "../src/diverse/dive-core.js";
+import {diveFeatureCountry,filterDiveFeatures,sortDiveFeatures,diveFeatureSource,diveOriginalId} from "../src/diverse/dive-core.js";
 
 const root=new URL("../",import.meta.url);
 async function readDataset(path){
@@ -16,7 +16,9 @@ test("world catalog contains thousands of traceable sites; original Trondheim fe
     ...DIVE_CATALOG_FILES.map(readDataset)
   ]);
   const sites=mergeDiveCatalog(collections);
-  assert.ok(sites.length>3800, `got ${sites.length}`);
+  assert.ok(sites.length>6000, `got ${sites.length}`);
+  const dkRecords=sites.filter(f=>String(f.properties.Kilde_IDer||"").includes("Dykkekart.no"));
+  assert.ok(dkRecords.length>=250, `Only ${dkRecords.length} merged Dykkekart records`);
   assert.ok(sites.some(f=>f.properties.ID==="D001"));
   assert.ok(sites.some(f=>f.properties.ID==="W007"));
   assert.ok(sites.some(f=>f.properties.Kilde_IDer.includes("OpenDiveMap")));
@@ -27,13 +29,20 @@ test("country normalization and precise source filtering work",()=>{
   const items=[
     {properties:{ID:"D001",Land:"Norge",Område:"Trondheim",Navn:"Original",Kilde_IDer:"S03"}},
     {properties:{ID:"OD00001",Land:"Norway",Område:"Trondheim",Navn:"Open site",Kilde_IDer:"OpenDiveMap"}},
-    {properties:{ID:"GL00001",Land:"Egypt",Område:"Red Sea",Navn:"Ocean",Kilde_IDer:"UnderwaterAtlas-Top500",Global_rangering:1}}
+    {properties:{ID:"GL00001",Land:"Egypt",Område:"Red Sea",Navn:"Ocean",Kilde_IDer:"UnderwaterAtlas-Top500",Global_rangering:1}},
+    {properties:{ID:"DK0001",Land:"Norge",Område:"Vestland",Navn:"Published GPS",Kilde_IDer:"Dykkekart.no"}}
   ];
   assert.equal(diveCountry(items[1]),"Norge");
   assert.equal(diveFeatureCountry(items[1]),"Norge");
-  assert.equal(filterDiveFeatures(items,{country:"Norge"}).length,2);
+  assert.equal(filterDiveFeatures(items,{country:"Norge"}).length,3);
   assert.equal(filterDiveFeatures(items,{region:"Trondheim"}).length,2);
   assert.equal(filterDiveFeatures(items,{source:"opendivemap"}).length,1);
+  assert.equal(filterDiveFeatures(items,{source:"original"}).length,1);
+  assert.equal(filterDiveFeatures(items,{source:"local"}).length,1);
+  assert.equal(diveFeatureSource(items[3]),"local");
+  assert.equal(diveOriginalId("D001"),true);
+  assert.equal(diveOriginalId("A001"),true);
+  assert.equal(diveOriginalId("DK0001"),false);
   assert.equal(sortDiveFeatures(items,"global")[0].properties.ID,"GL00001");
   assert.equal(filterDiveFeatures(items,{maxDepth:"20"}).length,0,
     "A depth filter must not silently include unknown-depth sites");
