@@ -44,7 +44,15 @@ function samePlace(a,b){
     const name=normalized(a.properties?.Navn);
     // Generic names frequently repeat: never merge two distant pinnacles
     // or wrecks merely because both are named "Shark Point", "The Wall", etc.
-    const limit=name.length<=10?0.35:1.2;
+    // Vessel names are more distinctive than generic reefs. A short wreck
+    // name with a vessel prefix can have slightly different published GPS.
+    // Never extend this tolerance to generic walls/beaches/reefs.
+    const aWreck=/vrak/i.test(String(a.properties?.Kategori||""));
+    const bWreck=/vrak/i.test(String(b.properties?.Kategori||""));
+    const namedVessel=/(?:^|\\b)(?:d\\/s|m\\/s|s\\/s)\\s+/i.test(String(a.properties?.Navn||""))||
+      /(?:^|\\b)(?:d\\/s|m\\/s|s\\/s)\\s+/i.test(String(b.properties?.Navn||""))||
+      /^u\\s*\\d+$/i.test(String(a.properties?.Navn||""));
+    const limit=aWreck&&bWreck&&namedVessel?1.0:name.length<=10?0.35:1.2;
     return km!==null&&km<=limit;
   }
   // An unknown point is NOT the same thing as a nearby named site. Only
@@ -54,6 +62,16 @@ function samePlace(a,b){
 }
 function combine(a,b){
   const p=a.properties,q=b.properties;
+  const aPoint=diveFeaturePoint(a),bPoint=diveFeaturePoint(b);
+  const coordinateDifference=aPoint&&bPoint?diveDistanceKm(aPoint,bPoint):null;
+  if(coordinateDifference!==null&&coordinateDifference>0.35){
+    p.Kildeposisjon_avvik_m=Math.round(coordinateDifference*1000);
+    p.Datakvalitet="C – kildeposisjoner avviker; kontroller dykkestedet lokalt";
+    const caveat="Kildene oppgir ulike GPS-posisjoner (ca. "+
+      Math.round(coordinateDifference*1000)+" m avstand). Kartpunktet er ikke verifisert.";
+    if(!String(p.Notater||"").includes("Kildene oppgir ulike GPS-posisjoner"))
+      p.Notater=[p.Notater,caveat].filter(Boolean).join(" ");
+  }
   const URLs=[...(p.source_urls||[]),...(q.source_urls||[])];
   p.source_urls=[...new Set(URLs.filter(x=>typeof x==="string"))];
   for(const key of ["Observert_dyreliv","Mulig_rapportert_dyreliv","Vrak_historie","Adkomst","Bunn_terreng","Strøm_fare_forbehold"]){
