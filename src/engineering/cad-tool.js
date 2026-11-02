@@ -67,7 +67,7 @@ export function cadToolHTML(){
   <strong>forenklet modell</strong> basert på originalskrog og thrusterplasseringer;
   den opprinnelige Fusion STEP-assemblyen og den eksakte 3MF-skrogmeshen
   er ennå ikke publisert. Modellen er derfor ikke gyldig som hydrostatisk inndata.</p>
-  <div class="cad-munin-actions">
+  <div class="cad-asv-actions">
     <button class="btn primary" data-cad-asv-preview type="button">Vis ASV Tollak i CAD 3D</button>
     <a class="btn" href="./examples/engineering/asv-hydro.html">GM, GZ og SAC (forutsetninger)</a>
     <a class="btn" href="./examples/models/asv-tollak-visual-preview.obj" download>Hent forenklet OBJ</a>
