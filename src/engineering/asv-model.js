@@ -2,10 +2,17 @@
 export const ASV_MODEL={
   id:"asv-tollak",label:"ASV Tollak · forenklet 3D",name:"ASV Tollak · visualisering",
   format:"OBJ",sourcePath:"./examples/models/asv-tollak-visual-preview.obj",
+  // Optional original files: checked in automatically only when a user uploads them.
+  // If the 3MF exists, model loading prefers it over the simplified OBJ.
+  originalSourcePath:"./assets/models/asv-tollak-hull-original.3mf",
+  originalAssemblyPath:"./assets/models/asv-tollak-assembly-fusion-original.zip",
   defaultHydro:false,
   source:{purpose:"Simplified source-informed visual model; not original CAD or hydrostatic mesh",
     notes:"Original Fusion STEP and hull 3MF are not published in the GitHub repository."},
   componentRules:[
+    {match:"^Body13$",
+      semantic:{role:"hull",subtype:"source-3mf-open-hull",tags:["original-source","open-hull"]},
+      viewerGroup:"Originalt skrog (3MF)",hydro:false},
     {match:"^ASV_Simplified_Outer_And_Inner_Hull$",
       semantic:{role:"hull",subtype:"visual-only",tags:["approximate","not-hydro-valid"]},
       viewerGroup:"Skrog (forenklet)",hydro:false},
