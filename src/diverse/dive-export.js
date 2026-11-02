@@ -27,20 +27,20 @@ function csvCell(value){
 
 export function diveFeaturesCSV(features=[]){
   const header=[
-    "id","name","area","category","status","lat","lon","depth_min_m","depth_max_m",
+    "id","name","country","area","category","status","lat","lon","depth_min_m","depth_max_m",
     "source_level","data_quality","access","bottom_terrain","conditions_caveat",
     "observed_wildlife","reported_possible_wildlife","wreck_history","protection",
-    "source_ids","source_urls","verified_date"
+    "source_ids","source_urls","verified_date","global_rank","license"
   ];
   const rows=(features||[]).map(feature=>{
     const safe=publicDiveFeature(feature);
     const p=safe.properties||{};
     const coords=safe.geometry?.type==="Point"?safe.geometry.coordinates:[null,null];
     return [
-      p.ID||feature?.id||"",p.Navn,p.Område,p.Kategori,p.Status,
+      p.ID||feature?.id||"",p.Navn,p.Land||"Norge",p.Område,p.Kategori,p.Status,
       coords?.[1]??"",coords?.[0]??"",p.Dybde_min_m,p.Dybde_max_m,p.Kilde_nivå,p.Datakvalitet,
       p.Adkomst,p.Bunn_terreng,p.Strøm_fare_forbehold,p.Observert_dyreliv,p.Mulig_rapportert_dyreliv,
-      p.Vrak_historie,p.Vern_kulturminne,p.Kilde_IDer,p.source_urls,p.verified_date
+      p.Vrak_historie,p.Vern_kulturminne,p.Kilde_IDer,p.source_urls,p.verified_date,p.Global_rangering,p.Lisens
     ].map(csvCell).join(",");
   });
   return [header.join(","),...rows].join("\n")+"\n";
@@ -50,7 +50,7 @@ export function diveFeaturesGeoJSON(features=[],metadata={}){
   // Export only documented filter/source metadata. GPS origin is intentionally
   // excluded even if a caller accidentally includes it in an input object.
   const filters={};
-  for(const key of ["query","level","kind","quality","maxDepth","sort","wildlife","excludeWildlife"]){
+  for(const key of ["query","country","region","source","level","kind","quality","maxDepth","sort","wildlife","excludeWildlife"]){
     if(Object.hasOwn(metadata.filters||{},key))filters[key]=metadata.filters[key];
   }
   return JSON.stringify({
