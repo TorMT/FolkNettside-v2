@@ -23,7 +23,7 @@ export function fusionEngineeringReportHTML(info){
    'World components refer to the Fusion coordinate system; xy, yz and xz are '+
    (derived?'Products were uniformly scaled from Fusion-reported values. ': 
      'Fusion-reported products of inertia. ')+
-   '(Tensor off-diagonal signs depend on convention.) '+
+   '(tensor off-diagonal signs depend on convention). '+
    'Check axis origin and orientation before use in dynamics.</p>'+
    (world?'<p><strong>World moments xx / yy / zz:</strong> '+
      worldDiagonals.map(v=>fmt(v,6)).join(' / ')+' kg·m²</p>'+
@@ -60,7 +60,7 @@ export function fusionEngineeringReportHTML(info){
       fmt(estimate.originalFusionMassKg,3)+' kg. Calculated mass: '+
       fmt(estimate.estimatedMassKg,3)+' kg. Estimated inertia is uniformly scaled; '+ 
       'the CG is unchanged only under uniform density substitution. Actual thrust motors, batteries, '+ 
-      'infill and other equipment loads are not validated.</p>':
+      'infill and other equipment loads are not validated. ':
     '<p class="fusion-data-scope"><strong>Measured in Fusion, not calculated from STEP triangles.</strong> ')+
   (derived?'Solid CAD volume is NOT the displaced hull volume.':
      'Assembly mass depends on correctly assigned material density. Solid volume is NOT the displaced hull volume.')+
