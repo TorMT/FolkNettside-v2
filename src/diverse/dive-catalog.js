@@ -49,9 +49,9 @@ function samePlace(a,b){
     // Never extend this tolerance to generic walls/beaches/reefs.
     const aWreck=/vrak/i.test(String(a.properties?.Kategori||""));
     const bWreck=/vrak/i.test(String(b.properties?.Kategori||""));
-    const namedVessel=/(?:^|\\b)(?:d\\/s|m\\/s|s\\/s)\\s+/i.test(String(a.properties?.Navn||""))||
-      /(?:^|\\b)(?:d\\/s|m\\/s|s\\/s)\\s+/i.test(String(b.properties?.Navn||""))||
-      /^u\\s*\\d+$/i.test(String(a.properties?.Navn||""));
+    const namedVessel=/^(?:d\/s|m\/s|s\/s)\s+/i.test(String(a.properties?.Navn||""))||
+      /^(?:d\/s|m\/s|s\/s)\s+/i.test(String(b.properties?.Navn||""))||
+      /^u\s*\d+$/i.test(String(a.properties?.Navn||""));
     const limit=aWreck&&bWreck&&namedVessel?1.0:name.length<=10?0.35:1.2;
     return km!==null&&km<=limit;
   }
