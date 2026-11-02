@@ -144,6 +144,7 @@ export function mountCADTool(root){
    }
  }
  function stop(){
+   stage.classList.remove("is-fusion-archive");
    controller?.abort();controller=null;
    cleanup();cleanup=()=>{};
    cancel.disabled=true;
@@ -208,6 +209,7 @@ export function mountCADTool(root){
        return;
      }
      if(fusion){
+       stage.classList.add("is-fusion-archive");
        status.textContent="Inspecting Fusion archive and nested designs locally…";
        const preview=await renderFusionPackage(stage,buffer,file.name);
        if(current!==request||disposed){preview.cleanup?.();return}
