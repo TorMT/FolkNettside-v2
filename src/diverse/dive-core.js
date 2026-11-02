@@ -1,3 +1,7 @@
+// Only these IDs belong to the original, locally curated Trondheim master.
+// DKxxxx is a different external source, not an original record.
+export function diveOriginalId(value){return /^(?:[DWXA]\d{3})$/.test(String(value||""));}
+
 function text(value){return String(value??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
 
 export function diveFeatureLevel(feature){
@@ -128,7 +132,7 @@ export function diveFeatureSource(feature){
   if(ids.includes("opendivemap")||id.startsWith("OD"))return "opendivemap";
   if(ids.includes("openstreetmap")||id.startsWith("OS"))return "osm";
   if(ids.includes("underwateratlas")||id.startsWith("GL"))return "atlas";
-  if(id.startsWith("D")||id.startsWith("W")||id.startsWith("X"))return "original";
+  if(diveOriginalId(id))return "original";
   return "dykkepedia";
 }
 export function filterDiveFeatures(features,{query="",level="all",kind="all",quality="all",maxDepth="",wildlife="all",excludeWildlife=false,country="all",region="all",source="all"}={}){
@@ -141,7 +145,7 @@ export function filterDiveFeatures(features,{query="",level="all",kind="all",qua
     if(region!=="all"&&String(p.Område||"")!==region)return false;
     if(source!=="all"){
       const ids=String(p.Kilde_IDer||"").toLowerCase(),id=String(p.ID||feature?.id||"");
-      if(source==="original"&&!(id.startsWith("D")||id.startsWith("W")||id.startsWith("X")))return false;
+      if(source==="original"&&!diveOriginalId(id))return false;
       if(source==="local"&&!/pingvin|scarsbrook|dykkekart|reefradar/.test(ids))return false;
       if(source==="opendivemap"&&!ids.includes("opendivemap")&&!id.startsWith("OD"))return false;
       if(source==="osm"&&!ids.includes("openstreetmap")&&!id.startsWith("OS"))return false;
