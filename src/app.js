@@ -43,6 +43,7 @@ import {parseModelBuffer} from "./tools/model-inspector-core.js";
 import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js";
 import {UNIT_SCALE_TO_METERS} from "./model/model-document.js";
 import {validateHydroModel} from "./model/hull-surface-validator.js";
+import {repairedHullSTL} from "./model/mesh-repair.js";
 import {mountModelScene} from "./model/model-scene.js";
 import {mountWaveControls} from "./model/model-wave-controls.js";
 import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js";
@@ -105,6 +106,9 @@ let importedHydroOriginal=null;
 let importedHydroDocument=null;
 let importedHydroUnit="meter";
 let importedHydroAxis="z-up";
+let importedHydroRepairPreview=null;
+let importedHydroBeforeRepair=null;
+let importedHydroRepairNotice="";
 const safeImportName=value=>String(value??"").replace(/[&<>"'\\\x00-\x1f]/g,"_").slice(0,160);
 
 let engineeringDocument=null;
@@ -269,6 +273,9 @@ function bindEngineeringModelSelector(){
       importedHydroOriginal=parsed;
       importedHydroUnit=parsed.format==="STL"?"meter":parsed.unit;
       importedHydroAxis="z-up";
+      importedHydroRepairPreview=null;
+      importedHydroBeforeRepair=null;
+      importedHydroRepairNotice="";
       importedHydroDocument=prepareGenericHydroImport(parsed,{unit:importedHydroUnit,upAxis:importedHydroAxis});
       const localConfig={
         id:LOCAL_HYDRO_MODEL_ID,
@@ -300,6 +307,9 @@ function bindEngineeringModelSelector(){
   });
   function applyImportedSettings(){
     if(!importedHydroOriginal||model.id!==LOCAL_HYDRO_MODEL_ID)return;
+    importedHydroRepairPreview=null;
+    importedHydroBeforeRepair=null;
+    importedHydroRepairNotice="Repair reset after source units or axis change.";
     const selected=selectedHydroSurfaceIds(importedHydroDocument);
     importedHydroDocument=withHydroSurfaceSelection(
       prepareGenericHydroImport(importedHydroOriginal,{
@@ -2130,6 +2140,21 @@ async function engineeringPage(){
       <span>${c.name}</span>
     </label>`).join("")}</div>
     <button type="button" class="btn" id="engineering-confirm-import" ${model.analysisCapabilities.hydro.enabled?"disabled":""}>${model.analysisCapabilities.hydro.enabled?"Axes + units acknowledged":"Confirm units and up-axis"}</button>
+    <div class="hydro-import-repair">
+      <strong>Local mesh repair (optional)</strong>
+      <p class="muted">Test reversible triangle-edge flips on selected hull surfaces. Original vertices and 3MF assembly stay unchanged. Hydro remains blocked unless the entire repaired surface passes validation.</p>
+      <button type="button" class="btn" id="engineering-preview-mesh-repair">Preview mesh repair</button>
+      ${importedHydroRepairPreview?.status==="ready"?`<div class="hydro-repair-preview">
+        <strong>Repair preview · full preflight passed</strong>
+        ${importedHydroRepairPreview.changes.filter(change=>change.status==="repaired").map(change=>
+          `<p>${escCourse(change.name)}: ${change.before.metrics.selfIntersections} → ${change.after.metrics.selfIntersections} detected triangle collisions; ${change.flips} edge flips; enclosed-volume change ${(change.relativeDelta*100).toFixed(6)}%</p>`).join("")}
+        <button type="button" class="btn primary" id="engineering-apply-mesh-repair">Apply repaired geometry</button>
+        <button type="button" class="btn" id="engineering-dismiss-mesh-repair">Discard preview</button>
+      </div>`:""}
+      ${importedHydroBeforeRepair?`<button type="button" class="btn" id="engineering-undo-mesh-repair">Undo repair</button>
+        <button type="button" class="btn" id="engineering-export-mesh-repair">Export selected hull as STL (metres)</button>`:""}
+      <p id="engineering-mesh-repair-status" class="muted" role="status" aria-live="polite">${escCourse(importedHydroRepairNotice)}</p>
+    </div>
     <small>Exploratory geometry only. Mesh closure does not prove external-hull isolation, self-intersection freedom, true datum or certified stability.</small>
   </section>`:"";
   const inspector=importedControls+(hydro?hydro.inspector+`
@@ -2242,6 +2267,7 @@ async function engineeringPage(){
   app.querySelectorAll("[data-hydro-import-part]").forEach(input=>input.addEventListener("change",()=>{
     if(!importedHydroDocument||model.id!==LOCAL_HYDRO_MODEL_ID)return;
     const selected=[...app.querySelectorAll("[data-hydro-import-part]:checked")].map(node=>node.dataset.hydroImportPart);
+    importedHydroRepairPreview=null;
     importedHydroDocument=withHydroSurfaceSelection(importedHydroDocument,selected);
     engineeringDocument=importedHydroDocument;
     engineeringDocumentPromise=Promise.resolve(importedHydroDocument);
@@ -2249,6 +2275,83 @@ async function engineeringPage(){
     hydroGzRequested=false;hydroAttitudeAction="";
     engineeringPage();
   }));
+
+  // Preview runs in a module worker to keep large CAD meshes from freezing the UI.
+  app.querySelector("#engineering-preview-mesh-repair")?.addEventListener("click",async()=>{
+    if(!importedHydroDocument||model.id!==LOCAL_HYDRO_MODEL_ID)return;
+    const original=importedHydroDocument,selectedIds=selectedHydroSurfaceIds(original);
+    const button=app.querySelector("#engineering-preview-mesh-repair");
+    const status=app.querySelector("#engineering-mesh-repair-status");
+    if(!selectedIds.length){
+      if(status)status.textContent="Select at least one external hull surface first.";
+      return;
+    }
+    if(button)button.disabled=true;
+    if(status)status.textContent="Checking local triangulation repair…";
+    try{
+      const preview=await new Promise((resolve,reject)=>{
+        const worker=new Worker(new URL("./model/mesh-repair-worker.js",import.meta.url),{type:"module"});
+        let settled=false;
+        const finish=(error,value)=>{
+          if(settled)return;
+          settled=true;clearTimeout(timeout);worker.terminate();
+          if(error)reject(error);else resolve(value);
+        };
+        const timeout=setTimeout(()=>finish(new Error("Repair exceeded the 90-second safety limit.")),90000);
+        worker.onmessage=event=>event.data.error
+          ?finish(new Error(event.data.error))
+          :finish(null,event.data.result);
+        worker.onerror=event=>finish(new Error(event.message||"Repair worker could not start"));
+        worker.postMessage({model:original,selectedIds});
+      });
+      // Ignore results if a different model or selection was loaded meanwhile.
+      if(importedHydroDocument!==original||model.id!==LOCAL_HYDRO_MODEL_ID)return;
+      importedHydroRepairPreview=preview.status==="ready"?preview:null;
+      importedHydroRepairNotice=preview.status==="ready"
+        ?"Preview ready. Original geometry has not been modified."
+        :"No safe automatic repair: "+preview.reason;
+      engineeringPage();
+    }catch(error){
+      if(importedHydroDocument!==original)return;
+      importedHydroRepairNotice="Repair unavailable: "+String(error?.message||error);
+      importedHydroRepairPreview=null;
+      engineeringPage();
+    }finally{if(button?.isConnected)button.disabled=false}
+  });
+  app.querySelector("#engineering-apply-mesh-repair")?.addEventListener("click",()=>{
+    if(!importedHydroDocument||importedHydroRepairPreview?.status!=="ready")return;
+    importedHydroBeforeRepair=importedHydroDocument;
+    importedHydroDocument=importedHydroRepairPreview.model;
+    importedHydroRepairPreview=null;
+    importedHydroRepairNotice="Applied to this local session. Confirm units and up-axis again before Hydro.";
+    engineeringDocument=importedHydroDocument;
+    engineeringDocumentPromise=Promise.resolve(importedHydroDocument);
+    model.analysisCapabilities.hydro.enabled=false;
+    model.analysisCapabilities.hydro.status="confirm units/axes";
+    hydroCurveCache={model:null,data:null};hydroGzRequested=false;hydroAttitudeAction="";
+    engineeringPage();
+  });
+  app.querySelector("#engineering-dismiss-mesh-repair")?.addEventListener("click",()=>{
+    importedHydroRepairPreview=null;importedHydroRepairNotice="Preview discarded; original unchanged.";
+    engineeringPage();
+  });
+  app.querySelector("#engineering-undo-mesh-repair")?.addEventListener("click",()=>{
+    if(!importedHydroBeforeRepair)return;
+    importedHydroDocument=importedHydroBeforeRepair;
+    importedHydroBeforeRepair=null;importedHydroRepairPreview=null;
+    importedHydroRepairNotice="Original imported geometry restored.";
+    engineeringDocument=importedHydroDocument;
+    engineeringDocumentPromise=Promise.resolve(importedHydroDocument);
+    model.analysisCapabilities.hydro.enabled=false;
+    model.analysisCapabilities.hydro.status="confirm units/axes";
+    hydroCurveCache={model:null,data:null};hydroGzRequested=false;hydroAttitudeAction="";
+    engineeringPage();
+  });
+  app.querySelector("#engineering-export-mesh-repair")?.addEventListener("click",()=>{
+    if(!importedHydroDocument||!importedHydroBeforeRepair)return;
+    downloadTextFile(repairedHullSTL(importedHydroDocument,
+      selectedHydroSurfaceIds(importedHydroDocument)),"repaired-hull-meters.stl");
+  });
   app.querySelector("#engineering-confirm-import")?.addEventListener("click",()=>{
     if(model.id!==LOCAL_HYDRO_MODEL_ID)return;
     model.analysisCapabilities.hydro={enabled:true,status:"exploratory · geometry-only",
