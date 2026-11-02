@@ -54,6 +54,16 @@ test("same-name distant dive sites are not merged",()=>{
   ];
   assert.equal(mergeDiveCatalog(two).length,2);
 });
+test("wreck aliases with mildly conflicting source GPS merge but record uncertainty",()=>{
+  const left={type:"Feature",id:"NO0003",geometry:{type:"Point",coordinates:[5.0000,60.0000]},properties:{ID:"NO0003",Land:"Norge",Område:"Vestlandet",Navn:"Agnes",Kategori:"Vrak",Kilde_IDer:"Dykkepedia",Lat:60,Lon:5,source_urls:["https://example.com/1"]}};
+  const right={type:"Feature",id:"DK0028",geometry:{type:"Point",coordinates:[5.0100,60.0000]},properties:{ID:"DK0028",Land:"Norge",Område:"Rogaland",Navn:"D/s Agnes",Kategori:"Vrak",Kilde_IDer:"Dykkekart.no",Lat:60,Lon:5.01,source_urls:["https://example.com/2"]}};
+  const merged=mergeDiveCatalog([{features:[left]},{features:[right]}]);
+  assert.equal(merged.length,1);
+  assert.equal(merged[0].properties.ID,"NO0003");
+  assert.ok(merged[0].properties.Kildeposisjon_avvik_m>350);
+  assert.ok(merged[0].properties.Datakvalitet.startsWith("C"));
+  assert.equal(merged[0].properties.source_urls.length,2);
+});
 test("bathymetry only represents a seabed model cell, never maximum dive depth",()=>{
   const example={type:"Feature",geometry:{type:"Point",coordinates:[4.731333,61.039333]},properties:{Lat:61.039333,Lon:4.731333}};
   assert.ok(diveBathymetryUrl(example).includes("POINT(4.731333%2061.039333)"));
