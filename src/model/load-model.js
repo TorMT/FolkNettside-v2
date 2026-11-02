@@ -27,10 +27,19 @@ export function applyModelRules(documentModel,rules=[]){
 
 export async function loadModelDocument(config){
   if(!config?.sourcePath)throw new Error("Model sourcePath is missing");
-  const response=await fetch(config.sourcePath);
-  if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${config.sourcePath}`);
+  let sourcePath=config.sourcePath,response=null;
+  // Opt-in original-file probe. A missing original is expected during staged
+  // publication; retaining the visual fallback avoids broken model selectors.
+  if(config.originalSourcePath){
+    try{
+      const candidate=await fetch(config.originalSourcePath);
+      if(candidate.ok){sourcePath=config.originalSourcePath;response=candidate}
+    }catch{ /* Original not yet published; load the labelled preview. */ }
+  }
+  if(!response)response=await fetch(sourcePath);
+  if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${sourcePath}`);
   const buffer=await response.arrayBuffer();
-  const ext=extension(config.sourcePath);
+  const ext=extension(sourcePath);
   let partMetadata=config.partMetadata||[];
   if(!Array.isArray(partMetadata))throw new Error("partMetadata must be an array");
   if(config.partMetadataPath){
@@ -59,5 +68,7 @@ export async function loadModelDocument(config){
       component.metadata={...(component.metadata||{}),hydro:Boolean(config.defaultHydro)};
     }
   }
+  documentModel.loadedSourcePath=sourcePath;
+  documentModel.originalGeometryLoaded=Boolean(config.originalSourcePath&&sourcePath===config.originalSourcePath);
   return applyModelRules(documentModel,config.componentRules);
 }
