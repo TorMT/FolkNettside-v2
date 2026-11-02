@@ -398,3 +398,26 @@
 .engineering-cad-page .cad-import-bar>label{box-sizing:border-box;min-width:0;max-width:100%}
 .engineering-cad-page .cad-import-bar input[type="file"]{
   display:block;box-sizing:border-box;min-width:0;width:100%;max-width:100%}
+
+/* Optional file-format help: modal lives in the top layer, including on narrow phones. */
+.viewer-help-dialog{box-sizing:border-box;width:min(94vw,680px);max-width:680px;
+  max-height:min(85dvh,850px);overflow-y:auto;overscroll-behavior:contain;
+  background:var(--surface);color:var(--ink);border:1px solid var(--line-strong);
+  border-radius:12px;padding:0;box-shadow:0 16px 48px #0005}
+.viewer-help-dialog::backdrop{background:rgb(4 14 26 / 65%)}
+.viewer-help-heading{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;
+  gap:14px;background:var(--surface);border-bottom:1px solid var(--line);padding:12px 18px;z-index:1}
+.viewer-help-heading h2{margin:0;font-size:19px;line-height:1.35}
+.viewer-help-heading button{min-height:40px}
+.viewer-help-body{padding:14px 20px 23px;line-height:1.6}
+.viewer-help-body h3{font-size:15px;margin:15px 0 4px}
+.viewer-help-body p{margin:0 0 12px}
+.viewer-help-body ol{margin:6px 0 14px;padding-left:24px}
+.viewer-help-body li{padding:2px 0;overflow-wrap:anywhere}
+.viewer-help-dialog button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){
+  .viewer-help-dialog{width:calc(100% - 16px);max-height:calc(100dvh - 24px);border-radius:9px}
+  .viewer-help-heading{padding:10px 12px}.viewer-help-heading h2{font-size:17px}
+  .viewer-help-body{padding:11px 14px 20px;font-size:14px}
+  #viewer-help-button{min-height:40px}
+}

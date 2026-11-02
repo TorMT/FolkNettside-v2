@@ -71,7 +71,7 @@ const cases=[
     id:"pdf",kind:"FILE",
     path:"../../examples/semesters/5/TMR4182/Forelesninger/lecture-01.pdf",
     name:"lecture-01.pdf",label:"Lecture PDF",
-    selector:".pdf-frame"
+    selector:".pdf-reader,.pdf-frame"
   },
   {
     id:"video",kind:"VIDEO",
@@ -120,6 +120,10 @@ try{
       assert(!host.querySelector("[data-latex-source]").hidden,"LaTeX source toggle did not show file");
       toggle.click();
       assert(host.querySelector("[data-latex-source]").hidden,"LaTeX rendered view not restored");
+    }
+    if(spec.id==="pdf"&&host.querySelector(".pdf-reader")){
+      assert(host.querySelectorAll(".pdf-reader-page").length>=1,"Continuous PDF reader has no pages");
+      assert(host.querySelector(".pdf-reader-scroll"),"Continuous PDF reader has no scroll area");
     }
     if(spec.id==="notebook")assert(host.querySelectorAll(".nb-cell").length>=2,"Notebook cells missing");
     if(spec.id==="xlsx")assert(host.querySelectorAll(".office-sheet").length>=1,"Workbook sheet missing");
@@ -302,6 +306,19 @@ try{
     await mountViewer(safeRoot,{
       kind:"FILE",name:"kok-example.md",label:"Safe link",path:relative
     },()=>{});
+    // Per-file help must be usable in a real browser without modifying source data.
+    const helpButton=safeRoot.querySelector("#viewer-help-button");
+    const helpDialog=safeRoot.querySelector("#viewer-help-dialog");
+    assert(helpButton&&helpDialog,"Per-file Help control missing");
+    helpButton.click();
+    assert(helpDialog.open,"Help dialog did not open");
+    assert(helpButton.getAttribute("aria-expanded")==="true","Help open state missing");
+    assert(helpDialog.textContent.includes("Hva kan jeg gjøre her?"),"Help content missing");
+    helpDialog.querySelector("form button").click();
+    await new Promise(resolve=>setTimeout(resolve,0));
+    assert(!helpDialog.open&&helpButton.getAttribute("aria-expanded")==="false",
+      "Help dialog did not close or reset expanded state");
+    assert(document.activeElement===helpButton,"Help close did not restore keyboard focus");
     assert(!safeRoot.querySelector("#open-original")?.disabled,
       "Valid relative original should remain available");
     safeRoot.querySelector("#open-original").click();

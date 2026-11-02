@@ -1,5 +1,6 @@
 import {loadAdapter,viewerKind} from "./registry.js";
 import {escapeHTML,safeViewerOriginalURL} from "./utils.js";
+import {viewerHelpHTML,bindViewerHelp} from "./viewer-help.js";
 import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js";
 import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js";
 import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js";
@@ -53,6 +54,7 @@ export async function mountViewer(root,resource,onBack){
       <button data-action="resetProgress" hidden>Reset progress</button>
       <span class="top-spacer"></span>
       ${isSource?'<button type="button" id="viewer-source-info" aria-controls="viewer-side-panel" aria-expanded="false">File details</button>':""}
+      <button type="button" id="viewer-help-button" aria-haspopup="dialog" aria-controls="viewer-help-dialog" aria-expanded="false">Hjelp</button>
       <button id="viewer-full">Fullscreen</button>
     </div>
     <div class="viewer-main">
@@ -82,8 +84,10 @@ export async function mountViewer(root,resource,onBack){
       <span id="viewer-info">Loading…</span>
       <span>${escapeHTML(resource.url||resource.path)}</span>
     </footer>
+    ${viewerHelpHTML(resource)}
   </main>`;
 
+  bindViewerHelp(root);
   const canvas=root.querySelector("#viewer-canvas");
   const active=()=>root.__viewerTicket===ticket&&canvas?.isConnected&&root.contains(canvas);
   const status=root.querySelector("#viewer-info");
