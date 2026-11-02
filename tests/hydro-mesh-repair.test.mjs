@@ -56,6 +56,18 @@ test("invalid open or malformed hull is never auto patched",()=>{
   assert.equal(previewComponentMeshRepair(mesh).status,"unsupported");
 });
 
+test("true interpenetrating closed solids are not treated as triangulation noise",()=>{
+  const first=boxMesh({L:4,B:4,H:2});
+  const second=boxMesh({L:4,B:4,H:2,origin:[1,0,0]});
+  const geometry={
+    positions:[...first.positions,...second.positions],
+    indices:[...first.indices,...second.indices.map(i=>i+first.positions.length/3)]
+  };
+  assert.equal(validateHydroGeometry(geometry).passed,false);
+  const result=previewComponentMeshRepair(geometry,{maxFlips:4});
+  assert.equal(result.status,"unsupported");
+});
+
 test("STL export is in world-space metres, not source 3MF units",()=>{
   const geometry={positions:[0,0,0,1000,0,0,0,1000,0],indices:[0,1,2]};
   const model={unitScaleToMeters:.001,components:[{id:"h",geometry}]};
