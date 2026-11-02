@@ -128,6 +128,7 @@ let hullAreaLoadsText="";
 let hydroPointWeightSummary=null;
 let hydroPointBaseline=null;
 let hydroPointError=null;
+let hydroRollRadiusM="";
 let hydroHeel=0;
 let hydroTrim=0;
 let hydroGzRequested=false;
@@ -234,6 +235,7 @@ function selectEngineeringModel(id){
   hydroPointWeightSummary=null;
   hydroPointBaseline=null;
   hydroPointError=null;
+  hydroRollRadiusM="";
   hydroHeel=0;
   hydroTrim=0;
   hydroGzRequested=false;
@@ -2024,6 +2026,7 @@ async function engineeringPage(){
         pointWeightSummary:hydroPointWeightSummary,
         pointWeightError:hydroPointError,
         loadedGM,
+        rollRadiusM:hydroRollRadiusM,
         kg:hydroKg,
         lcg:hydroLcg,
         tcg:hydroTcg,
@@ -2057,6 +2060,7 @@ async function engineeringPage(){
           pointWeights:hydroPointWeightSummary?.pointWeights||[],
           areaLoads:hydroPointWeightSummary?.areaLoads||[],
           hullMassTonnes:hullMassText===""?null:Number(hullMassText),
+          unloadedHullRollRadiusM:hydroRollRadiusM===""?null:Number(hydroRollRadiusM),
           pointWeightBaseline:hydroPointBaseline,
           heelDeg:Number(hydroHeel)||0,
           trimDeg:Number(hydroTrim)||0
@@ -2064,6 +2068,8 @@ async function engineeringPage(){
         results:{
           hydro:result,
           particulars:hydro.particulars||null,
+          smallAngleRollPeriod:hydro.rollPeriod||null,
+          smallAngleRollPeriodError:hydro.rollPeriodError||null,
           loadedPointWeightCase:hydroPointWeightSummary?{
             ...hydroPointWeightSummary,loadedGM
           }:null,
@@ -2431,6 +2437,7 @@ async function engineeringPage(){
     hydroKg=app.querySelector("#hydro-kg")?.value??hydroKg;
     hydroLcg=app.querySelector("#hydro-lcg")?.value??hydroLcg;
     hydroTcg=app.querySelector("#hydro-tcg")?.value??hydroTcg;
+    hydroRollRadiusM=app.querySelector("#hydro-roll-radius")?.value??hydroRollRadiusM;
     hydroHeel=Number(app.querySelector("#hydro-heel")?.value??hydroHeel)||0;
     hydroTrim=Number(app.querySelector("#hydro-trim")?.value??hydroTrim)||0;
   };
@@ -2444,6 +2451,10 @@ async function engineeringPage(){
   pointInput?.addEventListener("input",()=>{hydroPointWeightsText=pointInput.value});
   areaInput?.addEventListener("input",()=>{hullAreaLoadsText=areaInput.value});
   massInput?.addEventListener("input",()=>{hullMassText=massInput.value});
+  app.querySelector("#hydro-roll-radius")?.addEventListener("change",()=>{
+    readHydroCaseInputs();
+    engineeringPage();
+  });
   app.querySelector("#hydro-point-apply")?.addEventListener("click",()=>{
     readHydroCaseInputs();
     hydroPointWeightsText=pointInput?.value||"";
