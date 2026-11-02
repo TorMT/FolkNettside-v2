@@ -475,3 +475,9 @@
  .fusion-live-model .model-viewer-stage,.fusion-live-model .three-stage,
  .fusion-live-model .three-canvas{height:clamp(340px,55dvh,660px);min-height:340px}
 }
+
+/* ASV controls use a distinct class so Munin's source-only links stay exact. */
+.cad-asv-actions{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0}
+.cad-asv-actions .btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;
+ text-align:center;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:760px){.cad-asv-actions{display:grid;grid-template-columns:minmax(0,1fr)}}

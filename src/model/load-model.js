@@ -2,6 +2,7 @@ import {extension} from "../viewers/utils.js";
 import {parseCADBuffer} from "./parsers/cad-runtime.js";
 import {parse3MF} from "./parsers/three-mf.js";
 import {parseSTL} from "./parsers/stl.js";
+import {parseOBJ} from "./parsers/obj.js";
 import {nativeFusionPlaceholder,parseFusionArchive} from "./parsers/fusion-archive.js";
 import {parseGLB} from "./parsers/gltf.js";
 
@@ -26,10 +27,19 @@ export function applyModelRules(documentModel,rules=[]){
 
 export async function loadModelDocument(config){
   if(!config?.sourcePath)throw new Error("Model sourcePath is missing");
-  const response=await fetch(config.sourcePath);
-  if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${config.sourcePath}`);
+  let sourcePath=config.sourcePath,response=null;
+  // Opt-in original-file probe. A missing original is expected during staged
+  // publication; retaining the visual fallback avoids broken model selectors.
+  if(config.originalSourcePath){
+    try{
+      const candidate=await fetch(config.originalSourcePath);
+      if(candidate.ok){sourcePath=config.originalSourcePath;response=candidate}
+    }catch{ /* Original not yet published; load the labelled preview. */ }
+  }
+  if(!response)response=await fetch(sourcePath);
+  if(!response.ok)throw new Error(`HTTP ${response.status} while loading ${sourcePath}`);
   const buffer=await response.arrayBuffer();
-  const ext=extension(config.sourcePath);
+  const ext=extension(sourcePath);
   let partMetadata=config.partMetadata||[];
   if(!Array.isArray(partMetadata))throw new Error("partMetadata must be an array");
   if(config.partMetadataPath){
@@ -42,6 +52,7 @@ export async function loadModelDocument(config){
   if(["step","stp","iges","igs","brep"].includes(ext))documentModel=await parseCADBuffer(buffer,config.name||"CAD model",{format:ext});
   else if(ext==="3mf")documentModel=await parse3MF(buffer,config.name);
   else if(ext==="stl")documentModel=parseSTL(buffer,config.name);
+  else if(ext==="obj")documentModel=parseOBJ(buffer,config.name,{unit:config.unit||"millimeter"});
   else if(ext==="f3z")documentModel=await parseFusionArchive(buffer,config.name);
   else if(ext==="f3d")documentModel=nativeFusionPlaceholder({name:config.name,format:"F3D"});
   else if(ext==="glb")documentModel=await parseGLB(buffer,config.name,{
@@ -57,5 +68,7 @@ export async function loadModelDocument(config){
       component.metadata={...(component.metadata||{}),hydro:Boolean(config.defaultHydro)};
     }
   }
+  documentModel.loadedSourcePath=sourcePath;
+  documentModel.originalGeometryLoaded=Boolean(config.originalSourcePath&&sourcePath===config.originalSourcePath);
   return applyModelRules(documentModel,config.componentRules);
 }

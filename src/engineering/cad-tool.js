@@ -1,4 +1,6 @@
 import {MUNIN_PARTS,annotateMunin} from "./munin-parts.js";
+import {ASV_MODEL} from "./asv-model.js";
+import {loadModelDocument} from "../model/load-model.js";
 import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js";
 import {parseGLB} from "../model/parsers/gltf.js";
 import {parseSTL} from "../model/parsers/stl.js";
@@ -58,6 +60,22 @@ export function cadToolHTML(){
   </div>
   <p class="muted">Forhåndsvisningen bruker meter. Lengde ca. 1,024 m, bredde 0,886 m og høyde 0,807 m. Dette er tessellert visningsgeometri; bruk original CAD for nøyaktige beregninger.</p>
  </section>
+ <section class="cad-example-munin" aria-labelledby="cad-asv-heading">
+  <span class="project-kicker">ASV Tollak · forenklet visningsmodell</span>
+  <h2 id="cad-asv-heading">ASV Tollak — skrog og propulsjon</h2>
+  <p>Åpne direkte i CAD-viseren uten lokal import. GitHub inneholder foreløpig en
+  <strong>forenklet modell</strong> basert på originalskrog og thrusterplasseringer;
+  den opprinnelige Fusion STEP-assemblyen og den eksakte 3MF-skrogmeshen
+  er ennå ikke publisert. Modellen er derfor ikke gyldig som hydrostatisk inndata.</p>
+  <div class="cad-asv-actions">
+    <button class="btn primary" data-cad-asv-preview type="button">Vis ASV Tollak i CAD 3D</button>
+    <a class="btn" href="./examples/engineering/asv-hydro.html">GM, GZ og SAC (forutsetninger)</a>
+    <a class="btn" href="./examples/models/asv-tollak-visual-preview.obj" download>Hent forenklet OBJ</a>
+  </div>
+  <p class="muted">Den separate Hydro-rapporten bruker det opplastede skroggrunnlaget
+  med antakelser om PETG, tetthet og KG; kurvene er ikke beregnet fra forenklet OBJ.
+  For faktiske skrogsnitt og kontroll, importer original 3MF i Hydro.</p>
+ </section>
  <section class="cad-local-import" aria-labelledby="cad-import-heading">
   <header><div><h2 id="cad-import-heading">Open a model</h2>
     <p class="muted">Files are handled in your browser. A native .f3z/.f3d can be inspected,
@@ -92,6 +110,7 @@ export function mountCADTool(root){
  const installer=root.querySelector("#cad-fusion-install");
  const muninChoose=root.querySelector("[data-cad-munin-choose]");
  const muninPreview=root.querySelector("[data-cad-munin-preview]");
+ const asvPreview=root.querySelector("[data-cad-asv-preview]");
  const installerStatus=root.querySelector("[data-cad-fusion-install-status]");
  if(!picker||!stage)return ()=>{};
  let controller=null,cleanup=()=>{},request=0,disposed=false;
@@ -175,6 +194,53 @@ export function mountCADTool(root){
        showEmpty("Munin kunne ikke lastes. Originaltegning og STEP-lenke finnes over.");
      }
    }finally{clearTimeout(timeout);if(current===request&&!disposed){cancel.disabled=true;controller=null}}
+ }
+ async function loadASV(){
+   const current=++request;stop();stage.replaceChildren();
+   status.textContent="Laster kildebasert, forenklet ASV-visualisering…";
+   stage.scrollIntoView({block:"start",behavior:"instant"});
+   try{
+     // The published Fusion engineering bundle is authoritative for the
+     // entire assembly when present; the simplified visual is only fallback.
+     let originalBundle=null;
+     try{
+       const response=await fetch(ASV_MODEL.originalAssemblyPath);
+       if(response.ok)originalBundle=await response.arrayBuffer();
+     }catch{ /* Binary original not uploaded yet. */ }
+     if(current!==request||disposed)return;
+     if(originalBundle){
+       stage.classList.add("is-fusion-bundle");
+       status.textContent="Importerer original Fusion STEP-assembly og masseegenskaper…";
+       const doc=await parseFusionEngineeringBundle(
+         originalBundle,"ASV Tollak – original Fusion assembly");
+       if(current!==request||disposed)return;
+       const report=document.createElement("div");
+       report.className="cad-fusion-report";
+       report.innerHTML=fusionEngineeringReportHTML(doc.fusionEngineering);
+       const viewer=document.createElement("div");viewer.className="cad-fusion-model";
+       stage.replaceChildren(report,viewer);
+       const rendered=await renderModelWorkbench(viewer,doc,{mobileCompact:true});
+       if(current!==request||disposed){rendered?.cleanup?.();return}
+       cleanup=rendered?.cleanup||(()=>{});
+       status.textContent="ASV Tollak · original Fusion STEP lastet · "+
+         doc.components.filter(c=>c.geometry).length+
+         " CAD-komponenter. CAD-masse reflekterer materialtilordningen i eksporten; bruk PETG-analysen for antatt plastmasse.";
+       return;
+     }
+     const doc=await loadModelDocument(ASV_MODEL);
+     if(current!==request||disposed)return;
+     await presentModel(doc,current);
+     if(current===request&&!disposed)status.textContent="ASV Tollak lastet · "+
+       doc.components.filter(c=>c.geometry).length+
+       (doc.originalGeometryLoaded
+         ?" originale 3MF-komponenter · 3MF-skroget er åpent og ikke automatisk Hydro-validert."
+         :" forenklede OBJ-komponenter · visning, ikke original CAD eller validert Hydro-geometri.");
+   }catch(error){
+     if(current===request&&!disposed){
+       status.textContent="Kunne ikke åpne ASV-forhåndsvisning: "+String(error?.message||error);
+       showEmpty("Kunne ikke åpne ASV. Hydro-rapport og nedlastbar forenklet OBJ ligger over.");
+     }
+   }
  }
  const onCancel=()=>{request++;stop();showEmpty();status.textContent="Import cancelled"};
  cancel.addEventListener("click",onCancel);
@@ -272,6 +338,7 @@ export function mountCADTool(root){
  const onMuninChoose=()=>picker.click();
  muninChoose?.addEventListener("click",onMuninChoose);
  muninPreview?.addEventListener("click",loadMunin);
+ asvPreview?.addEventListener("click",loadASV);
  picker.addEventListener("change",onChange);
  dropZone?.addEventListener("dragover",onDrag);
  dropZone?.addEventListener("dragleave",onDrag);
@@ -288,5 +355,6 @@ export function mountCADTool(root){
    installer?.removeEventListener("click",onInstall);
    muninChoose?.removeEventListener("click",onMuninChoose);
    muninPreview?.removeEventListener("click",loadMunin);
+  asvPreview?.removeEventListener("click",loadASV);
  };
 }
