@@ -1,8 +1,9 @@
-import {diveDistanceKm,diveFeaturePoint} from "./dive-core.js";
+import {diveDistanceKm,diveFeaturePoint,diveOriginalId} from "./dive-core.js";
 
 export const DIVE_CATALOG_FILES=[
   "./data/diving/norway-additions.geojson",
   "./data/diving/local-enrichments.geojson",
+  ...Array.from({length:6},(_,i)=>`./data/diving/dykkekart-${String(i+1).padStart(2,"0")}.geojson`),
   ...Array.from({length:7},(_,i)=>`./data/diving/open-divemap-${String(i+1).padStart(2,"0")}.geojson`),
   ...Array.from({length:4},(_,i)=>`./data/diving/osm-vibe-${String(i+1).padStart(2,"0")}.geojson`),
   "./data/diving/world-top500.geojson"
@@ -27,8 +28,8 @@ export function diveSourceGroup(feature){
   const p=feature?.properties||{};
   const ids=String(p.Kilde_IDer||"").toLowerCase();
   const id=String(p.ID||feature?.id||"");
-  if(id.startsWith("D")||id.startsWith("W")||id.startsWith("X"))return "original";
-  if(ids.includes("pingvin")||ids.includes("scarsbrook")||ids.includes("dykkekart"))return "local";
+  if(diveOriginalId(id))return "original";
+  if(ids.includes("pingvin")||ids.includes("scarsbrook")||ids.includes("dykkekart")||ids.includes("reefradar"))return "local";
   if(ids.includes("opendivemap")||id.startsWith("OD"))return "opendivemap";
   if(ids.includes("openstreetmap")||id.startsWith("OS"))return "osm";
   if(ids.includes("underwateratlas")||id.startsWith("GL"))return "atlas";
