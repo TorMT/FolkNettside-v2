@@ -10,14 +10,20 @@ export function fusionEngineeringReportHTML(info){
  if(!info?.total||!Array.isArray(info.occurrences))
    throw Error("Fusion physical-property report is missing");
  const t=info.total,com=t.centerOfMassM;
+ const derived=info.materialEstimate?.kind==="uniform-density-estimate";
+ const estimate=info.materialEstimate;
  const world=t.inertiaWorldKgM2,principal=t.principalMomentsKgM2;
  const worldDiagonals=world?[world.xx,world.yy,world.zz]:null;
  const worldProducts=world?[world.xy,world.yz,world.xz]:null;
  const inertiaDetails=(world||principal)?
-   '<details><summary>Fusion mass moments of inertia (kg·m²)</summary>'+
-   '<p class="muted">Source-reported values, not approximations from the STEP mesh. '+
+   '<details><summary>'+(derived?"Estimated, density-scaled mass moments of inertia":"Fusion mass moments of inertia")+' (kg·m²)</summary>'+
+   '<p class="muted">'+(derived?
+     'Derived estimate: uniformly density-scaled Fusion inertia values, NOT independently measured moments. ':
+     'Source-reported values, not approximations from the STEP mesh. ')+
    'World components refer to the Fusion coordinate system; xy, yz and xz are '+
-   'Fusion-reported products of inertia (tensor off-diagonal signs depend on convention). '+
+   (derived?'Products were uniformly scaled from Fusion-reported values. ': 
+     'Fusion-reported products of inertia. ')+
+   '(tensor off-diagonal signs depend on convention). '+
    'Check axis origin and orientation before use in dynamics.</p>'+
    (world?'<p><strong>World moments xx / yy / zz:</strong> '+
      worldDiagonals.map(v=>fmt(v,6)).join(' / ')+' kg·m²</p>'+
@@ -30,11 +36,15 @@ export function fusionEngineeringReportHTML(info){
    '<tr><td>'+esc(o.fullPath||o.name)+'</td>'+
    '<td>'+fmt(o.massKg,3)+'</td><td>'+fmt(o.solidVolumeM3,6)+
    '</td><td>'+o.centerOfMassM.map(c=>fmt(c,3)).join(" / ")+'</td></tr>').join("");
- return '<section class="fusion-engineering-report" aria-label="Fusion source physical properties">'+
-  '<header><strong>Fusion API · physical measurements</strong>'+
+ return '<section class="fusion-engineering-report" aria-label="'+
+  (derived?'Derived uniform plastic mass estimate':'Fusion source physical properties')+'">'+
+  '<header><strong>'+(derived?
+    'Derived PETG material estimate · not Fusion-measured mass':
+    'Fusion API · physical measurements')+'</strong>'+
   '<span>Source: '+esc(info.sourceFile)+' · '+esc(info.exportedAt||"date unavailable")+'</span></header>'+
   '<div class="fusion-engineering-numbers">'+
-  '<div><span>Assembly mass (Fusion materials)</span><strong>'+fmt(t.massKg,3)+' kg</strong></div>'+
+  '<div><span>'+(derived?'Estimated assembly mass (uniform PETG)':
+    'Assembly mass (Fusion materials)')+'</span><strong>'+fmt(t.massKg,3)+' kg</strong></div>'+
   '<div><span>Solid material volume</span><strong>'+fmt(t.solidVolumeM3,6)+' m³</strong></div>'+
   (Number.isFinite(t.surfaceAreaM2)?
     '<div><span>CAD body surface area</span><strong>'+fmt(t.surfaceAreaM2,3)+' m²</strong></div>':"")+
@@ -44,9 +54,17 @@ export function fusionEngineeringReportHTML(info){
   '<div><span>Center of mass X / Y / Z</span><strong>'+com.map(c=>fmt(c,3)).join(' / ')+' m</strong></div>'+
   '<div><span>Assembly occurrences</span><strong>'+info.occurrences.length+'</strong></div></div>'+
   inertiaDetails+
-  '<p class="fusion-data-scope"><strong>Measured in Fusion, not calculated from STEP triangles.</strong> '+
-  'Assembly mass depends on correctly assigned material density. Solid volume is NOT the '+ 
-  'underwater displaced volume, and the model is NOT yet a verified pressure hull or structural EI model.</p>'+
+  (derived?'<p class="fusion-data-scope"><strong>Derived mass; NOT a Fusion API mass measurement.</strong> '+
+      'Assumed uniform '+esc(estimate.material)+' density '+fmt(estimate.densityKgPerM3,0)+
+      ' kg/m³ applied to Fusion solid volume. Original assigned-material mass: '+
+      fmt(estimate.originalFusionMassKg,3)+' kg. Calculated mass: '+
+      fmt(estimate.estimatedMassKg,3)+' kg. Estimated inertia is uniformly scaled; '+ 
+      'the CG is unchanged only under uniform density substitution. Actual thrust motors, batteries, '+ 
+      'infill and other equipment loads are not validated. ':
+    '<p class="fusion-data-scope"><strong>Measured in Fusion, not calculated from STEP triangles.</strong> ')+
+  (derived?'Solid CAD volume is NOT the displaced hull volume.':
+     'Assembly mass depends on correctly assigned material density. Solid volume is NOT the displaced hull volume.')+
+  ' The model is NOT yet a verified pressure hull or structural EI model.</p>'+
   (info.occurrences.length?'<details><summary>Occurrence breakdown (do not sum nested aggregates)</summary>'+
     '<div class="fusion-engineering-table"><table><thead><tr><th>Occurrence path</th>'+
     '<th>Mass (kg)</th><th>Solid volume (m³)</th><th>COM X / Y / Z (m)</th></tr></thead>'+
