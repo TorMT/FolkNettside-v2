@@ -200,12 +200,41 @@ export function mountCADTool(root){
    status.textContent="Laster kildebasert, forenklet ASV-visualisering…";
    stage.scrollIntoView({block:"start",behavior:"instant"});
    try{
+     // The published Fusion engineering bundle is authoritative for the
+     // entire assembly when present; the simplified visual is only fallback.
+     let originalBundle=null;
+     try{
+       const response=await fetch(ASV_MODEL.originalAssemblyPath);
+       if(response.ok)originalBundle=await response.arrayBuffer();
+     }catch{ /* Binary original not uploaded yet. */ }
+     if(current!==request||disposed)return;
+     if(originalBundle){
+       stage.classList.add("is-fusion-bundle");
+       status.textContent="Importerer original Fusion STEP-assembly og masseegenskaper…";
+       const doc=await parseFusionEngineeringBundle(
+         originalBundle,"ASV Tollak – original Fusion assembly");
+       if(current!==request||disposed)return;
+       const report=document.createElement("div");
+       report.className="cad-fusion-report";
+       report.innerHTML=fusionEngineeringReportHTML(doc.fusionEngineering);
+       const viewer=document.createElement("div");viewer.className="cad-fusion-model";
+       stage.replaceChildren(report,viewer);
+       const rendered=await renderModelWorkbench(viewer,doc,{mobileCompact:true});
+       if(current!==request||disposed){rendered?.cleanup?.();return}
+       cleanup=rendered?.cleanup||(()=>{});
+       status.textContent="ASV Tollak · original Fusion STEP lastet · "+
+         doc.components.filter(c=>c.geometry).length+
+         " CAD-komponenter. CAD-masse reflekterer materialtilordningen i eksporten; bruk PETG-analysen for antatt plastmasse.";
+       return;
+     }
      const doc=await loadModelDocument(ASV_MODEL);
      if(current!==request||disposed)return;
      await presentModel(doc,current);
-     if(current===request&&!disposed)status.textContent="ASV Tollak lastet i CAD · "+
+     if(current===request&&!disposed)status.textContent="ASV Tollak lastet · "+
        doc.components.filter(c=>c.geometry).length+
-       " visningskomponenter · millimeter. Forenklet OBJ, ikke original STEP/3MF eller godkjent Hydro-geometri.";
+       (doc.originalGeometryLoaded
+         ?" originale 3MF-komponenter · 3MF-skroget er åpent og ikke automatisk Hydro-validert."
+         :" forenklede OBJ-komponenter · visning, ikke original CAD eller validert Hydro-geometri.");
    }catch(error){
      if(current===request&&!disposed){
        status.textContent="Kunne ikke åpne ASV-forhåndsvisning: "+String(error?.message||error);
