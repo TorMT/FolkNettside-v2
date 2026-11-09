@@ -1,0 +1,75 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../../assets/style.css">
+<link rel="stylesheet" href="../../assets/engineering.css">
+<link rel="stylesheet" href="../../assets/viewer-enhancements.css">
+<title>CAD STL import units smoke</title></head>
+<body data-status="running"><div id="host"></div><pre id="result">running</pre>
+<script type="module">
+import {cadToolHTML,mountCADTool} from "../../src/engineering/cad-tool.js";
+// A real user flow: choose an STL exported in millimetres, see the right
+// size, switch the unit and watch the same file re-read (no second pick), and
+// get a readable error for a truncated file instead of an empty model.
+const wait=async(test,message,tries=200)=>{
+ for(let i=0;i<tries&&!test();i++)await new Promise(resolve=>setTimeout(resolve,50));
+ if(!test())throw Error(message);
+};
+function binaryBox(L,B,H){
+ const x=[-L/2,L/2],y=[-B/2,B/2],z=[0,H],p=[],t=[];
+ const quad=(a,b,c,d)=>{const n=p.length/3;p.push(...a,...b,...c,...d);t.push(n,n+1,n+2,n,n+2,n+3)};
+ quad([x[0],y[0],z[0]],[x[0],y[1],z[0]],[x[1],y[1],z[0]],[x[1],y[0],z[0]]);
+ quad([x[0],y[0],z[1]],[x[1],y[0],z[1]],[x[1],y[1],z[1]],[x[0],y[1],z[1]]);
+ quad([x[0],y[0],z[0]],[x[1],y[0],z[0]],[x[1],y[0],z[1]],[x[0],y[0],z[1]]);
+ quad([x[1],y[0],z[0]],[x[1],y[1],z[0]],[x[1],y[1],z[1]],[x[1],y[0],z[1]]);
+ quad([x[1],y[1],z[0]],[x[0],y[1],z[0]],[x[0],y[1],z[1]],[x[1],y[1],z[1]]);
+ quad([x[0],y[1],z[0]],[x[0],y[0],z[0]],[x[0],y[0],z[1]],[x[0],y[1],z[1]]);
+ const count=t.length/3,bytes=new Uint8Array(84+count*50+4),view=new DataView(bytes.buffer);
+ new TextEncoder().encodeInto("solid cad export",bytes);
+ view.setUint32(80,count,true);
+ t.forEach((vertex,n)=>{
+   const offset=84+Math.floor(n/3)*50+12+(n%3)*12;
+   for(let c=0;c<3;c++)view.setFloat32(offset+4*c,p[3*vertex+c],true);
+ });
+ return bytes; // 4 trailing padding bytes, as some exporters write
+}
+const choose=(host,file)=>{
+ const picker=host.querySelector("#cad-import-file"),transfer=new DataTransfer();
+ transfer.items.add(file);picker.files=transfer.files;
+ picker.dispatchEvent(new Event("change",{bubbles:true}));
+};
+try{
+ const host=document.querySelector("#host");
+ host.innerHTML=cadToolHTML();
+ const cleanup=mountCADTool(host);
+ const status=()=>host.querySelector("#cad-import-status").textContent;
+ const units=host.querySelector("#cad-brep-units");
+ if(units.value!=="millimeter")throw Error("File units should default to millimetres, got "+units.value);
+
+ // 10 m x 3 m x 2 m hull drawn in millimetres.
+ choose(host,new File([binaryBox(10000,3000,2000)],"hull-mm.stl"));
+ await wait(()=>status().startsWith("Imported"),"STL import did not finish: "+status());
+ if(!status().includes("millimeter · size 10.0 m × 3.00 m × 2.00 m"))throw Error("Wrong size line: "+status());
+ if(status().includes("Check units"))throw Error("Correct unit must not warn: "+status());
+ await wait(()=>host.querySelector(".three-canvas"),"3D canvas did not mount for the STL");
+
+ // Same file, wrong unit: the tool re-reads it without another file pick.
+ units.value="meter";units.dispatchEvent(new Event("change",{bubbles:true}));
+ await wait(()=>status().includes("Check units"),"Unit change did not re-read the file: "+status());
+ if(!status().includes("size 10 km × 3.0 km × 2.0 km"))throw Error("Wrong-unit size missing: "+status());
+ units.value="millimeter";units.dispatchEvent(new Event("change",{bubbles:true}));
+ await wait(()=>!status().includes("Check units")&&status().includes("size 10.0 m"),"Switching back did not restore: "+status());
+
+ // A truncated file must say so; it must not become an empty model.
+ const broken=binaryBox(10000,3000,2000).slice(0,84+50*5);
+ choose(host,new File([broken],"truncated.stl"));
+ await wait(()=>status().includes("CAD import failed"),"Truncated STL was not rejected: "+status());
+ if(!/truncated or corrupt/.test(status()))throw Error("Unhelpful truncation message: "+status());
+
+ document.body.dataset.status="pass";
+ document.querySelector("#result").textContent="STL import size, unit re-read and truncated-file error verified";
+ if(!new URLSearchParams(location.search).has("capture"))cleanup();
+}catch(error){
+ document.body.dataset.status="fail";
+ document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script></body></html>

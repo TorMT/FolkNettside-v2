@@ -23,6 +23,7 @@ export function hydroPreflightHTML(validation){
     <p>${validation.passed?"Selected triangles satisfy basic closure and orientation checks. This is not validation of real hull provenance, datum, intersections or loading condition.":"No hydrostatic displacement, GM, GZ or trim/heel results are calculated until the selected hull geometry is repaired."}</p>
     ${entries?`<details ${validation.passed?"":"open"}><summary>Geometry diagnostics (${validation.components.length} component(s))</summary><ul>${entries}</ul></details>`:""}
     ${validation.errors.length&&!entries?`<ul>${validation.errors.map(error=>`<li>${esc(error)}</li>`).join("")}</ul>`:""}
+    ${(validation.advisories||[]).map(note=>`<p class="hydro-preflight-advisory" role="note"><strong>Check units:</strong> ${esc(note)}</p>`).join("")}
   </section>`;
 }
 

@@ -4,6 +4,7 @@ import {loadModelDocument} from "../model/load-model.js";
 import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js";
 import {parseGLB} from "../model/parsers/gltf.js";
 import {parseSTL} from "../model/parsers/stl.js";
+import {formatMeters,modelExtentMeters,unitPlausibilityAdvisory} from "../model/model-extent.js";
 import {parse3MF} from "../model/parsers/three-mf.js";
 import {renderModelWorkbench} from "../viewers/model-workbench.js";
 import {renderFusionPackage} from "../viewers/fusion-package-view.js";
@@ -87,7 +88,7 @@ export function cadToolHTML(){
   <div class="cad-import-bar">
    <label>Model file <input id="cad-import-file" type="file"
      accept=".step,.stp,.iges,.igs,.brep,.stl,.3mf,.f3d,.f3z,.zip"></label>
-   <label>BREP units (if no metadata)
+   <label>File units (STL and BREP, if the file has none)
     <select id="cad-brep-units"><option value="millimeter">mm</option><option value="meter">m</option><option value="inch">in</option><option value="centimeter">cm</option></select>
    </label>
    <button class="btn" id="cad-import-cancel" type="button" disabled>Cancel import</button>
@@ -103,6 +104,16 @@ export function cadToolHTML(){
  </details>
  </main>`;
 }
+/** Status line after a mesh import: parts, unit, overall size and, when the
+ * size is implausible for a vessel/part, a prompt to pick the right unit. */
+export function importSummary(documentModel){
+  const parts=documentModel.components.filter(c=>c.geometry).length;
+  const extent=modelExtentMeters(documentModel);
+  const size=extent?" · size "+extent.size.map(formatMeters).join(" × "):"";
+  const advisory=unitPlausibilityAdvisory(extent,documentModel.unit);
+  return "Imported "+parts+" mesh components · "+documentModel.unit+size+
+    ". Move and inspect in the 3D view below."+(advisory?" Check units: "+advisory:"");
+}
 export function mountCADTool(root){
  const picker=root.querySelector("#cad-import-file"),stage=root.querySelector("#cad-geometry-stage");
  const cancel=root.querySelector("#cad-import-cancel"),status=root.querySelector("#cad-import-status");
@@ -114,6 +125,8 @@ export function mountCADTool(root){
  const installerStatus=root.querySelector("[data-cad-fusion-install-status]");
  if(!picker||!stage)return ()=>{};
  let controller=null,cleanup=()=>{},request=0,disposed=false;
+ let lastUnitlessFile=null; // STL/BREP carry no unit: re-read when the unit choice changes.
+ const unitSelect=root.querySelector("#cad-brep-units");
  const hubDetails=root.querySelector(".cad-hub-advanced");
  let hubMounted=false,stopHubBrowser=()=>{};
  const maybeMountHub=()=>{
@@ -249,6 +262,7 @@ export function mountCADTool(root){
    stop();stage.replaceChildren();
    if(!file)return;
    const ext=file.name.split(".").pop().toLowerCase();
+   lastUnitlessFile=/^(stl|step|stp|iges|igs|brep)$/.test(ext)?file:null;
    controller=new AbortController();cancel.disabled=false;
    status.textContent="Reading "+file.name+" locally…";
    try{
@@ -289,15 +303,15 @@ export function mountCADTool(root){
        return;
      }
      status.textContent=isCADFile(file.name)?"Loading OpenCascade WASM for "+file.name+"…":"Reading mesh…";
+     const fileUnit=unitSelect?.value||"millimeter";
      const documentModel= isCADFile(file.name)?
        await parseCADBuffer(buffer,file.name,{format:ext,signal:controller.signal,
-         brepUnit:root.querySelector("#cad-brep-units")?.value||"millimeter"}):
-       ext==="stl"?parseSTL(buffer,file.name):
+         brepUnit:fileUnit}):
+       ext==="stl"?parseSTL(buffer,file.name,{unit:fileUnit}):
        ext==="3mf"?await parse3MF(buffer,file.name):
        (()=>{throw Error("Unsupported file extension")})();
      if(current!==request||disposed)return;
-     status.textContent="Imported "+documentModel.components.filter(c=>c.geometry).length+
-       " mesh components · "+documentModel.unit+". Move and inspect in the 3D view below.";
+     status.textContent=importSummary(documentModel);
      await presentModel(documentModel,current);
    }catch(error){
      if(current!==request||disposed)return;
@@ -305,6 +319,7 @@ export function mountCADTool(root){
      showEmpty("Import could not be displayed. Try the demo or check source units and format.");
    }finally{if(current===request&&!disposed){cancel.disabled=true;controller=null}}
  };
+ const onUnitChange=()=>{if(lastUnitlessFile&&!disposed)void loadFile(lastUnitlessFile)};
  const onChange=()=>{
    const file=picker.files?.[0];
    picker.value=""; // Choosing the same file again must trigger a fresh import.
@@ -340,6 +355,7 @@ export function mountCADTool(root){
  muninPreview?.addEventListener("click",loadMunin);
  asvPreview?.addEventListener("click",loadASV);
  picker.addEventListener("change",onChange);
+ unitSelect?.addEventListener("change",onUnitChange);
  dropZone?.addEventListener("dragover",onDrag);
  dropZone?.addEventListener("dragleave",onDrag);
  dropZone?.addEventListener("drop",onDrop);
@@ -348,6 +364,7 @@ export function mountCADTool(root){
    disposed=true;request++;stop();stopHubBrowser();
    hubDetails?.removeEventListener("toggle",maybeMountHub);
    picker.removeEventListener("change",onChange);
+   unitSelect?.removeEventListener("change",onUnitChange);
    cancel.removeEventListener("click",onCancel);
    dropZone?.removeEventListener("dragover",onDrag);
    dropZone?.removeEventListener("dragleave",onDrag);
