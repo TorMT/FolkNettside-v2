@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "rootFolderId": "1lBkBhTHl7CkVoAaUgWn2RAtKZXqRre3k",
+  "generatedAt": "2026-11-09T16:36:24Z",
+  "albums": [
+    {
+      "id": "1ZAOVPYckueXZiHhjbjjYz873rJr2p5RN",
+      "title": "DykkeTur08112026K2",
+      "date": "2026-11-09T16:36:24Z",
+      "images": [
+        {
+          "id": "1r_K_GWX2r-Kx6ZPfisAWzWCqIgWcPBzZ",
+          "name": "Panorama_v2_01.jpg"
+        },
+        {
+          "id": "1VVzl7njJi4unynhOUiL09mwezislx-o4",
+          "name": "Panorama_v2_02.jpg"
+        },
+        {
+          "id": "1_8VqFMg5K1eQt7I1phqiUq5wRNHJAllG",
+          "name": "Panorama_v2_03.jpg"
+        },
+        {
+          "id": "1rCXvLY1jAGx-ulCBo960MqZ7_joRjRBg",
+          "name": "Panorama_v2_04.jpg"
+        }
+      ]
+    }
+  ]
+}
