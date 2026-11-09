@@ -1,8 +1,31 @@
 {
   "schema": 1,
   "rootFolderId": "1lBkBhTHl7CkVoAaUgWn2RAtKZXqRre3k",
-  "generatedAt": "2026-11-09T16:36:24Z",
+  "generatedAt": "2026-11-09T17:02:27.866Z",
   "albums": [
+    {
+      "id": "1t1h4xaTQ_Bx4_oC-xHWkKwdwAkh9pRka",
+      "title": "DykkeTur08112026K1",
+      "date": "2026-11-09T16:33:57.074Z",
+      "images": [
+        {
+          "id": "1OEbKVYiLjb9PA5K1055alTYfRgYzwjmt",
+          "name": "Karusell_silhuett_01.jpg"
+        },
+        {
+          "id": "1cJfmVucnmBNvYZE11o99iqOrSaLhwQ2y",
+          "name": "Karusell_silhuett_02.jpg"
+        },
+        {
+          "id": "17cin4q3oLY5V2xd3MS3jq-zRGTOwaXOR",
+          "name": "Karusell_silhuett_03.jpg"
+        },
+        {
+          "id": "1N6rPY_4Yn_Zqm7JftB5SvcTu3GFzsWsP",
+          "name": "Karusell_silhuett_04.jpg"
+        }
+      ]
+    },
     {
       "id": "1ZAOVPYckueXZiHhjbjjYz873rJr2p5RN",
       "title": "DykkeTur08112026K2",

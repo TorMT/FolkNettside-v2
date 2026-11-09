@@ -1,4 +1,4 @@
-import {getThreeRuntime} from "../model/three-runtime.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
+import {getThreeRuntime} from "../model/three-runtime.js?v=f184f9a61104f9a9f1796528e12d901dd70fec6b";
 
 /** Orbitable 3D visualisation of a *2D* Euler-Bernoulli frame.
  * Depth is purely illustrative; 2D FEM values are unchanged.

@@ -1,13 +1,13 @@
-import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../../platform/google-session.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
+import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../../platform/google-session.js?v=f184f9a61104f9a9f1796528e12d901dd70fec6b";
 import {
   readAccountVault,writeAccountVault,encryptAccountVault,decryptAccountVault,
   validateAccountVaultFolder
-} from "../../platform/account-vault-sync.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
+} from "../../platform/account-vault-sync.js?v=f184f9a61104f9a9f1796528e12d901dd70fec6b";
 import {
   validateIngredient,parseIngredientArchive,ingredientId,validateInventory,newInventory,
   importInventory,upsertInventory,deleteInventory,mergeInventory,visibleInventory
-} from "./inventory-model.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
-export {validateIngredient,parseIngredientArchive} from "./inventory-model.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
+} from "./inventory-model.js?v=f184f9a61104f9a9f1796528e12d901dd70fec6b";
+export {validateIngredient,parseIngredientArchive} from "./inventory-model.js?v=f184f9a61104f9a9f1796528e12d901dd70fec6b";
 
 const STORAGE="folk-v2-brewing-ingredients-v1";
 const PURPOSE="brew-inventory";

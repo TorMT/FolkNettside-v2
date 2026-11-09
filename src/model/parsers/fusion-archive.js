@@ -1,10 +1,10 @@
-import {getJSZip} from "../../vendor/jszip.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
-import {parse3MF} from "./three-mf.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
-import {parseSTL} from "./stl.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
-import {parseCADBuffer} from "./cad-runtime.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
-import {createModelDocument} from "../model-document.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
-import {toArrayBuffer} from "../binary-input.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
-import {isArchiveJunk,withoutArchiveJunk} from "./archive-paths.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
+import {getJSZip} from "../../vendor/jszip.js?v=f184f9a61104f9a9f1796528e12d901dd70fec6b";
+import {parse3MF} from "./three-mf.js?v=f184f9a61104f9a9f1796528e12d901dd70fec6b";
+import {parseSTL} from "./stl.js?v=f184f9a61104f9a9f1796528e12d901dd70fec6b";
+import {parseCADBuffer} from "./cad-runtime.js?v=f184f9a61104f9a9f1796528e12d901dd70fec6b";
+import {createModelDocument} from "../model-document.js?v=f184f9a61104f9a9f1796528e12d901dd70fec6b";
+import {toArrayBuffer} from "../binary-input.js?v=f184f9a61104f9a9f1796528e12d901dd70fec6b";
+import {isArchiveJunk,withoutArchiveJunk} from "./archive-paths.js?v=f184f9a61104f9a9f1796528e12d901dd70fec6b";
 
 const MAX_ARCHIVE_BYTES=55*1024*1024;
 const MAX_NESTED_BYTES=38*1024*1024;
