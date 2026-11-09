@@ -517,3 +517,20 @@ jobs:
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4207/tests/browser/hull-girder-3d-smoke.html 50 1440,900
+
+  # The Pages deploy (pages.yml) gates on browser smokes that the job above does
+  # not run. Run the very same pages.yml steps before merge so a green pull
+  # request cannot break the deploy (handoff B21; outage after #192).
+  deploy-smoke-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install PyYAML for the workflow step runner
+        run: python -m pip install pyyaml
+      - name: Pull requests gate the same browser smokes as the Pages deploy
+        run: python -m unittest discover -s tests -p 'test_pages_smoke_parity.py' -v
+      - name: Run the Pages deploy browser smokes (same run blocks as pages.yml)
+        run: python scripts/run_pages_workflow_smokes.py
