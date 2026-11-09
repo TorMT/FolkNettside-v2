@@ -1,5 +1,5 @@
-import {validateHydroGeometry,validateHydroModel} from "./hull-surface-validator.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
-import {inspectMeshIntersections} from "./mesh-intersections.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {validateHydroGeometry,validateHydroModel} from "./hull-surface-validator.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
+import {inspectMeshIntersections} from "./mesh-intersections.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
 
 // Conservative, reversible repair: flip only diagonals of adjacent triangles.
 // Never move vertices, alter source transforms, or relax the hydro safety gate.

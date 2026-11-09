@@ -1,8 +1,8 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
-import {gzMetrics} from "../hydro/gz.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
-import {estimateSmallAngleRollPeriod} from "../hydro/roll-period.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
-import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
-import {hydroForcesHTML} from "./hydro-force-diagram.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
+import {gzMetrics} from "../hydro/gz.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
+import {estimateSmallAngleRollPeriod} from "../hydro/roll-period.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
+import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
+import {hydroForcesHTML} from "./hydro-force-diagram.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
