@@ -21,6 +21,15 @@ try{
   await waitFor(()=>frame.contentDocument?.querySelector('[data-settings-panel="appearance"]'),"Settings appearance panel");
   const doc=frame.contentDocument;
   const win=frame.contentWindow;
+  // The app styles buttons with a short CSS transition. This smoke test reads
+  // getComputedStyle() synchronously right after a click or a theme change, and
+  // in a single --virtual-time-budget DOM dump that returns the transition's
+  // START value (the previous, unselected colours). Disable transitions in the
+  // framed document only, so assertions see the final computed styles. This
+  // changes nothing in the shipped app CSS.
+  const noTransitions=doc.createElement("style");
+  noTransitions.textContent="*,*::before,*::after{transition:none!important}";
+  doc.head.append(noTransitions);
   const consent=doc.querySelector(".analytics-consent-notice");
   assert(consent,"New visits need an optional analytics consent choice");
   assert(doc.querySelectorAll('script[data-folk-analytics]').length===0,
