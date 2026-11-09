@@ -1,7 +1,7 @@
-import {parseKisssoftBuffer} from "../../engineering/kisssoft-core.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
-import {fetchBoundedBuffer,previewContentURL} from "../utils.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
-import {publicKisssoftRelayURL} from "../ntnu-kisssoft-proxy.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
-import {kisssoftSummary,mountKisssoftVisual,bindKisssoftParameterSearch} from "../../engineering/kisssoft-tool.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {parseKisssoftBuffer} from "../../engineering/kisssoft-core.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
+import {fetchBoundedBuffer,previewContentURL} from "../utils.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
+import {publicKisssoftRelayURL} from "../ntnu-kisssoft-proxy.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
+import {kisssoftSummary,mountKisssoftVisual,bindKisssoftParameterSearch} from "../../engineering/kisssoft-tool.js?v=d3dd44b0f4d38c61ccfe442d67c2773bbdb86197";
 export async function render(container,resource){
  // NTNU original stays in resource.url; an explicitly selected local
  // copy lives at resource.path and must take precedence for preview bytes.
