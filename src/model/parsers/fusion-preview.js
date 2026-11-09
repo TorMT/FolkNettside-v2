@@ -1,6 +1,6 @@
-import {getJSZip} from "../../vendor/jszip.js?v=59759b72209ea5f70352282e4d1ca742cf6d2efe";
-import {toArrayBuffer} from "../binary-input.js?v=59759b72209ea5f70352282e4d1ca742cf6d2efe";
-import {isArchiveJunk} from "./archive-paths.js?v=59759b72209ea5f70352282e4d1ca742cf6d2efe";
+import {getJSZip} from "../../vendor/jszip.js?v=8e10534f255b1fd3d7e3f758a6c008585f6340a9";
+import {toArrayBuffer} from "../binary-input.js?v=8e10534f255b1fd3d7e3f758a6c008585f6340a9";
+import {isArchiveJunk} from "./archive-paths.js?v=8e10534f255b1fd3d7e3f758a6c008585f6340a9";
 
 /** Native Fusion archives are packages, not triangulated CAD meshes.
  * This inspector reads ZIP entry names and original embedded preview images.

@@ -1,4 +1,4 @@
-import {viewerKind} from "./registry.js?v=59759b72209ea5f70352282e4d1ca742cf6d2efe";
+import {viewerKind} from "./registry.js?v=8e10534f255b1fd3d7e3f758a6c008585f6340a9";
 
 // This is a capability guide, not a promise that every remote resource can be
 // fetched. Keep format-specific limitations explicit and provide a safe exit.
