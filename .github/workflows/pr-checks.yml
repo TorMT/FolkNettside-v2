@@ -217,6 +217,8 @@ jobs:
           python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html?capture 70 390,844
           python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html?capture 70 320,740
           python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/cad-tool-ui-smoke.html?capture 70 768,1024
+          python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/cad-stl-import-smoke.html 60 1400,950
+          python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/cad-stl-import-smoke.html 70 390,844
           python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/munin-hydro-smoke.html 100 1400,950
           python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/munin-hydro-smoke.html 100 390,844
           python3 scripts/test_munin_browser.py http://127.0.0.1:4224/tests/browser/munin-hydro-smoke.html 100 320,740
@@ -437,6 +439,7 @@ jobs:
           driver_pid=$!
           trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
           python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4197/tests/browser/hydro-block-complete-smoke.html
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4197/tests/browser/hydro-workspace-smoke.html
 
       - name: Dive map icon and filter browser interaction check
         run: |
