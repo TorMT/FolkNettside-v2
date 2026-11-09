@@ -1,8 +1,9 @@
-import {loadAdapter,viewerKind} from "./registry.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {escapeHTML,safeViewerOriginalURL} from "./utils.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
+import {loadAdapter,viewerKind} from "./registry.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {escapeHTML,safeViewerOriginalURL} from "./utils.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {viewerHelpHTML,bindViewerHelp} from "./viewer-help.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the
@@ -53,6 +54,7 @@ export async function mountViewer(root,resource,onBack){
       <button data-action="resetProgress" hidden>Reset progress</button>
       <span class="top-spacer"></span>
       ${isSource?'<button type="button" id="viewer-source-info" aria-controls="viewer-side-panel" aria-expanded="false">File details</button>':""}
+      <button type="button" id="viewer-help-button" aria-haspopup="dialog" aria-controls="viewer-help-dialog" aria-expanded="false">Hjelp</button>
       <button id="viewer-full">Fullscreen</button>
     </div>
     <div class="viewer-main">
@@ -82,8 +84,10 @@ export async function mountViewer(root,resource,onBack){
       <span id="viewer-info">Loading…</span>
       <span>${escapeHTML(resource.url||resource.path)}</span>
     </footer>
+    ${viewerHelpHTML(resource)}
   </main>`;
 
+  bindViewerHelp(root);
   const canvas=root.querySelector("#viewer-canvas");
   const active=()=>root.__viewerTicket===ticket&&canvas?.isConnected&&root.contains(canvas);
   const status=root.querySelector("#viewer-info");

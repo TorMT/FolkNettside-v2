@@ -6,8 +6,8 @@
  * Do NOT confuse Fusion solid volume (material) with displaced hull volume.
  * There is no automatic hull tagging, hydro enablement, or derived EI.
  */
-import {getJSZip} from "../../vendor/jszip.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {parseCADBuffer} from "./cad-runtime.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
+import {getJSZip} from "../../vendor/jszip.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {parseCADBuffer} from "./cad-runtime.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
 
 const MAX_ARCHIVE=55*1024*1024, MAX_STEP=25*1024*1024;
 const MAX_JSON=1024*1024, MAX_ENTRIES=30;
@@ -85,11 +85,43 @@ export function validateFusionEngineeringManifest(raw){
      material:limited(occ.material||""),
      isOccurrenceAggregate:true};
  });
+ // A derivative bundle is not an Autodesk Fusion API mass measurement.
+ // Retain explicit provenance after validation instead of silently upgrading
+ // recomputed physical properties to qualified Fusion source measurements.
+ const override=raw.derivedPETG;
+ let materialEstimate=null;
+ if(override!==undefined){
+   const rho=override?.densityKgPerM3;
+   const estimated=override?.estimatedMassKg;
+   const originalMass=override?.originalFusionMassKg;
+   const factor=override?.scalingFactor;
+   const expected=total.solidVolumeM3*rho;
+   const near=(a,b)=>Math.abs(a-b)<=Math.max(1e-8,Math.abs(b)*1e-7);
+   if(!finite(rho)||rho<500||rho>2000||
+      !finite(estimated)||estimated<0||
+      !finite(originalMass)||originalMass<=0||
+      !finite(factor)||factor<=0||
+      typeof override.material!=="string"||override.material.length>100||
+      !override.material.toUpperCase().includes("PETG")||
+      typeof raw.properties?.source!=="string"||
+      !raw.properties.source.startsWith("DERIVED")||
+      !near(estimated,expected)||!near(total.massKg,estimated)||
+      !near(factor,estimated/originalMass)||
+      occurrences.some(o=>!near(o.massKg,o.solidVolumeM3*rho)))
+     throw Error("Invalid derived material estimate or missing DERIVED provenance");
+   materialEstimate={
+     kind:"uniform-density-estimate",material:limited(override.material),
+     densityKgPerM3:rho,estimatedMassKg:estimated,
+     originalFusionMassKg:originalMass,scalingFactor:factor,
+     source:limited(override.source)
+   };
+ }
  return {
    schema:raw.schema,
    title:limited(raw.title||"Fusion engineering model"),
    exportedAt:limited(raw.exportedAt),
    sourceProduct:"Autodesk Fusion",
+   ...(materialEstimate?{materialEstimate}:{}),
    sourceFile:limited(raw.sourceFile||""),
    geometry:{path:geometryPath,format:"STEP",units:"millimeter"},
    properties:{...raw.properties},
@@ -100,10 +132,16 @@ export function validateFusionEngineeringManifest(raw){
      ...(total.surfaceAreaM2===undefined?{}:{surfaceAreaM2:total.surfaceAreaM2}),
      ...(total.boundsM===undefined?{}:{boundsM:{min:total.boundsM.min.slice(),max:total.boundsM.max.slice()}}),
      // Fusion body/assembly physical properties are independent of Hydro.
-     qualification:"Fusion physical properties from assigned CAD materials"
+     qualification:materialEstimate?
+       "Derived uniform PETG density estimate; not Fusion API mass measurement":
+       "Fusion physical properties from assigned CAD materials"
    },
    occurrences,
    notes:[
+     ...(materialEstimate?[
+       "Mass and inertias are derived from uniform PETG density, not Fusion API mass measurements",
+       "Actual thruster, battery, shell infill and electronics weights are unverified"
+     ]:[]),
      "Fusion total is used as supplied, never the sum of nested occurrence aggregates",
      "Solid material volume is not a vessel's water displacement",
      "Imported STEP geometry is a tessellated visual representation; Hydro remains unqualified",
@@ -155,7 +193,9 @@ export async function parseFusionEngineeringBundle(buffer,name="Fusion engineeri
  model.source={
    ...(model.source||{}),format:"FUSION_BUNDLE",
    originalName:name,
-   conversion:"fusion-step-with-qualified-api-properties",
+   conversion:manifest.materialEstimate?
+     "fusion-step-with-derived-material-estimate":
+     "fusion-step-with-qualified-api-properties",
    stepPath:manifest.geometry.path,
    exactBrepInBrowser:false
  };

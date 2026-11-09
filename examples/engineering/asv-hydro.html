@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>ASV Tollak — hydrostatikk (PETG)</title>
+<style>
+:root{font:16px/1.55 system-ui,sans-serif;color-scheme:light dark;--accent:#1673a2;--warn:#bd6e2d}
+body{max-width:1100px;margin:0 auto;padding:clamp(16px,3vw,32px)} h1{font-size:clamp(1.6rem,4vw,2.2rem);line-height:1.2}
+a{color:var(--accent)} .intro{max-width:80ch}.layout{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+article,.metric{border:1px solid #8885;border-radius:12px;padding:16px}.metric strong{font-size:1.55rem;display:block}
+small,.muted{opacity:.75}svg{width:100%;height:auto;display:block}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:.5em .3em;border-bottom:1px solid #8884}
+.chart-title{font-weight:700} .note{border-left:3px solid var(--warn);padding-left:14px}
+footer{margin-top:2rem;border-top:1px solid #8885;padding-top:1rem}
+</style></head><body>
+<nav><a href="../../index.html">FolkNet V2</a> / Engineering / ASV Tollak</nav>
+<h1>ASV Tollak — hydrostatikk og stabilitet</h1>
+<p class="intro">Numerisk eksempel beregnet fra brukerens <code>Skrog tollak v2.3mf</code> og masseegenskapene i Fusion-eksporten <code>ASV_Assembly_v01</code> (2. november 2026). Dette er <strong>ikke</strong> en verifisert stabilitetsgodkjenning.</p>
+<div class="layout">
+<div class="metric"><small>Antatt PETG, 1270 kg/m³</small><strong>33,58 kg</strong><small>CAD-solidvolum 0,02644394 m³ × densitet</small></div>
+<div class="metric"><small>GM, tverrskips</small><strong>0,196 m</strong><small>Jevn kjøl og antatt Fusion-CG</small></div>
+<div class="metric"><small>Dypgang fra laveste punkt</small><strong>152 mm</strong><small>Sjøvann med tetthet 1025 kg/m³</small></div>
+<div class="metric"><small>Ca. krengningsvinkel før vanninntrengning</small><strong>38°</strong><small>Geometrisk estimat, ikke eksperimentelt bekreftet</small></div>
+</div>
+<div class="layout" style="margin-top:16px">
+<article><div class="chart-title">GZ-kurve — konstant deplasement</div><svg viewBox="0 0 500 310" id="gz" role="img" aria-label="GZ-kurve for ASV ved 33,58 kg, ugyldig etter omtrent 38 grader"></svg>
+<p class="muted">Heltrukket: før estimert vanninntrengning. Stiplet: hypotetisk tett skrog, ikke fysisk gyldig etter ca. 38°.</p></article>
+<article><div class="chart-title">SAC — neddykket tverrsnittsareal</div><svg viewBox="0 0 500 310" id="sac" role="img" aria-label="Neddykket tverrsnittsareal som funksjon av x-posisjon"></svg>
+<p class="muted">X-akse i meter i Fusion-rammen. SAC fra den opplastede skrogmesh, ved beregnet PETG-vannlinje.</p></article>
+</div>
+<article style="margin-top:16px">
+<div class="chart-title">Initial GM som funksjon av dypgang</div>
+<div style="max-width:680px"><svg viewBox="0 0 500 310" id="gm" role="img" aria-label="Initial tverrskips metasersenterhøyde i meter mot dypgang i meter, med konstant CAD-tyngdepunkt"></svg></div>
+<p class="muted">Tverrskips GM er evaluert for flere dypganger med <strong>konstant, antatt KG</strong>. Hvert punkt representerer derfor et annet deplasement; hele kurven er ikke én lasttilstand. Designpunktet ved ca. 0,152 m dypgang gir GM ca. 0,196 m.</p>
+</article>
+<h2>Beregningsgrunnlag</h2>
+<table><tbody>
+<tr><th scope="row">Fusion-katalogført totalmasse</th><td>207,585 kg (materialtilordningen var feil for plast)</td></tr>
+<tr><th scope="row">Oppgitt solid CAD-volum</th><td>0,02644394 m³</td></tr>
+<tr><th scope="row">Beregnet fortrengt volum</th><td>0,032765 m³</td></tr>
+<tr><th scope="row">Beregnet vannlinjeareal</th><td>0,44935 m²</td></tr>
+<tr><th scope="row">BM<sub>T</sub></th><td>0,23449 m</td></tr>
+<tr><th scope="row">KG relativt Fusion Z=0</th><td>−0,000465 m</td></tr>
+<tr><th scope="row">LCB minus LCG</th><td>−0,00861 m (trim ikke løst i denne analysen)</td></tr>
+</tbody></table>
+<p class="note"><strong>Vesentlige begrensninger:</strong> Skroget er en åpen U-konstruksjon. Oppdriftsberegningen benytter et midlertidig geometrisk «lokk» langs ripa for å representere tørre indre volumer før vanninntrengning. GZ etter ca. 38° er ugyldig for åpent skrog. Den separate skrogfilen (v2) og Fusion-assemblyen (v2.1) er ikke identiske revisjoner. 100 % CAD-solidtetthet er ikke nødvendigvis 3D-printet lettvekt; infill, skrogvegger, batteri og faktiske thrustermasser må avklares.</p>
+<h2>3D-forhåndsvisning av ASV</h2>
+<p>Dette er en <strong>forenklet visningsmodell</strong>, basert på skrogets mål og tre propulsorenheters plassering. Den opprinnelige STEP-assemblyen er mer detaljert og er ikke inkludert i GitHub-filen. Den forenklede modellen ble ikke brukt i hydroberegningene.</p>
+<article><canvas id="asv-model-canvas" width="1000" height="550" style="display:block;width:100%;aspect-ratio:1000/550;touch-action:none;border-radius:8px;background:color-mix(in srgb,Canvas 93%,gray 7%)" aria-label="Drei og zoom forenklet tredimensjonal ASV-modell"></canvas>
+<p><small>Trekk med mus eller finger for å rotere. Rull for zoom. <button id="asv-reset" type="button">Tilbakestill visning</button></small></p>
+<p><a href="../models/asv-tollak-visual-preview.obj" download>Last ned forenklet OBJ-modell</a> · <small>Oppgitt målestokk i millimeter, ingen produksjonsgeometri</small></p></article>
+<h2>Originalmodell i FolkNet</h2>
+<p>Original modell er ikke lagret sammen med denne siden. Åpne <a href="../../index.html">Engineering → CAD</a> og importer den originale <code>FolkNet_Fusion_ASV_Assembly_v01_...zip</code> lokalt, eller bruk <strong>Engineering → Hydro → Import STL/3MF</strong> med <code>Skrog tollak v2.3mf</code>. Importen lagres ikke automatisk i GitHub.</p>
+<p><a href="https://github.com/TorMT/FolkNettside-v2">Åpne kildekoderepositoriet</a></p>
+<footer><small>Faglig demo, 2. november 2026. Geometriske skjæringer langs skroget, numerisk integrasjon, hydrostatisk oppdrift og konstant-deplasement GZ. Ikke bruk som eneste grunnlag for sjøsetting eller sikkerhetsbeslutninger.</small></footer>
+<script>
+const gz=[[0,0],[4,.01364],[8,.02724],[12,.04045],[16,.05263],[20,.06305],[24,.07153],[28,.07845],[32,.08434],[36,.0897],[40,.09401],[44,.09657],[48,.09773],[52,.09778],[56,.09693],[60,.09535],[64,.09297],[68,.08963],[72,.085],[76,.07913],[80,.07235],[84,.06489],[88,.05691]];
+const sac=[[-.64607,.03933],[-.58333,.03895],[-.52058,.03862],[-.45784,.0382],[-.39509,.0376],[-.33235,.03692],[-.26961,.03622],[-.20686,.03549],[-.14412,.03468],[-.08138,.0338],[-.01863,.03304],[.04411,.0317],[.10685,.03019],[.1696,.02656],[.23234,.0226],[.29508,.01625],[.35783,.0081],[.42057,.00111]];
+function plot(id,pts,{xmin,xmax,ymin=0,ymax,xtitle,ytitle,limit=null}){
+ const svg=document.getElementById(id),NS="http://www.w3.org/2000/svg",x=v=>46+(v-xmin)/(xmax-xmin)*429,y=v=>260-(v-ymin)/(ymax-ymin)*225;
+ function tag(n,attrs,text){const el=document.createElementNS(NS,n);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,String(v));if(text!=null)el.textContent=text;svg.appendChild(el);return el}
+ const ink=getComputedStyle(document.body).color;
+ for(let i=0;i<5;i++){const value=ymin+(ymax-ymin)*i/4;const Y=y(value);tag("line",{x1:46,y1:Y,x2:476,y2:Y,stroke:"currentColor",opacity:".12"});tag("text",{x:40,y:Y+4,fill:ink,"font-size":10,"text-anchor":"end"},value.toFixed(2))}
+ for(let i=0;i<5;i++){const value=xmin+(xmax-xmin)*i/4;tag("text",{x:x(value),y:279,fill:ink,"font-size":10,"text-anchor":"middle"},value.toFixed(2))}
+ tag("text",{x:258,y:303,fill:ink,"font-size":12,"text-anchor":"middle"},xtitle);
+ tag("text",{x:15,y:155,fill:ink,"font-size":12,transform:"rotate(-90 15 155)","text-anchor":"middle"},ytitle);
+ function line(dat,stroke,dash){if(dat.length<2)return;tag("polyline",{points:dat.map(p=>x(p[0]).toFixed(2)+","+y(p[1]).toFixed(2)).join(" "),fill:"none",stroke,"stroke-width":3,"stroke-dasharray":dash||"","stroke-linejoin":"round"})}
+ if(limit===null){line(pts,"#1673a2");return}
+ line(pts,"#888","7 5");line(pts.filter(p=>p[0]<=limit),"#1673a2");
+ tag("line",{x1:x(limit),y1:30,x2:x(limit),y2:260,stroke:"#bd6e2d","stroke-dasharray":"5 4"});
+ tag("text",{x:x(limit)+4,y:26,fill:"#bd6e2d","font-size":11},"ca. 38°");
+}
+plot("gz",gz,{xmin:0,xmax:90,ymax:.11,xtitle:"Krengningsvinkel [°]",ytitle:"GZ [m]",limit:38});
+plot("sac",sac,{xmin:-.65,xmax:.45,ymax:.045,xtitle:"Lengdeposisjon x [m]",ytitle:"Neddykket areal [m²]"});
+const gm=[[.086,.3424],[.1029,.3826],[.1197,.3081],[.1365,.2408],
+ [.152,.1958],[.1534,.1925],[.1702,.1628],[.1871,.1449],[.2039,.1342],
+ [.2208,.1280],[.2376,.1250],[.2545,.1242],[.2713,.1251],
+ [.2882,.1272],[.305,.1299]];
+plot("gm",gm,{xmin:.08,xmax:.31,ymax:.42,xtitle:"Dypgang [m]",ytitle:"GM [m]"});
+</script><script>
+(async function(){
+ const cvs=document.getElementById('asv-model-canvas'),ctx=cvs.getContext('2d');
+ const status=document.createElement('p');status.setAttribute('role','status');cvs.parentNode.insertBefore(status,cvs.nextSibling);
+ let vertices=[],triangles=[];
+ try{
+  const response=await fetch('../models/asv-tollak-visual-preview.obj');
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const obj=await response.text(); let group=0;
+  for(const line of obj.split(/\r?\n/)){
+   if(line.startsWith('v ')){const p=line.slice(2).trim().split(/\s+/).map(Number);if(p.length===3&&p.every(Number.isFinite))vertices.push(p)}
+   else if(line.startsWith('o '))group++;
+   else if(line.startsWith('f ')){const f=line.slice(2).trim().split(/\s+/).map(t=>Number(t.split('/')[0])-1);
+    if(f.length===3&&f.every(i=>Number.isInteger(i)&&i>=0))triangles.push([f,group]);}
+  }
+  if(!vertices.length||!triangles.length)throw Error('Ingen gyldige flater');
+  status.textContent='Visningsmesh: '+vertices.length+' knutepunkter, '+triangles.length+' triangelflater.';
+ }catch(err){status.textContent='Modell kunne ikke lastes: '+err.message;return}
+ let yaw=-.28,pitch=.23,zoom=1.0,pressed=false,lastX=0,lastY=0;
+ function render(){
+  const dpr=Math.min(2,window.devicePixelRatio||1),rect=cvs.getBoundingClientRect();
+  const W=Math.max(300,rect.width),H=Math.max(220,rect.height);
+  cvs.width=Math.floor(W*dpr);cvs.height=Math.floor(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const scale=Math.min(W/1250,H/750)*zoom;
+  const ca=Math.cos(yaw),sa=Math.sin(yaw),cb=Math.cos(pitch),sb=Math.sin(pitch);
+  const pts=vertices.map(([x,y,z])=>{x+=110;const u=x*ca-y*sa,v=x*sa+y*ca;return [W/2+u*scale,H/2-(v*sb+z*cb)*scale,v*cb-z*sb]});
+  const faces=triangles.map(([ids,g])=>{const a=pts[ids[0]],b=pts[ids[1]],c=pts[ids[2]];return {pts:[a,b,c],depth:(a[2]+b[2]+c[2])/3,group:g}});
+  faces.sort((a,b)=>b.depth-a.depth);
+  for(const face of faces){
+   const [a,b,c]=face.pts;const cross=(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+   const isEquipment=face.group>1;
+   const shade=Math.abs(cross)>2.0;
+   ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(c[0],c[1]);ctx.closePath();
+   ctx.fillStyle=isEquipment?'rgba(188,111,57,.90)':shade?'rgba(40,120,168,.83)':'rgba(63,147,188,.85)';
+   ctx.fill();ctx.strokeStyle='rgba(21,49,65,.16)';ctx.lineWidth=.6;ctx.stroke();
+  }
+ }
+ cvs.addEventListener('pointerdown',ev=>{pressed=true;lastX=ev.clientX;lastY=ev.clientY;cvs.setPointerCapture(ev.pointerId)});
+ cvs.addEventListener('pointermove',ev=>{if(!pressed)return;yaw+=(ev.clientX-lastX)*.008;pitch=Math.max(-1.3,Math.min(1.3,pitch+(ev.clientY-lastY)*.006));lastX=ev.clientX;lastY=ev.clientY;render()});
+ cvs.addEventListener('pointerup',()=>{pressed=false});cvs.addEventListener('pointercancel',()=>{pressed=false});
+ cvs.addEventListener('wheel',ev=>{ev.preventDefault();zoom=Math.max(.5,Math.min(3,zoom*Math.exp(-ev.deltaY*.001)));render()},{passive:false});
+ document.getElementById('asv-reset').addEventListener('click',()=>{yaw=-.28;pitch=.23;zoom=1;render()});
+ window.addEventListener('resize',render);render();
+})();
+</script></body></html>

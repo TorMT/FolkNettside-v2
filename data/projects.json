@@ -370,5 +370,55 @@
     "files": [],
     "coverImage": "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/quiz-module-demo.png",
     "sourceUrl": "https://tormt.folk.ntnu.no/diverse/portfolio/#panel-projects"
+  },
+  {
+    "slug": "asv-tollak-stability",
+    "title": "ASV Tollak — 3D-modell og stabilitetsanalyse",
+    "type": "design",
+    "status": "Forløpig geometribasert analyse",
+    "year": 2026,
+    "summary": "Fusion-konstruert ASV-skrog med forenklet 3D-forhåndsvisning, beregnet plastvekt og GM-, GZ- og SAC-kurver.",
+    "problem": "Feil CAD-materialtetthet ga en beregnet masse på 207,6 kg og kunne ikke brukes som realistisk lasttilstand.",
+    "solution": "Beregnet en uniform PETG-ekvivalent CAD-masse fra volumet og estimerte hydrostatikken fra separat skrogmesh. Åpent skrog ble behandlet som tørt frem til mulig vanninntrengning over ripa.",
+    "skills": [
+      "Marin hydrostatikk",
+      "Stabilitet og GZ",
+      "Fusion 360",
+      "3D-modellering",
+      "Numerisk integrasjon"
+    ],
+    "tools": [
+      "Fusion 360",
+      "Python",
+      "3MF",
+      "STEP",
+      "OBJ"
+    ],
+    "materials": [],
+    "process": [
+      "Tok ut skroggeometri fra 3MF og kontrollerte tverrsnitt.",
+      "Skalerte CAD-solidmasse med antatt PETG-tetthet på 1270 kg/m³.",
+      "Beregnet deplasement, vannlinjeareal, GM, GZ ved konstant deplasement og SAC.",
+      "Skilte mellom godkjent beregningsgrunnlag og forenklet 3D-visningsmodell."
+    ],
+    "results": [
+      "PETG-ekvivalent masse 33,58 kg ved 100 % massivt CAD-volum.",
+      "Initial GM ca. 0,196 m ved jevn kjøl med modellens CAD-tyngdepunkt.",
+      "Ca. 38° til geometrisk estimert vanninntrengning; GZ videre er ikke gyldig for åpent skrog.",
+      "Reelle thruster-/batterivekter, slicervekt og trim er ikke verifisert."
+    ],
+    "gallery": [],
+    "files": [
+      {
+        "label": "Hydrostatikk, GZ og SAC",
+        "url": "./examples/engineering/asv-hydro.html"
+      },
+      {
+        "label": "Forenklet OBJ-forhåndsvisning (ikke original CAD)",
+        "url": "./examples/models/asv-tollak-visual-preview.obj"
+      }
+    ],
+    "modelURL": "./examples/engineering/asv-hydro.html",
+    "modelNote": "Forenklet visualiseringsgeometri. Verken det originale Fusion STEP-assemblyet eller den eksakte 3MF-skrogmeshen er lagret i GitHub. Ikke bruk OBJ som grunnlag for beregninger eller produksjon."
   }
 ]

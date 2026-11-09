@@ -1,6 +1,7 @@
-import {inspectFusionPackage} from "../model/parsers/fusion-preview.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {parseFusionArchive} from "../model/parsers/fusion-archive.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {renderModelWorkbench} from "./model-workbench.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
+import {inspectFusionPackage} from "../model/parsers/fusion-preview.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {parseFusionArchive} from "../model/parsers/fusion-archive.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {renderModelWorkbench} from "./model-workbench.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {downloadFusionScriptPackage} from "../engineering/fusion-installer.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>
  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -14,14 +15,27 @@ export async function renderFusionPackage(container,buffer,name){
  const entries=archive.documents.length?archive.documents:
    [{path:archive.name,kind:archive.format,preview:archive.preview,neutral:archive.neutral,entries:archive.entries}];
  const hasGeometry=archive.neutral.length>0||entries.some(doc=>doc.neutral?.length);
+ const neutralCount=archive.neutral.length+
+   entries.reduce((sum,doc)=>sum+(doc.neutral?.length||0),0);
+ const savedPreviewCount=entries.filter(doc=>doc.preview).length;
  container.innerHTML='<section class="fusion-inspector">'+
   '<header class="fusion-inspector-heading"><div><span class="project-kicker">Autodesk Fusion archive</span>'+
   '<h2>'+esc(archive.name)+'</h2><p>'+esc(archive.format)+' · '+archive.entries+' archive entries · '+
   archive.designsTotal+' embedded design(s)</p></div>'+
-  (hasGeometry?'<button class="btn primary" type="button" data-fusion-model>Open actual 3D geometry</button>':'')+
+  (hasGeometry?'<button class="btn primary" type="button" data-fusion-model>Open available 3D geometry</button>':'')+
   '</header>'+
-  '<p class="muted">Archive previews are original saved images, not rotatable CAD geometry. '+
-  'For native Fusion B-rep without a supported neutral export, open the file in Fusion to export STEP or 3MF.</p>'+
+  '<section class="fusion-geometry-state" aria-label="3D import capability">'+
+  '<strong>'+(hasGeometry?'Some real 3D geometry is available':'Native Fusion solids are not directly viewable')+'</strong>'+
+  '<p>'+esc(archive.designsTotal)+' embedded Fusion designs · '+
+    esc(savedPreviewCount)+' saved 2D previews · '+
+    esc(neutralCount)+' neutral geometry file(s). '+
+    (hasGeometry?
+      'The 3D button opens the first supported embedded mesh or CAD file; this may be only part of the assembly.':
+      'An F3Z contains native F3D designs. Saved pictures are not rotatable solids, and FolkNet cannot reconstruct their proprietary geometry on its own.')+
+  '</p>'+
+  '<p>For a complete interactive assembly, open the top-level design in Autodesk Fusion, run the FolkNetFusion export script and import its resulting Engineering ZIP here. The original F3Z stays unchanged.</p>'+
+  '<button class="btn" type="button" data-fusion-export-script>Get Fusion export script (.zip)</button>'+
+  '</section>'+
   '<div class="fusion-inspector-layout">'+
   '<aside class="fusion-design-list" aria-label="Archive designs">'+
   '<h3>Designs / documents</h3>'+
@@ -78,6 +92,18 @@ export async function renderFusionPackage(container,buffer,name){
  entries.forEach((entry,i)=>container.querySelector('[data-fusion-design="'+i+'"]')
    ?.addEventListener("click",()=>display(i)));
  display(0);
+ const exportScript=$("[data-fusion-export-script]");
+ exportScript?.addEventListener("click",async()=>{
+   exportScript.disabled=true;
+   status.textContent="Preparing local Fusion STEP export helper…";
+   try{
+     await downloadFusionScriptPackage();
+     if(!disposed)status.textContent="Fusion script downloaded. Extract it, add FolkNetFusion in Fusion Scripts and Add-ins, run it on the open top-level assembly and import the generated Engineering ZIP.";
+   }catch(error){
+     if(!disposed)status.textContent="Script download failed: "+String(error?.message||error)+
+       ". Open Engineering / CAD for the direct Python script link.";
+   }finally{if(!disposed)exportScript.disabled=false}
+ });
  const open3D=$("[data-fusion-model]");
  open3D?.addEventListener("click",async()=>{
    open3D.disabled=true;
@@ -90,8 +116,10 @@ export async function renderFusionPackage(container,buffer,name){
      const rendered=await renderModelWorkbench(three,model);
      if(disposed){rendered?.cleanup?.();return}
      modelCleanup=rendered?.cleanup||(()=>{});
-     status.textContent="Interactive 3D · "+model.source.embeddedFormat+
-       " geometry from "+model.source.archiveEntry+" (triangulated preview).";
+     status.textContent="Interactive 3D · "+model.components.filter(part=>part.geometry).length+
+       " visible mesh component(s) from "+model.source.archiveEntry+
+       " ("+model.source.embeddedFormat+"). This is the embedded neutral geometry, not necessarily the entire Fusion assembly.";
+     three.scrollIntoView?.({block:"nearest"});
    }catch(error){
      if(disposed)return;
      three.hidden=true;

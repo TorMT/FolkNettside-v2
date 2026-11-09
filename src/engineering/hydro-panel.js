@@ -1,7 +1,8 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {gzMetrics} from "../hydro/gz.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {hydroForcesHTML} from "./hydro-force-diagram.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {gzMetrics} from "../hydro/gz.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {estimateSmallAngleRollPeriod} from "../hydro/roll-period.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {hydroForcesHTML} from "./hydro-force-diagram.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -123,6 +124,7 @@ export function hydroPanelHTML({
   pointWeightSummary=null,
   pointWeightError=null,
   loadedGM=null,
+  rollRadiusM="",
   kg="",
   lcg="",
   tcg="",
@@ -148,6 +150,28 @@ export function hydroPanelHTML({
   const particulars=hydrostaticParticulars(result,{density,kg:hasKg?Number(kg):null});
   const curveRows=hydrostaticCurveRows(curve,{density,kg:hasKg?Number(kg):null});
   const gzSummary=gzMetrics(gz);
+  // The user must enter the unloaded hull's longitudinal roll radius.
+  // No mesh-derived mass inertia is invented here. The loading summary
+  // supplies the combined CG, while loadedGM comes from the re-solved draft.
+  let rollPeriod=null,rollPeriodError=null;
+  if(String(rollRadiusM).trim()!==""){
+    const activeGm=pointWeightSummary?loadedGM?.gmTransverse:particulars.gmTransverse;
+    if(activeGm===null||activeGm===undefined){
+      rollPeriodError="Loaded GM must be solved before estimating the period.";
+    }else{
+      try{
+        rollPeriod=estimateSmallAngleRollPeriod({
+          gmTransverse:activeGm,
+          hullRollRadiusM:rollRadiusM,
+          baselineMassTonnes:particulars.displacementTonnes,
+          baselineCG:[Number(lcg)||0,Number(tcg)||0,Number(kg)],
+          loading:pointWeightSummary
+        });
+      }catch(error){
+        rollPeriodError=String(error?.message||error);
+      }
+    }
+  }
   const qualityAudit=auditHydroCurve(curve);
   const sameUprightVolume=Array.isArray(gz)&&gz.length&&
     Math.abs(Number(gz[0].volume)-Number(result.volume))<=
@@ -223,6 +247,20 @@ export function hydroPanelHTML({
               `<span>Loaded GM unavailable until the target draft solver converges.</span>`}
           </div>`:""}
           <p class="muted hydro-note">Actual hull mass and CG define the baseline if entered. Otherwise the reference draft supplies an inferred baseline mass. Point and area mass change the rigid-body equilibrium; structural stresses require a separate FEM model.</p>
+        </section>
+        <section class="hydro-point-weights" aria-label="Small-angle roll period">
+          <div class="hydro-section-label">Roll period · preliminary estimate</div>
+          <label class="field"><span>Unloaded hull roll radius kₓ about X (m)</span>
+            <input id="hydro-roll-radius" type="number" min="0" step="any"
+              value="${esc(rollRadiusM)}" placeholder="Enter measured / assumed kₓ">
+          </label>
+          <small>Optional. Enter the hull's dry-mass roll radius about its own CG; this cannot be inferred reliably from STL/3MF geometry or infill percentage. Positive GM required. The estimate excludes fluid added inertia, damping and free-surface effects.</small>
+          ${rollPeriod?`<div class="hydro-point-summary">
+            <strong>${pointWeightSummary?"Loaded":"Reference"} small-angle period: ${rollPeriod.stable?fmt(rollPeriod.periodSeconds,3)+" s":"no stable oscillation (GM ≤ 0)"}</strong>
+            <span>GMₜ ${fmt(rollPeriod.gmTransverse,4)} m · effective kₓ ${fmt(rollPeriod.effectiveRollRadiusM,4)} m</span>
+            <span>Iₓₓ ${fmt(rollPeriod.rollInertiaTonnesM2,4)} t·m² · mass ${fmt(rollPeriod.massTonnes,3)} t</span>
+          </div>`:""}
+          ${rollPeriodError?`<p class="hydro-solve-error">${esc(rollPeriodError)}</p>`:""}
         </section>
         <div class="hydro-section-label">Attitude</div>
         <div class="hydro-attitude-grid">
@@ -320,6 +358,8 @@ export function hydroPanelHTML({
     gzSummary,
     qualityAudit,
     gmCrossCheck,
+    rollPeriod,
+    rollPeriodError,
     draft:clamped,
     density,
     waterlinePercent:((clamped-minDraft)/span)*100

@@ -1,10 +1,11 @@
-import {MUNIN_MODEL} from "./engineering/munin-model.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {onNTNUHost} from "./courses/ntnu-catalog.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {loadPublicCourseLabels,mergeCloudCourseLabels} from "./platform/folk-course-admin.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {addPitchDriveCourseModel} from "./courses/pitch-drive-course-model.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
+import {MUNIN_MODEL} from "./engineering/munin-model.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {ASV_MODEL} from "./engineering/asv-model.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {onNTNUHost} from "./courses/ntnu-catalog.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {loadNTNUAutoCatalog,loadPreferredNTNUCatalog} from "./courses/ntnu-autocatalog.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {loadPublicCourseLabels,mergeCloudCourseLabels} from "./platform/folk-course-admin.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {applyNTNUDisplayNames} from "./courses/ntnu-display-names.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {applyNTNUCourseVisibility} from "./courses/course-visibility.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {addPitchDriveCourseModel} from "./courses/pitch-drive-course-model.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
 
 export function onGithubPagesArchive(hostname,pathname){
  return String(hostname||"").toLowerCase()==="tormt.github.io"&&
@@ -123,7 +124,8 @@ export async function loadContent() {
   const models=[
     {id:model.id||"fixture",label:model.label||model.name,...model},
     {id:gunnerusModel.id||"gunnerus",label:gunnerusModel.label||gunnerusModel.name,...gunnerusModel},
-    MUNIN_MODEL
+    MUNIN_MODEL,
+    ASV_MODEL
   ];
 
   // Presentation-only exclusion requested for V2. Never remove any

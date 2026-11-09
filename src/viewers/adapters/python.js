@@ -1,11 +1,11 @@
-import {pythonSourceURL} from "../python-source.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {pythonUploadPaths} from "../python-folder-paths.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {pythonDownloadFilename} from "../python-download-name.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {fetchText} from "../utils.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {publicCodePreviewURL,publicCodeRelayURL} from "../ntnu-public-code.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {createPythonSession} from "../python-session.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
-import {createDomFinder} from "../dom-search.js?v=ebe616383fa17ea6407d55139d89705508f6d741";
+import {pythonSourceURL} from "../python-source.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {pythonUploadPaths} from "../python-folder-paths.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {pythonDownloadFilename} from "../python-download-name.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {fetchText} from "../utils.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {publicCodePreviewURL,publicCodeRelayURL} from "../ntnu-public-code.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {createPythonSession} from "../python-session.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
+import {createDomFinder} from "../dom-search.js?v=a0d404486e2d896610962ef4b7b1358be575feed";
 
 export async function render(container,resource,{sessionFactory=createPythonSession}={}){
   const source=resource.sourceText!==undefined?String(resource.sourceText):await fetchText(publicCodePreviewURL(resource));
