@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Local, explicit-public-allowlist NTNU catalog preview. No writes to webedit.
+r"""Local, explicit-public-allowlist NTNU catalog preview. No writes to webedit.
 
 Usage:
   python scripts/preview_ntnu_autocatalog.py --webroot W:\webedit-root \
