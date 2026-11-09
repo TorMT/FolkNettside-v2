@@ -1,4 +1,6 @@
 import {getJSZip} from "../../vendor/jszip.js";
+import {toArrayBuffer} from "../binary-input.js";
+import {isArchiveJunk} from "./archive-paths.js";
 
 /** Native Fusion archives are packages, not triangulated CAD meshes.
  * This inspector reads ZIP entry names and original embedded preview images.
@@ -20,7 +22,7 @@ function validZip(buffer){
    ((bytes[2]===3&&bytes[3]===4)||(bytes[2]===5&&bytes[3]===6));
 }
 export function previewCandidates(paths=[]){
- return [...paths].filter(path=>IMAGE.test(path)&&PREVIEW.test(path))
+ return [...paths].filter(path=>IMAGE.test(path)&&PREVIEW.test(path)&&!isArchiveJunk(path))
    .sort((a,b)=>{
      const score=path=>{
        const value=String(path).toLowerCase();
@@ -32,7 +34,7 @@ export function previewCandidates(paths=[]){
    });
 }
 export function describeFusionPackagePaths(paths=[]){
- const items=paths.filter(path=>path&&!path.endsWith("/"));
+ const items=paths.filter(path=>path&&!path.endsWith("/")&&!isArchiveJunk(path));
  return {entries:items.length,
    designs:items.filter(path=>F3D.test(path)),
    neutral:items.filter(path=>GEOMETRY.test(path)),
@@ -49,11 +51,12 @@ function validateArchiveEntries(zip){
  }
  return entries;
 }
-async function zipFromBytes(buffer){
- if(!(buffer instanceof ArrayBuffer)||buffer.byteLength>FUSION_MAX_BYTES||!buffer.byteLength)
+async function zipFromBytes(input,injectedJSZip=null){
+ const buffer=toArrayBuffer(input,"Fusion archive");
+ if(buffer.byteLength>FUSION_MAX_BYTES||!buffer.byteLength)
    throw Error("Fusion archive must be between 1 byte and 55 MiB");
  if(!validZip(buffer))throw Error("This Fusion archive is not a readable ZIP package");
- const JSZip=await getJSZip();
+ const JSZip=injectedJSZip||await getJSZip();
  const zip=await JSZip.loadAsync(buffer);
  validateArchiveEntries(zip);
  return zip;
@@ -81,12 +84,12 @@ async function readPreview(zip,paths){
 /** Read main archive and the original nested F3D document previews.
  * Decompression is bounded and no ZIP streams are executed or extracted to disk.
  */
-export async function inspectFusionPackage(buffer,name="Fusion archive"){
+export async function inspectFusionPackage(buffer,name="Fusion archive",{JSZip=null}={}){
  const extension=String(name).split(".").pop().toLowerCase();
  if(extension!=="f3d"&&extension!=="f3z")
    throw Error("Fusion inspector accepts only F3D/F3Z archives");
- const archive=await zipFromBytes(buffer);
- const paths=Object.keys(archive.files).filter(path=>!archive.files[path].dir);
+ const archive=await zipFromBytes(buffer,JSZip);
+ const paths=Object.keys(archive.files).filter(path=>!archive.files[path].dir&&!isArchiveJunk(path));
  const summary=describeFusionPackagePaths(paths);
  const documents=[];
  if(extension==="f3d"){
@@ -104,8 +107,8 @@ export async function inspectFusionPackage(buffer,name="Fusion archive"){
        try{
          const bytes=await entry.async("arraybuffer");
          if(bytes.byteLength>INNER_MAX_BYTES)throw Error("Embedded design exceeds safe preview size");
-         const nested=await zipFromBytes(bytes);
-         const nestedPaths=Object.keys(nested.files).filter(key=>!nested.files[key].dir);
+         const nested=await zipFromBytes(bytes,JSZip);
+         const nestedPaths=Object.keys(nested.files).filter(key=>!nested.files[key].dir&&!isArchiveJunk(key));
          const summaryNested=describeFusionPackagePaths(nestedPaths);
          document={path:readableName(path),kind:"F3D",entries:summaryNested.entries,
            neutral:summaryNested.neutral.map(readableName),
