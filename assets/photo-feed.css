@@ -1,0 +1,67 @@
+/* Public gallery under Diverse: standalone responsive Instagram-style feed. */
+.photo-page{min-width:0}
+.photo-page .photo-hero{align-items:flex-start}
+.photo-page .photo-hero .legacy-diverse-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.photo-shell{width:min(100%,1120px);margin:0 auto;padding:22px 18px 56px;color:var(--ink)}
+.photo-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:14px;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.photo-toolbar label{display:grid;gap:5px;flex:1 1 170px;min-width:0;font-size:11px;font-weight:650;color:var(--ink-2)}
+.photo-toolbar label:first-child{flex:2 1 250px}
+.photo-toolbar input,.photo-toolbar select{width:100%;min-width:0;min-height:40px;font:inherit;font-size:13px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface-sunk);color:var(--ink)}
+.photo-toolbar .btn{min-height:40px}
+.photo-info{margin:0 0 15px;color:var(--ink-2);font-size:12px}
+.photo-feed{display:grid;gap:25px;justify-content:center}
+.photo-post{width:min(100%,660px);min-width:0;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:14px;color:var(--ink);box-shadow:0 4px 18px rgb(0 0 0 / .055)}
+.photo-post:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+.photo-post-head{display:flex;align-items:center;gap:10px;padding:12px 15px}
+.photo-post-avatar{display:grid;place-items:center;flex:0 0 37px;width:37px;height:37px;border:1px solid var(--line);border-radius:50%;color:var(--accent);background:var(--accent-soft);font-size:19px}
+.photo-post-heading{min-width:0;flex:1}
+.photo-post-heading h2{font-size:14px;margin:0;overflow-wrap:anywhere}
+.photo-post-heading span{display:block;color:var(--ink-3);font-size:10px;margin-top:3px}
+.photo-post-source{font-size:11px;color:var(--accent);text-decoration:none}
+.photo-stage{position:relative;background:var(--surface-sunk);width:100%;overflow:hidden}
+.photo-open{display:flex;align-items:center;justify-content:center;width:100%;height:clamp(260px,52vw,560px);padding:0;cursor:zoom-in;background:transparent;border:0}
+.photo-open img{display:block;width:100%;height:100%;object-fit:contain}
+.photo-arrow,.photo-modal-arrow{position:absolute;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:39px;height:39px;padding:0;border-radius:50%;border:1px solid rgb(255 255 255 / .3);background:rgb(0 0 0 / .57);color:white;font-size:29px;line-height:1;cursor:pointer}
+.photo-arrow.previous,.photo-modal-arrow.left{left:12px}.photo-arrow.next,.photo-modal-arrow.right{right:12px}
+.photo-arrow:disabled{opacity:.25;cursor:default}
+.photo-counter{position:absolute;right:11px;top:11px;pointer-events:none;padding:5px 9px;border-radius:14px;background:rgb(0 0 0 / .63);color:white;font-size:11px;font-variant-numeric:tabular-nums}
+.photo-post-footer{display:grid;gap:7px;padding:12px 16px 16px;font-size:12px}
+.photo-post-footer>strong{font-size:13px;overflow-wrap:anywhere}
+.photo-file-name{font-size:11px;color:var(--ink-2);overflow-wrap:anywhere}
+.photo-original{color:var(--accent);font-size:11px;text-decoration:none;justify-self:start}
+.photo-dots{display:flex;align-items:center;justify-content:center;gap:3px;min-height:17px;flex-wrap:wrap}
+.photo-dot{width:15px;height:15px;border:0;background:transparent;padding:4px;cursor:pointer}
+.photo-dot::before{content:"";display:block;width:7px;height:7px;border-radius:50%;background:var(--ink-3);opacity:.65}
+.photo-dot.active::before{background:var(--accent);opacity:1;transform:scale(1.23)}
+.photo-source{color:var(--ink-3);font-size:11px;margin:18px auto 0;max-width:660px;line-height:1.55}
+.photo-source a{color:var(--accent)}
+.photo-empty{width:min(660px,calc(100vw - 28px));border:1px dashed var(--line);background:var(--surface);border-radius:12px;padding:38px 22px;text-align:center;color:var(--ink)}
+.photo-empty strong{font-size:16px}.photo-empty p{font-size:12px;line-height:1.6;color:var(--ink-2)}
+.photo-lightbox{width:min(95vw,1240px);max-width:95vw;max-height:96dvh;padding:0;border:1px solid var(--line);border-radius:13px;background:var(--surface);color:var(--ink);overflow:hidden}
+.photo-lightbox::backdrop{background:rgb(0 0 0 / .88)}
+.photo-modal-head,.photo-modal-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 15px;font-size:12px}
+.photo-modal-head strong,.photo-modal-footer span{overflow-wrap:anywhere}
+.photo-modal-close{border:0;background:transparent;color:var(--ink);cursor:pointer;font-size:27px;min-width:40px;min-height:40px}
+.photo-modal-image{position:relative;display:grid;place-items:center;background:#0a0a0c;min-height:100px;max-height:calc(96dvh - 112px)}
+.photo-modal-image img{display:block;max-width:100%;max-height:calc(96dvh - 112px);object-fit:contain}
+.photo-modal-footer a{color:var(--accent);white-space:nowrap}
+.photo-page button:focus-visible,.photo-page a:focus-visible,.photo-lightbox button:focus-visible,.photo-lightbox a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+@media(max-width:760px){
+ .photo-shell{padding:12px 10px 32px}
+ .photo-page .photo-hero .legacy-diverse-actions{justify-content:flex-start}
+ .photo-toolbar{padding:11px;gap:8px}
+ .photo-toolbar label:first-child{flex-basis:100%}
+ .photo-toolbar label{flex:1 1 calc(50% - 8px)}
+ .photo-toolbar input,.photo-toolbar select{font-size:16px}
+ .photo-toolbar .btn{flex:1 1 100%}
+ .photo-feed{gap:16px}
+ .photo-post{border-radius:10px}
+ .photo-post-head{padding:10px}
+ .photo-open{height:clamp(250px,95vw,520px)}
+ .photo-arrow,.photo-modal-arrow{width:34px;height:34px;font-size:25px}
+ .photo-arrow.previous,.photo-modal-arrow.left{left:7px}
+ .photo-arrow.next,.photo-modal-arrow.right{right:7px}
+ .photo-post-footer{padding:10px 12px 14px}
+ .photo-modal-footer{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){.photo-dot::before{transition:none}}
