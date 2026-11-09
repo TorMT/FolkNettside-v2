@@ -76,3 +76,67 @@ test("STL export is in world-space metres, not source 3MF units",()=>{
   assert.match(stl,/vertex 1 0 0/);
   assert.match(stl,/vertex 0 1 0/);
 });
+
+// --- Uniformly inverted (inside-out) closed hulls ---------------------------
+import {reverseWinding} from "../src/hydro/fixtures.js";
+import {parseSTL} from "../src/model/parsers/stl.js";
+
+test("an inside-out closed hull is repaired by reversing every triangle, vertices untouched",()=>{
+  const source=reverseWinding(boxMesh({L:10,B:3,H:2})),original=structuredClone(source);
+  const before=validateHydroGeometry(source);
+  assert.equal(before.passed,false);
+  assert.match(before.errors[0],/Outward signed volume/);
+  assert.ok(before.metrics.signedVolume<0);
+  const preview=previewComponentMeshRepair(source);
+  assert.equal(preview.status,"repaired",JSON.stringify(preview.reason));
+  assert.equal(preview.method,"reverse-orientation");
+  assert.equal(preview.reversedTriangles,12);
+  assert.equal(preview.flips,0);
+  assert.equal(preview.after.passed,true);
+  assert.ok(Math.abs(preview.after.metrics.signedVolume-60)<1e-9);
+  assert.ok(preview.relativeDelta<1e-12);
+  assert.deepEqual(preview.geometry.positions,source.positions,"No vertex may move");
+  assert.deepEqual(source,original,"Source must remain untouched");
+});
+
+test("model-level preview keeps the original and tags the repair method",()=>{
+  const original=doc(reverseWinding(boxMesh({L:10,B:3,H:2})));
+  const preview=previewHydroMeshRepair(original,{selectedIds:["hull"]});
+  assert.equal(preview.status,"ready");
+  assert.equal(validateHydroModel(preview.model).passed,true);
+  assert.equal(validateHydroModel(original).passed,false);
+  assert.deepEqual(preview.model.components[0].metadata.meshRepair,{method:"reverse-orientation",reversedTriangles:12});
+  assert.equal(preview.model.components[0].metadata.hydro,true);
+});
+
+test("a hull whose world transform mirrors it is also fixed by reversing orientation",()=>{
+  const mirrored=[-1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+  const geometry=boxMesh({L:10,B:3,H:2});
+  assert.equal(validateHydroGeometry(geometry,{transform:mirrored}).passed,false);
+  const preview=previewComponentMeshRepair(geometry,{transform:mirrored});
+  assert.equal(preview.status,"repaired");
+  assert.equal(preview.method,"reverse-orientation");
+});
+
+test("reversal is refused when anything besides uniform inversion is wrong",()=>{
+  const open=reverseWinding(boxMesh({L:10,B:3,H:2}));
+  open.indices=open.indices.slice(0,-3);
+  assert.equal(previewComponentMeshRepair(open).status,"unsupported");
+  // One flipped face on an otherwise outward hull is a winding conflict, not a global flip.
+  const mixed=boxMesh({L:10,B:3,H:2});
+  [mixed.indices[0],mixed.indices[1]]=[mixed.indices[1],mixed.indices[0]];
+  const result=previewComponentMeshRepair(mixed);
+  assert.equal(result.status,"unsupported");
+  assert.notEqual(result.method,"reverse-orientation");
+  // Flat sheet has no volume to restore.
+  assert.equal(previewComponentMeshRepair({positions:[0,0,0,1,0,0,0,1,0],indices:[0,2,1]}).status,"unsupported");
+});
+
+test("STL exported after an orientation repair re-imports as a valid outward hull",()=>{
+  const preview=previewHydroMeshRepair(doc(reverseWinding(boxMesh({L:10,B:3,H:2}))),{selectedIds:["hull"]});
+  const text=repairedHullSTL(preview.model,["hull"]);
+  const reimported=parseSTL(new TextEncoder().encode(text).buffer,"repaired.stl");
+  const result=validateHydroGeometry(reimported.components[0].geometry);
+  assert.equal(result.passed,true,result.errors.join("; "));
+  assert.ok(Math.abs(result.metrics.signedVolume-60)<1e-6);
+});

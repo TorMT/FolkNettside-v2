@@ -1,8 +1,10 @@
 import {validateHydroGeometry,validateHydroModel} from "./hull-surface-validator.js";
 import {inspectMeshIntersections} from "./mesh-intersections.js";
 
-// Conservative, reversible repair: flip only diagonals of adjacent triangles.
-// Never move vertices, alter source transforms, or relax the hydro safety gate.
+// Conservative, reversible repairs that never move vertices, alter source
+// transforms, or relax the hydro safety gate:
+//  1. flip only diagonals of adjacent triangles (local self-intersections), or
+//  2. reverse every triangle when a closed surface is uniformly inside-out.
 const diff=(a,b)=>a.map((v,i)=>v-b[i]);
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
 const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0);
@@ -73,11 +75,42 @@ function goodFlip(vertices,indices,faces,replacement){
 const scan=(vertices,indices,ids,maxHits=64)=>inspectMeshIntersections(
   vertices,indices,ids,{maxHits,maxCandidatePairs:1500000});
 
+/** True when the *only* defect is that a closed, consistently oriented surface
+ * has every normal pointing inward (negative signed volume). This is the most
+ * common bad STL export (mirrored axis or flipped "invert normals" option) and
+ * is fixed by reversing all triangles. No vertex moves, so volume is exact. */
+function isUniformlyInverted(validation,maxTriangles){
+  const m=validation.metrics;
+  return Boolean(m)&&validation.errors.length===1&&
+    validation.errors[0].startsWith("Outward signed volume")&&
+    m.signedVolume<0&&m.triangleCount>0&&m.triangleCount<=maxTriangles&&
+    !m.boundaryEdges&&!m.nonManifoldEdges&&!m.windingConflicts&&!m.degenerateTriangles;
+}
+
+function previewOrientationReversal(geometry,before,{transform,scale,tolerance}){
+  const source=geometry.indices?.length?Array.from(geometry.indices):
+    Array.from({length:geometry.positions.length/3},(_,i)=>i);
+  const indices=new Array(source.length);
+  for(let i=0;i<source.length;i+=3){
+    indices[i]=source[i];indices[i+1]=source[i+2];indices[i+2]=source[i+1];
+  }
+  const updated={...geometry,indices};
+  const after=validateHydroGeometry(updated,{transform,scale,tolerance});
+  if(!after.passed)return {status:"unsupported",before,after,
+    reason:"Reversing every triangle did not give a valid closed hull: "+after.errors[0]};
+  const volume=Math.abs(before.metrics.signedVolume);
+  return {status:"repaired",method:"reverse-orientation",geometry:updated,flips:0,
+    reversedTriangles:before.metrics.triangleCount,before,after,
+    relativeDelta:Math.abs(after.metrics.signedVolume-volume)/volume};
+}
+
 /** Return a preview only if a final, fully validated repair is possible. */
 export function previewComponentMeshRepair(geometry,{transform=null,scale=1,tolerance=1e-7,
   maxFlips=16,maxCandidatesPerStep=90,maxTriangles=90000,maxVolumeRelativeChange=1e-5}={}){
   const before=validateHydroGeometry(geometry,{transform,scale,tolerance});
   if(before.passed)return {status:"already-valid",geometry,flips:0,before,after:before};
+  if(isUniformlyInverted(before,maxTriangles))
+    return previewOrientationReversal(geometry,before,{transform,scale,tolerance});
   if(!before.metrics||before.metrics.triangleCount>maxTriangles||
     before.metrics.boundaryEdges||before.metrics.nonManifoldEdges||
     before.metrics.windingConflicts||before.metrics.degenerateTriangles||
@@ -150,7 +183,9 @@ export function previewHydroMeshRepair(modelDocument,{selectedIds=[],maxFlips=16
     const {geometry:_ignored,...summary}=attempt;
     changes.push({id:component.id,name:component.name,...summary});
     return attempt.status==="repaired"?{...component,geometry:attempt.geometry,
-      metadata:{...component.metadata,meshRepair:{method:"local-edge-flips",flips:attempt.flips}}}:component;
+      metadata:{...component.metadata,meshRepair:attempt.method==="reverse-orientation"
+        ?{method:"reverse-orientation",reversedTriangles:attempt.reversedTriangles}
+        :{method:"local-edge-flips",flips:attempt.flips}}}:component;
   });
   if(changes.some(c=>c.status==="unsupported")||!changes.some(c=>c.status==="repaired"))
     return {status:"unsupported",reason:changes.find(c=>c.status==="unsupported")?.reason||

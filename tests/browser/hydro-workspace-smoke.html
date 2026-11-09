@@ -51,7 +51,7 @@ try{
   assert(!document.getElementById("hydro-gz").disabled,"GZ must be available when KG is set");
   assert(!document.getElementById("hydro-export-table").disabled,"hydro CSV export must be available");
   assert(!document.getElementById("hydro-export-gz").disabled,"GZ CSV export must be available");
-  assert(document.querySelectorAll(".hydro-particular-curve svg").length===4,"four hydrostatic key curves expected");
+  assert(document.querySelectorAll(".hydro-particular-curve svg").length===5,"five hydrostatic key curves expected (displacement, waterplane, KB, GM transverse, GM longitudinal)");
   assert(document.querySelector(".gz-curve svg"),"GZ curve missing");
   assert(document.querySelector(".hydro-table tbody tr"),"hydrostatic table missing");
   assert(rendered.particulars.gmTransverse!==null,"GM transverse missing");

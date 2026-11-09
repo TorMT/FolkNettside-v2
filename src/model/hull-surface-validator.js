@@ -1,5 +1,6 @@
 import {createHydroInclude} from "../hydro/hydro-selection.js";
 import {inspectMeshIntersections,inspectDisconnectedMeshShells} from "./mesh-intersections.js";
+import {modelExtentMeters,unitPlausibilityAdvisory} from "./model-extent.js";
 
 const IDENTITY=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
 const finite=n=>typeof n==="number"&&Number.isFinite(n);
@@ -136,6 +137,13 @@ export function validateHydroModel(modelDocument,{include=createHydroInclude(mod
     }
   }
   warnings.push("Geometry preflight is not vessel certification or permission to enable an unvalidated source model.");
-  const output={passed:errors.length===0,components,errors,warnings,requiresIndependentReview:true};
+  // Advisories never block: a legitimate hull can be tiny or huge. They only
+  // point out the most common silent mistake, an STL read in the wrong unit.
+  const advisories=[];
+  const unitNote=unitPlausibilityAdvisory(
+    modelExtentMeters(modelDocument,{include:component=>Boolean(component?.geometry)&&include(component)}),
+    modelDocument?.unit||"meter");
+  if(unitNote)advisories.push(unitNote);
+  const output={passed:errors.length===0,components,errors,warnings,advisories,requiresIndependentReview:true};
   return output;
 }

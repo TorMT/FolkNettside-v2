@@ -2148,12 +2148,14 @@ async function engineeringPage(){
     <button type="button" class="btn" id="engineering-confirm-import" ${model.analysisCapabilities.hydro.enabled?"disabled":""}>${model.analysisCapabilities.hydro.enabled?"Axes + units acknowledged":"Confirm units and up-axis"}</button>
     <div class="hydro-import-repair">
       <strong>Local mesh repair (optional)</strong>
-      <p class="muted">Test reversible triangle-edge flips on selected hull surfaces. Original vertices and 3MF assembly stay unchanged. Hydro remains blocked unless the entire repaired surface passes validation.</p>
+      <p class="muted">Test reversible repairs on selected hull surfaces: triangle-edge flips for local collisions, or reversing all triangles when a closed hull is inside-out. Original vertices and 3MF assembly stay unchanged. Hydro remains blocked unless the entire repaired surface passes validation.</p>
       <button type="button" class="btn" id="engineering-preview-mesh-repair">Preview mesh repair</button>
       ${importedHydroRepairPreview?.status==="ready"?`<div class="hydro-repair-preview">
         <strong>Repair preview · full preflight passed</strong>
         ${importedHydroRepairPreview.changes.filter(change=>change.status==="repaired").map(change=>
-          `<p>${escCourse(change.name)}: ${change.before.metrics.selfIntersections} → ${change.after.metrics.selfIntersections} detected triangle collisions; ${change.flips} edge flips; enclosed-volume change ${(change.relativeDelta*100).toFixed(6)}%</p>`).join("")}
+          change.method==="reverse-orientation"
+            ?`<p>${escCourse(change.name)}: all ${change.reversedTriangles} triangles were oriented inward; their orientation is reversed so normals point outward. No vertex moves; enclosed-volume change ${(change.relativeDelta*100).toFixed(6)}%</p>`
+            :`<p>${escCourse(change.name)}: ${change.before.metrics.selfIntersections} → ${change.after.metrics.selfIntersections} detected triangle collisions; ${change.flips} edge flips; enclosed-volume change ${(change.relativeDelta*100).toFixed(6)}%</p>`).join("")}
         <button type="button" class="btn primary" id="engineering-apply-mesh-repair">Apply repaired geometry</button>
         <button type="button" class="btn" id="engineering-dismiss-mesh-repair">Discard preview</button>
       </div>`:""}

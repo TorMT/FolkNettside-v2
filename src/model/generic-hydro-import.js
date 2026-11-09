@@ -60,7 +60,8 @@ export function splitSurfaceBodies(geometry,{tolerance=null,maxTriangles=350000}
 const AXIS_TRANSFORMS={
   "z-up":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
   "y-up":[1,0,0,0,0,0,1,0,0,-1,0,0,0,0,0,1],
-  "x-up":[0,0,1,0,0,1,0,0,-1,0,0,0,0,1]
+  // Column-major rotation taking source +X to world +Z (det = +1).
+  "x-up":[0,0,1,0,0,1,0,0,-1,0,0,0,0,0,0,1]
 };
 function multiplyTransform(a,b){
   const m=new Array(16).fill(0);

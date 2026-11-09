@@ -117,8 +117,11 @@ export async function renderFusionPackage(container,buffer,name){
      if(disposed){rendered?.cleanup?.();return}
      modelCleanup=rendered?.cleanup||(()=>{});
      status.textContent="Interactive 3D · "+model.components.filter(part=>part.geometry).length+
-       " visible mesh component(s) from "+model.source.archiveEntry+
-       " ("+model.source.embeddedFormat+"). This is the embedded neutral geometry, not necessarily the entire Fusion assembly.";
+       " visible mesh component(s) from "+(model.source.archiveEntries?
+         model.source.archiveEntries.length+" "+model.source.embeddedFormat+" bodies"+
+         (model.source.omittedBodies?" (+"+model.source.omittedBodies+" not loaded)":""):
+         model.source.archiveEntry+" ("+model.source.embeddedFormat+")")+
+       ". This is the embedded neutral geometry, not necessarily the entire Fusion assembly.";
      three.scrollIntoView?.({block:"nearest"});
    }catch(error){
      if(disposed)return;

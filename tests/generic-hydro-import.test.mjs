@@ -118,3 +118,39 @@ test("two spatially disjoint imported bodies can both contribute displacement",(
  assert.equal(validateHydroModel(selected).passed,true);
  assert.ok(Math.abs(executeHydroRequest(selected,"analyze",{waterline:1}).volume-24)<1e-7);
 });
+
+test("X-up source files import with a complete rigid rotation and the same hydrostatics",()=>{
+ const base=boxMesh({L:10,B:3,H:2});
+ // Source (sx,sy,sz) maps to world (-sz,sy,sx), so export canonical (x,y,z) as (z,y,-x).
+ const xUp=base.positions.slice();
+ for(let i=0;i<xUp.length;i+=3){
+   const x=base.positions[i],z=base.positions[i+2];
+   xUp[i]=z;xUp[i+2]=-x;
+ }
+ const source=createModelDocument({name:"source-x-up",format:"STL",components:[
+   {id:"body",geometry:{positions:xUp,indices:base.indices}}
+ ]});
+ const prepared=prepareGenericHydroImport(source,{upAxis:"x-up"});
+ const matrix=prepared.components[0].transform;
+ assert.equal(matrix.length,16);
+ assert.ok(matrix.every(Number.isFinite),"every matrix element must be a finite number");
+ assert.deepEqual(matrix.slice(12),[0,0,0,1]);
+ const selected=withHydroSurfaceSelection(prepared,[prepared.components[0].id]);
+ const preflight=validateHydroModel(selected);
+ assert.equal(preflight.passed,true,preflight.errors.join("; "));
+ assert.ok(Math.abs(executeHydroRequest(selected,"analyze",{waterline:1}).volume-30)<1e-7);
+});
+
+test("every supported source axis produces a proper rotation (finite, determinant +1)",()=>{
+ const base=boxMesh({L:4,B:2,H:1});
+ const source=createModelDocument({name:"axes",format:"STL",components:[{id:"b",geometry:base}]});
+ for(const upAxis of ["z-up","y-up","x-up"]){
+   const [component]=prepareGenericHydroImport(source,{upAxis}).components;
+   const m=component.transform||[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+   assert.equal(m.length,16,upAxis);
+   assert.ok(m.every(Number.isFinite),upAxis);
+   const [a,b,c,,d,e,f,,g,h,i]=m;
+   const det=a*(e*i-f*h)-d*(b*i-c*h)+g*(b*f-c*e);
+   assert.ok(Math.abs(det-1)<1e-12,upAxis+" determinant "+det);
+ }
+});
