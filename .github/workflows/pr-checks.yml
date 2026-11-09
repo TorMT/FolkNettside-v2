@@ -17,6 +17,19 @@ jobs:
         run: find src tests -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
       - name: Run regression tests
         run: npm test
+      - name: Public photo carousel four-across browser smoke (320 390 768 1440)
+        run: |
+          command -v chromedriver
+          python3 -m http.server 4261 --bind 127.0.0.1 >/tmp/photo-row-http.log 2>&1 &
+          server_pid=$!
+          chromedriver --port=9515 --allowed-ips=127.0.0.1 >/tmp/photo-row-driver.log 2>&1 &
+          driver_pid=$!
+          trap 'kill "$server_pid" "$driver_pid" 2>/dev/null || true' EXIT
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4261/tests/browser/photo-feed-four-up-smoke.html 35 320,720
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4261/tests/browser/photo-feed-four-up-smoke.html 35 390,844
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4261/tests/browser/photo-feed-four-up-smoke.html 35 768,900
+          python3 scripts/test_hydro_worker_browser.py http://127.0.0.1:4261/tests/browser/photo-feed-four-up-smoke.html 35 1440,900
+
       - name: PHP quiz leaderboard real HTTP and security regression
         run: |
           php --version
