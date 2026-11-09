@@ -1,4 +1,4 @@
-import {filterPhotoAlbums,publishedAlbums} from "./photo-feed-model.js";
+import {filterPhotoAlbums,publishedAlbums,photoCarouselWindow} from "./photo-feed-model.js";
 
 const MANIFEST="./data/diverse/photo-feed.json";
 const SOURCE="https://drive.google.com/drive/folders/1lBkBhTHl7CkVoAaUgWn2RAtKZXqRre3k";
@@ -7,7 +7,7 @@ const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;
 export function photoFeedPageHTML(){
   return '<main class="diverse-page photo-page">'+
     '<header class="diverse-hero photo-hero"><div><span class="project-kicker">Diverse / Galleri</span><h1>Bilder</h1>'+
-    '<p>Fotofeed med ett innlegg per Google Drive-mappe. Bla mellom bildene i hver karusell.</p></div>'+
+    '<p>Fotofeed med ett innlegg per Google Drive-mappe. Se fire bilder ved siden av hverandre, og bla videre når albumet har flere bilder.</p></div>'+
     '<div class="legacy-diverse-actions"><button class="btn" type="button" data-photo-back>Til Diverse</button>'+
     '<a class="btn" href="'+SOURCE+'" target="_blank" rel="noopener noreferrer">Åpne Bilder i Drive ↗</a></div></header>'+
     '<section class="photo-shell" aria-label="Fotofeed"><div class="photo-toolbar">'+
@@ -30,7 +30,8 @@ export function mountPhotoFeed(root,{onBack=()=>{}}={}){
   const dialog=page.querySelector("#photo-lightbox"),modal=page.querySelector("#photo-lightbox-body");
   const controller=new AbortController(),signal=controller.signal;
   let albums=[],disposed=false,selected=null,loadController=null;
-  const positions=new Map();
+  const positions=new Map(),modalPositions=new Map();
+  let ignoreOpenUntil=0;
 
   function refreshCategory(){
     const prev=category.value;
@@ -38,26 +39,28 @@ export function mountPhotoFeed(root,{onBack=()=>{}}={}){
     category.replaceChildren(new Option("Alle mapper",""),...categories.map(name=>new Option(name,name)));
     category.value=categories.includes(prev)?prev:"";
   }
-  function figure(album,i){
-    const photo=album.photos[i];
+  function figure(photo){
     return '<img loading="lazy" decoding="async" src="'+esc(photo.src)+'" alt="'+esc(photo.name)+'" draggable="false">';
   }
   function albumHTML(album){
-    const i=Math.min(positions.get(album.id)||0,album.photos.length-1);
-    positions.set(album.id,i);
-    const photo=album.photos[i],many=album.photos.length>1;
+    const window=photoCarouselWindow(album.photos.length,positions.get(album.id)||0);
+    positions.set(album.id,window.page);
+    const visible=album.photos.slice(window.start,window.end),many=window.pages>1;
+    const folder="https://drive.google.com/drive/folders/"+encodeURIComponent(album.id);
     return '<article class="photo-post" data-photo-album="'+esc(album.id)+'" tabindex="0" aria-label="Album '+esc(album.title)+'">'+
       '<div class="photo-post-head"><div class="photo-post-avatar" aria-hidden="true">▧</div>'+
       '<div class="photo-post-heading"><h2>'+esc(album.title)+'</h2><span>'+album.photos.length+' '+(album.photos.length===1?'bilde':'bilder')+' · Google Drive</span></div>'+
-      '<a href="'+esc(SOURCE)+'" target="_blank" rel="noopener noreferrer" class="photo-post-source">Drive ↗</a></div>'+
-      '<div class="photo-stage"><button type="button" class="photo-open" data-photo-open aria-label="Vis '+esc(photo.name)+' i fullskjerm">'+figure(album,i)+'</button>'+
-      (many?'<button class="photo-arrow previous" type="button" data-photo-step="-1" aria-label="Forrige bilde" '+(i===0?'disabled':'')+'>‹</button>'+
-      '<button class="photo-arrow next" type="button" data-photo-step="1" aria-label="Neste bilde" '+(i===album.photos.length-1?'disabled':'')+'>›</button>':'')+
-      '<span class="photo-counter" aria-live="polite">'+(i+1)+' / '+album.photos.length+'</span></div>'+
-      '<div class="photo-post-footer"><div class="photo-dots" aria-label="Velg bilde">'+
-      (many?album.photos.map((p,k)=>'<button class="photo-dot '+(k===i?'active':'')+'" type="button" data-photo-index="'+k+'" aria-label="Bilde '+(k+1)+'" aria-current="'+(k===i)+'"></button>').join(''):'')+
-      '</div><strong>'+esc(album.title)+'</strong><span class="photo-file-name">'+esc(photo.name)+'</span>'+
-      '<a class="photo-original" href="'+esc(photo.original)+'" target="_blank" rel="noopener noreferrer">Original i Drive ↗</a></div></article>';
+      '<a href="'+esc(folder)+'" target="_blank" rel="noopener noreferrer" class="photo-post-source">Drive ↗</a></div>'+
+      '<div class="photo-stage"><div class="photo-strip" style="--photo-cols:'+visible.length+'" role="group" aria-label="Bilder '+(window.start+1)+' til '+window.end+'">'+
+      visible.map((photo,offset)=>'<button type="button" class="photo-open" data-photo-open="'+(window.start+offset)+'" aria-label="Vis '+esc(photo.name)+' i fullskjerm">'+figure(photo)+'</button>').join('')+'</div>'+
+      (many?'<button class="photo-arrow previous" type="button" data-photo-step="-1" aria-label="Forrige fire bilder" '+(window.page===0?'disabled':'')+'>‹</button>'+
+      '<button class="photo-arrow next" type="button" data-photo-step="1" aria-label="Neste fire bilder" '+(window.page===window.pages-1?'disabled':'')+'>›</button>':'')+
+      '<span class="photo-counter" aria-live="polite">'+(window.start+1)+'–'+window.end+' / '+album.photos.length+'</span></div>'+
+      '<div class="photo-post-footer"><div class="photo-dots" aria-label="Velg bilderekke">'+
+      (many?Array.from({length:window.pages},(_,k)=>'<button class="photo-dot '+(k===window.page?'active':'')+'" type="button" data-photo-index="'+k+'" aria-label="Bilderekke '+(k+1)+' av '+window.pages+'" aria-current="'+(k===window.page)+'"></button>').join(''):'')+
+      '</div><strong>'+esc(album.title)+'</strong>'+
+      '<span class="photo-file-name">Trykk på et bilde for å se det i fullskjerm.</span>'+
+      '<a class="photo-original" href="'+esc(folder)+'" target="_blank" rel="noopener noreferrer">Åpne album i Drive ↗</a></div></article>';
   }
   function render(){
     if(disposed)return;
@@ -72,17 +75,24 @@ export function mountPhotoFeed(root,{onBack=()=>{}}={}){
     if(existing)existing.outerHTML=albumHTML(album);
   }
   function move(album,step){
-    const index=positions.get(album.id)||0;
-    const next=Math.max(0,Math.min(album.photos.length-1,index+step));
-    if(next===index)return;
+    const window=photoCarouselWindow(album.photos.length,positions.get(album.id)||0);
+    const next=Math.max(0,Math.min(window.pages-1,window.page+step));
+    if(next===window.page)return;
     positions.set(album.id,next);
     updateAlbumCard(album);
-    if(selected===album.id)showModal();
+  }
+  function moveModal(album,step){
+    const index=modalPositions.get(album.id)||0;
+    const next=Math.max(0,Math.min(album.photos.length-1,index+step));
+    if(next===index)return;
+    modalPositions.set(album.id,next);
+    showModal();
   }
   function showModal(){
     const album=findAlbum(selected);
     if(!album)return;
-    const index=positions.get(album.id)||0,photo=album.photos[index];
+    const index=Math.max(0,Math.min(album.photos.length-1,modalPositions.get(album.id)||0));
+    const photo=album.photos[index];
     modal.innerHTML='<div class="photo-modal-head"><strong>'+esc(album.title)+'</strong>'+
       '<button type="button" class="photo-modal-close" data-photo-close aria-label="Lukk">×</button></div>'+
       '<div class="photo-modal-image"><img src="'+esc(photo.src)+'" alt="'+esc(photo.name)+'">'+
@@ -120,7 +130,7 @@ export function mountPhotoFeed(root,{onBack=()=>{}}={}){
     if(!album)return;
     if(el.hasAttribute("data-photo-step"))move(album,Number(el.dataset.photoStep));
     if(el.hasAttribute("data-photo-index")){positions.set(album.id,Number(el.dataset.photoIndex));updateAlbumCard(album);}
-    if(el.hasAttribute("data-photo-open")){selected=album.id;showModal();}
+    if(el.hasAttribute("data-photo-open")&&Date.now()>ignoreOpenUntil){selected=album.id;modalPositions.set(album.id,Number(el.dataset.photoOpen));showModal();}
   },{signal});
   feed.addEventListener("keydown",event=>{
     if(!["ArrowLeft","ArrowRight"].includes(event.key)||event.target.closest("a,input"))return;
@@ -139,19 +149,19 @@ export function mountPhotoFeed(root,{onBack=()=>{}}={}){
     const dx=event.changedTouches[0].clientX-begin.x,dy=event.changedTouches[0].clientY-begin.y;
     if(Math.abs(dx)>48&&Math.abs(dx)>Math.abs(dy)*1.3){
       const album=findAlbum(post.dataset.photoAlbum);
-      if(album)move(album,dx<0?1:-1);
+      if(album){ignoreOpenUntil=Date.now()+450;move(album,dx<0?1:-1);}
     }
   },{passive:true,signal});
   modal.addEventListener("click",event=>{
     if(event.target===dialog||event.target.closest("[data-photo-close]")){dialog.close();return;}
     const button=event.target.closest("[data-photo-modal-step]");
-    if(button&&selected){const album=findAlbum(selected);if(album)move(album,Number(button.dataset.photoModalStep));}
+    if(button&&selected){const album=findAlbum(selected);if(album)moveModal(album,Number(button.dataset.photoModalStep));}
   },{signal});
   dialog.addEventListener("close",()=>{selected=null;},{signal});
   dialog.addEventListener("keydown",event=>{
     if(!selected)return;
     const album=findAlbum(selected);
-    if(event.key==="ArrowLeft"||event.key==="ArrowRight"){event.preventDefault();if(album)move(album,event.key==="ArrowLeft"?-1:1);}
+    if(event.key==="ArrowLeft"||event.key==="ArrowRight"){event.preventDefault();if(album)moveModal(album,event.key==="ArrowLeft"?-1:1);}
   },{signal});
   load();
   return {cleanup(){disposed=true;loadController?.abort();controller.abort();if(dialog.open)dialog.close();}};

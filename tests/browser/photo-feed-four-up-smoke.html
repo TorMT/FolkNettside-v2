@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="no" data-mode="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Fire bilder på én linje – nettlesertest</title>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../../assets/diverse.css">
+  <link rel="stylesheet" href="../../assets/photo-feed.css">
+</head>
+<body data-status="running">
+  <div id="app"></div>
+  <pre id="result">running</pre>
+  <script type="module">
+    import {photoFeedPageHTML,mountPhotoFeed} from "../../src/diverse/photo-feed-page.js";
+    const fixture={schema:1,albums:[{
+      id:"1ZAOVPYckueXZiHhjbjjYz873rJr2p5RN",title:"DykkeTur08112026K2",date:"2026-11-09T16:36:24Z",
+      images:Array.from({length:6},(_,i)=>({id:"galleryTestPhotoImage"+String(i).padStart(3,"0"),name:"Foto "+(i+1)+".jpg"}))
+    }]};
+    const originalFetch=window.fetch;
+    window.fetch=(url,options)=>String(url).includes("photo-feed.json")
+      ?Promise.resolve({ok:true,json:async()=>fixture})
+      :originalFetch(url,options);
+    const assert=(ok,message)=>{if(!ok)throw new Error(message)};
+    const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+    const until=async fn=>{for(let i=0;i<80;i++){if(fn())return;await delay(50)}throw Error("Timed out waiting for gallery")};
+    const result=document.querySelector("#result");
+    const buttons=()=>[...document.querySelectorAll(".photo-strip .photo-open")];
+    function checkRow(expectedStart){
+      const row=document.querySelector(".photo-strip");
+      const images=buttons();
+      assert(images.length===4,"Expected exactly four visible image tiles, got "+images.length);
+      assert(getComputedStyle(row).gridTemplateColumns.split(" ").length===4,"CSS grid does not have four columns");
+      const rects=images.map(node=>node.getBoundingClientRect());
+      assert(rects.every(r=>r.width>5&&Math.abs(r.top-rects[0].top)<2),"Four images must be on one horizontal line");
+      assert(rects.slice(1).every((r,i)=>r.left>=rects[i].right),"Four images overlap horizontally");
+      assert(images[0].dataset.photoOpen===String(expectedStart),"Unexpected first image: "+images[0].dataset.photoOpen);
+      const vw=document.documentElement.clientWidth;
+      const sw=Math.max(document.documentElement.scrollWidth,document.body.scrollWidth);
+      assert(sw<=vw+3,"Horizontal page overflow at "+vw+"px: "+sw);
+    }
+    let handle;
+    try{
+      document.querySelector("#app").innerHTML=photoFeedPageHTML();
+      handle=mountPhotoFeed(document.querySelector("#app"));
+      await until(()=>buttons().length===4);
+      checkRow(0);
+      assert(document.querySelector(".photo-counter").textContent==="1–4 / 6","Counter should show first four");
+      document.querySelector('[data-photo-step="1"]').click();
+      checkRow(2);
+      assert(document.querySelector(".photo-counter").textContent==="3–6 / 6","Counter should show last four");
+      document.querySelector('[data-photo-step="-1"]').click();
+      checkRow(0);
+      buttons()[2].click();
+      const lightbox=document.querySelector("#photo-lightbox");
+      assert(lightbox.open,"Selected photo did not open lightbox");
+      assert(lightbox.querySelector(".photo-modal-footer").textContent.includes("3/6"),"Opened wrong photo");
+      lightbox.querySelector('[data-photo-modal-step="1"]').click();
+      assert(lightbox.querySelector(".photo-modal-footer").textContent.includes("4/6"),"Modal next photo failed");
+      lightbox.querySelector("[data-photo-close]").click();
+      assert(!lightbox.open,"Modal did not close");
+      document.querySelector("#photo-search").value="not found";
+      document.querySelector("#photo-search").dispatchEvent(new Event("input",{bubbles:true}));
+      assert(buttons().length===0,"Search filter not applied");
+      document.querySelector("#photo-search").value="";
+      document.querySelector("#photo-search").dispatchEvent(new Event("input",{bubbles:true}));
+      checkRow(0);
+      result.textContent="PASS: four images in one row at "+innerWidth+"px; paging, modal and filters work";
+      document.body.dataset.status="pass";
+    }catch(error){
+      result.textContent=String(error.stack||error);
+      document.body.dataset.status="fail";
+    }finally{
+      handle?.cleanup();
+      window.fetch=originalFetch;
+    }
+  </script>
+</body>
+</html>

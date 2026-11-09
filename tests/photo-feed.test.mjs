@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {albumsFromFolders,filterPhotoAlbums,photoFromDrive,publishedAlbums} from "../src/diverse/photo-feed-model.js";
+import {albumsFromFolders,filterPhotoAlbums,photoFromDrive,publishedAlbums,photoCarouselWindow} from "../src/diverse/photo-feed-model.js";
 
 const A="1ZAOVPYckueXZiHhjbjjYz873rJr2p5RN";
 const B="1r_K_GWX2r-Kx6ZPfisAWzWCqIgWcPBzZ";
@@ -45,4 +45,17 @@ test("search matches album folder names and photo filename; category filter",()=
   assert.equal(filterPhotoAlbums(out,{query:"Sjø"}).length,1);
   assert.equal(filterPhotoAlbums(out,{category:"Sommer"})[0].title,"Sommer");
   assert.deepEqual(filterPhotoAlbums(out,{sort:"alpha"}).map(x=>x.title),["DykkeTur","Sommer"]);
+});
+
+
+test("four-up carousel keeps every visible row on one line of four images",()=>{
+  assert.deepEqual(photoCarouselWindow(4,0),{page:0,pages:1,start:0,end:4});
+  assert.deepEqual(photoCarouselWindow(5,0),{page:0,pages:2,start:0,end:4});
+  assert.deepEqual(photoCarouselWindow(5,1),{page:1,pages:2,start:1,end:5});
+  assert.deepEqual(photoCarouselWindow(10,1),{page:1,pages:3,start:4,end:8});
+  assert.deepEqual(photoCarouselWindow(10,2),{page:2,pages:3,start:6,end:10});
+  assert.deepEqual(photoCarouselWindow(10,10),{page:2,pages:3,start:6,end:10});
+  assert.deepEqual(photoCarouselWindow(10,-9),{page:0,pages:3,start:0,end:4});
+  assert.deepEqual(photoCarouselWindow(2,0),{page:0,pages:1,start:0,end:2});
+  assert.deepEqual(photoCarouselWindow(0,0),{page:0,pages:1,start:0,end:0});
 });

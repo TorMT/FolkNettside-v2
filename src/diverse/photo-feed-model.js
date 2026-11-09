@@ -53,3 +53,12 @@ export function filterPhotoAlbums(albums,{category="",query="",sort="new"}={}){
   return [...result].sort((a,b)=>sort==="alpha"?a.title.localeCompare(b.title,"nb"):
     b.modifiedTime.localeCompare(a.modifiedTime)||a.title.localeCompare(b.title,"nb"));
 }
+
+/** Four simultaneous images per carousel view, including the final view. */
+export function photoCarouselWindow(photoCount,page=0){
+  const count=Number.isFinite(photoCount)?Math.max(0,Math.floor(photoCount)):0;
+  const pages=Math.max(1,Math.ceil(count/4));
+  const safePage=Number.isFinite(page)?Math.max(0,Math.min(pages-1,Math.floor(page))):0;
+  const start=Math.min(safePage*4,Math.max(0,count-4));
+  return {page:safePage,pages,start,end:Math.min(count,start+4)};
+}
