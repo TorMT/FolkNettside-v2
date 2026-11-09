@@ -1,5 +1,17 @@
 export const DIVERSE_MODULES=[
   {
+    id:"bilder",
+    title:"Bilder",
+    short:"IMG",
+    route:"/diverse/bilder",
+    status:"native",
+    access:"public",
+    category:"Foto",
+    summary:"Offentlig bildefeed fra Google Drive. Hver undermappe blir et album med eget navn og bildene vises i en karusell.",
+    storage:"public-google-drive",
+    sync:"scheduled-index"
+  },
+  {
     id:"diving",
     title:"Dykkekart",
     short:"DIVE",
