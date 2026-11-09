@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "rootFolderId": "1lBkBhTHl7CkVoAaUgWn2RAtKZXqRre3k",
-  "generatedAt": "2026-11-09T17:02:27.866Z",
+  "generatedAt": "2026-11-09T20:46:30.826Z",
   "albums": [
     {
       "id": "1t1h4xaTQ_Bx4_oC-xHWkKwdwAkh9pRka",
@@ -46,6 +46,29 @@
         {
           "id": "1rCXvLY1jAGx-ulCBo960MqZ7_joRjRBg",
           "name": "Panorama_v2_04.jpg"
+        }
+      ]
+    },
+    {
+      "id": "1zFMkK1tJQZtFfQuTn6a2lNDeUO8kub2i",
+      "title": "DykkeTur08112026K3",
+      "date": "2026-11-09T16:34:40.183Z",
+      "images": [
+        {
+          "id": "1Qa53QwKw5wnf8zIpumTPkNe_7_E0qa8h",
+          "name": "Panorama_01.jpg"
+        },
+        {
+          "id": "1H-_BBNGmy61-2U8sv8bzfjKqeL_RoK0U",
+          "name": "Panorama_02.jpg"
+        },
+        {
+          "id": "1uZhwWjMO_i9PJQRD4HGE5GSYaIq6KDX0",
+          "name": "Panorama_03.jpg"
+        },
+        {
+          "id": "1KNtH3gUM6T1wWeoMq6lnupoeXlPyqnrw",
+          "name": "Panorama_04.jpg"
         }
       ]
     }
