@@ -1,8 +1,8 @@
-import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {gzMetrics} from "../hydro/gz.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {estimateSmallAngleRollPeriod} from "../hydro/roll-period.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {hydroForcesHTML} from "./hydro-force-diagram.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
+import {hydrostaticCurveRows,hydrostaticParticulars} from "../hydro/stability.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {gzMetrics} from "../hydro/gz.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {estimateSmallAngleRollPeriod} from "../hydro/roll-period.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {auditHydroCurve,auditSmallAngleGz} from "../hydro/numerical-audit.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {hydroForcesHTML} from "./hydro-force-diagram.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -23,6 +23,7 @@ export function hydroPreflightHTML(validation){
     <p>${validation.passed?"Selected triangles satisfy basic closure and orientation checks. This is not validation of real hull provenance, datum, intersections or loading condition.":"No hydrostatic displacement, GM, GZ or trim/heel results are calculated until the selected hull geometry is repaired."}</p>
     ${entries?`<details ${validation.passed?"":"open"}><summary>Geometry diagnostics (${validation.components.length} component(s))</summary><ul>${entries}</ul></details>`:""}
     ${validation.errors.length&&!entries?`<ul>${validation.errors.map(error=>`<li>${esc(error)}</li>`).join("")}</ul>`:""}
+    ${(validation.advisories||[]).map(note=>`<p class="hydro-preflight-advisory" role="note"><strong>Check units:</strong> ${esc(note)}</p>`).join("")}
   </section>`;
 }
 

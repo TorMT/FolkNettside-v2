@@ -1,4 +1,4 @@
-import {UNIT_SCALE_TO_METERS} from "./model-document.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
+import {UNIT_SCALE_TO_METERS} from "./model-document.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
 
 // Split a triangle-soup STL into edge-connected surface bodies. Objects which
 // merely overlap in 3D are not merged. Shared edge endpoints are welded within
@@ -60,7 +60,8 @@ export function splitSurfaceBodies(geometry,{tolerance=null,maxTriangles=350000}
 const AXIS_TRANSFORMS={
   "z-up":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
   "y-up":[1,0,0,0,0,0,1,0,0,-1,0,0,0,0,0,1],
-  "x-up":[0,0,1,0,0,1,0,0,-1,0,0,0,0,1]
+  // Column-major rotation taking source +X to world +Z (det = +1).
+  "x-up":[0,0,1,0,0,1,0,0,-1,0,0,0,0,0,0,1]
 };
 function multiplyTransform(a,b){
   const m=new Array(16).fill(0);

@@ -1,18 +1,19 @@
-import {MUNIN_PARTS,annotateMunin} from "./munin-parts.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {ASV_MODEL} from "./asv-model.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {loadModelDocument} from "../model/load-model.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {parseGLB} from "../model/parsers/gltf.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {parseSTL} from "../model/parsers/stl.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {parse3MF} from "../model/parsers/three-mf.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {downloadFusionScriptPackage} from "./fusion-installer.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {createModelDocument} from "../model/model-document.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {boxMesh} from "../hydro/fixtures.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
+import {MUNIN_PARTS,annotateMunin} from "./munin-parts.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {ASV_MODEL} from "./asv-model.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {loadModelDocument} from "../model/load-model.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {parseGLB} from "../model/parsers/gltf.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {parseSTL} from "../model/parsers/stl.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {formatMeters,modelExtentMeters,unitPlausibilityAdvisory} from "../model/model-extent.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {parse3MF} from "../model/parsers/three-mf.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {downloadFusionScriptPackage} from "./fusion-installer.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {createModelDocument} from "../model/model-document.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {boxMesh} from "../hydro/fixtures.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
 
 /** Verified public originals on the NTNU file server; never mirrored to GitHub. */
 export const MUNIN_CAD_SOURCES=Object.freeze({
@@ -87,7 +88,7 @@ export function cadToolHTML(){
   <div class="cad-import-bar">
    <label>Model file <input id="cad-import-file" type="file"
      accept=".step,.stp,.iges,.igs,.brep,.stl,.3mf,.f3d,.f3z,.zip"></label>
-   <label>BREP units (if no metadata)
+   <label>File units (STL and BREP, if the file has none)
     <select id="cad-brep-units"><option value="millimeter">mm</option><option value="meter">m</option><option value="inch">in</option><option value="centimeter">cm</option></select>
    </label>
    <button class="btn" id="cad-import-cancel" type="button" disabled>Cancel import</button>
@@ -103,6 +104,16 @@ export function cadToolHTML(){
  </details>
  </main>`;
 }
+/** Status line after a mesh import: parts, unit, overall size and, when the
+ * size is implausible for a vessel/part, a prompt to pick the right unit. */
+export function importSummary(documentModel){
+  const parts=documentModel.components.filter(c=>c.geometry).length;
+  const extent=modelExtentMeters(documentModel);
+  const size=extent?" · size "+extent.size.map(formatMeters).join(" × "):"";
+  const advisory=unitPlausibilityAdvisory(extent,documentModel.unit);
+  return "Imported "+parts+" mesh components · "+documentModel.unit+size+
+    ". Move and inspect in the 3D view below."+(advisory?" Check units: "+advisory:"");
+}
 export function mountCADTool(root){
  const picker=root.querySelector("#cad-import-file"),stage=root.querySelector("#cad-geometry-stage");
  const cancel=root.querySelector("#cad-import-cancel"),status=root.querySelector("#cad-import-status");
@@ -114,6 +125,8 @@ export function mountCADTool(root){
  const installerStatus=root.querySelector("[data-cad-fusion-install-status]");
  if(!picker||!stage)return ()=>{};
  let controller=null,cleanup=()=>{},request=0,disposed=false;
+ let lastUnitlessFile=null; // STL/BREP carry no unit: re-read when the unit choice changes.
+ const unitSelect=root.querySelector("#cad-brep-units");
  const hubDetails=root.querySelector(".cad-hub-advanced");
  let hubMounted=false,stopHubBrowser=()=>{};
  const maybeMountHub=()=>{
@@ -249,6 +262,7 @@ export function mountCADTool(root){
    stop();stage.replaceChildren();
    if(!file)return;
    const ext=file.name.split(".").pop().toLowerCase();
+   lastUnitlessFile=/^(stl|step|stp|iges|igs|brep)$/.test(ext)?file:null;
    controller=new AbortController();cancel.disabled=false;
    status.textContent="Reading "+file.name+" locally…";
    try{
@@ -289,15 +303,15 @@ export function mountCADTool(root){
        return;
      }
      status.textContent=isCADFile(file.name)?"Loading OpenCascade WASM for "+file.name+"…":"Reading mesh…";
+     const fileUnit=unitSelect?.value||"millimeter";
      const documentModel= isCADFile(file.name)?
        await parseCADBuffer(buffer,file.name,{format:ext,signal:controller.signal,
-         brepUnit:root.querySelector("#cad-brep-units")?.value||"millimeter"}):
-       ext==="stl"?parseSTL(buffer,file.name):
+         brepUnit:fileUnit}):
+       ext==="stl"?parseSTL(buffer,file.name,{unit:fileUnit}):
        ext==="3mf"?await parse3MF(buffer,file.name):
        (()=>{throw Error("Unsupported file extension")})();
      if(current!==request||disposed)return;
-     status.textContent="Imported "+documentModel.components.filter(c=>c.geometry).length+
-       " mesh components · "+documentModel.unit+". Move and inspect in the 3D view below.";
+     status.textContent=importSummary(documentModel);
      await presentModel(documentModel,current);
    }catch(error){
      if(current!==request||disposed)return;
@@ -305,6 +319,7 @@ export function mountCADTool(root){
      showEmpty("Import could not be displayed. Try the demo or check source units and format.");
    }finally{if(current===request&&!disposed){cancel.disabled=true;controller=null}}
  };
+ const onUnitChange=()=>{if(lastUnitlessFile&&!disposed)void loadFile(lastUnitlessFile)};
  const onChange=()=>{
    const file=picker.files?.[0];
    picker.value=""; // Choosing the same file again must trigger a fresh import.
@@ -340,6 +355,7 @@ export function mountCADTool(root){
  muninPreview?.addEventListener("click",loadMunin);
  asvPreview?.addEventListener("click",loadASV);
  picker.addEventListener("change",onChange);
+ unitSelect?.addEventListener("change",onUnitChange);
  dropZone?.addEventListener("dragover",onDrag);
  dropZone?.addEventListener("dragleave",onDrag);
  dropZone?.addEventListener("drop",onDrop);
@@ -348,6 +364,7 @@ export function mountCADTool(root){
    disposed=true;request++;stop();stopHubBrowser();
    hubDetails?.removeEventListener("toggle",maybeMountHub);
    picker.removeEventListener("change",onChange);
+   unitSelect?.removeEventListener("change",onUnitChange);
    cancel.removeEventListener("click",onCancel);
    dropZone?.removeEventListener("dragover",onDrag);
    dropZone?.removeEventListener("dragleave",onDrag);

@@ -1,7 +1,7 @@
-import {inspectFusionPackage} from "../model/parsers/fusion-preview.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {parseFusionArchive} from "../model/parsers/fusion-archive.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {renderModelWorkbench} from "./model-workbench.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
-import {downloadFusionScriptPackage} from "../engineering/fusion-installer.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
+import {inspectFusionPackage} from "../model/parsers/fusion-preview.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {parseFusionArchive} from "../model/parsers/fusion-archive.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {renderModelWorkbench} from "./model-workbench.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
+import {downloadFusionScriptPackage} from "../engineering/fusion-installer.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>
  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -117,8 +117,11 @@ export async function renderFusionPackage(container,buffer,name){
      if(disposed){rendered?.cleanup?.();return}
      modelCleanup=rendered?.cleanup||(()=>{});
      status.textContent="Interactive 3D · "+model.components.filter(part=>part.geometry).length+
-       " visible mesh component(s) from "+model.source.archiveEntry+
-       " ("+model.source.embeddedFormat+"). This is the embedded neutral geometry, not necessarily the entire Fusion assembly.";
+       " visible mesh component(s) from "+(model.source.archiveEntries?
+         model.source.archiveEntries.length+" "+model.source.embeddedFormat+" bodies"+
+         (model.source.omittedBodies?" (+"+model.source.omittedBodies+" not loaded)":""):
+         model.source.archiveEntry+" ("+model.source.embeddedFormat+")")+
+       ". This is the embedded neutral geometry, not necessarily the entire Fusion assembly.";
      three.scrollIntoView?.({block:"nearest"});
    }catch(error){
      if(disposed)return;

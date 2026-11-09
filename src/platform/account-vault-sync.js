@@ -4,7 +4,7 @@
  * Authentication uses the single site Google session; no OAuth prompts here.
  * No passphrase or derived key is persisted or sent to Google Drive.
  */
-import {getGoogleAccessToken,getGoogleSessionSnapshot} from "./google-session.js?v=f3e9d7477bd1be20579a3bfdbde776e975209335";
+import {getGoogleAccessToken,getGoogleSessionSnapshot} from "./google-session.js?v=b5862f49d322160eb24a824b8eca0a7461a30e26";
 
 const BASE="https://www.googleapis.com/drive/v3/files";
 const UPLOAD="https://www.googleapis.com/upload/drive/v3/files";
