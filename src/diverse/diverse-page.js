@@ -10,6 +10,7 @@ function statusLabel(status){
   if(status==="superseded")return "Moved into v2";
   if(status==="migration")return "Migrating";
   if(status==="preserved")return "Preserved demo";
+  if(status==="prototype")return "Prototype demo";
   if(status==="repair")return "Repair needed";
   return "Review";
 }
