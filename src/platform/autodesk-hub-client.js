@@ -14,7 +14,7 @@
  * All remote fields are treated as untrusted. The backend must authenticate
  * the user, authorize each ID against Autodesk, and prevent open redirects.
  */
-import {getFolkAccessToken} from "./folkside-auth.js?v=7ed855647cd6e9cf86c889a9855aae891c4a2029";
+import {getFolkAccessToken} from "./folkside-auth.js?v=1a342824a06722100c319b29d295e0300e9128ff";
 
 const LEVELS=new Set(["hubs","projects","topFolders","contents","versions"]);
 const FIELDS={hubs:[],projects:["hubId"],topFolders:["hubId","projectId"],

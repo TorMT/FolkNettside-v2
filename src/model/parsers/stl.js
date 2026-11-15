@@ -1,5 +1,5 @@
-import {createModelDocument,UNIT_SCALE_TO_METERS} from "../model-document.js?v=7ed855647cd6e9cf86c889a9855aae891c4a2029";
-import {toArrayBuffer} from "../binary-input.js?v=7ed855647cd6e9cf86c889a9855aae891c4a2029";
+import {createModelDocument,UNIT_SCALE_TO_METERS} from "../model-document.js?v=1a342824a06722100c319b29d295e0300e9128ff";
+import {toArrayBuffer} from "../binary-input.js?v=1a342824a06722100c319b29d295e0300e9128ff";
 
 const HEADER_BYTES=84,TRIANGLE_BYTES=50;
 const SNIFF_BYTES=2048;
