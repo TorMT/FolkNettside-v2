@@ -1241,8 +1241,9 @@ function settingsPage(){
     }
     const removed=clearLocalStudyProgress();
     if(feedback)feedback.textContent=removed?`Cleared ${removed} local progress record${removed===1?"":"s"}.`:"No local study progress was stored.";
-    event.currentTarget.textContent="Cleared";
-    setTimeout(()=>{if(event.currentTarget?.isConnected)event.currentTarget.textContent="Clear progress"},1200);
+    const button=event.currentTarget; // null inside the timer below
+    button.textContent="Cleared";
+    setTimeout(()=>{if(button.isConnected)button.textContent="Clear progress"},1200);
   });
 }
 

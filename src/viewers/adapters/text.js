@@ -58,10 +58,11 @@ export async function render(container,resource){
   });
 
   container.querySelector(".code-copy").onclick=async event=>{
+    const button=event.currentTarget; // null after the await below
     try{if(!navigator.clipboard?.writeText)throw Error("Clipboard unavailable");
       await navigator.clipboard.writeText(text);
-      event.currentTarget.textContent="Copied";
-    }catch{event.currentTarget.textContent="Copy unavailable"}
+      button.textContent="Copied";
+    }catch{button.textContent="Copy unavailable"}
   };
 
   return {info:`${labelByExtension[ext]||"Text"} · ${preview.displayedLines} preview lines · ${text.length.toLocaleString()} total chars`+
