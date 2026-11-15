@@ -42,7 +42,7 @@ test("Dive computer prototype opens its static demo bundle from the published as
   assert.equal(entry.route,null);
   assert.equal(entry.legacyUrl,null);
   assert.equal(entry.externalUrl,"./assets/demos/dykkecomputer/");
-  for(const file of ["index.html","simulator.html","app.html"]){
+  for(const file of ["index.html","simulator.html","app.html","dykkecomputer-3d-modeller.zip"]){
     assert.ok(existsSync(new URL(`../assets/demos/dykkecomputer/${file}`,import.meta.url)),`missing demo file: ${file}`);
   }
 });
