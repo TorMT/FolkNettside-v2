@@ -1,4 +1,4 @@
-import {filterPhotoAlbums,publishedAlbums,photoCarouselWindow} from "./photo-feed-model.js?v=8e10534f255b1fd3d7e3f758a6c008585f6340a9";
+import {filterPhotoAlbums,publishedAlbums,photoCarouselWindow} from "./photo-feed-model.js?v=7ed855647cd6e9cf86c889a9855aae891c4a2029";
 
 const MANIFEST="./data/diverse/photo-feed.json";
 const SOURCE="https://drive.google.com/drive/folders/1lBkBhTHl7CkVoAaUgWn2RAtKZXqRre3k";

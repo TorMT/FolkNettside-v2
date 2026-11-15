@@ -1,5 +1,5 @@
-import {accessState,getSession} from "../platform/session.js?v=8e10534f255b1fd3d7e3f758a6c008585f6340a9";
-import {DIVERSE_MODULES} from "./diverse-registry.js?v=8e10534f255b1fd3d7e3f758a6c008585f6340a9";
+import {accessState,getSession} from "../platform/session.js?v=7ed855647cd6e9cf86c889a9855aae891c4a2029";
+import {DIVERSE_MODULES} from "./diverse-registry.js?v=7ed855647cd6e9cf86c889a9855aae891c4a2029";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
@@ -10,6 +10,7 @@ function statusLabel(status){
   if(status==="superseded")return "Moved into v2";
   if(status==="migration")return "Migrating";
   if(status==="preserved")return "Preserved demo";
+  if(status==="prototype")return "Prototype demo";
   if(status==="repair")return "Repair needed";
   return "Review";
 }
