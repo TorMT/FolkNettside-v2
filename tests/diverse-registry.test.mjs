@@ -35,6 +35,18 @@ test("Dive map is native, Njord points into Engineering and LeseRavnen remains p
   assert.equal(diverseModule("andrekok").legacyUrl,null);
 });
 
+test("Dive computer prototype opens its static demo bundle from the published assets",async()=>{
+  const {existsSync}=await import("node:fs");
+  const entry=diverseModule("dykkecomputer");
+  assert.equal(entry.status,"prototype");
+  assert.equal(entry.route,null);
+  assert.equal(entry.legacyUrl,null);
+  assert.equal(entry.externalUrl,"./assets/demos/dykkecomputer/");
+  for(const file of ["index.html","simulator.html","app.html"]){
+    assert.ok(existsSync(new URL(`../assets/demos/dykkecomputer/${file}`,import.meta.url)),`missing demo file: ${file}`);
+  }
+});
+
 test("native Diverse modules all have routes",()=>{
   assert.ok(nativeDiverseModules().length>=2);
   assert.ok(nativeDiverseModules().every(item=>item.route));

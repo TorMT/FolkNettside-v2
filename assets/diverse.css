@@ -12,7 +12,7 @@
 .diverse-status,.diverse-access{display:inline-flex;align-items:center;padding:5px 7px;border:1px solid var(--line);border-radius:999px;font-size:9px;font-weight:760}
 .diverse-status.native,.diverse-status.superseded{color:var(--ok);background:color-mix(in srgb,var(--ok) 8%,var(--surface))}
 .diverse-status.migration,.diverse-status.repair{color:var(--warn);background:color-mix(in srgb,var(--warn) 8%,var(--surface))}
-.diverse-status.preserved{color:var(--accent);background:var(--accent-soft)}.diverse-status.review{color:var(--ink-2);background:var(--surface-sunk)}
+.diverse-status.preserved,.diverse-status.prototype{color:var(--accent);background:var(--accent-soft)}.diverse-status.review{color:var(--ink-2);background:var(--surface-sunk)}
 .diverse-access{color:var(--ink-2);background:var(--surface-sunk)}
 .diverse-card-actions{display:flex;gap:7px;flex-wrap:wrap}.diverse-card-actions .btn{font-size:11px;padding:8px 10px}
 .diverse-architecture-note{margin:0 max(26px,calc((100vw - 1280px)/2)) 50px;padding:15px 17px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:9px;background:var(--surface)}

@@ -91,6 +91,20 @@ export const DIVERSE_MODULES=[
     sync:"separate-demo"
   },
   {
+    id:"dykkecomputer",
+    title:"Dykkecomputer",
+    short:"DC",
+    route:null,
+    status:"prototype",
+    access:"public",
+    category:"Prototype",
+    summary:"Studentprosjekt: dykkecomputer for underarmen. Simulatoren kjører den ekte fastvaren (deko, gassplan, alarmer, sendere) i nettleseren, og mobilappen kobler til maskinvaren over Bluetooth. Ikke til ekte dykking.",
+    legacyUrl:null,
+    externalUrl:"./assets/demos/dykkecomputer/",
+    storage:"browser-only-demo",
+    sync:"none"
+  },
+  {
     id:"medisin",
     title:"MedisinTimer",
     short:"TIME",
