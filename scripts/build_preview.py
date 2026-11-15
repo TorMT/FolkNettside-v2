@@ -50,6 +50,47 @@ def stamp_index(text: str, version: str) -> str:
     )
     return text
 
+# Static `import ... from "./x.js?v=..."` and bare `import "./x.js?v=..."` in stamped output.
+# Dynamic import() is deliberately not matched: those modules are loaded on demand.
+PRELOAD_IMPORT = re.compile(
+    r'(?:^|[;\n}])\s*(?:import|export)\s*(?:[^"\';()]*?\bfrom\s*)?["\'](?P<path>\.{1,2}/[^"\']+?\.js(?:\?[^"\']*)?)["\']'
+)
+
+def static_module_urls(output: Path, entry: str = "src/app.js") -> list[str]:
+    """Every module the entrypoint imports statically, as ./-relative URLs with their query.
+
+    The browser otherwise discovers the ~200 modules level by level (four network round
+    trips on this app). Listing them as modulepreload links lets it fetch them all at once.
+    A preload only helps when its URL is exactly the one the importing module resolves to,
+    so the version query is kept as written in the stamped files.
+    """
+    root = output.resolve()
+    seen: dict[str, str] = {}
+    queue = [entry]
+    while queue:
+        relative = queue.pop()
+        text = (root / relative).read_text(encoding="utf-8")
+        for match in PRELOAD_IMPORT.finditer(text):
+            path, _, query = match.group("path").partition("?")
+            target = ((root / relative).parent / path).resolve()
+            if not target.is_file() or not target.is_relative_to(root):
+                continue
+            key = target.relative_to(root).as_posix()
+            if key not in seen:
+                seen[key] = "./" + key + ("?" + query if query else "")
+                queue.append(key)
+    return [seen[key] for key in sorted(seen)]
+
+def add_modulepreload(index_text: str, urls: list[str]) -> str:
+    """Insert modulepreload links before the entry module script. Idempotent."""
+    if 'rel="modulepreload"' in index_text or not urls:
+        return index_text
+    links = "".join(f'<link rel="modulepreload" href="{url}">\n' for url in urls)
+    marker = re.search(r'<script\s+type="module"\s+src="\./src/app\.js[^"]*"', index_text)
+    if not marker:
+        raise ValueError("index.html has no ./src/app.js module script to preload for")
+    return index_text[:marker.start()] + links + index_text[marker.start():]
+
 def validate_sources_for_publish() -> None:
     """Do not copy sensitive filenames or follow symlinks into the public site."""
     import runpy
@@ -104,7 +145,10 @@ def build(version: str, output: Path) -> None:
         path.write_text(stamp_js(path.read_text(encoding="utf-8"), version), encoding="utf-8")
 
     index = output / "index.html"
-    index.write_text(stamp_index(index.read_text(encoding="utf-8"), version), encoding="utf-8")
+    index.write_text(
+        add_modulepreload(stamp_index(index.read_text(encoding="utf-8"), version), static_module_urls(output)),
+        encoding="utf-8",
+    )
 
     # A clean copy is not sufficient: reject missing locally reachable
     # CSS, JS, worker, image and other static asset references before publish.
