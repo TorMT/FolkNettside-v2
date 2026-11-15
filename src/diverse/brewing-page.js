@@ -199,8 +199,13 @@ export async function mountBrewing(root,{account={},onBack=()=>{}}={}){
   const cleanupInventory=mountBrewingIngredients(root.querySelector("#brew-local-inventory"));
   root.querySelector("[data-brewing-back]")?.addEventListener("click",onBack);
   const note=root.querySelector("#brewing-backend-note");
+  // The caller only gets the cleanup function once this async mount has finished, so
+  // `disposed` cannot become true while the modules are still loading. Leaving the page
+  // in that window is detected by the page's own markup having been replaced.
+  const pageElement=root.querySelector("#brew-local-inventory")||note;
+  const left=()=>disposed||(pageElement?!pageElement.isConnected:false);
   const settings=await loadBrewingServiceConfig();
-  if(disposed)return()=>{};
+  if(left()){cleanupInventory?.();return()=>{};}
   // Legacy module adapters now resolve services only within the actual V2
   // deployment base. Never discover root-relative PHP on the V1 NTNU site.
   const endpoint=(service,file)=>brewingEndpoint(settings,service,file);
@@ -229,10 +234,14 @@ export async function mountBrewing(root,{account={},onBack=()=>{}}={}){
 
   try{
     for(const src of MODULES){
-      if(disposed)break;
+      if(left())break;
       scripts.push(await loadScript(src));
     }
-    if(disposed)return()=>{};
+    if(left()){
+      cleanupInventory?.();
+      scripts.forEach(script=>script.remove());
+      return()=>{};
+    }
     if(note&&raptEndpoint){
       note.textContent="Checking the V2 RAPT backend; module loading does not prove API availability.";
       note.dataset.kind="preview";
