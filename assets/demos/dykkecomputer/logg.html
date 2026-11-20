@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dykkecomputer – prosjektlogg</title>
+<meta name="description" content="Prosjektlogg for dykkecomputeren: utregninger for hus og elektronikk, koblingsskjema, kontroll av kretsene og hva som gjenstår.">
+<style>
+  :root {
+    --bg: #f4f6f9; --card: #ffffff; --ink: #1a202c; --muted: #5a6574; --line: #d6dbe2;
+    --primary: #004f9f; --primary-ink: #ffffff; --warn-bg: #fff4e0; --warn-line: #e3a23b; --warn-ink: #6b4300;
+    --ok: #1f7a4d; --no: #9a3b2f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f151c; --card: #18212b; --ink: #e5eaf0; --muted: #9aa7b5; --line: #2a3643;
+      --primary: #6aa8ea; --primary-ink: #0b1622; --warn-bg: #2b2112; --warn-line: #a8782c; --warn-ink: #f2d29b;
+      --ok: #5cc28f; --no: #e08a7e; color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding-block: 24px 64px }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px }
+  .top a { color: var(--primary) }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); line-height: 1.2; margin: 28px 0 8px; color: var(--primary); text-wrap: balance }
+  h2 { font-size: 1.3rem; margin: 0 0 10px; color: var(--primary) }
+  h3 { font-size: 1.05rem; margin: 22px 0 8px }
+  .lead { font-size: 1.12rem; color: var(--muted); max-width: 68ch; margin: 0 0 22px }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px }
+  .btn { display: inline-flex; flex-direction: column; gap: 2px; padding: 12px 18px; border-radius: 8px; text-decoration: none;
+         border: 1px solid var(--primary); color: var(--primary); background: var(--card); min-width: 220px }
+  .btn b { font-size: 1.05rem }
+  .btn span { font-size: .85rem; opacity: .85 }
+  .btn.primary { background: var(--primary); color: var(--primary-ink) }
+  .btn:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px }
+  .warn { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-ink); border-radius: 8px; padding: 12px 16px; margin: 0 0 28px }
+  .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; min-width: 0 }
+  .card ol, .card ul, section > ul { margin: 0; padding-left: 1.2rem }
+  .card li + li, section > ul li + li { margin-top: 6px }
+  section > ul { margin-top: 14px }
+  .shots { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 8px }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px; min-width: 0 }
+  figure img { width: 100%; height: auto; display: block; border-radius: 6px; background: #000 }
+  figure.light img { background: #fff }
+  figcaption { font-size: .88rem; color: var(--muted); margin-top: 8px }
+  section { margin-top: 34px }
+  .table-wrap { overflow-x: auto }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem }
+  th, td { text-align: left; padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: top }
+  th { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border-top: 0 }
+  table.nowrap th, table.nowrap td { white-space: nowrap }
+  .ok { color: var(--ok); font-weight: 600 } .no { color: var(--no); font-weight: 600 } .part { color: var(--warn-line); font-weight: 600 }
+  td a { color: var(--primary) }
+  .sum { font-weight: 600 }
+  .note { font-size: .9rem; color: var(--muted); margin-top: 10px; max-width: 80ch }
+  code { font-size: .9em; background: color-mix(in srgb, var(--line) 45%, transparent); padding: 1px 5px; border-radius: 4px }
+  footer { margin-top: 40px; font-size: .88rem; color: var(--muted) }
+
+  h3 { font-size: 1.05rem; margin: 22px 0 8px }
+  .eq { font-family: "Cambria Math", "STIX Two Math", Georgia, serif; font-size: 1.05rem; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 10px 0; overflow-x: auto; white-space: nowrap }
+  .toc { columns: 2 260px; margin: 0 0 10px; padding-left: 1.2rem }
+  .fix { color: var(--primary); font-weight: 600 }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="./">← Til dykkecomputeren</a><span>Diverse · Dykkecomputer · Logg</span></div>
+
+  <h1>Prosjektlogg</h1>
+  <p class="lead">Alt som er gjort så langt, med utregninger og koblingsskjema. Sist oppdatert 20.11.2026. Alle tall er teori og anslag fra datablader: ingenting her er målt på maskinvare ennå.</p>
+  <p class="warn"><strong>Ikke til ekte dykking.</strong> Huset er ikke trykktestet, kretsen er ikke bygget, og koblingsskjemaet er ikke gjennomgått av en annen person.</p>
+
+  <ul class="toc">
+    <li><a href="#tidslinje">Tidslinje</a></li>
+    <li><a href="#hus">Huset: utregninger</a></li>
+    <li><a href="#plast">Plast i stedet for aluminium</a></li>
+    <li><a href="#radio">Radio og magnetfelt gjennom huset</a></li>
+    <li><a href="#krets">Kontroll av kretsene</a></li>
+    <li><a href="#strom">Strømbudsjett og batteritid</a></li>
+    <li><a href="#skjema">Koblingsskjema rev B</a></li>
+    <li><a href="#videre">Dette gjenstår</a></li>
+  </ul>
+
+  <section id="tidslinje">
+    <h2>Tidslinje</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Dato</th><th>Hva</th><th>Resultat</th></tr></thead>
+        <tbody>
+          <tr><td>20.11.2026</td><td>Gjennomgang av alle kretser, plan for montering, tynnere hus og plasthus</td><td>Koblingsskjema rev B med 12 rettelser; funn om radio gjennom aluminium</td></tr>
+          <tr><td>20.11.2026</td><td>Fusion-prosjekt på TorHub</td><td>37 deler, ekte komponentmodeller, sammenstilling med ledd, kollisjonssjekk og masse</td></tr>
+          <tr><td>20.11.2026</td><td>Koblingsskjema rev A</td><td>4 ark, 97 komponenter, 81 nett, åpnet som elektronikkdesign i Fusion</td></tr>
+          <tr><td>15.11.2026</td><td>3D-modeller av huset</td><td>Fire varianter i STEP, dimensjonert for 100 m, kollisjonssjekket</td></tr>
+          <tr><td>13.11.2026</td><td>Demoen publisert under Diverse</td><td>Simulator, mobilapp og kildekode i nettleseren</td></tr>
+          <tr><td>Før 13.11.2026</td><td>Fastvare, deko og simulator</td><td>191 enhetstester, deko innen 1 min av decotengu på 54 dykk, 400 000 tilfeldige protokollforespørsler uten feil</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="hus">
+    <h2>Huset: utregninger (3,5", aluminium)</h2>
+    <p class="lead">Plater er regnet som fritt opplagte (Roark), med prøvetrykk 1,5 × 100 m. Tillatt spenning: herdet glass 45 MPa, aluminium 6061-T6 184 MPa, PEEK 35 MPa.</p>
+    <div class="eq">σ = β p b² / t² &nbsp;&nbsp;(rektangulær plate, b = korte spenn) &nbsp;&nbsp;·&nbsp;&nbsp; σ = 3(3 + ν)/8 · p r² / t² &nbsp;&nbsp;(sirkulær plate) &nbsp;&nbsp;·&nbsp;&nbsp; σ = 6 q a / t² &nbsp;&nbsp;(utkraget kant)</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Del</th><th>Formel</th><th>Inndata</th><th>Resultat</th><th>Vurdering</th></tr></thead>
+        <tbody>
+          <tr><td>Prøvetrykk</td><td>p = 1,5 · ρ g h</td><td>100 m sjøvann, faktor 1,5</td><td>1,51 MPa</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Linse, herdet glass</td><td>σ = β p b² / t²</td><td>Vindu 52 × 78 mm, β = 0,485, t = 7,0 mm</td><td>σ = 40 MPa (tillatt 45)</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Linsekant (utkraget)</td><td>σ = 6 q a / t²</td><td>q = p · 52/2 = 39 N/mm, a = 6 mm, t = 3,0 mm</td><td>σ = 157 MPa (tillatt 184)</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Bakplate, aluminium</td><td>σ = β p b² / t²</td><td>Spenn 61 × 89 mm, β = 0,472, t = 5,0 mm</td><td>σ = 106 MPa (tillatt 184); 3,8 mm ville holdt</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Ladevindu, PEEK Ø 40</td><td>σ = 3(3+ν)/8 · p r² / t²</td><td>ν = 0,38, t = 5,0 mm</td><td>σ = 31 MPa (tillatt 35)</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>O-ring bakplate</td><td>klem = (d − h)/d; fyll = A<sub>snor</sub>/A<sub>spor</sub></td><td>Snor 1,5 mm, spor 2,0 × 1,1 mm</td><td>Klem 27 % (15–30 %), fyll 80 % (under 85 %)</td><td><span class="ok">OK</span>; vurder spor 2,2 mm (fyll 73 %)</td></tr>
+          <tr><td>Bakplateskruer</td><td>F = p · A</td><td>A innenfor O-ringen 65,4 × 93,4 mm</td><td>Trykket gir 9,2 kN, men presser platen mot rammen; skruene bærer bare O-ringen, ca. 50 N hver mot ca. 900 N for M2 A4-70</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Oppdrift</td><td>B = ρ V g</td><td>Ytre volum ca. 0,25 L, masse 487 g</td><td>Ca. 230 g negativ i sjøvann</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Rammen</td><td>FEA</td><td></td><td>Ikke regnet</td><td><span class="no">Åpen</span></td></tr>
+          <tr><td>Hele huset</td><td>Trykktest 1,5 × 100 m, 30 min, 3 ganger</td><td></td><td>Ikke gjort</td><td><span class="no">Åpen</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Høyden lag for lag</h3>
+    <div class="table-wrap">
+      <table class="nowrap">
+        <thead><tr><th>Lag</th><th>mm</th></tr></thead>
+        <tbody>
+          <tr><td>Bakplate med PEEK-vindu</td><td>5,0</td></tr>
+          <tr><td>Qi-spole, ferritt og luft</td><td>1,1</td></tr>
+          <tr><td>Batteri</td><td>6,0</td></tr>
+          <tr><td>Luft</td><td>0,2</td></tr>
+          <tr><td>Kretskort</td><td>1,0</td></tr>
+          <tr><td>Komponentsone (ESP32 er 3,1)</td><td>3,2</td></tr>
+          <tr><td>Skjerm</td><td>2,5</td></tr>
+          <tr><td>Luft</td><td>0,2</td></tr>
+          <tr><td>Linsekant</td><td>3,0</td></tr>
+          <tr><td>Linse</td><td>7,0</td></tr>
+          <tr><td>Bezel</td><td>1,5</td></tr>
+          <tr><td><b>Sum</b></td><td><b>30,7</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Tynnere: høye komponenter på undersiden ved et 50 × 60 mm batteri (−2,0 mm) og 0,8 mm kort (−0,2) gir 28,5 mm. Med 5 mm batteri: 27,5 mm. Med safirlinse 4,5 mm: 25,0 mm.</p>
+  </section>
+
+  <section id="plast">
+    <h2>Plast i stedet for aluminium</h2>
+    <p class="lead">Et helt plasthus blir for tykt ved 100 m, fordi linsekanten og bakplaten er plater i bøying. Anbefalingen er et hybridhus: toppring og bakplate i aluminium, midtring i frest POM-C. Da slipper radiosignalene gjennom sidene, og huset blir rundt 31 mm.</p>
+    <div class="eq">t<sub>vegg</sub> = h √(β p / σ<sub>till</sub>), h = 10,2 mm, β = 0,75 &nbsp;&nbsp;·&nbsp;&nbsp; t<sub>kant</sub> = √(6 q a / σ<sub>till</sub>), q = 39 N/mm, a = 6 mm</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Materiale</th><th>Tillatt σ (MPa, anslag)</th><th>Vegg (mm)</th><th>Linsekant (mm)</th><th>Flat bakplate (mm)</th></tr></thead>
+        <tbody>
+          <tr><td>Aluminium 6061-T6, frest</td><td>184</td><td>2,0 (min.)</td><td>2,8</td><td>3,8</td></tr>
+          <tr><td>PEEK, frest</td><td>35</td><td>2,0</td><td>6,4</td><td>8,7</td></tr>
+          <tr><td>POM-C, frest</td><td>20</td><td>2,4</td><td>8,4</td><td>11,5</td></tr>
+          <tr><td>SLA-resin (Tough 2000)</td><td>15</td><td>2,8</td><td>9,7</td><td>13,3</td></tr>
+          <tr><td>MJF PA12, dampglattet</td><td>15</td><td>2,8</td><td>9,7</td><td>13,3</td></tr>
+          <tr><td>Vakuumstøpt polyuretan</td><td>12</td><td>3,1</td><td>10,8</td><td>14,9</td></tr>
+          <tr><td>FDM PA-CF</td><td>12</td><td>3,1</td><td>10,8</td><td>14,9</td></tr>
+          <tr><td>FDM PETG</td><td>8</td><td>3,8</td><td>13,3</td><td>18,2</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Tillatt spenning er cirka strekkfasthet / 3, for printet plast i svakeste retning. Printet prototype (SLA eller MJF PA12) holder til bassengtest ned til 10 m med 4,2 mm bakplate. Printede deler trenger dampglatting eller vakuumimpregnering, gjengeinnsatser i messing, slipte O-ringflater og trykktest av hver del. Vakuumstøping i silikonform lønner seg først fra 5–20 hus.</p>
+  </section>
+
+  <section id="radio">
+    <h2>Radio og magnetfelt gjennom huset</h2>
+    <p class="lead">Et lukket aluminiumshus stopper tanksignalet, Bluetooth og GPS. Bare linsen og ladevinduet slipper gjennom, og skjermen dekker nesten hele linsen.</p>
+    <div class="eq">δ = √(ρ / (π f μ<sub>0</sub>)), &nbsp; ρ = 4,0 · 10⁻⁸ Ω m &nbsp;&nbsp;·&nbsp;&nbsp; demping ≈ e<sup>−t/δ</sup></div>
+    <div class="table-wrap">
+      <table class="nowrap">
+        <thead><tr><th>Signal</th><th>Frekvens</th><th>Skinndybde i Al 6061</th><th>Demping, 3,5 mm vegg</th></tr></thead>
+        <tbody>
+          <tr><td>Eldre tanksender</td><td>5,3 kHz</td><td>1,38 mm</td><td>ca. 22 dB</td></tr>
+          <tr><td>Pelagic-sender</td><td>38 kHz</td><td>0,52 mm</td><td>ca. 59 dB</td></tr>
+          <tr><td>Suunto Tank POD</td><td>123 kHz</td><td>0,29 mm</td><td>over 100 dB</td></tr>
+          <tr><td>Bluetooth, GPS</td><td>1,6–2,4 GHz</td><td>under 0,002 mm</td><td>stoppet</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Dempingen er et grovt anslag (plan bølge gjennom plate) og må måles. Løsninger: midtring i plast (anbefalt), eller et eget PEEK-vindu under mottakerspolen og ESP32-WROOM-1U med ekstern antenne. GPS-modulen kan fjernes; appen bruker allerede telefonens posisjon.</p>
+  </section>
+
+  <section id="krets">
+    <h2>Kontroll av kretsene</h2>
+    <p class="lead">Hver del av koblingsskjemaet er regnet gjennom. Elleve feil eller svakheter ble rettet i rev B. Tre punkter må måles, og to er fortsatt åpne.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Kontroll</th><th>Utregning</th><th>Resultat</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>GPIO-bruk</td><td>33 brukbare pinner; 35–37 tas av PSRAM, 45/46 er oppstartspinner</td><td>Alle andre pinner er i bruk. Nye funksjoner må på I2C eller sikkerhets-MCU-en</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Oppstartspinner</td><td>IO0 med pull-up og testpunkt; IO3 (våtkontakt) er JTAG-strap, uskadelig uten eFuse-valg</td><td>Starter normalt</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>I2C-adresser, hovedbuss</td><td>0x10 lys, 0x22/0x35/0x78 knapper, 0x30 magnetometer, 0x36 batteri, 0x50 FRAM, 0x51 klokke, 0x6B IMU, 0x70 mux</td><td>Ingen kollisjoner; begge MS5837 (0x76) bak mux</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>I2C stigetid, hovedbuss</td><td>t<sub>r</sub> = 0,85 R C, C ≈ 150 pF (11 enheter + spor)</td><td>4,7 kΩ: 0,60 µs, over grensen 0,3 µs ved 400 kHz. 2,2 kΩ: 0,28 µs, synkestrøm 1,3 mA</td><td><span class="fix">Rettet i rev B</span></td></tr>
+          <tr><td>I2C stigetid, dybdebussene</td><td>C ≈ 30 pF, 4,7 kΩ</td><td>0,12 µs</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>3,3 V-regulator</td><td>ESP32-S3 trekker opptil ca. 0,5 A i korte topper ved oppstart og radiokalibrering</td><td>500 mA-LDO er for knapp. Byttet til 1 A (TLV75733P). Utfall ca. 0,2 V: virker ned til ca. 3,5 V batteri</td><td><span class="fix">Rettet i rev B</span></td></tr>
+          <tr><td>Ladestrøm</td><td>I = 1000 V / R<sub>PROG</sub> = 1000 / 2 kΩ</td><td>500 mA = 0,25 C for 2000 mAh</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Ladestatus til ESP32</td><td>STAT driver høyt til V<sub>DD</sub> = 5 V</td><td>5 V på en 3,3 V-pinne ville skadet ESP32. Spenningsdeler 10k/18k gir 3,2 V. Lading leses sammen med strømretningen fra batterimåleren</td><td><span class="fix">Rettet i rev B</span></td></tr>
+          <tr><td>Boost til analog 5 V</td><td>V<sub>ut</sub> = 0,595 (1 + 732k/100k)</td><td>4,95 V</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Boost og ADC alltid på</td><td>PCM1808 + op-amp ca. 12 mA ved 5 V = ca. 19 mA fra batteriet</td><td>Boosten slås nå av og på av sikkerhets-MCU-en (PC0)</td><td><span class="fix">Rettet i rev B</span></td></tr>
+          <tr><td>GNSS alltid på</td><td>ATGM336H ca. 25 mA</td><td>Lastbryter (TPS22916) styrt av sikkerhets-MCU-en (PC3)</td><td><span class="fix">Rettet i rev B</span></td></tr>
+          <tr><td>Forforsterker</td><td>G = (1 + 10k/1k)² = 121 (41,7 dB); båndbredde 10 MHz / 11 = 0,9 MHz per trinn</td><td>Fullt utslag på ADC (3,0 Vpp ved 5 V) tilsvarer 25 mVpp på spolen</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Forforsterker, DC</td><td>Uten kondensator forsterkes offset 121 ganger</td><td>C27/C28 1 µF i serie med 1 kΩ: DC-forsterkning 1, knekk 160 Hz</td><td><span class="fix">Rettet i rev B</span></td></tr>
+          <tr><td>Spoleinngang</td><td>100 kΩ i serie mot midtspenning gir støy (40 nV/√Hz) og flytende spole</td><td>Spolen rett til midtspenning, dempet med 10 kΩ for lav Q</td><td><span class="fix">Rettet i rev B</span></td></tr>
+          <tr><td>Avstemming 38 og 5,3 kHz</td><td>C = 1/((2πf)² L); for L = 4,7 mH: 3,7 nF ved 38 kHz, 192 nF ved 5,3 kHz</td><td>Én avstemt spole kan ikke ta begge; lav Q og forsterkning i stedet</td><td><span class="part">Må måles</span></td></tr>
+          <tr><td>Støy</td><td>e<sub>n</sub> = 8,7 nV/√Hz over 48 kHz = 1,9 µV rms, × 121 = 0,23 mV rms</td><td>Over ADC-støyen (12 µV rms), så forforsterkeren setter grensen</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>ADC-klokker</td><td>MCLK = 256 · 96 kHz = 24,576 MHz, BCK = 64 f<sub>s</sub> = 6,144 MHz</td><td>PCM1808 slave, I2S; 38 kHz ligger i passbåndet (0,454 f<sub>s</sub> = 43,6 kHz)</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Ubrukt ADC-inngang</td><td>VINR rett til jord ligger 2,5 V under arbeidspunktet</td><td>1 µF til jord</td><td><span class="fix">Rettet i rev B</span></td></tr>
+          <tr><td>123 kHz-kanal</td><td>BAT54 trenger ca. 0,3 V; terskel 3,3 · 33k/1033k = 105 mV; τ = 100 kΩ · 1 nF = 100 µs</td><td>En passiv stav gir neppe 0,3 V på 1 m avstand: trenger et forsterkertrinn</td><td><span class="no">Åpen</span></td></tr>
+          <tr><td>Bakgrunnslys</td><td>I = (V<sub>bat</sub> − V<sub>f</sub>) / R, V<sub>f</sub> ≈ 3,1 V</td><td>Fra 3,3 V ga 3,3 V − 3,1 V for lite marg. Fra batteriet via 15 Ω: 33–73 mA; fastvaren justerer PWM etter batterispenningen</td><td><span class="fix">Rettet i rev B</span></td></tr>
+          <tr><td>Summer, gate</td><td>τ = R C<sub>iss</sub> ≈ 100 kΩ · 0,6 nF = 60 µs mot 125 µs halvperiode ved 4 kHz</td><td>For trege flanker. 4,7 kΩ gir 2,8 µs</td><td><span class="fix">Rettet i rev B</span></td></tr>
+          <tr><td>Summer, drift</td><td>PKMCS0909E er en passiv piezo, resonans 4 kHz</td><td>Må drives med 4 kHz PWM, ikke av/på. Lydnivået under vann må prøves</td><td><span class="part">Må måles</span></td></tr>
+          <tr><td>Vibrasjonsmotor</td><td>Motor 3 V, ca. 80 mA, fra 4,2 V</td><td>Maks 70 % PWM; diode 1N4148W tåler startstrømmen</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Knapper (hall)</td><td>B = B<sub>r</sub>/2 · [(L+z)/√(R²+(L+z)²) − z/√(R²+z²)], N52 6 × 3 mm</td><td>39 mT inne (z = 6 mm), 16 mT ute (z = 9 mm): en hall-bryter med terskel på få mT står alltid på. Byttet til TMAG5273 på I2C med terskel i fastvaren og INT til knappepinnen</td><td><span class="fix">Rettet i rev B</span></td></tr>
+          <tr><td>Våtkontakter</td><td>Berøringskanal 3, 1 kΩ i serie</td><td>Vann mellom pinnene gir stor kapasitansendring</td><td><span class="part">Må måles</span></td></tr>
+          <tr><td>EN-forsinkelse</td><td>τ = 10 kΩ · 1 µF</td><td>10 ms, som Espressif anbefaler</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Sikkerhets-MCU på dybdebuss B</td><td>Deler bussen med mux-kanal 1</td><td>Fastvaren må slå av mux-kanalen etter hver lesing, så CH32 har bussen alene</td><td><span class="ok">OK</span> (fastvare)</td></tr>
+          <tr><td>Lading i kulde</td><td>MCP73831 har ikke temperaturinngang</td><td>Ikke lad under 0 °C; vurder lader med NTC</td><td><span class="no">Åpen</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="strom">
+    <h2>Strømbudsjett og batteritid</h2>
+    <div class="table-wrap">
+      <table class="nowrap">
+        <thead><tr><th>Forbruker (dykk)</th><th>Strøm fra batteriet (mA)</th></tr></thead>
+        <tbody>
+          <tr><td>ESP32-S3, 80 MHz, radio av</td><td>25</td></tr>
+          <tr><td>Skjermlogikk</td><td>5</td></tr>
+          <tr><td>Bakgrunnslys, middels</td><td>25</td></tr>
+          <tr><td>PCM1808 og forforsterker (5 V via boost)</td><td>19</td></tr>
+          <tr><td>Sensorer (dybde 1 Hz, IMU, kompass, lys, batterimåler)</td><td>2</td></tr>
+          <tr><td>Sikkerhets-MCU</td><td>3</td></tr>
+          <tr><td><b>Sum</b></td><td><b>ca. 79</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">2000 mAh / 79 mA ≈ 25 timer dykk med middels lys, ca. 16 timer med fullt lys. I dvale: ca. 0,09 mA (ESP32 10 µA, LDO 25 µA, FRAM 27 µA, batterimåler 4 µA, sikkerhets-MCU 10 µA, knapper og resten ca. 15 µA), som tilsvarer over to år; batteriets selvutlading styrer. Tallene er fra datablader og må måles.</p>
+  </section>
+
+  <section id="skjema">
+    <h2>Koblingsskjema rev B</h2>
+    <p class="lead">105 komponenter og 87 nett på fire ark, med pinnene fra fastvarens <code>board.h</code>. Last ned .sch (åpnes i Fusion Electronics), PDF og netliste i <a href="dykkecomputer-skjema-og-fusion.zip">zip-filen</a>. Fusion-prosjektet har fortsatt rev A til neste økt.</p>
+    <h3>Endringer fra rev A</h3>
+    <ul>
+      <li>I2C-pull-up på hovedbussen 4,7 kΩ → 2,2 kΩ (R10, R11).</li>
+      <li>Ladestatus fra 5 V-pinne: spenningsdeler R3/R4.</li>
+      <li>LDO 500 mA → 1 A (U23).</li>
+      <li>Mottakerspolen rett til midtspenning, demping R20 10 kΩ; AC-kobling C27/C28 i forsterkertrinnene.</li>
+      <li>Ubrukt ADC-inngang til AC-jord (C29).</li>
+      <li>Boost (U24) og GNSS (lastbryter U25) slås av og på av sikkerhets-MCU-en; R33/R34 holder dem av ved oppstart.</li>
+      <li>Bakgrunnslys fra batteriet via 15 Ω.</li>
+      <li>Summerens gate-motstand 100 kΩ → 4,7 kΩ.</li>
+      <li>Hall-brytere DRV5032 → målende hall-sensorer TMAG5273 på I2C (U16–U18).</li>
+    </ul>
+    <div class="shots">
+      <figure class="light"><a href="img/skjema-ark1.png"><img src="img/skjema-ark1.png" alt="Koblingsskjema rev B, ark 1: MCU og strøm" loading="lazy" width="1680" height="1188"></a><figcaption>1 MCU og strøm</figcaption></figure>
+      <figure class="light"><a href="img/skjema-ark2.png"><img src="img/skjema-ark2.png" alt="Koblingsskjema rev B, ark 2: Sensorer" loading="lazy" width="1680" height="1188"></a><figcaption>2 Sensorer</figcaption></figure>
+      <figure class="light"><a href="img/skjema-ark3.png"><img src="img/skjema-ark3.png" alt="Koblingsskjema rev B, ark 3: Tankmottaker og GNSS" loading="lazy" width="1680" height="1188"></a><figcaption>3 Tankmottaker og GNSS</figcaption></figure>
+      <figure class="light"><a href="img/skjema-ark4.png"><img src="img/skjema-ark4.png" alt="Koblingsskjema rev B, ark 4: Skjerm, alarmer og knapper" loading="lazy" width="1680" height="1188"></a><figcaption>4 Skjerm, alarmer og knapper</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="videre">
+    <h2>Dette gjenstår</h2>
+    <ol>
+      <li><b>Mål radiogjennomgangen</b> i byggetrinn 2: sender 1 m fra spolen, fritt, bak 3,5 mm aluminium, og bak plast. Avgjør hybridhus eller PEEK-vindu.</li>
+      <li><b>Bygg koblingsbrett-demoen</b> trinn for trinn, og gjør første bygg av fastvaren med <code>idf.py</code>.</li>
+      <li><b>Ta opp en ekte Pelagic-sender</b> og juster tidene i mottakeren; mål spolesignalet og velg forsterkning og demping.</li>
+      <li><b>Lag forsterkertrinn for 123 kHz</b>, eller vent med Suunto-kanalen.</li>
+      <li><b>Gjennomgå koblingsskjema rev B</b> med en annen person; velg fotavtrykk og legg ut kortet (4 lag, under 100 × 100 mm).</li>
+      <li><b>Fusion:</b> monteringsdetaljer (kort i bossene, sensorkort med O-ring, fjærer, skruer og O-ringer), tynnere pakke A (28,5 mm), oppdatert skjema og dokumentasjon i 05.</li>
+      <li><b>Hus:</b> SLA- eller MJF-print for passform og bassengtest til 10 m; så hybridhus med POM-C midtring, FEA av rammen og trykktest 1,5 × 100 m.</li>
+      <li><b>Fastvare:</b> skjermsider (LVGL), sikkerhets-MCU, Bluetooth med passord, FRAM- og klokkedrivere, 4 kHz summer, TMAG5273-knapper, styring av boost og GNSS over UART.</li>
+      <li><b>Mål strømforbruket</b> under dykk og erstatt anslaget på 20 timer.</li>
+    </ol>
+  </section>
+
+  <footer>Utregningene står i kildekoden: husgeneratoren (<code>gen.py</code>) i 3D-zip-filen og kretsen (<code>circuit.py</code>) i skjema-zip-filen.</footer>
+</div>
+</body>
+</html>
