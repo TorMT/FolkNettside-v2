@@ -1,6 +1,10 @@
 (function (global) {
   'use strict';
 
+  // This script binds to the Brewing page's elements as soon as it runs. If the visitor
+  // left the page while it was downloading, there is nothing to bind to: do nothing.
+  if (!document.getElementById('refreshBtn')) return;
+
   const CACHE_KEY = 'folk-v2:brewing-dashboard-cache.v1';
   const PRIVATE_PROXY = global.FolkBrewingPrivateProxy === true;
   const CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000;
