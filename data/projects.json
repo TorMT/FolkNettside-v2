@@ -1,5 +1,170 @@
 [
   {
+    "slug": "dykkecomputer",
+    "title": "Dykkecomputer",
+    "type": "design",
+    "current": true,
+    "status": "Pågående · prototype, ikke validert for dykking",
+    "year": 2026,
+    "summary": "En armmontert dykkecomputer med stor skjerm, flasketrykk fra tanksender, dekoberegning, trådløs lading og mobilapp. Simulatoren kjører den samme C-koden som computeren.",
+    "problem": "Kommersielle dykkecomputere med stor skjerm og flasketrykk er dyre og lukkede. Målet er en åpen computer som kan bygges av studenter, med deko, gass, kompass og logg, og som kan testes i nettleseren før den bygges.",
+    "solution": "ESP32-S3 med to dybdesensorer, mottaker for 38 kHz tanksendere, kompass, GPS og en egen sikkerhets-MCU. Bühlmann ZHL-16C med gradientfaktorer, sjekket mot decotengu. Huset blir et hybridhus (aluminium topp og bunn, plastmidtring) for 100 m, med en pleksiglass-prototype for 60 m; koblingsskjemaet er regnet gjennom og rettet (rev B).",
+    "skills": [
+      "Innebygd C",
+      "Dekomodeller",
+      "Kretsdesign",
+      "Trykkhus",
+      "Fusion",
+      "WebAssembly"
+    ],
+    "tools": [
+      "ESP-IDF",
+      "Fusion",
+      "CadQuery",
+      "WebAssembly",
+      "Web Bluetooth"
+    ],
+    "materials": [
+      "Aluminium 6061",
+      "POM-C",
+      "Herdet glass",
+      "PEEK"
+    ],
+    "process": [
+      "Dekokjerne i C99 med 191 enhetstester, sjekket mot decotengu på 54 dykk (innen 1 min).",
+      "Simulator og mobilapp i nettleseren, bygget fra samme kode som fastvaren.",
+      "Husgenerator med platedimensjonering (Roark) for fire skjermstørrelser.",
+      "Fusion-prosjekt med 37 deler, ekte komponentmodeller, ledd og kollisjonssjekk.",
+      "Koblingsskjema på fire ark, kontrollert punkt for punkt og rettet til rev B."
+    ],
+    "results": [
+      "Simulatoren og mobilappen virker i nettleseren.",
+      "3D-modeller i STEP og Fusion-sammenstilling for 3,5\"-bygget.",
+      "Koblingsskjema rev B med 105 komponenter og 87 nett.",
+      "Funn: aluminiumshuset stopper tanksignal, Bluetooth og GPS; midtring i plast foreslått."
+    ],
+    "gallery": [
+      {
+        "src": "./assets/demos/dykkecomputer/img/fusion-sammenstilling.jpg",
+        "alt": "Fusion-sammenstilling av dykkecomputeren: aluminiumshus med linse, knapper og stroppfester",
+        "caption": "Sammenstillingen i Fusion (3,5\")"
+      },
+      {
+        "src": "./assets/demos/dykkecomputer/img/fusion-elektronikk.jpg",
+        "alt": "Kretskort med ESP32-S3-modul, IC-er og microSD over bakplaten",
+        "caption": "Rammen skjult: kort og komponenter"
+      },
+      {
+        "src": "./assets/demos/dykkecomputer/img/dykk-avvik-plan.png",
+        "alt": "Dykkeskjerm på 3 m med dekostopp og varsel om mer deko enn planlagt",
+        "caption": "Dykkeskjermen i simulatoren"
+      },
+      {
+        "src": "./assets/demos/dykkecomputer/img/skjema-ark1.png",
+        "alt": "Koblingsskjema ark 1: ESP32-S3, lading og strøm",
+        "caption": "Koblingsskjema rev B, ark 1"
+      }
+    ],
+    "files": [],
+    "links": [
+      {
+        "label": "Prosjektlogg",
+        "url": "./assets/demos/dykkecomputer/logg.html",
+        "primary": true
+      },
+      {
+        "label": "Demo og materialliste",
+        "url": "./assets/demos/dykkecomputer/index.html"
+      },
+      {
+        "label": "Mobilapp (Bluetooth)",
+        "url": "./assets/demos/dykkecomputer/app.html"
+      },
+      {
+        "label": "Koblingsskjema og Fusion-skript",
+        "url": "./assets/demos/dykkecomputer/dykkecomputer-skjema-og-fusion.zip"
+      },
+      {
+        "label": "3D-modeller (STEP)",
+        "url": "./assets/demos/dykkecomputer/dykkecomputer-3d-modeller.zip"
+      },
+      {
+        "label": "Kildekode",
+        "url": "./assets/demos/dykkecomputer/dykkecomputer-kildekode.zip"
+      }
+    ],
+    "embeds": [
+      {
+        "src": "./assets/demos/dykkecomputer/simulator.html",
+        "title": "Simulator",
+        "text": "Den ekte dykkekoden kompilert til WebAssembly: dykk et av fem eksempeldykk på autopilot eller styr selv, se skjermene, profilen med tak og alarmene, og koble til den simulerte telefonen."
+      }
+    ],
+    "logUrl": "./assets/demos/dykkecomputer/logg.html",
+    "log": [
+      {
+        "date": "21.11.2026",
+        "title": "Rev B2 av huset: klar til montering",
+        "result": "114 deler med skruer, innsatser, O-ringer, hengslede knapper og kontakter; 0 overlapp; fire feil i rev B rettet"
+      },
+      {
+        "date": "21.11.2026",
+        "title": "Rev B lagt inn i Fusion",
+        "result": "75 deler, sammenstilling med knappeledd, 437 g"
+      },
+      {
+        "date": "21.11.2026",
+        "title": "Benketest i Cirkit Designer",
+        "result": "Skissen kompilerer og starter på simulert ESP32-S3; I2C svarer"
+      },
+      {
+        "date": "21.11.2026",
+        "title": "Beslutninger: GPS beholdes, hybridhus, 100 m endelig, pleksiglass-prototype for 60 m",
+        "result": "Prototypen dimensjonert (13/12/4 mm); alle feil og betraktninger samlet i loggen"
+      },
+      {
+        "date": "20.11.2026",
+        "title": "Kontroll av alle kretser",
+        "result": "Koblingsskjema rev B med 11 rettelser; aluminium stopper tanksignal, Bluetooth og GPS"
+      },
+      {
+        "date": "20.11.2026",
+        "title": "Fusion-prosjekt på TorHub",
+        "result": "37 deler, sammenstilling med ledd, kollisjonssjekk, 487 g"
+      },
+      {
+        "date": "20.11.2026",
+        "title": "Koblingsskjema rev A",
+        "result": "4 ark, åpnet som elektronikkdesign i Fusion"
+      },
+      {
+        "date": "15.11.2026",
+        "title": "3D-modeller av huset",
+        "result": "Fire varianter i STEP, dimensjonert for 100 m"
+      },
+      {
+        "date": "13.11.2026",
+        "title": "Demo publisert",
+        "result": "Simulator, mobilapp og kildekode i nettleseren"
+      },
+      {
+        "date": "Før 13.11.2026",
+        "title": "Fastvare, deko og simulator",
+        "result": "191 enhetstester; deko innen 1 min av decotengu"
+      }
+    ],
+    "next": [
+      "Mål tanksignalet og GPS gjennom aluminium og plast for å bekrefte hybridhuset.",
+      "Bygg koblingsbrett-demoen trinn for trinn, og gjør første bygg av fastvaren.",
+      "Pleksiglass-prototype for 60 m med trykktest til 0,90 MPa.",
+      "Koblingsskjema rev C: chipantenne, lyssensor-flex, fjærkontakter og batterikontakt som rev B2 krever.",
+      "Bestill mekaniske deler og be om tilbud på fresing av huset (rev B2).",
+      "Gjennomgå koblingsskjema rev B med en annen person, og legg ut kortet.",
+      "Hybridhus for 100 m: FEA og trykktest 1,51 MPa.",
+      "Fastvare: skjermsider, sikkerhets-MCU, Bluetooth med passord, nye knapper."
+    ]
+  },
+  {
     "slug": "pitch-drive-wind-turbine",
     "title": "Wind turbine pitch drive",
     "type": "design",

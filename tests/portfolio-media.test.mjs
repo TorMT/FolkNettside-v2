@@ -24,8 +24,10 @@ test("V2 projects reuse actual screenshot filenames from the NTNU engineering po
      continue;
    }
    const url=projectImageURL(src);
-   assert.ok(url,p.slug+" has non-NTNU image source");
-   assert.ok(images.has(new URL(url).pathname.split("/").at(-1)));
+   assert.ok(url,p.slug+" has an image source that is neither NTNU portfolio nor a checked-in demo image");
+   if(url.startsWith("./assets/demos/"))
+     assert.ok(existsSync(new URL("../"+url.slice(2),import.meta.url)),p.slug+" demo image must be checked in: "+url);
+   else assert.ok(images.has(new URL(url).pathname.split("/").at(-1)));
    assert.ok(p.gallery?.[0]?.alt);
    assert.ok(p.gallery?.[0]?.caption);
    sourceBacked++;
@@ -91,4 +93,31 @@ test("untrusted image URLs and project links cannot inject HTML or link schemes"
    gallery:[{src:"javascript:alert(1)",alt:"<img>"}],files:[]};
  assert.doesNotMatch(renderProjectCard(bad),/<script>|href="javascript:|src="javascript:/);
  assert.doesNotMatch(renderProjectDetail(bad),/<script>|href="javascript:|src="javascript:/);
+});
+
+test("current dive computer project: badge, local links, sandboxed simulator embed and log",async()=>{
+ const {projectEmbedURL,projectLocalFileURL}=await import("../src/components/project-card.js");
+ const project=projects.find(item=>item.slug==="dykkecomputer");
+ assert.ok(project&&project.current===true,"dive computer must be listed as a current project");
+ const card=renderProjectCard(project);
+ assert.match(card,/project-row-current/);
+ assert.match(card,/class="project-current-badge">Pågående</);
+ const detail=renderProjectDetail(project);
+ assert.match(detail,/Pågående prosjekt/);
+ assert.match(detail,/<iframe class="project-model-frame project-embed-frame" src="\.\/assets\/demos\/dykkecomputer\/simulator\.html"/);
+ assert.match(detail,/loading="lazy" sandbox="allow-scripts" referrerpolicy="no-referrer"/);
+ assert.doesNotMatch(detail,/sandbox="[^"]*allow-same-origin/);
+ assert.match(detail,/class="project-log-table"/);
+ assert.match(detail,/href="\.\/assets\/demos\/dykkecomputer\/logg\.html"/);
+ assert.match(detail,/Dette gjenstår/);
+ for(const item of [...project.links,{url:project.logUrl},...project.embeds.map(e=>({url:e.src})),...project.gallery.map(g=>({url:g.src}))])
+   assert.ok(existsSync(new URL("../"+item.url.slice(2),import.meta.url)),"missing "+item.url);
+ for(const bad of ["javascript:alert(1)","./assets/demos/dykkecomputer/../../secret.html",
+   "./assets/demos/dykkecomputer/simulator.html?x=1","https://evil.invalid/simulator.html","./assets/demos/dykkecomputer/app.html",null]){
+   assert.equal(projectEmbedURL(bad),"",String(bad));
+ }
+ for(const bad of ["javascript:alert(1)","./assets/demos/x/../y.html","./assets/demos/x/y.html#z","//evil.invalid/a.zip"])
+   assert.equal(projectLocalFileURL(bad),"",bad);
+ const unsafe=renderProjectDetail({...project,embeds:[{src:"javascript:alert(1)",title:"<script>"}],links:[{url:"javascript:alert(1)",label:"x"}],log:[{date:"<b>",title:"<script>alert(1)</script>"}]});
+ assert.doesNotMatch(unsafe,/<script>|javascript:/);
 });
