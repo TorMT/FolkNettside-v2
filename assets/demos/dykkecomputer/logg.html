@@ -76,6 +76,7 @@
   <ul class="toc">
     <li><a href="#tidslinje">Tidslinje</a></li>
     <li><a href="#beslutninger">Beslutninger</a></li>
+    <li><a href="#revb">Rev B: hybridhus og montering</a></li>
     <li><a href="#feil">Betraktninger og feil vi har støtt på</a></li>
     <li><a href="#hus">Huset: utregninger</a></li>
     <li><a href="#plast">Plast i stedet for aluminium</a></li>
@@ -93,6 +94,7 @@
       <table>
         <thead><tr><th>Dato</th><th>Hva</th><th>Resultat</th></tr></thead>
         <tbody>
+          <tr><td>21.11.2026</td><td>Rev B av huset: hybrid (aluminium og POM-C), alt skrudd fast, 28,5 mm høyt</td><td>75 deler, 0 overlapp; lagt inn i Fusion-prosjektet</td></tr>
           <tr><td>21.11.2026</td><td>Benketest i Cirkit Designer (ESP32-S3-simulator)</td><td>Skissen kompilerer og starter; I2C svarer; knapper og våtkontakt må prøves for hånd eller på ekte maskinvare</td></tr>
           <tr><td>21.11.2026</td><td>Beslutninger: GPS beholdes, hybridhus, 100 m på endelig modell, prototype i pleksiglass for 60 m</td><td>Pleksiglass-prototypen dimensjonert; feil og betraktninger samlet i egen del</td></tr>
           <tr><td>21.11.2026</td><td>Dykkecomputeren lagt inn som pågående prosjekt under Projects</td><td>Logg og simulator på prosjektsiden</td></tr>
@@ -137,6 +139,29 @@
     <p class="note">Bruk støpt akryl, ikke ekstrudert, og varmebehandle delene etter fresing. Ikke lim tetningsflatene; klem platene med O-ringer og 8–10 gjennomgående M3-bolter i A4. Vask aldri med sprit eller aceton, som gir sprekker (crazing). Trykktest til 0,90 MPa i 30 min, tre ganger, før den tas i vann.</p>
   </section>
 
+  <section id="revb">
+    <h2>Rev B: hybridhus og montering</h2>
+    <p class="lead">Huset er delt i tre: toppring med linsekant og bakplate i aluminium, og en midtring i POM-C som tanksignal, Bluetooth og GPS går gjennom. Alt i innmaten er skrudd eller klemt fast, og huset er 28,5 mm høyt (rev A: 30,7 mm).</p>
+    <figure class="light"><img src="img/hybrid-tverrsnitt.png" alt="Tre snitt gjennom rev B: hybridhus med aluminium toppring og bakplate, POM-C midtring, kretskort på standoffs, batteri i holder og dybdesensorer i flensen" loading="lazy" width="1320" height="1100"><figcaption>Snitt ved dybdesensorene, ved ESP32 og GPS, og på langs gjennom sensorene.</figcaption></figure>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Del</th><th>Slik er den festet</th></tr></thead>
+        <tbody>
+          <tr><td>Toppring og bezel</td><td>4 × M2,5 × 16 gjennom bezel og toppring inn i messinginnsatser i midtringens hjørnebosser; O-ring i spor i toppringen</td></tr>
+          <tr><td>Bakplate</td><td>10 × M2 × 6 inn i messinginnsatser i POM-flensen; O-ring i spor i bakplaten</td></tr>
+          <tr><td>Kretskort 70 × 96 × 0,8</td><td>4 × M2 × 4 inn i standoffs fra flensen, utenfor skjermen</td></tr>
+          <tr><td>Skjerm</td><td>Klemt mellom linsekanten og fire skumputer på kortet</td></tr>
+          <tr><td>Høye komponenter</td><td>ESP32, microSD, GPS med antenne, summer, vibrasjonsmotor og flere IC-er på kortets underside, ved siden av batteriet</td></tr>
+          <tr><td>Batteri 48 × 60 × 6 og mottakerspole</td><td>I en printet PA12-holder som klemmes mellom bakplaten og kortet</td></tr>
+          <tr><td>Dybdesensorer</td><td>Begge på ett lite kort på flensen, opp-ned i hver sin boring med O-ring; L-formet port ut gjennom POM-veggen; 2 × M1,6</td></tr>
+          <tr><td>Våtkontakter</td><td>A4-pinner gjennom POM-endeveggen (isolert av plasten), fjærkontakter på kortets underside</td></tr>
+          <tr><td>Knapper</td><td>Spaker på POM-veggen; TMAG5273 på kortkanten rett innenfor hver magnet</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">POM-veggen trenger minst 1,7 mm ved 100 m (spenn 7 mm, 20 MPa) og er 3,5 mm. Batteriet er kortere (ca. 1700 mAh mot 2000), som gir ca. 21 timer dykk med middels lys. Klokkebrikken PCF85063A i TSSOP-8 er 1,1 mm høy; bruk DFN-utgaven på toppsiden. <a href="dykkecomputer-revB-hybrid.zip" download>Last ned rev B (STEP, 75 deler, med Fusion-skript)</a>.</p>
+  </section>
+
   <section id="feil">
     <h2>Betraktninger og feil vi har støtt på</h2>
     <p class="lead">Alt som har gått galt eller viste seg å være feil underveis, med hva det betyr og hva som er gjort. Den største feilen var at et lukket aluminiumshus ikke slipper gjennom tanksignalet, Bluetooth eller GPS.</p>
@@ -150,6 +175,8 @@
           <tr><td>Hus, CAD</td><td>Bakplaten må være minst 5 mm for å bære setet til ladevinduet, selv om 3,8 mm holder for trykket.</td><td>1,2 mm ekstra høyde.</td><td>Beholdt; forsvinner ikke med hybrid. <span class="ok">Løst</span></td></tr>
           <tr><td>Hus, montering</td><td>Kortet var skåret rundt hjørnebossene og lå løst; batteriet og skjermen var ikke festet.</td><td>Ingenting holdt innmaten på plass.</td><td>Plan: kort i bossene med M2, skjerm klemt, batteri holdt av bakplaten. <span class="part">Planlagt</span></td></tr>
           <tr><td>Hus, høyde</td><td>30,7 mm, mest på grunn av 7 mm glasslinse, 6 mm batteri og 3,2 mm komponentsone.</td><td>Tykt på armen.</td><td>Pakke A gir 28,5 mm. <span class="part">Planlagt</span></td></tr>
+          <tr><td>Hus, montering</td><td>Våtkontaktpinner gjennom en aluminiumsvegg ville vært kortsluttet til huset.</td><td>Våtkontakten ville alltid vist «vått».</td><td>Gjennom POM-midtringen i rev B. <span class="ok">Løst</span></td></tr>
+          <tr><td>Hus, montering</td><td>Dybdesensorene fikk ikke plass mot innerveggen i rev B: flensen er massiv i den høyden.</td><td>Ingen tetning mot porten.</td><td>Sensorene ligger opp-ned i boringer i flensen med O-ring og L-formet port. <span class="ok">Løst</span></td></tr>
           <tr><td>Strøm</td><td>Laderens STAT-pinne gir 5 V rett inn på en 3,3 V-pinne.</td><td>Kunne ødelagt ESP32.</td><td>Spenningsdeler. <span class="fix">Rettet i rev B</span></td></tr>
           <tr><td>Strøm</td><td>LDO på 500 mA for svak for ESP32-toppene på ca. 0,5 A.</td><td>Omstart ved oppstart eller radiobruk.</td><td>1 A LDO. <span class="fix">Rettet i rev B</span></td></tr>
           <tr><td>Strøm</td><td>Boost, ADC, forforsterker og GPS sto alltid på (ca. 45 mA).</td><td>Tom på et par dager i hvile.</td><td>Slås av og på av sikkerhets-MCU-en. <span class="fix">Rettet i rev B</span></td></tr>
