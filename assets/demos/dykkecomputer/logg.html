@@ -77,6 +77,7 @@
     <li><a href="#tidslinje">Tidslinje</a></li>
     <li><a href="#beslutninger">Beslutninger</a></li>
     <li><a href="#revb">Rev B: hybridhus og montering</a></li>
+    <li><a href="#revb2">Rev B2: klar til montering</a></li>
     <li><a href="#feil">Betraktninger og feil vi har støtt på</a></li>
     <li><a href="#hus">Huset: utregninger</a></li>
     <li><a href="#plast">Plast i stedet for aluminium</a></li>
@@ -94,6 +95,7 @@
       <table>
         <thead><tr><th>Dato</th><th>Hva</th><th>Resultat</th></tr></thead>
         <tbody>
+          <tr><td>21.11.2026</td><td>Rev B2: alle skruer, innsatser, tetninger, hengsler og kontakter modellert. Rev B lagt inn i Fusion (75 deler, 437 g, kun tre kollisjoner under 0,01 mm³)</td><td>114 deler, 0 overlapp; fire feil funnet og rettet (GPS-antenne, lyssensor, sensorboring, knappeplass)</td></tr>
           <tr><td>21.11.2026</td><td>Rev B av huset: hybrid (aluminium og POM-C), alt skrudd fast, 28,5 mm høyt</td><td>75 deler, 0 overlapp; lagt inn i Fusion-prosjektet</td></tr>
           <tr><td>21.11.2026</td><td>Benketest i Cirkit Designer (ESP32-S3-simulator)</td><td>Skissen kompilerer og starter; I2C svarer; knapper og våtkontakt må prøves for hånd eller på ekte maskinvare</td></tr>
           <tr><td>21.11.2026</td><td>Beslutninger: GPS beholdes, hybridhus, 100 m på endelig modell, prototype i pleksiglass for 60 m</td><td>Pleksiglass-prototypen dimensjonert; feil og betraktninger samlet i egen del</td></tr>
@@ -163,6 +165,30 @@
     <p class="note">POM-veggen trenger minst 1,7 mm ved 100 m (spenn 7 mm, 20 MPa) og er 3,5 mm. Batteriet er kortere (48 × 60 mot 50 × 80 mm, ca. 25 % mindre kapasitet), som gir ca. 19 timer dykk med middels lys i stedet for 25. Klokkebrikken PCF85063A i TSSOP-8 er 1,1 mm høy; bruk DFN-utgaven på toppsiden. <a href="dykkecomputer-revB-hybrid.zip" download>Last ned rev B (STEP, 75 deler, med Fusion-skript)</a>.</p>
   </section>
 
+  <section id="revb2">
+    <h2>Rev B2: klar til montering</h2>
+    <p class="lead">Rev B viste hvor alt skulle festes, men flere deler var bare klosser. I rev B2 er alt som holder, tetter eller kobler noe modellert, slik at huset kan settes sammen av innkjøpte og produserte deler. Gjennomgangen fant fire feil i rev B (se <a href="#feil">feillisten</a>).</p>
+    <figure class="light"><img src="img/revB2-snitt.png" alt="Seks snitt gjennom rev B2: hele huset, hengslet knapp med magnet, senket hjørneskrue i messinginnsats, våtkontakt med O-ring og mutter, dybdesensor med radiell O-ring, og linse-O-ring med lyssensor på flex" loading="lazy" width="1540" height="1650"><figcaption>Hele huset ved dybdesensorene, og nærbilder av knapp, hjørneskrue, våtkontakt, dybdesensor og linsekant.</figcaption></figure>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Del</th><th>Rev B</th><th>Rev B2</th></tr></thead>
+        <tbody>
+          <tr><td>Skruer</td><td>Sylindre uten hode</td><td>M2,5 × 16 senkhode (ISO 10642) flush i bezelen; M2 × 6 og M2 × 4 knapphode (ISO 7380) med sekskanthull; M1,6 × 3; alt i A4</td></tr>
+          <tr><td>Gjenger i POM</td><td>Bare hull</td><td>20 messinginnsatser (4 × M2,5, 14 × M2, 2 × M1,6). Varmepressede innsatser holder dårlig i POM; bruk innpressede, ultralyd eller Helicoil</td></tr>
+          <tr><td>Linse</td><td>Lå i setet uten tetning</td><td>O-ring i spor i setet; vanntrykket presser glasset ned på den, bezelen klemmer</td></tr>
+          <tr><td>Knapper</td><td>Klosser 0,05 mm fra veggen</td><td>Spak hengslet på Ø1,5 mm stift i to ører, Ø4 × 2 mm magnet, trykkfjær, 0,8 mm vandring og griperiller; revolute-ledd i Fusion</td></tr>
+          <tr><td>Våtkontakter</td><td>Pinne gjennom veggen, ingen tetning</td><td>M2 × 6 linsehodeskrue med O-ring under hodet, mutter og loddetunge inne, lomme i flensen</td></tr>
+          <tr><td>Dybdesensorer</td><td>Firkant i rund boring (hjørnene stakk 0,03 mm inn)</td><td>Firkantsokkel i forsenkningen, rund gelhette med radiell O-ring, lokal forsterkning innover; 4 fjærkontakter til hovedkortet</td></tr>
+          <tr><td>GPS-antenne</td><td>12 mm patch på undersiden</td><td>7 × 2 × 0,8 mm chipantenne (Johanson 1575AT43A0040) på kortkanten mot POM-veggen</td></tr>
+          <tr><td>Lyssensor</td><td>På kortet, under skjermen</td><td>På en tynn flex på skjermens svarte kant, innenfor vinduet</td></tr>
+          <tr><td>Koblinger</td><td>Ikke modellert</td><td>Skjerm-FPC brettet rundt enden inn i 0,9 mm FPC-kontakt; batteri i JST-SH; lyssensor-flex loddet på kortet</td></tr>
+          <tr><td>Utseende</td><td>Skarpe kanter</td><td>Fasede kanter på bezel, linse og bakplate; «100 m» gravert i bezelen; komponentene heter det de er i Fusion</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">114 deler, 0 overlapp (eksakt kollisjonssjekk). Masse ca. 420 g i luft, hvorav 110 g er den 7 mm tykke glasslinsen; i vann blir det ca. 200 g. Safir (ca. 5 mm) eller kjemisk herdet glass gjør linsen lettere og tynnere. <a href="dykkecomputer-revB2.zip" download>Last ned rev B2 (STEP, 114 deler, med Fusion-skript)</a>.</p>
+  </section>
+
   <section id="feil">
     <h2>Betraktninger og feil vi har støtt på</h2>
     <p class="lead">Alt som har gått galt eller viste seg å være feil underveis, med hva det betyr og hva som er gjort. Den største feilen var at et lukket aluminiumshus ikke slipper gjennom tanksignalet, Bluetooth eller GPS.</p>
@@ -199,6 +225,12 @@
           <tr><td>Fusion</td><td>Fusion-koblingen feilet først (version negotiation).</td><td>Kunne ikke styre Fusion.</td><td>Kom tilbake senere; skriptene kjørt derfra. <span class="ok">Løst</span></td></tr>
           <tr><td>Fusion</td><td>Fusion krasjet da mange filer ble lastet opp i én kjøring.</td><td>05 Dokumentasjon ble tom.</td><td>Én fil per kjøring neste gang. <span class="part">Planlagt</span></td></tr>
           <tr><td>Fusion</td><td>Første skjemaopplasting fikk ødelagte æ/ø/å (Windows skrev filen i cp1252).</td><td>Feil tekst i skjemaet.</td><td>Skrevet som UTF-8 og lastet opp på nytt. <span class="ok">Løst</span></td></tr>
+          <tr><td>Hus, radio</td><td>GPS-patchantennen i rev B lå på kortets underside og pekte ned mot aluminiumsbakplaten, med jordplanet til kortet mellom seg og himmelen.</td><td>GPS ville neppe fått fix.</td><td>Chipantenne på kortkanten innenfor POM-veggen, med kobberfri sone. Må måles. <span class="fix">Rettet i rev B2</span></td></tr>
+          <tr><td>Hus, CAD</td><td>Lyssensoren VEML7700 lå på kortet under skjermmodulen og kunne ikke se lys.</td><td>Automatisk lysstyrke ville ikke virket.</td><td>Flyttet til en flex på skjermens svarte kant innenfor vinduet. VEML6030 (2 × 2 mm) gir mer margin. <span class="fix">Rettet i rev B2</span></td></tr>
+          <tr><td>Hus, tetning</td><td>Dybdesensorboringen (Ø4,6 mm) lå i en flens med bare 5 mm fri bredde: 0,2 mm POM mellom vannet i porten og innsiden.</td><td>Lekkasje eller brudd ved trykk.</td><td>Lokal forsterkning innover under sensorene (3,7 mm vegg). <span class="fix">Rettet i rev B2</span></td></tr>
+          <tr><td>Hus, knapper</td><td>De to knappene på samme side lå 12,6 mm fra hverandre, men en hengslet spak trenger ca. 17 mm; spakene hadde dessuten bare 0,05 mm klaring mot veggen.</td><td>Knappene ville kollidert og ikke kunnet trykkes.</td><td>Knappene flyttet til ±8,8 mm og stroppørene litt utover; 0,8 mm vandring. <span class="fix">Rettet i rev B2</span></td></tr>
+          <tr><td>Hus, tetning</td><td>Linsen hadde ingen tetning i rev B, og våtkontaktpinnene ingen O-ring.</td><td>Lekkasje.</td><td>O-ring i linsesetet og under hver kontaktskrue. <span class="fix">Rettet i rev B2</span></td></tr>
+          <tr><td>Fusion</td><td>Skriptet listet en nyopprettet skymappe (DataFiles.item feilet), og ID-en fra saveAs var midlertidig.</td><td>Sammenstillingen stoppet to ganger.</td><td>Husker filene lokalt og slår opp etter navn når ID-en ikke virker. <span class="ok">Løst</span></td></tr>
           <tr><td>Nettsiden</td><td>Demoen ble først lagt på V1-siden, som er fryst.</td><td>Feil nettsted.</td><td>Tilbakestilt; lagt på V2. <span class="ok">Løst</span></td></tr>
           <tr><td>Nettsiden</td><td>Kopier-knapper krasjet etter await, ChromeDriver startet ikke i CI, og bryggesiden hadde en kappløpsfeil.</td><td>Feil for besøkende og ustabil CI.</td><td>Rettet i egne PR-er (#210, #213, #214). <span class="ok">Løst</span></td></tr>
         </tbody>
@@ -400,7 +432,8 @@
       <li><b>Ta opp en ekte Pelagic-sender</b> og juster tidene i mottakeren; mål spolesignalet og velg forsterkning og demping.</li>
       <li><b>Lag forsterkertrinn for 123 kHz</b>, eller vent med Suunto-kanalen.</li>
       <li><b>Gjennomgå koblingsskjema rev B</b> med en annen person; velg fotavtrykk og legg ut kortet (4 lag, under 100 × 100 mm).</li>
-      <li><b>Fusion:</b> monteringsdetaljer (kort i bossene, sensorkort med O-ring, fjærer, skruer og O-ringer), tynnere pakke A (28,5 mm), oppdatert skjema og dokumentasjon i 05.</li>
+      <li><b>Koblingsskjema rev C:</b> chipantenne med tilpasningsnett, lyssensor på flex med kontakt, fjærkontakter til sensorkortet og batterikontakt, slik rev B2 av huset krever.</li>
+      <li><b>Bestill mekaniske deler</b> til rev B2 (skruer, innsatser, O-ringer, stifter, fjærer, magneter; se materiallisten) og be om tilbud på fresing av toppring, midtring og bakplate.</li>
       <li><b>Hus:</b> pleksiglass-prototype for 60 m (13/12/4 mm, ca. 37 mm høy) med trykktest til 0,90 MPa; deretter hybridhus med POM-C-midtring og aluminium topp og bunn for 100 m, FEA og trykktest 1,51 MPa.</li>
       <li><b>Fastvare:</b> skjermsider (LVGL), sikkerhets-MCU, Bluetooth med passord, FRAM- og klokkedrivere, 4 kHz summer, TMAG5273-knapper, styring av boost og GNSS over UART.</li>
       <li><b>Mål strømforbruket</b> under dykk og erstatt anslaget på 20 timer.</li>

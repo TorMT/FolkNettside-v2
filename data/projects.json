@@ -104,6 +104,16 @@
     "log": [
       {
         "date": "21.11.2026",
+        "title": "Rev B2 av huset: klar til montering",
+        "result": "114 deler med skruer, innsatser, O-ringer, hengslede knapper og kontakter; 0 overlapp; fire feil i rev B rettet"
+      },
+      {
+        "date": "21.11.2026",
+        "title": "Rev B lagt inn i Fusion",
+        "result": "75 deler, sammenstilling med knappeledd, 437 g"
+      },
+      {
+        "date": "21.11.2026",
         "title": "Benketest i Cirkit Designer",
         "result": "Skissen kompilerer og starter på simulert ESP32-S3; I2C svarer"
       },
@@ -147,8 +157,9 @@
       "Mål tanksignalet og GPS gjennom aluminium og plast for å bekrefte hybridhuset.",
       "Bygg koblingsbrett-demoen trinn for trinn, og gjør første bygg av fastvaren.",
       "Pleksiglass-prototype for 60 m med trykktest til 0,90 MPa.",
+      "Koblingsskjema rev C: chipantenne, lyssensor-flex, fjærkontakter og batterikontakt som rev B2 krever.",
+      "Bestill mekaniske deler og be om tilbud på fresing av huset (rev B2).",
       "Gjennomgå koblingsskjema rev B med en annen person, og legg ut kortet.",
-      "Fusion: hybridhus, montering av kort og sensorer, tynnere innmat, dokumentasjon.",
       "Hybridhus for 100 m: FEA og trykktest 1,51 MPa.",
       "Fastvare: skjermsider, sikkerhets-MCU, Bluetooth med passord, nye knapper."
     ]
