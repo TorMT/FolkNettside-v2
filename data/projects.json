@@ -8,7 +8,7 @@
     "year": 2026,
     "summary": "En armmontert dykkecomputer med stor skjerm, flasketrykk fra tanksender, dekoberegning, trådløs lading og mobilapp. Simulatoren kjører den samme C-koden som computeren.",
     "problem": "Kommersielle dykkecomputere med stor skjerm og flasketrykk er dyre og lukkede. Målet er en åpen computer som kan bygges av studenter, med deko, gass, kompass og logg, og som kan testes i nettleseren før den bygges.",
-    "solution": "ESP32-S3 med to dybdesensorer, mottaker for 38 kHz tanksendere, kompass, GPS og en egen sikkerhets-MCU. Bühlmann ZHL-16C med gradientfaktorer, sjekket mot decotengu. Huset er dimensjonert for 100 m og modellert i Fusion; koblingsskjemaet er regnet gjennom og rettet (rev B).",
+    "solution": "ESP32-S3 med to dybdesensorer, mottaker for 38 kHz tanksendere, kompass, GPS og en egen sikkerhets-MCU. Bühlmann ZHL-16C med gradientfaktorer, sjekket mot decotengu. Huset blir et hybridhus (aluminium topp og bunn, plastmidtring) for 100 m, med en pleksiglass-prototype for 60 m; koblingsskjemaet er regnet gjennom og rettet (rev B).",
     "skills": [
       "Innebygd C",
       "Dekomodeller",
@@ -103,6 +103,11 @@
     "logUrl": "./assets/demos/dykkecomputer/logg.html",
     "log": [
       {
+        "date": "21.11.2026",
+        "title": "Beslutninger: GPS beholdes, hybridhus, 100 m endelig, pleksiglass-prototype for 60 m",
+        "result": "Prototypen dimensjonert (13/12/4 mm); alle feil og betraktninger samlet i loggen"
+      },
+      {
         "date": "20.11.2026",
         "title": "Kontroll av alle kretser",
         "result": "Koblingsskjema rev B med 11 rettelser; aluminium stopper tanksignal, Bluetooth og GPS"
@@ -134,11 +139,12 @@
       }
     ],
     "next": [
-      "Mål tanksignalet gjennom aluminium og plast, og velg hybridhus eller PEEK-vindu.",
+      "Mål tanksignalet og GPS gjennom aluminium og plast for å bekrefte hybridhuset.",
       "Bygg koblingsbrett-demoen trinn for trinn, og gjør første bygg av fastvaren.",
+      "Pleksiglass-prototype for 60 m med trykktest til 0,90 MPa.",
       "Gjennomgå koblingsskjema rev B med en annen person, og legg ut kortet.",
-      "Fusion: montering av kort og sensorer, tynnere hus (28,5 mm), dokumentasjon.",
-      "Printet hus for bassengtest til 10 m; deretter FEA og trykktest 1,5 × 100 m.",
+      "Fusion: hybridhus, montering av kort og sensorer, tynnere innmat, dokumentasjon.",
+      "Hybridhus for 100 m: FEA og trykktest 1,51 MPa.",
       "Fastvare: skjermsider, sikkerhets-MCU, Bluetooth med passord, nye knapper."
     ]
   },
