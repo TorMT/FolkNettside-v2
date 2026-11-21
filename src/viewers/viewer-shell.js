@@ -150,12 +150,14 @@ export async function mountViewer(root,resource,onBack){
   });
   root.querySelector("#viewer-copy-path")?.addEventListener("click",async event=>{
     const value=resource.relativePath||resource.path||resource.url||"";
+    // currentTarget is null after an await or inside a timer: keep the button.
+    const button=event.currentTarget;
     try{
       await navigator.clipboard.writeText(value);
-      event.currentTarget.textContent="Copied";
-      setTimeout(()=>{if(event.currentTarget?.isConnected)event.currentTarget.textContent="Copy path"},1200);
+      button.textContent="Copied";
+      setTimeout(()=>{if(button.isConnected)button.textContent="Copy path"},1200);
     }catch{
-      event.currentTarget.textContent="Copy unavailable";
+      button.textContent="Copy unavailable";
     }
   });
 
