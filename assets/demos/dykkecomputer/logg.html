@@ -70,7 +70,7 @@
   <div class="top"><a href="./">← Til dykkecomputeren</a><span>Diverse · Dykkecomputer · Logg</span></div>
 
   <h1>Prosjektlogg</h1>
-  <p class="lead">Alt som er gjort så langt, med utregninger og koblingsskjema. Sist oppdatert 20.11.2026. Alle tall er teori og anslag fra datablader: ingenting her er målt på maskinvare ennå.</p>
+  <p class="lead">Alt som er gjort så langt, med utregninger og koblingsskjema. Sist oppdatert 21.11.2026 (<a href="dykkecomputer-prosjektlogg.pdf">last ned som PDF</a>). Alle tall er teori og anslag fra datablader: ingenting her er målt på maskinvare ennå.</p>
   <p class="warn"><strong>Ikke til ekte dykking.</strong> Huset er ikke trykktestet, kretsen er ikke bygget, og koblingsskjemaet er ikke gjennomgått av en annen person.</p>
 
   <ul class="toc">
@@ -81,6 +81,7 @@
     <li><a href="#plast">Plast i stedet for aluminium</a></li>
     <li><a href="#radio">Radio og magnetfelt gjennom huset</a></li>
     <li><a href="#krets">Kontroll av kretsene</a></li>
+    <li><a href="#cirkit">Test i Cirkit Designer</a></li>
     <li><a href="#strom">Strømbudsjett og batteritid</a></li>
     <li><a href="#skjema">Koblingsskjema rev B</a></li>
     <li><a href="#videre">Dette gjenstår</a></li>
@@ -92,6 +93,7 @@
       <table>
         <thead><tr><th>Dato</th><th>Hva</th><th>Resultat</th></tr></thead>
         <tbody>
+          <tr><td>21.11.2026</td><td>Benketest i Cirkit Designer (ESP32-S3-simulator)</td><td>Skissen kompilerer og starter; I2C svarer; knapper og våtkontakt må prøves for hånd eller på ekte maskinvare</td></tr>
           <tr><td>21.11.2026</td><td>Beslutninger: GPS beholdes, hybridhus, 100 m på endelig modell, prototype i pleksiglass for 60 m</td><td>Pleksiglass-prototypen dimensjonert; feil og betraktninger samlet i egen del</td></tr>
           <tr><td>21.11.2026</td><td>Dykkecomputeren lagt inn som pågående prosjekt under Projects</td><td>Logg og simulator på prosjektsiden</td></tr>
           <tr><td>20.11.2026</td><td>Gjennomgang av alle kretser, plan for montering, tynnere hus og plasthus</td><td>Koblingsskjema rev B med 12 rettelser; funn om radio gjennom aluminium</td></tr>
@@ -295,6 +297,26 @@
           <tr><td>EN-forsinkelse</td><td>τ = 10 kΩ · 1 µF</td><td>10 ms, som Espressif anbefaler</td><td><span class="ok">OK</span></td></tr>
           <tr><td>Sikkerhets-MCU på dybdebuss B</td><td>Deler bussen med mux-kanal 1</td><td>Fastvaren må slå av mux-kanalen etter hver lesing, så CH32 har bussen alene</td><td><span class="ok">OK</span> (fastvare)</td></tr>
           <tr><td>Lading i kulde</td><td>MCP73831 har ikke temperaturinngang</td><td>Ikke lad under 0 °C; vurder lader med NTC</td><td><span class="no">Åpen</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="cirkit">
+    <h2>Test i Cirkit Designer</h2>
+    <p class="lead">Koblingsbrett-kretsen er bygget i Cirkit Designer med en ESP32-S3 som kjører en Arduino-benketest. Cirkit kan ikke kjøre ESP-IDF-fastvaren, Bluetooth eller I2S, så dykkekoden testes i simulatoren på prosjektsiden.</p>
+    <p><a class="btn" href="https://app.cirkitdesigner.com/project/f8e94f75-4b80-423c-8f08-23ecd18d0f3f" target="_blank" rel="noopener"><b>Åpne kretsen i Cirkit Designer</b><span>Offentlig prosjekt, krever innlogging for å simulere</span></a> <a class="btn" href="benktest.ino" download><b>benktest.ino</b><span>Samme skisse kjører på ekte koblingsbrett</span></a></p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Del av testen</th><th>Resultat</th><th>Vurdering</th></tr></thead>
+        <tbody>
+          <tr><td>Kretsen</td><td>ESP32-S3, knapper på GPIO 39/41/42, piezo på 40, motor via N-MOSFET på 47 (100 Ω, 100 kΩ, frihjulsdiode), LED på 16, I2C på 8/9 med 2,2 kΩ og DS3231, våtkontakt på 3. Cirkit sin egen sjekk fant ingen feil i koblingen</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Kompilering</td><td>344 647 byte (26 %) flash, 22 296 byte (6 %) RAM</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Oppstart</td><td>Starter og skriver ut I2C-skanningen</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>I2C-skanning</td><td>DS3231 svarer på 0x68; de andre adressene mangler fordi Cirkit ikke har de delene</td><td><span class="ok">OK</span></td></tr>
+          <tr><td>Våtkontakt</td><td>Berøringskanalen gir 0 i simulatoren</td><td><span class="part">Ikke simulert, må måles</span></td></tr>
+          <tr><td>Knapper</td><td>Simulatoren krever at knappen holdes inne med musa; automatiske trykk ble ikke registrert</td><td><span class="part">Prøv for hånd</span></td></tr>
+          <tr><td>Vibrasjonsmotor</td><td>Motormodellen viser 110 o/min selv med gate lav; koblingen er bekreftet riktig</td><td><span class="part">Trolig feil i motormodellen; sjekk på koblingsbrett</span></td></tr>
         </tbody>
       </table>
     </div>

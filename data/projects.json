@@ -104,6 +104,11 @@
     "log": [
       {
         "date": "21.11.2026",
+        "title": "Benketest i Cirkit Designer",
+        "result": "Skissen kompilerer og starter på simulert ESP32-S3; I2C svarer"
+      },
+      {
+        "date": "21.11.2026",
         "title": "Beslutninger: GPS beholdes, hybridhus, 100 m endelig, pleksiglass-prototype for 60 m",
         "result": "Prototypen dimensjonert (13/12/4 mm); alle feil og betraktninger samlet i loggen"
       },
