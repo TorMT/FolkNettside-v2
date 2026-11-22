@@ -90,6 +90,12 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
   let disposed=false;
   let map=null;
   let layer=null;
+  let dotLayer=null;
+  let dotRenderer=null;
+  // Every mapped site gets a light canvas dot; full SVG pins (DOM elements) are
+  // drawn for the sites inside the current view, at most PIN_LIMIT at a time.
+  const PIN_LIMIT=300;
+  let mappedVisible=[];
   let locating=false;
   let locationRequestId=0;
   const state={query:"",level:"all",kind:"all",quality:"all",maxDepth:"",wildlife:"all",excludeWildlife:false,sort:"name",country:"Norge",region:"all",source:"all",pageSize:200,selected:null,origin:null};
@@ -133,6 +139,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
 
 
   const markers=new Map();
+  const failedNote=data.failed?.length?` ${data.failed.length} sources unavailable.`:"";
   const selectFeature=(feature,{zoom=true}={})=>{
     state.selected=feature?.properties?.ID==null?null:String(feature.properties.ID);
     diveLog.selectSite(feature);
@@ -157,11 +164,73 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
       }finally{if(!disposed)estimate.disabled=false;}
     });
     root.querySelectorAll("[data-dive-id]").forEach(node=>node.classList.toggle("selected",node.dataset.diveId===state.selected));
+    if(map&&state.selected&&!markers.has(state.selected))drawPins();
     const marker=markers.get(state.selected);
     if(marker&&map){marker.openPopup();if(zoom)map.setView(marker.getLatLng(),Math.max(map.getZoom(),11),{animate:true})}
     elements.map?.querySelectorAll(".dive-map-pin").forEach(el=>el.classList.toggle("is-selected",el.closest(".leaflet-marker-icon")?.getAttribute("data-site-id")===state.selected));
   };
 
+  const makePin=feature=>{
+    const {lat,lon}=diveFeaturePoint(feature);
+    const marker=window.L.marker([lat,lon],{
+      icon:window.L.divIcon({
+        className:`dive-leaflet-marker ${diveMarkerClass(feature)}`,
+        html:diveMarkerHTML(feature),iconSize:[36,42],iconAnchor:[18,40],popupAnchor:[0,-40]
+      }),keyboard:true,riseOnHover:true,title:String(feature.properties?.Navn||"Dykkested")
+    }).addTo(layer);
+    marker.getElement?.()?.setAttribute("data-site-id",String(feature.properties?.ID||""));
+    marker.bindTooltip(esc(feature.properties?.Navn||""),{direction:"top"});
+    marker.bindPopup(featureDetail(feature,{origin:state.origin}),{maxWidth:340});
+    marker.on("click",()=>selectFeature(feature,{zoom:false}));
+    return marker;
+  };
+  const drawDots=()=>{
+    dotLayer?.clearLayers();
+    if(!dotLayer||typeof window.L.circleMarker!=="function"||mappedVisible.length<=PIN_LIMIT)return;
+    // A wider hit area so 4 px dots are tappable on a phone.
+    dotRenderer??=window.L.canvas?.({tolerance:8})||null;
+    for(const feature of mappedVisible){
+      const {lat,lon}=diveFeaturePoint(feature),wreck=diveMarkerClass(feature).endsWith("wreck");
+      window.L.circleMarker([lat,lon],{...(dotRenderer?{renderer:dotRenderer}:{}),radius:4,weight:1,color:"#ffffff",fillOpacity:.9,
+        fillColor:wreck?"#79456b":"#14658a",bubblingMouseEvents:false})
+        .bindTooltip(esc(feature.properties?.Navn||""),{direction:"top"})
+        .on("click",()=>selectFeature(feature))
+        .addTo(dotLayer);
+    }
+  };
+  // Pins are added/removed incrementally so an open popup survives panning.
+  const drawPins=()=>{
+    if(!layer||!map)return;
+    let wanted=mappedVisible;
+    if(wanted.length>PIN_LIMIT){
+      const view=typeof map.getBounds==="function"?map.getBounds().pad(.15):null;
+      const inView=view?wanted.filter(feature=>{const {lat,lon}=diveFeaturePoint(feature);return view.contains([lat,lon])}):wanted;
+      wanted=inView.length<=PIN_LIMIT?inView:[];
+    }
+    const ids=new Set(wanted.map(feature=>String(feature.properties?.ID)));
+    if(state.selected){
+      const chosen=mappedVisible.find(feature=>String(feature.properties?.ID)===state.selected);
+      if(chosen&&!ids.has(state.selected)){wanted=[...wanted,chosen];ids.add(state.selected)}
+    }
+    for(const [id,marker] of markers){
+      if(!ids.has(id)){layer.removeLayer?.(marker);markers.delete(id)}
+    }
+    for(const feature of wanted){
+      const id=String(feature.properties?.ID);
+      if(!markers.has(id))markers.set(id,makePin(feature));
+    }
+    if(state.selected){
+      elements.map.querySelectorAll(".dive-map-pin").forEach(el=>
+        el.classList.toggle("is-selected",
+          el.closest(".leaflet-marker-icon")?.getAttribute("data-site-id")===state.selected));
+    }
+    if(elements.note){
+      const pinned=Math.min(markers.size,mappedVisible.length);
+      elements.note.textContent=mappedVisible.length<=PIN_LIMIT
+        ?`${features.length} sourced records · all ${mappedVisible.length} mapped sites in this filter are shown.${failedNote}`
+        :`${features.length} sourced records · ${mappedVisible.length} mapped sites shown as dots; ${pinned?`${pinned} with full markers in this view`:"zoom in for full markers"}.${failedNote}`;
+    }
+  };
   const render=()=>{
     const visible=sortDiveFeatures(filterDiveFeatures(features,state),state.sort,{origin:state.origin});
     currentVisible=visible;
@@ -190,32 +259,14 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
       button.addEventListener("click",()=>selectFeature(visible.find(feature=>feature.properties?.ID===button.dataset.diveId)));
     });
 
+    mappedVisible=visible.filter(feature=>diveFeaturePoint(feature));
     if(layer&&map){
       layer.clearLayers();markers.clear();
-      const bounds=[];
-      visible.slice(0,950).forEach(feature=>{
-        const point=diveFeaturePoint(feature);
-        if(!point)return;
-        const {lat,lon}=point;
-        const marker=window.L.marker([lat,lon],{
-          icon:window.L.divIcon({
-            className:`dive-leaflet-marker ${diveMarkerClass(feature)}`,
-            html:diveMarkerHTML(feature),iconSize:[36,42],iconAnchor:[18,40],popupAnchor:[0,-40]
-          }),keyboard:true,riseOnHover:true,title:String(feature.properties?.Navn||"Dykkested")
-        }).addTo(layer);
-        marker.getElement?.()?.setAttribute("data-site-id",String(feature.properties?.ID||""));
-        marker.bindTooltip(esc(feature.properties?.Navn||""),{direction:"top"});
-        marker.bindPopup(featureDetail(feature,{origin:state.origin}),{maxWidth:340});
-        marker.on("click",()=>selectFeature(feature,{zoom:false}));
-        markers.set(String(feature.properties?.ID),marker);bounds.push([lat,lon]);
-      });
-      if(state.selected){
-        elements.map.querySelectorAll(".dive-map-pin").forEach(el=>
-          el.classList.toggle("is-selected",
-            el.closest(".leaflet-marker-icon")?.getAttribute("data-site-id")===state.selected));
-      }
+      drawDots();
+      const bounds=mappedVisible.map(feature=>{const {lat,lon}=diveFeaturePoint(feature);return [lat,lon]});
       if(bounds.length>1)map.fitBounds(bounds,{padding:[24,24],maxZoom:11});
       else if(bounds.length===1)map.setView(bounds[0],11);
+      drawPins();
     }
   };
 
@@ -329,9 +380,10 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
     window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
       maxZoom:18,attribution:'&copy; OpenStreetMap contributors'
     }).addTo(map);
+    dotLayer=window.L.layerGroup().addTo(map);
     layer=window.L.layerGroup().addTo(map);
-    elements.note.textContent=`${features.length} sourced records · up to 950 map pins shown at once. Filter country/region for full detail.${data.failed?.length?` ${data.failed.length} sources unavailable.`:""}`;
     render();
+    map.on?.("moveend",()=>{if(!disposed)drawPins()});
     setTimeout(()=>map?.invalidateSize(),0);
   }catch(error){
     elements.note.textContent="Interactive basemap unavailable; the searchable sourced location list still works.";
@@ -347,6 +399,8 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
     map?.remove();
     map=null;
     layer=null;
+    dotLayer=null;
+    dotRenderer=null;
     markers.clear();
     if(window.L)delete window.L;
   };
