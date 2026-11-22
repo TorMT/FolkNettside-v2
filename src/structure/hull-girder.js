@@ -1,8 +1,8 @@
-import {solveFrame2D} from "./frame2d.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {combineHullLoading} from "../hydro/hull-loading.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {auditGirderReactions,hermiteDeflectionExtrema} from "./girder-equilibrium.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {validateGirderProfile,girderProfileAt,baselineMassAudit} from "./girder-profiles.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {stressFromSectionMoment} from "./girder-section-properties.js?v=06a87a720a94d806809ac49f022413be5bc79968";
+import {solveFrame2D} from "./frame2d.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {combineHullLoading} from "../hydro/hull-loading.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {auditGirderReactions,hermiteDeflectionExtrema} from "./girder-equilibrium.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {validateGirderProfile,girderProfileAt,baselineMassAudit} from "./girder-profiles.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {stressFromSectionMoment} from "./girder-section-properties.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
 
 const G=9.80665;
 const number=(value,name)=>{

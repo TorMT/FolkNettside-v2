@@ -1,15 +1,15 @@
-import {createHydroInclude} from "../hydro/hydro-selection.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {attitudeMatrix} from "./transforms.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {getThreeRuntime} from "./three-runtime.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {modelWaterlineContours} from "./waterline-preview.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {waveModelPose} from "./wave-model-motion.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {interpolateMotionRAO,motionFromRAO} from "./motion-rao.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {createThrusterFlowRings} from "./thruster-flow-rings.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {explodeOffsets} from "./explode-layout.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {connectCADKeyboard} from "./cad-navigation.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {fitDistanceForBox} from "./cad-camera-fit.js?v=06a87a720a94d806809ac49f022413be5bc79968";
+import {createHydroInclude} from "../hydro/hydro-selection.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {attitudeMatrix} from "./transforms.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {getThreeRuntime} from "./three-runtime.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {modelWaterlineContours} from "./waterline-preview.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {normaliseWaveCase,waveElevation} from "./wave-core.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {waveModelPose} from "./wave-model-motion.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {interpolateMotionRAO,motionFromRAO} from "./motion-rao.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {stressAtHullPoint,stressRGB,stressLegend} from "../structure/hull-contours.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {createThrusterFlowRings} from "./thruster-flow-rings.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {explodeOffsets} from "./explode-layout.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {connectCADKeyboard} from "./cad-navigation.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {fitDistanceForBox} from "./cad-camera-fit.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
 
 export async function mountModelScene(container,documentModel,options={}){
   const {showSidebar=true,onSelect=null,onMeasurements=null,selectedComponentId=null}=options;

@@ -5,7 +5,7 @@
  * concurrent overwrites from a second signed-in device.
  */
 import {getFolkAccessToken,getFolkAccountSnapshot,validateFolkAuthConfig}
-  from "./folkside-auth.js?v=06a87a720a94d806809ac49f022413be5bc79968";
+  from "./folkside-auth.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
 export const APPEARANCE_FIELDS=Object.freeze({
   mode:["system","light","dark"],
   accent:["magenta","teal","blue","amber","graphite"],

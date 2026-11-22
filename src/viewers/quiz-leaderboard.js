@@ -1,5 +1,5 @@
 /** Optional PHP leaderboard, never required for local quiz progress. */
-import {escapeHTML} from "./utils.js?v=06a87a720a94d806809ac49f022413be5bc79968";
+import {escapeHTML} from "./utils.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
 
 const NTNU_ORIGIN="https://tormt.folk.ntnu.no";
 /** Leaderboard on the owner's NTNU web space (server/ntnu-v2-api/quiz-leaderboard.php), used from GitHub Pages. */

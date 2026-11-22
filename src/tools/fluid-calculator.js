@@ -1,4 +1,4 @@
-import {FLUIDS,fluidProperties} from "./fluid-properties.js?v=06a87a720a94d806809ac49f022413be5bc79968";
+import {FLUIDS,fluidProperties} from "./fluid-properties.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
 
 function card(label,value,unit,description){
   return `<div class="tool-result-card"><span>${label}</span><strong>${value}</strong><small>${unit}</small><p>${description}</p></div>`;

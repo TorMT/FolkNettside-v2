@@ -1,5 +1,5 @@
-import {validateHydroGeometry,validateHydroModel} from "./hull-surface-validator.js?v=06a87a720a94d806809ac49f022413be5bc79968";
-import {inspectMeshIntersections} from "./mesh-intersections.js?v=06a87a720a94d806809ac49f022413be5bc79968";
+import {validateHydroGeometry,validateHydroModel} from "./hull-surface-validator.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {inspectMeshIntersections} from "./mesh-intersections.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
 
 // Conservative, reversible repairs that never move vertices, alter source
 // transforms, or relax the hydro safety gate:
