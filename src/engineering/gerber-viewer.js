@@ -1,8 +1,8 @@
 // Gerber viewer: loads a fabrication ZIP (nested ZIPs allowed) or loose Gerber/drill files and draws them on a canvas.
 // Views: realistic top, realistic bottom (mirrored as seen from below) and single layers. Wheel/pinch zoom, drag to pan.
 // Everything runs in the browser; local files are never uploaded.
-import {parseGerber, parseExcellon, classifyLayer, outlineLoops} from "./gerber.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
-import {getJSZip} from "../vendor/jszip.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
+import {parseGerber, parseExcellon, classifyLayer, outlineLoops} from "./gerber.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
+import {getJSZip} from "../vendor/jszip.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
 
 const T = {
   en: {top: "Top", bottom: "Bottom", layers: "Layers", fit: "Fit", board: "Board", loading: "Loading Gerber files…",

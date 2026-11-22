@@ -1,4 +1,4 @@
-import {createModelDocument} from "../model-document.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
+import {createModelDocument} from "../model-document.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
 
 /**
  * Read-only, triangle-mesh OBJ import for the shared Engineering model selector.

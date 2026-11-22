@@ -1,7 +1,7 @@
-import {inspectFusionPackage} from "../model/parsers/fusion-preview.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
-import {parseFusionArchive} from "../model/parsers/fusion-archive.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
-import {renderModelWorkbench} from "./model-workbench.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
-import {downloadFusionScriptPackage} from "../engineering/fusion-installer.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
+import {inspectFusionPackage} from "../model/parsers/fusion-preview.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
+import {parseFusionArchive} from "../model/parsers/fusion-archive.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
+import {renderModelWorkbench} from "./model-workbench.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
+import {downloadFusionScriptPackage} from "../engineering/fusion-installer.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>
  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
