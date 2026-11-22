@@ -150,13 +150,16 @@ export async function mountViewer(root,resource,onBack){
   });
   root.querySelector("#viewer-copy-path")?.addEventListener("click",async event=>{
     const value=resource.relativePath||resource.path||resource.url||"";
+    // event.currentTarget is null after the first await: keep the button.
+    const button=event.currentTarget;
     try{
+      if(!navigator.clipboard?.writeText)throw Error("Clipboard unavailable");
       await navigator.clipboard.writeText(value);
-      event.currentTarget.textContent="Copied";
-      setTimeout(()=>{if(event.currentTarget?.isConnected)event.currentTarget.textContent="Copy path"},1200);
+      button.textContent="Copied";
     }catch{
-      event.currentTarget.textContent="Copy unavailable";
+      button.textContent="Copy unavailable";
     }
+    setTimeout(()=>{if(button.isConnected)button.textContent="Copy path"},1200);
   });
 
   root.querySelector("#viewer-quiz-info")?.addEventListener("click",event=>{

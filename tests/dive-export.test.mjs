@@ -17,7 +17,7 @@ const feature={
 
 test("Dive CSV preserves coordinates, sources and quoted text",()=>{
   const csv=diveFeaturesCSV([feature]);
-  assert.match(csv,/id,name,area,category,status,lat,lon/);
+  assert.match(csv,/id,name,country,area,category,status,lat,lon/);
   assert.match(csv,/"Test, site"/);
   assert.match(csv,/63\.4,10\.2/);
   assert.match(csv,/https:\/\/example\.com\/a \| https:\/\/example\.com\/b/);
@@ -49,8 +49,8 @@ test("CSV and GeoJSON retain unverified records but do not present disclaimed co
   };
   const src=JSON.stringify(withheld);
   const csv=diveFeaturesCSV([withheld,invalid]);
-  assert.match(csv,/D013,Tråsåvika Camping,Trondheim,Natur,Practical,,,/);
-  assert.match(csv,/Xbad,Malformed coordinate,Trondheim,Natur,Practical,,,/);
+  assert.match(csv,/D013,Tråsåvika Camping,Norge,Trondheim,Natur,Practical,,,/);
+  assert.match(csv,/Xbad,Malformed coordinate,Norge,Trondheim,Natur,Practical,,,/);
   assert.doesNotMatch(csv,/63\.483067|9\.868017|javascript:/);
   const text=diveFeaturesGeoJSON([withheld,invalid],{
     origin:{lat:63.4,lon:10.3},
@@ -79,7 +79,7 @@ test("spreadsheet formula injection is neutralized in CSV free-text cells",()=>{
     Notater:"+SUM(1,2)",Adkomst:" @SUM(1,2)",Dybde_max_m:20
   }};
   const csv=diveFeaturesCSV([payload]);
-  assert.match(csv,/id,name,area,category,status/);
+  assert.match(csv,/id,name,country,area,category,status/);
   assert.match(csv,/'=HYPERLINK/);
   assert.match(csv,/' @SUM/);
   assert.match(csv,/,5,20,/);

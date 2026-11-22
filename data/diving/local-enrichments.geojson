@@ -1,0 +1,626 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "title": "Pingvin, Scarsbrook, ReefRadar og Dykkekart – kildetillegg",
+    "records": 17,
+    "source_kind": "Local source citations; limited site descriptions, no wholesale copying",
+    "created": "2026-11-01"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "LC001",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.324068,
+          63.449544
+        ]
+      },
+      "properties": {
+        "ID": "LC001",
+        "Navn": "Texacobrygga",
+        "Land": "Norge",
+        "Område": "Ilsvika/Trolla, Trondheim",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": 63.449544,
+        "Lon": 10.324068,
+        "Dybde_min_m": null,
+        "Dybde_max_m": 20,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": "1",
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": "dødmannshånd; krabbe; hummer",
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Pingvin Sportsdykkerklubb",
+        "Notater": "Kaifundament og sandbunn, lokale dykk er beskrevet til rundt 20 m; utenfor faller bunnen brattere.",
+        "source_urls": [
+          "https://www.pingvindykk.no/?page_id=24"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC002",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.433927,
+          63.4504
+        ]
+      },
+      "properties": {
+        "ID": "LC002",
+        "Navn": "Korsvika",
+        "Land": "Norge",
+        "Område": "Lade, Trondheim",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": 63.4504,
+        "Lon": 10.433927,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": "1",
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Pingvin Sportsdykkerklubb",
+        "Notater": "Lokalt nivå 1; vanlig nybegynnerdykk.",
+        "source_urls": [
+          "https://www.pingvindykk.no/?page_id=424"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC003",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.446781,
+          63.457181
+        ]
+      },
+      "properties": {
+        "ID": "LC003",
+        "Navn": "Østmarkneset (NGU-kaia)",
+        "Land": "Norge",
+        "Område": "Trondheimsfjorden",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": 63.457181,
+        "Lon": 10.446781,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": "1",
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": "flyndre",
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Pingvin Sportsdykkerklubb",
+        "Notater": "Landdykk med grunn sandbunn og tang; vær oppmerksom på fiskere.",
+        "source_urls": [
+          "https://www.pingvindykk.no/?page_id=26"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC004",
+      "geometry": null,
+      "properties": {
+        "ID": "LC004",
+        "Navn": "Storsteinan",
+        "Land": "Norge",
+        "Område": "Mellom Trolla og Flakk",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": null,
+        "Lon": null,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": null,
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Pingvin Sportsdykkerklubb",
+        "Notater": "Store steiner med grunt bunnliv, noe tidevannsstrøm; stedspesifikke dykkeprofiler bør kontrolleres.",
+        "source_urls": [
+          "https://www.pingvindykk.no/?page_id=44"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC005",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.113578,
+          63.326118
+        ]
+      },
+      "properties": {
+        "ID": "LC005",
+        "Navn": "Lekteren ved Børsa",
+        "Land": "Norge",
+        "Område": "Børsa",
+        "Kategori": "Vrak",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": 63.326118,
+        "Lon": 10.113578,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": "2",
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Pingvin Sportsdykkerklubb",
+        "Notater": "Børsa-lekteren i Pingvins lokale dykkeroversikt; følg vrak- og dybdekrav.",
+        "source_urls": [
+          "https://www.pingvindykk.no/?page_id=152"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC006",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.097071,
+          63.32771
+        ]
+      },
+      "properties": {
+        "ID": "LC006",
+        "Navn": "Nykorallene",
+        "Land": "Norge",
+        "Område": "Børsa / Skaun",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": 63.32771,
+        "Lon": 10.097071,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": "2",
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": "viftekoraller",
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Pingvin Sportsdykkerklubb",
+        "Notater": "Korallforekomst omtalt fra omtrent 25 m. Ikke forstyrr korallene; publikumskoordinatet er ikke en detaljert korallposisjon.",
+        "source_urls": [
+          "https://www.pingvindykk.no/?page_id=397"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC007",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.436497,
+          63.591359
+        ]
+      },
+      "properties": {
+        "ID": "LC007",
+        "Navn": "Skålvika",
+        "Land": "Norge",
+        "Område": "Indre Fosen",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": 63.591359,
+        "Lon": 10.436497,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": null,
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Pingvin Sportsdykkerklubb",
+        "Notater": "Skjermet bukt og mulighet til dypere dykking.",
+        "source_urls": [
+          "https://www.pingvindykk.no/?page_id=393"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC008",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          10.949561,
+          63.7001753
+        ]
+      },
+      "properties": {
+        "ID": "LC008",
+        "Navn": "Ekneveggen",
+        "Land": "Norge",
+        "Område": "Levanger / Trondheimsfjorden",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": 63.7001753,
+        "Lon": 10.949561,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": null,
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": "Bratt dypvegg og tidevannsstrøm; krevende dykk.",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Pingvin Sportsdykkerklubb",
+        "Notater": "Dyp vegg, strøm og krevende oppdriftskontroll; ikke vurdert for nybegynnere.",
+        "source_urls": [
+          "https://www.pingvindykk.no/?page_id=390"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC009",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.868017,
+          63.483067
+        ]
+      },
+      "properties": {
+        "ID": "LC009",
+        "Navn": "Ingdalen",
+        "Land": "Norge",
+        "Område": "Orkland-siden av fjorden",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": 63.483067,
+        "Lon": 9.868017,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": null,
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Pingvin Sportsdykkerklubb",
+        "Notater": "Sållåtneset omtales lokalt som Ingdalen; vegg under normal sportsdykkerdybde.",
+        "source_urls": [
+          "https://www.pingvindykk.no/?page_id=47"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC010",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.740931,
+          63.612662
+        ]
+      },
+      "properties": {
+        "ID": "LC010",
+        "Navn": "Hamborra",
+        "Land": "Norge",
+        "Område": "Trondheimsfjorden / Fosen-siden",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": 63.612662,
+        "Lon": 9.740931,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": "1-2",
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": "Mulig nedadgående tidevannsstrøm ved neset; vurder lokalt.",
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": "kamskjell",
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Pingvin Sportsdykkerklubb",
+        "Notater": "Omtalt som Hambortåa av Pingvin. Sjøbunnsvegg og mulig nedadgående strøm ved neset; nivå avhenger av eksakt rute.",
+        "source_urls": [
+          "https://www.pingvindykk.no/?page_id=90"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC011",
+      "geometry": null,
+      "properties": {
+        "ID": "LC011",
+        "Navn": "Dalstø",
+        "Land": "Norge",
+        "Område": "Vestlandet",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": null,
+        "Lon": null,
+        "Dybde_min_m": null,
+        "Dybde_max_m": 50,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": null,
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": "sjøpunger; anemoner; kråkeboller; sjøstjerner; krepsdyr",
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Scarsbrook",
+        "Notater": "Vegglokalitet ved Herdlefjorden; publiserte kartkoordinater er bevisst avrundet og kartfestes derfor ikke.",
+        "source_urls": [
+          "https://www.scarsbrook.net/dalsto.htm"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC012",
+      "geometry": null,
+      "properties": {
+        "ID": "LC012",
+        "Navn": "Fedje – sørøstspissen",
+        "Land": "Norge",
+        "Område": "Vestlandet",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": null,
+        "Lon": null,
+        "Dybde_min_m": null,
+        "Dybde_max_m": 50,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": null,
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": "breiflabb",
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Scarsbrook",
+        "Notater": "Felles betegnelse på ca. 1 km kyststrekning; ingen eksakt innsteg-/GPS-posisjon.",
+        "source_urls": [
+          "https://www.scarsbrook.net/fedje.htm"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC013",
+      "geometry": null,
+      "properties": {
+        "ID": "LC013",
+        "Navn": "Skodjestraumen",
+        "Land": "Norge",
+        "Område": "Vestlandet",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": null,
+        "Lon": null,
+        "Dybde_min_m": null,
+        "Dybde_max_m": 25,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": null,
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": "steinbit",
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Scarsbrook",
+        "Notater": "Scarsbrook angir 5–25 m; opptil 6 kn strøm; nøyaktig punkt ikke dokumentert.",
+        "source_urls": [
+          "https://www.scarsbrook.net/skodjestraumen.htm"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC014",
+      "geometry": null,
+      "properties": {
+        "ID": "LC014",
+        "Navn": "Gulen – husrevet",
+        "Land": "Norge",
+        "Område": "Vestlandet",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": null,
+        "Lon": null,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": "2",
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": "nakensnegler",
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "ReefRadar",
+        "Notater": "ReefRadar beskriver makroliv og grunt dykk, men ingen nøyaktig GPS/dybde.",
+        "source_urls": [
+          "https://reefradar.org/destinations/norway/gulen-house-reef/"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC015",
+      "geometry": null,
+      "properties": {
+        "ID": "LC015",
+        "Navn": "Fureholmen",
+        "Land": "Norge",
+        "Område": "Møre og Romsdal",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": null,
+        "Lon": null,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": null,
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Dykkekart",
+        "Notater": "Dykkekart.no beskriver sandbunn; koordinat og operasjonell dybde ikke kontrollert.",
+        "source_urls": [
+          "https://dykkekart.no/dive_site/fureholmen/"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC016",
+      "geometry": null,
+      "properties": {
+        "ID": "LC016",
+        "Navn": "Eikå",
+        "Land": "Norge",
+        "Område": "Møre og Romsdal",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": null,
+        "Lon": null,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": null,
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": "kamskjell; krabber",
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Dykkekart",
+        "Notater": "Omtalt av Dykkekart.no ved Ulstein; krever lokal stedskontroll.",
+        "source_urls": [
+          "https://dykkekart.no/dive_site/eika/"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LC017",
+      "geometry": null,
+      "properties": {
+        "ID": "LC017",
+        "Navn": "Eiksundbrua Nord",
+        "Land": "Norge",
+        "Område": "Møre og Romsdal",
+        "Kategori": "Naturdykk",
+        "Status": "Stedsbeskrivelse fra navngitt lokalkilde; sikkerhetsforhold må verifiseres",
+        "Lat": null,
+        "Lon": null,
+        "Dybde_min_m": null,
+        "Dybde_max_m": null,
+        "Kilde_nivå": "Ukjent",
+        "Lokal_vanskelighetsgrad": null,
+        "Adkomst": null,
+        "Bunn_terreng": null,
+        "Strøm_fare_forbehold": null,
+        "Observert_dyreliv": null,
+        "Mulig_rapportert_dyreliv": null,
+        "Vrak_historie": null,
+        "Vern_kulturminne": null,
+        "Datakvalitet": "B – dokumentert lokalbeskrivelse; dybde og posisjon kan være omtrentlige",
+        "Kilde_IDer": "Dykkekart",
+        "Notater": "Dykkekart.no omtaler landadkomst og grunn sandbunn; dykkekrav ukjent.",
+        "source_urls": [
+          "https://dykkekart.no/dive_site/eiksundbrua-nord/"
+        ],
+        "verified_date": "2026-11-01"
+      }
+    }
+  ]
+}

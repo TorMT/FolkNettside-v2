@@ -4,14 +4,10 @@ import {createStudyProgressBackup,importStudyProgressBackup} from "./settings/st
 import {writeSpaceMouseSettings,resetSpaceMouseSettings} from "./model/spacemouse-settings.js";
 import {mountViewer} from "./viewer.js";
 import {courseViewerNeighbors} from "./viewers/course-file-navigation.js";
-import {render as renderPythonWorkbench} from "./viewers/adapters/python.js";
 import {loadContent} from "./content.js";
-import {kisssoftPageHTML,mountKisssoft} from "./engineering/kisssoft-tool.js";
-import {cadToolHTML,mountCADTool} from "./engineering/cad-tool.js";
 import {renderResourceTree} from "./components/resource-tree.js";
 import {optionalKarakterwebUrl} from "./courses/external-links.js";
 import {bindCourseNavigation} from "./courses/course-navigation.js";
-import {mountCourseAdmin} from "./courses/admin-page.js";
 import {createResourceNotices} from "./courses/resource-updates.js";
 import {initialCourseSemester,semesterTabsHTML,courseCatalogWarningHTML,emptySemesterHTML} from "./courses/course-catalog-availability.js";
 import {escapeHTML as escCourse} from "./viewers/utils.js";
@@ -29,15 +25,7 @@ import {bindProjectImageFallback} from "./components/project-image-fallback.js";
 import {buildSearchIndex} from "./search/search-index.js";
 import {createSearchController} from "./components/search-dialog.js";
 import {toolsIndexHTML} from "./tools/tools-index.js";
-import {staticVaultPageHTML,bindStaticVaultPage} from "./tools/static-vault-page.js";
 import {activeTools} from "./tools/tool-registry.js";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js";
 import {loadModelDocument} from "./model/load-model.js";
 import {parseModelBuffer} from "./tools/model-inspector-core.js";
 import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js";
@@ -71,21 +59,61 @@ import {analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent,registerA
 import {mountAnalyticsNotice} from "./platform/analytics-notice.js";
 import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js";
 import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js";
 import {diversePageHTML} from "./diverse/diverse-page.js";
-import {photoFeedPageHTML,mountPhotoFeed} from "./diverse/photo-feed-page.js";
 import {DIVERSE_MODULES} from "./diverse/diverse-registry.js";
-import {diveMapHTML,mountDiveMap} from "./diverse/dive-map.js";
-import {sandalenPageHTML} from "./diverse/sandalen-page.js";
-import {studyCatalogPageHTML,mountStudyCatalog} from "./diverse/study-catalog-pages.js";
-import {matprisPageHTML,mountMatpris} from "./diverse/matpris-page.js";
 import {configuredMatprisEndpoint} from "./diverse/matpris-api.js";
-import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js";
-import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js";
 import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js";
 import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignOut,getFolkLinkedProviders} from "./platform/folkside-auth.js";
 import {probeFolkCoreBackend} from "./platform/folkside-cloud.js";
 import {createFolkAppearanceBackup} from "./platform/folkside-preferences.js";
+import {isStartRoute} from "./shell/start-route.js";
+import {lazyRouteKeys} from "./shell/lazy-routes.js";
+
+// Route-level code splitting. These page modules (and everything only they import,
+// about 80 files) are loaded the first time their route is opened instead of on every
+// page load. render() awaits loadLazyRouteModules(path) before it dispatches, so the
+// page functions below can keep using these names synchronously.
+let kisssoftPageHTML, mountKisssoft, cadToolHTML, mountCADTool,
+    staticVaultPageHTML, bindStaticVaultPage, renderPythonWorkbench, fluidCalculatorHTML,
+    modelInspectorHTML, bindModelInspector, chemEditorHTML, bindChemEditor,
+    coolPropToolHTML, bindCoolPropTool, loadPeriodicFixture, periodicTableHTML,
+    crystalToolHTML, mountCrystalViewer, editFromState, readCrystalEditorState,
+    themeStudioHTML, bindThemeStudio, photoFeedPageHTML, mountPhotoFeed,
+    diveMapHTML, mountDiveMap, sandalenPageHTML, studyCatalogPageHTML,
+    mountStudyCatalog, matprisPageHTML, mountMatpris, brewingPageHTML,
+    mountBrewing, medisinPageHTML, mountMedisin, mountCourseAdmin;
+const lazyRouteLoaders={
+  "kisssoft":async()=>{({kisssoftPageHTML,mountKisssoft}=await import("./engineering/kisssoft-tool.js"))},
+  "cad":async()=>{({cadToolHTML,mountCADTool}=await import("./engineering/cad-tool.js"))},
+  "vault":async()=>{({staticVaultPageHTML,bindStaticVaultPage}=await import("./tools/static-vault-page.js"))},
+  "python":async()=>{({render:renderPythonWorkbench}=await import("./viewers/adapters/python.js"))},
+  "fluid":async()=>{({fluidCalculatorHTML}=await import("./tools/fluid-calculator.js"))},
+  "model-inspector":async()=>{({modelInspectorHTML,bindModelInspector}=await import("./tools/model-inspector.js"))},
+  "chem":async()=>{({chemEditorHTML,bindChemEditor}=await import("./tools/chem-editor.js"))},
+  "coolprop":async()=>{({coolPropToolHTML,bindCoolPropTool}=await import("./tools/coolprop-tool.js"))},
+  "periodic":async()=>{({loadPeriodicFixture,periodicTableHTML}=await import("./tools/periodic-table.js"))},
+  "crystal":async()=>{({crystalToolHTML,mountCrystalViewer}=await import("./tools/crystal-viewer.js"))},
+  "crystal-editor":async()=>{({editFromState,readCrystalEditorState}=await import("./tools/crystal-editor-panel.js"))},
+  "theme-studio":async()=>{({themeStudioHTML,bindThemeStudio}=await import("./settings/theme-studio.js"))},
+  "photo-feed":async()=>{({photoFeedPageHTML,mountPhotoFeed}=await import("./diverse/photo-feed-page.js"))},
+  "dive-map":async()=>{({diveMapHTML,mountDiveMap}=await import("./diverse/dive-map.js"))},
+  "sandalen":async()=>{({sandalenPageHTML}=await import("./diverse/sandalen-page.js"))},
+  "study-catalog":async()=>{({studyCatalogPageHTML,mountStudyCatalog}=await import("./diverse/study-catalog-pages.js"))},
+  "matpris":async()=>{({matprisPageHTML,mountMatpris}=await import("./diverse/matpris-page.js"))},
+  "brewing":async()=>{({brewingPageHTML,mountBrewing}=await import("./diverse/brewing-page.js"))},
+  "medisin":async()=>{({medisinPageHTML,mountMedisin}=await import("./diverse/medisin-page.js"))},
+  "course-admin":async()=>{({mountCourseAdmin}=await import("./courses/admin-page.js"))}
+};
+const lazyRouteLoads=new Map();
+function loadLazyRouteModules(path){
+  return Promise.all(lazyRouteKeys(path).map(key=>{
+    if(!lazyRouteLoads.has(key)){
+      // A failed download (offline, deploy in progress) must not be cached as a failure.
+      lazyRouteLoads.set(key,lazyRouteLoaders[key]().catch(error=>{lazyRouteLoads.delete(key);throw error}));
+    }
+    return lazyRouteLoads.get(key);
+  }));
+}
 
 initSettings();
 initGoogleSession();
@@ -2578,7 +2606,7 @@ async function engineeringPage(){
     if(gzCurve.length)downloadTextFile(gzCurveCSV(gzCurve),"gz-curve.csv");
   });
 }
-function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+escCourse(message)+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
+function notFoundPage(message,back={route:"/courses",label:"Back to Courses"}){app.innerHTML=top("")+'<main class="study" id="main" tabindex="-1"><section class="study-main"><div class="course-header" data-not-found><h1>Not found</h1><p>'+escCourse(message)+'</p><button class="btn" data-go="'+escCourse(back.route)+'">'+escCourse(back.label)+'</button></div></section></main>';bindNav()}
 function disposeActiveViewer(){
   const holder=app.__viewerHolder;
   if(!holder)return;
@@ -2603,12 +2631,32 @@ async function render(){disposeActiveViewer();const currentPath=route();if(curre
     engineeringCleanup?.();
     engineeringCleanup=null;
   }
-  if(path!=="/engineering/kisssoft"){kisssoftCleanup?.();kisssoftCleanup=null;}if(path!=="/engineering/cad"){cadToolCleanup?.();cadToolCleanup=null;}if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}if(!["/diverse/diving","/diverse/dive-map"].includes(path)){diveMapMountId++;diveMapCleanup?.();diveMapCleanup=null;}if(path!=="/diverse/brewing"){brewingMountId++;brewingCleanup?.();brewingCleanup=null;}if(path!=="/diverse/medisin"){medisinCleanup?.cleanup?.();medisinCleanup=null;}if(path!=="/diverse/bilder"){photoFeedCleanup?.cleanup?.();photoFeedCleanup=null;}studyCatalogMountId++;studyCatalogCleanup?.cleanup?.();studyCatalogCleanup=null;const viewer=parseViewerRoute(path);if(["/about","/cv","/contact"].includes(path)){document.documentElement.dataset.lens="portfolio";const page=path.slice(1);app.innerHTML=top(page)+'<main class="section"><p>Loading profile…</p></main>';bindNav();loadCV().then(cv=>{if(route()!==path)return;app.innerHTML=top(page)+portfolioInfoPageHTML(page,cv);bindNav();}).catch(error=>{if(route()!==path)return;app.innerHTML=top(page)+`<main class="section"><h1>Profile unavailable</h1><p>${String(error.message||error).replace(/[&<>"]/g,"")}</p></main>`;bindNav();});return;}if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code,course.sectionIndex);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/admin/courses")return courseAdminPage();if(path==="/courses"||path==="/study")return coursesPage();if(path==="/diverse")return diversePage();if(path==="/diverse/bilder")return photoFeedPage();if(path==="/diverse/diving"||path==="/diverse/dive-map")return diveMapPage();if(path==="/diverse/sandalen")return sandalenPage();if(path==="/diverse/matpris")return matprisPage();if(path==="/diverse/brewing")return brewingPage();if(path==="/diverse/medisin")return medisinPage();if(path==="/diverse/laos")return studyCatalogPage("laos");if(path==="/diverse/andrekok")return studyCatalogPage("kok");if(path==="/engineering/cad"){
+  if(path!=="/engineering/kisssoft"){kisssoftCleanup?.();kisssoftCleanup=null;}if(path!=="/engineering/cad"){cadToolCleanup?.();cadToolCleanup=null;}if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}if(!["/diverse/diving","/diverse/dive-map"].includes(path)){diveMapMountId++;diveMapCleanup?.();diveMapCleanup=null;}if(path!=="/diverse/brewing"){brewingMountId++;brewingCleanup?.();brewingCleanup=null;}if(path!=="/diverse/medisin"){medisinCleanup?.cleanup?.();medisinCleanup=null;}if(path!=="/diverse/bilder"){photoFeedCleanup?.cleanup?.();photoFeedCleanup=null;}studyCatalogMountId++;studyCatalogCleanup?.cleanup?.();studyCatalogCleanup=null;const viewer=parseViewerRoute(path);
+  // Load this route's on-demand modules first. If the visitor has moved on meanwhile,
+  // the render started by that navigation owns the page.
+  if(lazyRouteKeys(path).length){
+    try{await loadLazyRouteModules(path)}
+    catch(error){
+      if(route()!==path)return;
+      app.innerHTML=top("")+'<main class="study" id="main" tabindex="-1"><section class="study-main"><div class="course-header" data-lazy-route-error><h1>Could not load this page</h1><p>Part of the site did not download. Check the connection and try again.</p><button class="btn primary" id="lazy-route-retry">Try again</button></div></section></main>';
+      bindNav();
+      // A module that failed to download stays failed in this document's module map,
+      // so trying again needs a fresh page load.
+      app.querySelector("#lazy-route-retry")?.addEventListener("click",()=>location.reload());
+      return;
+    }
+    if(route()!==path)return;
+  }
+  if(["/about","/cv","/contact"].includes(path)){document.documentElement.dataset.lens="portfolio";const page=path.slice(1);app.innerHTML=top(page)+'<main class="section"><p>Loading profile…</p></main>';bindNav();loadCV().then(cv=>{if(route()!==path)return;app.innerHTML=top(page)+portfolioInfoPageHTML(page,cv);bindNav();}).catch(error=>{if(route()!==path)return;app.innerHTML=top(page)+`<main class="section"><h1>Profile unavailable</h1><p>${String(error.message||error).replace(/[&<>"]/g,"")}</p></main>`;bindNav();});return;}if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code,course.sectionIndex);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/admin/courses")return courseAdminPage();if(path==="/courses"||path==="/study")return coursesPage();if(path==="/diverse")return diversePage();if(path==="/diverse/bilder")return photoFeedPage();if(path==="/diverse/diving"||path==="/diverse/dive-map")return diveMapPage();if(path==="/diverse/sandalen")return sandalenPage();if(path==="/diverse/matpris")return matprisPage();if(path==="/diverse/brewing")return brewingPage();if(path==="/diverse/medisin")return medisinPage();if(path==="/diverse/laos")return studyCatalogPage("laos");if(path==="/diverse/andrekok")return studyCatalogPage("kok");if(path==="/engineering/cad"){
   document.documentElement.dataset.lens="workspace";
   app.innerHTML=top("engineering")+cadToolHTML();
   bindNav();cadToolCleanup=mountCADTool(app);return;
 }
-if(path==="/engineering/kisssoft"){document.documentElement.dataset.lens="workspace";app.innerHTML=top("engineering")+kisssoftPageHTML();bindNav();kisssoftCleanup=mountKisssoft(app);return;}if(path==="/tools")return toolsPage();if(path==="/tools/vault")return vaultToolPage();if(path==="/tools/python")return pythonToolPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/model-inspector")return modelInspectorPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings/theme-studio/manual")return themeStudioPage("manual");if(path==="/settings/theme-studio/image")return themeStudioPage("image");const settingsMatch=path.match(/^\/settings(?:\/(appearance|connections|courses|engineering|privacy|advanced))?$/);if(settingsMatch){settingsSection=settingsMatch[1]||"appearance";return settingsPage();}const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
+if(path==="/engineering/kisssoft"){document.documentElement.dataset.lens="workspace";app.innerHTML=top("engineering")+kisssoftPageHTML();bindNav();kisssoftCleanup=mountKisssoft(app);return;}if(path==="/tools")return toolsPage();if(path==="/tools/vault")return vaultToolPage();if(path==="/tools/python")return pythonToolPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/model-inspector")return modelInspectorPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings/theme-studio/manual")return themeStudioPage("manual");if(path==="/settings/theme-studio/image")return themeStudioPage("image");const settingsMatch=path.match(/^\/settings(?:\/(appearance|connections|courses|engineering|privacy|advanced))?$/);if(settingsMatch){settingsSection=settingsMatch[1]||"appearance";return settingsPage();}const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}
+  // Only the start page falls through to the portfolio. A mistyped or outdated
+  // link gets an explicit Not found page instead of silently showing the start page.
+  if(isStartRoute(path))return portfolioPage();
+  return notFoundPage("There is no page at "+path.slice(0,120)+".",{route:"/portfolio",label:"Go to the start page"})}
 window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();globalSearch.open()}});window.addEventListener("hashchange",render);render();
 initializeFolkAccount().then(()=>{
   if(route()==="/settings/connections"&&settingsSection==="connections")settingsPage();

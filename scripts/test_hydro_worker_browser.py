@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Dependency-free W3C WebDriver status-wait for asynchronous browser smoke tests."""
 import json
+import shutil
+import subprocess
 import sys
 import time
 import urllib.error
 import urllib.request
 
-DRIVER = "http://127.0.0.1:9515"
+DRIVER_PORT = "9515"
+DRIVER = "http://127.0.0.1:" + DRIVER_PORT
 
 def call(method, path, body=None, timeout=30):
     data = None if body is None else json.dumps(body).encode("utf-8")
@@ -18,27 +21,61 @@ def call(method, path, body=None, timeout=30):
         raise RuntimeError(str(payload["value"]))
     return payload.get("value")
 
-def wait_for_driver(seconds=30, request=call, sleep=time.sleep, clock=time.monotonic):
-    """Wait for startup under a wall-clock bound; do not retry actual smoke failures."""
-    deadline = clock() + seconds
+def start_driver(popen=subprocess.Popen, which=shutil.which):
+    """Start a ChromeDriver on the port the smoke tests use. Returns the process or None."""
+    binary = which("chromedriver")
+    if not binary:
+        return None
+    return popen([binary, "--port=" + DRIVER_PORT, "--allowed-ips=127.0.0.1"],
+                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def wait_for_driver(seconds=30, request=call, sleep=time.sleep, clock=time.monotonic,
+                    restart=None, restart_after=4, max_restarts=3):
+    """Wait for startup under a wall-clock bound; do not retry actual smoke failures.
+
+    The workflows start ChromeDriver in the background right after the previous step killed
+    its own on the same port. When the old one has not released the port yet, the new one
+    exits at once and nothing ever listens: the wait then ran out its 30 s and failed the
+    job. If `restart` is given and nothing has answered for `restart_after` seconds, it is
+    called (at most `max_restarts` times) to start a driver now that the port is free.
+    A driver that answers but is not ready is never restarted.
+    """
+    start = clock()
+    deadline = start + seconds
     last_error = None
+    restarts = 0
+    last_contact = start
     while clock() < deadline:
         try:
             status = request("GET", "/status", timeout=1)
             if isinstance(status, dict) and status.get("ready") is True:
                 return
             last_error = "ChromeDriver running but not ready"
+            last_contact = clock()
         except (OSError, TimeoutError, urllib.error.URLError) as error:
             last_error = type(error).__name__
+            if restart and restarts < max_restarts and clock() - last_contact >= restart_after:
+                restarts += 1
+                last_contact = clock()
+                restart()
         sleep(min(0.25, max(0, deadline - clock())))
-    raise RuntimeError("ChromeDriver did not start within " +
-                       str(seconds) + "s (" + str(last_error or "unknown") + ")")
+    detail = str(last_error or "unknown")
+    if restarts:
+        detail += ", restarted %d time(s)" % restarts
+    raise RuntimeError("ChromeDriver did not start within " + str(seconds) + "s (" + detail + ")")
 
 
 def main(url):
     session=None
+    owned=[]
+    def restart():
+        process=start_driver()
+        if process:
+            owned.append(process)
+            print("ChromeDriver was not listening: started one for this smoke test",file=sys.stderr)
     try:
-        wait_for_driver()
+        wait_for_driver(restart=restart)
         window_size=sys.argv[3] if len(sys.argv)>3 else "800,600"
         response=call("POST","/session",{"capabilities":{"alwaysMatch":{
             "browserName":"chrome",
@@ -70,6 +107,13 @@ def main(url):
         if session:
             try:call("DELETE",f"/session/{session}")
             except Exception:pass
+        for process in owned:
+            try:
+                process.terminate()
+                process.wait(timeout=5)
+            except Exception:
+                try:process.kill()
+                except Exception:pass
 
 if __name__=="__main__":
     try:sys.exit(main(sys.argv[1]))

@@ -57,6 +57,47 @@ class ChromeDriverStartupTests(unittest.TestCase):
         self.assertEqual(len(calls), 1)
         self.assertEqual(state[0], 0)
 
+    def test_dead_port_gets_a_driver_started_and_then_succeeds(self):
+        now, sleep, state = self.new_clock()
+        started = []
+        def request(method, path, timeout):
+            if not started:
+                raise OSError("connection refused")
+            return {"ready": True}
+        browser.wait_for_driver(seconds=30, request=request, clock=now, sleep=sleep,
+                                restart=lambda: started.append(state[0]))
+        self.assertEqual(len(started), 1)
+        self.assertGreaterEqual(started[0], 4)      # not before the workflow's own driver had a chance
+        self.assertLess(state[0], 6)
+
+    def test_restarts_are_bounded_and_failure_still_reports(self):
+        now, sleep, state = self.new_clock()
+        started = []
+        def request(method, path, timeout):
+            raise OSError("connection refused")
+        with self.assertRaisesRegex(RuntimeError, r"did not start within 30s \(OSError, restarted 3 time"):
+            browser.wait_for_driver(seconds=30, request=request, clock=now, sleep=sleep,
+                                    restart=lambda: started.append(state[0]))
+        self.assertEqual(len(started), 3)
+
+    def test_slow_but_answering_driver_is_never_restarted(self):
+        now, sleep, state = self.new_clock()
+        started, calls = [], []
+        def request(method, path, timeout):
+            calls.append(1)
+            return {"ready": len(calls) > 40}       # answers "not ready" for 10 s
+        browser.wait_for_driver(seconds=30, request=request, clock=now, sleep=sleep,
+                                restart=lambda: started.append(1))
+        self.assertEqual(started, [])
+
+    def test_start_driver_uses_the_smoke_port_and_handles_a_missing_binary(self):
+        seen = []
+        process = browser.start_driver(popen=lambda args, **kw: seen.append(args) or "proc",
+                                       which=lambda name: "/usr/bin/" + name)
+        self.assertEqual(process, "proc")
+        self.assertEqual(seen[0], ["/usr/bin/chromedriver", "--port=9515", "--allowed-ips=127.0.0.1"])
+        self.assertIsNone(browser.start_driver(popen=None, which=lambda name: None))
+
 
 if __name__ == "__main__":
     unittest.main()

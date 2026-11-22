@@ -1,6 +1,7 @@
 import {filterPhotoAlbums,publishedAlbums,photoCarouselWindow} from "./photo-feed-model.js";
 
 const MANIFEST="./data/diverse/photo-feed.json";
+const CONFIG="./data/diverse/photo-feed-config.json";
 const SOURCE="https://drive.google.com/drive/folders/1lBkBhTHl7CkVoAaUgWn2RAtKZXqRre3k";
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
@@ -17,7 +18,7 @@ export function photoFeedPageHTML(){
     '<button class="btn" type="button" data-photo-refresh>Oppdater</button></div>'+
     '<p class="photo-info" id="photo-info" role="status" aria-live="polite">Leser album fra Google Drive …</p>'+
     '<div class="photo-feed" id="photo-feed"></div>'+
-    '<p class="photo-source">Kilde: <a href="'+SOURCE+'" target="_blank" rel="noopener noreferrer">FolkNettside / Bilder</a>. Kun offentlig tilgjengelige bilder kan vises. Nye mapper vises ved neste indeksoppdatering.</p>'+
+    '<p class="photo-source">Kilde: <a href="'+SOURCE+'" target="_blank" rel="noopener noreferrer">FolkNettside / Bilder</a>. Kun offentlig tilgjengelige bilder kan vises. Nye offentlige bilder vises automatisk når live-synkronisering er aktivert.</p>'+
     '</section><dialog class="photo-lightbox" id="photo-lightbox" aria-label="Bilde i fullskjerm">'+
     '<div id="photo-lightbox-body"></div></dialog></main>';
 }
@@ -108,8 +109,25 @@ export function mountPhotoFeed(root,{onBack=()=>{}}={}){
     const ctl=new AbortController();loadController=ctl;
     info.textContent="Oppdaterer bildegalleriet …";
     try{
-      const response=await fetch(MANIFEST,{cache:"no-store",signal:ctl.signal});
-      if(!response.ok)throw Error("HTTP "+response.status);
+      let endpoint=MANIFEST;
+      try{
+        const configResponse=await fetch(CONFIG,{cache:"no-store",signal:ctl.signal});
+        if(configResponse.ok){
+          const config=await configResponse.json();
+          if(typeof config.liveEndpoint==="string"&&/^https:\/\//.test(config.liveEndpoint)){
+            endpoint=config.liveEndpoint;
+          }
+        }
+      }catch(error){if(ctl.signal.aborted)return;}
+      let response;
+      try{
+        response=await fetch(endpoint,{cache:"no-store",signal:ctl.signal});
+        if(!response.ok)throw Error("HTTP "+response.status);
+      }catch(error){
+        if(endpoint===MANIFEST||ctl.signal.aborted)throw error;
+        response=await fetch(MANIFEST,{cache:"no-store",signal:ctl.signal});
+        if(!response.ok)throw Error("Fallback HTTP "+response.status);
+      }
       const payload=await response.json();
       if(disposed||ctl.signal.aborted)return;
       albums=publishedAlbums(payload);
