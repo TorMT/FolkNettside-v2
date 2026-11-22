@@ -78,6 +78,8 @@
     <li><a href="#beslutninger">Beslutninger</a></li>
     <li><a href="#revb">Rev B: hybridhus og montering</a></li>
     <li><a href="#revb2">Rev B2: klar til montering</a></li>
+    <li><a href="#revb3">Rev B3: ekte mål og testrigg</a></li>
+    <li><a href="#kontroll">Kontroller før bestilling</a></li>
     <li><a href="#feil">Betraktninger og feil vi har støtt på</a></li>
     <li><a href="#hus">Huset: utregninger</a></li>
     <li><a href="#plast">Plast i stedet for aluminium</a></li>
@@ -85,7 +87,7 @@
     <li><a href="#krets">Kontroll av kretsene</a></li>
     <li><a href="#cirkit">Test i Cirkit Designer</a></li>
     <li><a href="#strom">Strømbudsjett og batteritid</a></li>
-    <li><a href="#skjema">Koblingsskjema rev B</a></li>
+    <li><a href="#skjema">Koblingsskjema rev C</a></li>
     <li><a href="#videre">Dette gjenstår</a></li>
   </ul>
 
@@ -95,6 +97,7 @@
       <table>
         <thead><tr><th>Dato</th><th>Hva</th><th>Resultat</th></tr></thead>
         <tbody>
+          <tr><td>22.11.2026</td><td>Fastvaren bygget med ESP-IDF 5.3.2 og startet i QEMU; koblingsskjema rev C; hus rev B3 med ekte mål; testrigg for koblingsbrettet; kontroller før bestilling</td><td>0 advarsler; 0 ERC-feil; 120 deler, 0 overlapp, 24 monteringssteg OK; seks nye feil funnet og rettet</td></tr>
           <tr><td>21.11.2026</td><td>Rev B2: alle skruer, innsatser, tetninger, hengsler og kontakter modellert. Rev B lagt inn i Fusion (75 deler, 437 g, kun tre kollisjoner under 0,01 mm³)</td><td>114 deler, 0 overlapp; fire feil funnet og rettet (GPS-antenne, lyssensor, sensorboring, knappeplass)</td></tr>
           <tr><td>21.11.2026</td><td>Rev B av huset: hybrid (aluminium og POM-C), alt skrudd fast, 28,5 mm høyt</td><td>75 deler, 0 overlapp; lagt inn i Fusion-prosjektet</td></tr>
           <tr><td>21.11.2026</td><td>Benketest i Cirkit Designer (ESP32-S3-simulator)</td><td>Skissen kompilerer og starter; I2C svarer; knapper og våtkontakt må prøves for hånd eller på ekte maskinvare</td></tr>
@@ -189,6 +192,52 @@
     <p class="note">114 deler, 0 overlapp (eksakt kollisjonssjekk). Masse ca. 420 g i luft, hvorav 110 g er den 7 mm tykke glasslinsen; i vann blir det ca. 200 g. Safir (ca. 5 mm) eller kjemisk herdet glass gjør linsen lettere og tynnere. <a href="dykkecomputer-revB2.zip" download>Last ned rev B2 (STEP, 114 deler, med Fusion-skript)</a>.</p>
   </section>
 
+  <section id="revb3">
+    <h2>Rev B3: ekte mål og testrigg</h2>
+    <p class="lead">Rev B3 bytter ut plassholderne med delenes ekte form og mål, og retter det kontrollene under fant. Huset er nå tegnet slik det skal bestilles.</p>
+    <figure class="light"><img src="img/revb3-sprengt.jpg" alt="Sprengskisse av rev B3: bezel og skruer øverst, linse med O-ring, toppring, skjerm, kretskort, POM-midtring med røde knapper, batteri i holder og bakplate med ladevindu" loading="lazy" width="1600" height="1000"><figcaption>Sprengskisse: bezel, linse, toppring, skjerm, kretskort, midtring, batteri og bakplate.</figcaption></figure>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Del</th><th>Rev B2</th><th>Rev B3</th></tr></thead>
+        <tbody>
+          <tr><td>Skjerm</td><td>61 × 92,4 mm kloss</td><td>Bart 3,5" IPS-panel 55,5 × 84,96 × 2,5 mm (ST7796) med bakbelysningsramme og glass</td></tr>
+          <tr><td>Batteri</td><td>Kloss</td><td>Poselcelle med forseglingskant, kapton-pakket beskyttelseskort og ledninger gjennom et spor i holderen til JST-kontakten</td></tr>
+          <tr><td>O-ringer</td><td>Rektangulære klosser</td><td>Modellert sammenklemt; sporene regnet etter (se kontrollene)</td></tr>
+          <tr><td>Skruer og innsatser</td><td>Glatte</td><td>Riflede messinginnsatser; ISO-gjenger på skruene i Fusion</td></tr>
+          <tr><td>Sensorkort</td><td>4 fjærkontakter</td><td>6, som J7 i koblingsskjema rev C</td></tr>
+          <tr><td>Lyssensor</td><td>VEML7700 4 × 2,35 mm, litt inn i bildet</td><td>VEML6030 2 × 2 mm, helt utenfor bildeområdet</td></tr>
+          <tr><td>Spoler, summer, motor</td><td>Klosser og sylindre</td><td>Viklinger, lydhull og avrundede kanter</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure class="light"><img src="img/revb3-aapent.jpg" alt="Rev B3 uten toppring og linse: skjermen på kretskortet i POM-midtringen med messinginnsatser i hjørnene" loading="lazy" width="1600" height="1000"><figcaption>Uten toppring og linse: skjerm, kretskort og innsatser i midtringen.</figcaption></figure>
+    <h3>Testrigg for koblingsbrettet</h3>
+    <figure class="light"><img src="img/testrigg.jpg" alt="Testriggen i 3D: to plater med koblingsbrett, skjermstativ, modulrutenett, batteri- og Qi-lomme, sprøyteklemmer, knappetest og våtkopp" loading="lazy" width="1600" height="1000"></figure>
+    <p>En lett 3D-print som holder prototypen ryddig: plate A med to koblingsbrett, skjermstativ og kabelkanal; plate B med 10 mm rutenett for modulene, lommer for LiPo og Qi-spole, klemmer for sprøyten til trykktesten og for ferrittstaven (minst 10 cm fra ESP32). En knappetest viser om magneten virker gjennom en 3 mm vegg, og en kopp med to skruer tester våtkontaktene. Alt printes uten støtte. <a href="dykkecomputer-testrigg.zip" download>Last ned riggen</a> · <a href="dykkecomputer-revb3.zip" download>Last ned rev B3 (STEP, 120 deler, Fusion-skript og kontroller)</a>.</p>
+  </section>
+
+  <section id="kontroll">
+    <h2>Kontroller før bestilling</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Kontroll</th><th>Resultat</th><th>Merknad</th></tr></thead>
+        <tbody>
+          <tr><td>Bygg av fastvaren</td><td><span class="ok">OK</span></td><td>ESP-IDF 5.3.2, esp32s3: 0 advarsler, 746 kB, 76 % av app-partisjonen ledig. Starter i Espressifs QEMU til <code>app_main</code> og lagringen; QEMU har ikke PSRAM, SD-kort eller skjerm, så resten må testes på kortet</td></tr>
+          <tr><td>Enhetstester og simulator</td><td><span class="ok">OK</span></td><td>191 tester, deko høyst 1 min fra decotengu; simulatoren kjører samme C-kode</td></tr>
+          <tr><td>Elektrisk regelsjekk (rev C)</td><td><span class="ok">OK</span></td><td>0 feil. 5 advarsler: avbruddspinner som ikke brukes (GPS PPS, IMU INT, magnetometer INT, batterimåler ALRT, klokke INT)</td></tr>
+          <tr><td>Overlapp (120 deler)</td><td><span class="ok">OK</span></td><td>0 overlapp, eksakt B-rep</td></tr>
+          <tr><td>Monteringsrekkefølge</td><td><span class="ok">OK</span></td><td>24 steg; hver del trekkes ut langs sin retning uten å treffe noe. Hengselstiftene gikk ikke inn i rev B2 (se feil)</td></tr>
+          <tr><td>O-ringspor</td><td><span class="ok">OK</span></td><td>Snor 1,5 i spor 2,2 × 1,1: 27 % klem, 73 % fylling (topp, bunn, linse, Qi-vindu). Dybdesensor 3,0 × 1,0: 20 %. Våtkontakt 2,0 × 0,8: 19 %, 79 % fylling</td></tr>
+          <tr><td>Skruer og innsatser</td><td><span class="ok">OK</span></td><td>O-ringene krever ca. 190 N per toppskrue og 50 N per bakskrue. M2,5 A4 tåler 2,4 kN; innpresset M2,5-innsats i POM ca. 400 N (sikkerhetsfaktor 2). Trykk går som trykk mot setet og flensen: 9 MPa mot POM-C (tåler ca. 20)</td></tr>
+          <tr><td>Toleranser</td><td><span class="ok">OK</span></td><td>Linse 0–0,4 mm klaring i setet; kort 0,4–0,6 mm per side; Ø1,5-stiftene presses i rømte hull; toppringen styres bare av skruene (±0,15 mm), som O-ringsporet tåler</td></tr>
+          <tr><td>Oppdrift</td><td>Info</td><td>Ca. 400 g i luft, 237 cm³: ca. 160 g i sjøvann. Linsen alene veier 110 g</td></tr>
+          <tr><td>Lagerstatus på delene</td><td><span class="part">Gjenstår</span></td><td>Sjekk i handlekurven hos LCSC/DigiKey rett før bestilling; spesielt TMAG5273, MS5837-30BA og ESP32-S3-modulen</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Før du bestiller freste husdeler: press en M2,5-innsats i en POM-bit og trekk den ut med en skrue og en bagasjevekt (bør tåle over 400 N), og bygg koblingsbrett-riggen og mål 38 kHz og GPS gjennom POM.</p>
+  </section>
+
   <section id="feil">
     <h2>Betraktninger og feil vi har støtt på</h2>
     <p class="lead">Alt som har gått galt eller viste seg å være feil underveis, med hva det betyr og hva som er gjort. Den største feilen var at et lukket aluminiumshus ikke slipper gjennom tanksignalet, Bluetooth eller GPS.</p>
@@ -225,6 +274,13 @@
           <tr><td>Fusion</td><td>Fusion-koblingen feilet først (version negotiation).</td><td>Kunne ikke styre Fusion.</td><td>Kom tilbake senere; skriptene kjørt derfra. <span class="ok">Løst</span></td></tr>
           <tr><td>Fusion</td><td>Fusion krasjet da mange filer ble lastet opp i én kjøring.</td><td>05 Dokumentasjon ble tom.</td><td>Én fil per kjøring neste gang. <span class="part">Planlagt</span></td></tr>
           <tr><td>Fusion</td><td>Første skjemaopplasting fikk ødelagte æ/ø/å (Windows skrev filen i cp1252).</td><td>Feil tekst i skjemaet.</td><td>Skrevet som UTF-8 og lastet opp på nytt. <span class="ok">Løst</span></td></tr>
+          <tr><td>Hus, montering</td><td>Hengselstiftene i rev B2 kunne ikke settes inn: stroppøret sperret den ene veien og naboknappens øre den andre.</td><td>Knappene kunne ikke monteres.</td><td>Ø1,6 mm hull gjennom de indre stroppørene; stiften legges mellom ørene og skyves inn. <span class="fix">Rettet i rev B3</span></td></tr>
+          <tr><td>Hus, tetning</td><td>Qi-vinduets O-ring (snor 1,0) lå i et 1,05 mm dypt spor: ingen klem.</td><td>Lekkasje gjennom ladevinduet.</td><td>Snor 1,5 i spor 2,2 × 1,1 (26 % klem). <span class="fix">Rettet i rev B3</span></td></tr>
+          <tr><td>Hus, tetning</td><td>Dybdesensorens O-ring (snor 0,75) i en 0,8 mm spalte: ingen klem. Våtkontaktens O-ring fylte 102 % av sporet.</td><td>Lekkasje, eller O-ring som presses ut.</td><td>3,0 × 1,0 (20 %) og 2,0 × 0,8 i et Ø3,95 × 0,65-spor (79 % fylling). <span class="fix">Rettet i rev B3</span></td></tr>
+          <tr><td>Hus, tetning</td><td>Med 2,2 mm brede spor (for lavere fylling) traff toppringens O-ring hjørneskruene.</td><td>O-ringen kunne presses inn i skruehullet.</td><td>Skruene flyttet 0,5 mm innover. <span class="fix">Rettet i rev B3</span></td></tr>
+          <tr><td>Hus, CAD</td><td>Skjermen var tegnet 61 × 92,4 mm; det bare panelet er 55,5 × 84,96 mm.</td><td>Feil plass til FPC og skumputer.</td><td>Ekte mål fra databladet. <span class="fix">Rettet i rev B3</span></td></tr>
+          <tr><td>Hus, CAD</td><td>Sensorkortet hadde 4 fjærkontakter, men J7 i skjemaet har 6 (3V3, GND og to I2C-par).</td><td>Én dybdesensor ville ikke vært koblet til.</td><td>6 kontakter. <span class="fix">Rettet i rev B3</span></td></tr>
+          <tr><td>Fastvare</td><td>Fastvaren var aldri bygget med ESP-IDF, bare typesjekket mot stubber.</td><td>Ukjent om den kompilerte.</td><td>Bygget med ESP-IDF 5.3.2 uten advarsler, og startet i QEMU. <span class="ok">Løst</span></td></tr>
           <tr><td>Hus, radio</td><td>GPS-patchantennen i rev B lå på kortets underside og pekte ned mot aluminiumsbakplaten, med jordplanet til kortet mellom seg og himmelen.</td><td>GPS ville neppe fått fix.</td><td>Chipantenne på kortkanten innenfor POM-veggen, med kobberfri sone. Må måles. <span class="fix">Rettet i rev B2</span></td></tr>
           <tr><td>Hus, CAD</td><td>Lyssensoren VEML7700 lå på kortet under skjermmodulen og kunne ikke se lys.</td><td>Automatisk lysstyrke ville ikke virket.</td><td>Flyttet til en flex på skjermens svarte kant innenfor vinduet. VEML6030 (2 × 2 mm) gir mer margin. <span class="fix">Rettet i rev B2</span></td></tr>
           <tr><td>Hus, tetning</td><td>Dybdesensorboringen (Ø4,6 mm) lå i en flens med bare 5 mm fri bredde: 0,2 mm POM mellom vannet i porten og innsiden.</td><td>Lekkasje eller brudd ved trykk.</td><td>Lokal forsterkning innover under sensorene (3,7 mm vegg). <span class="fix">Rettet i rev B2</span></td></tr>
@@ -402,8 +458,16 @@
   </section>
 
   <section id="skjema">
-    <h2>Koblingsskjema rev B</h2>
-    <p class="lead">105 komponenter og 87 nett på fire ark, med pinnene fra fastvarens <code>board.h</code>. Last ned .sch (åpnes i Fusion Electronics), PDF og netliste i <a href="dykkecomputer-skjema-og-fusion.zip">zip-filen</a>. Fusion-prosjektet har fortsatt rev A til neste økt.</p>
+    <h2>Koblingsskjema rev C</h2>
+    <p class="lead">114 komponenter og 89 nett på fire ark, med pinnene fra fastvarens <code>board.h</code>. Last ned .sch (åpnes i Fusion Electronics), PDF, netliste og ERC-rapport i <a href="dykkecomputer-skjema-og-fusion.zip">zip-filen</a>.</p>
+    <h3>Endringer i rev C (for hus rev B3)</h3>
+    <ul>
+      <li>GPS-antenne: 18 mm patch → Johanson 1575AT43A0040 chipantenne på kortkanten, med π-tilpasning (L5 0 Ω, C33/C34 ikke montert til den er målt).</li>
+      <li>Lyssensor: VEML7700 → VEML6030 på en 4-pols flex (J6) på skjermkanten, med egen avkobling (C35).</li>
+      <li>Sensorkortet kobles med 6 fjærkontakter (J7); batteriet med JST-SH (J4).</li>
+      <li>Ekstra bulk-kondensatorer C31/C32; tredje hall-sensor TMAG5273D1 (unik adresse).</li>
+      <li>Elektrisk regelsjekk (<code>erc.py</code>): 0 feil; 5 advarsler for avbruddspinner som bevisst ikke er koblet.</li>
+    </ul>
     <h3>Endringer fra rev A</h3>
     <ul>
       <li>I2C-pull-up på hovedbussen 4,7 kΩ → 2,2 kΩ (R10, R11).</li>
@@ -417,10 +481,10 @@
       <li>Hall-brytere DRV5032 → målende hall-sensorer TMAG5273 på I2C (U16–U18).</li>
     </ul>
     <div class="shots">
-      <figure class="light"><a href="img/skjema-ark1.png"><img src="img/skjema-ark1.png" alt="Koblingsskjema rev B, ark 1: MCU og strøm" loading="lazy" width="1680" height="1188"></a><figcaption>1 MCU og strøm</figcaption></figure>
-      <figure class="light"><a href="img/skjema-ark2.png"><img src="img/skjema-ark2.png" alt="Koblingsskjema rev B, ark 2: Sensorer" loading="lazy" width="1680" height="1188"></a><figcaption>2 Sensorer</figcaption></figure>
-      <figure class="light"><a href="img/skjema-ark3.png"><img src="img/skjema-ark3.png" alt="Koblingsskjema rev B, ark 3: Tankmottaker og GNSS" loading="lazy" width="1680" height="1188"></a><figcaption>3 Tankmottaker og GNSS</figcaption></figure>
-      <figure class="light"><a href="img/skjema-ark4.png"><img src="img/skjema-ark4.png" alt="Koblingsskjema rev B, ark 4: Skjerm, alarmer og knapper" loading="lazy" width="1680" height="1188"></a><figcaption>4 Skjerm, alarmer og knapper</figcaption></figure>
+      <figure class="light"><a href="img/skjema-ark1.png"><img src="img/skjema-ark1.png" alt="Koblingsskjema rev C, ark 1: MCU og strøm" loading="lazy" width="1680" height="1188"></a><figcaption>1 MCU og strøm</figcaption></figure>
+      <figure class="light"><a href="img/skjema-ark2.png"><img src="img/skjema-ark2.png" alt="Koblingsskjema rev C, ark 2: Sensorer" loading="lazy" width="1680" height="1188"></a><figcaption>2 Sensorer</figcaption></figure>
+      <figure class="light"><a href="img/skjema-ark3.png"><img src="img/skjema-ark3.png" alt="Koblingsskjema rev C, ark 3: Tankmottaker og GNSS" loading="lazy" width="1680" height="1188"></a><figcaption>3 Tankmottaker og GNSS</figcaption></figure>
+      <figure class="light"><a href="img/skjema-ark4.png"><img src="img/skjema-ark4.png" alt="Koblingsskjema rev C, ark 4: Skjerm, alarmer og knapper" loading="lazy" width="1680" height="1188"></a><figcaption>4 Skjerm, alarmer og knapper</figcaption></figure>
     </div>
   </section>
 
@@ -428,12 +492,11 @@
     <h2>Dette gjenstår</h2>
     <ol>
       <li><b>Mål radiogjennomgangen</b> i byggetrinn 2: sender 1 m fra spolen, fritt, bak 3,5 mm aluminium og bak POM-C/akryl, for å bekrefte hybridhuset. Mål også GPS-fix med antennen bak plast.</li>
-      <li><b>Bygg koblingsbrett-demoen</b> trinn for trinn, og gjør første bygg av fastvaren med <code>idf.py</code>.</li>
+      <li><b>Print testriggen og bygg koblingsbrett-demoen</b>, flash fastvaren og kjør benktesten; sjekk at alle I2C-enheter svarer og at knappene virker gjennom veggen.</li>
       <li><b>Ta opp en ekte Pelagic-sender</b> og juster tidene i mottakeren; mål spolesignalet og velg forsterkning og demping.</li>
       <li><b>Lag forsterkertrinn for 123 kHz</b>, eller vent med Suunto-kanalen.</li>
-      <li><b>Gjennomgå koblingsskjema rev B</b> med en annen person; velg fotavtrykk og legg ut kortet (4 lag, under 100 × 100 mm).</li>
-      <li><b>Koblingsskjema rev C:</b> chipantenne med tilpasningsnett, lyssensor på flex med kontakt, fjærkontakter til sensorkortet og batterikontakt, slik rev B2 av huset krever.</li>
-      <li><b>Bestill mekaniske deler</b> til rev B2 (skruer, innsatser, O-ringer, stifter, fjærer, magneter; se materiallisten) og be om tilbud på fresing av toppring, midtring og bakplate.</li>
+      <li><b>Gjennomgå koblingsskjema rev C</b> med en annen person; velg fotavtrykk og legg ut kortet (4 lag, 70 × 96 mm).</li>
+      <li><b>Trekktest av en innsats i POM</b>, sjekk lagerstatus, og be om tilbud på fresing av toppring, midtring og bakplate etter rev B3.</li>
       <li><b>Hus:</b> pleksiglass-prototype for 60 m (13/12/4 mm, ca. 37 mm høy) med trykktest til 0,90 MPa; deretter hybridhus med POM-C-midtring og aluminium topp og bunn for 100 m, FEA og trykktest 1,51 MPa.</li>
       <li><b>Fastvare:</b> skjermsider (LVGL), sikkerhets-MCU, Bluetooth med passord, FRAM- og klokkedrivere, 4 kHz summer, TMAG5273-knapper, styring av boost og GNSS over UART.</li>
       <li><b>Mål strømforbruket</b> under dykk og erstatt anslaget på 20 timer.</li>
