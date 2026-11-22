@@ -1,91 +1,119 @@
-import {initSettings,getSettings,setSetting} from "./settings.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {createStudyProgressBackup,importStudyProgressBackup} from "./settings/study-progress-backup.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {writeSpaceMouseSettings,resetSpaceMouseSettings} from "./model/spacemouse-settings.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {mountViewer} from "./viewer.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {courseViewerNeighbors} from "./viewers/course-file-navigation.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {render as renderPythonWorkbench} from "./viewers/adapters/python.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {loadContent} from "./content.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {kisssoftPageHTML,mountKisssoft} from "./engineering/kisssoft-tool.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {cadToolHTML,mountCADTool} from "./engineering/cad-tool.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {renderResourceTree} from "./components/resource-tree.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {optionalKarakterwebUrl} from "./courses/external-links.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {bindCourseNavigation} from "./courses/course-navigation.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {mountCourseAdmin} from "./courses/admin-page.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {createResourceNotices} from "./courses/resource-updates.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {initialCourseSemester,semesterTabsHTML,courseCatalogWarningHTML,emptySemesterHTML} from "./courses/course-catalog-availability.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {escapeHTML as escCourse} from "./viewers/utils.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {hydroPressureResultHTML} from "./engineering/hydro-pressure-panel.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {hydrostaticParticulars} from "./hydro/stability.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {createHydroInclude} from "./hydro/hydro-selection.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {prepareHydroModel} from "./hydro/hydrostatics.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {sectionalAreaCurve,sacCSV} from "./hydro/sac-curve.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {sacCurvePanelHTML} from "./engineering/sac-panel.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {bindProjectImageFallback} from "./components/project-image-fallback.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {buildSearchIndex} from "./search/search-index.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {createSearchController} from "./components/search-dialog.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {toolsIndexHTML} from "./tools/tools-index.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {staticVaultPageHTML,bindStaticVaultPage} from "./tools/static-vault-page.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {activeTools} from "./tools/tool-registry.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {fluidCalculatorHTML} from "./tools/fluid-calculator.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {modelInspectorHTML,bindModelInspector} from "./tools/model-inspector.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {chemEditorHTML,bindChemEditor} from "./tools/chem-editor.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {coolPropToolHTML,bindCoolPropTool} from "./tools/coolprop-tool.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {loadPeriodicFixture,periodicTableHTML} from "./tools/periodic-table.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {crystalToolHTML,mountCrystalViewer} from "./tools/crystal-viewer.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {editFromState,readCrystalEditorState} from "./tools/crystal-editor-panel.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {loadModelDocument} from "./model/load-model.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {parseModelBuffer} from "./tools/model-inspector-core.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {UNIT_SCALE_TO_METERS} from "./model/model-document.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {validateHydroModel} from "./model/hull-surface-validator.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {repairedHullSTL} from "./model/mesh-repair.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {mountModelScene} from "./model/model-scene.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {mountWaveControls} from "./model/model-wave-controls.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {integrateHullPressureAsync,analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {mountFrame3D} from "./engineering/frame-3d.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {solveHullGirder} from "./structure/hull-girder.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {parseGirderStations} from "./structure/girder-profiles.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {parseStructuralMembers,deriveLongitudinalSections} from "./structure/girder-section-properties.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {mountSectionSketch} from "./engineering/section-sketch.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {girderResponseCSV,girderLoadsCSV,girderReactionsCSV,girderSectionsCSV} from "./structure/girder-export.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {projectPressureToBeam} from "./structure/hydro-beam-transfer.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {mountLoadSketch} from "./engineering/load-sketch.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {portfolioInfoPageHTML,loadCV} from "./portfolio/profile-pages.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent,registerAnalyticsCourses} from "./platform/analytics.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {mountAnalyticsNotice} from "./platform/analytics-notice.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {themeStudioHTML,bindThemeStudio} from "./settings/theme-studio.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {diversePageHTML} from "./diverse/diverse-page.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {photoFeedPageHTML,mountPhotoFeed} from "./diverse/photo-feed-page.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {DIVERSE_MODULES} from "./diverse/diverse-registry.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {diveMapHTML,mountDiveMap} from "./diverse/dive-map.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {sandalenPageHTML} from "./diverse/sandalen-page.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {studyCatalogPageHTML,mountStudyCatalog} from "./diverse/study-catalog-pages.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {matprisPageHTML,mountMatpris} from "./diverse/matpris-page.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {configuredMatprisEndpoint} from "./diverse/matpris-api.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {brewingPageHTML,mountBrewing} from "./diverse/brewing-page.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {medisinPageHTML,mountMedisin} from "./diverse/medisin-page.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignOut,getFolkLinkedProviders} from "./platform/folkside-auth.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {probeFolkCoreBackend} from "./platform/folkside-cloud.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {createFolkAppearanceBackup} from "./platform/folkside-preferences.js?v=1a342824a06722100c319b29d295e0300e9128ff";
+import {initSettings,getSettings,setSetting} from "./settings.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {clearLocalStudyProgress,settingsPageHTML} from "./settings/settings-page.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {createStudyProgressBackup,importStudyProgressBackup} from "./settings/study-progress-backup.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {writeSpaceMouseSettings,resetSpaceMouseSettings} from "./model/spacemouse-settings.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {mountViewer} from "./viewer.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {courseViewerNeighbors} from "./viewers/course-file-navigation.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {loadContent} from "./content.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {renderResourceTree} from "./components/resource-tree.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {optionalKarakterwebUrl} from "./courses/external-links.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {bindCourseNavigation} from "./courses/course-navigation.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {createResourceNotices} from "./courses/resource-updates.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {initialCourseSemester,semesterTabsHTML,courseCatalogWarningHTML,emptySemesterHTML} from "./courses/course-catalog-availability.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {escapeHTML as escCourse} from "./viewers/utils.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {hydroPanelHTML,hydroPreflightHTML} from "./engineering/hydro-panel.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {hydroPressureResultHTML} from "./engineering/hydro-pressure-panel.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {hydrostaticParticulars} from "./hydro/stability.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {createHydroInclude} from "./hydro/hydro-selection.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {prepareHydroModel} from "./hydro/hydrostatics.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {sectionalAreaCurve,sacCSV} from "./hydro/sac-curve.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {sacCurvePanelHTML} from "./engineering/sac-panel.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {combinePointWeights,pointWeightsFromLines} from "./hydro/point-loads.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {areaLoadsFromLines,combineHullLoading} from "./hydro/hull-loading.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {renderProjectCard,renderProjectDetail} from "./components/project-card.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {bindProjectImageFallback} from "./components/project-image-fallback.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {buildSearchIndex} from "./search/search-index.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {createSearchController} from "./components/search-dialog.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {toolsIndexHTML} from "./tools/tools-index.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {activeTools} from "./tools/tool-registry.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {loadModelDocument} from "./model/load-model.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {parseModelBuffer} from "./tools/model-inspector-core.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {prepareGenericHydroImport,withHydroSurfaceSelection,selectedHydroSurfaceIds} from "./model/generic-hydro-import.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {UNIT_SCALE_TO_METERS} from "./model/model-document.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {validateHydroModel} from "./model/hull-surface-validator.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {repairedHullSTL} from "./model/mesh-repair.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {mountModelScene} from "./model/model-scene.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {mountWaveControls} from "./model/model-wave-controls.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {analyzeModelDiagnostics} from "./model/mesh-diagnostics.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {componentSemantic,semanticComponents,semanticSummary} from "./model/semantic-assembly.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {integrateHullPressureAsync,analyzeHydroAsync,attitudeHydroAsync,gzCurveAsync,hydroCurveAsync,solveAttitudeEquilibriumAsync,solveHydroDraftAsync,validateHydroAsync} from "./hydro/hydro-client.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {downloadTextFile,gzCurveCSV,hydrostaticRowsCSV} from "./hydro/export.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {loadStructureFixture,structurePanelHTML} from "./engineering/structure-panel.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {mountFrame3D} from "./engineering/frame-3d.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {solveHullGirder} from "./structure/hull-girder.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {parseGirderStations} from "./structure/girder-profiles.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {parseStructuralMembers,deriveLongitudinalSections} from "./structure/girder-section-properties.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {mountSectionSketch} from "./engineering/section-sketch.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {girderResponseCSV,girderLoadsCSV,girderReactionsCSV,girderSectionsCSV} from "./structure/girder-export.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {projectPressureToBeam} from "./structure/hydro-beam-transfer.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {hullGirderPanelHTML} from "./engineering/hull-girder-panel.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {mountLoadSketch} from "./engineering/load-sketch.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {analysisCapability,capabilityLabel} from "./engineering/capabilities.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {downloadEngineeringCase,engineeringCaseReport} from "./engineering/case-report.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {loadResistanceFixture,resistancePanelHTML} from "./engineering/resistance-panel.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {loadPropulsionFixture,propulsionPanelHTML} from "./engineering/propulsion-panel.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {analyzeThrusterSystem,thrustersFromModelDocument} from "./propulsion/thruster-system.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {renderTopShell,bindShellNavigation} from "./shell/navigation.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {portfolioInfoPageHTML,loadCV} from "./portfolio/profile-pages.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {analyticsConsentChoice,analyticsConfigured,setAnalyticsConsent,registerAnalyticsCourses} from "./platform/analytics.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {mountAnalyticsNotice} from "./platform/analytics-notice.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {bindWorkspaceDrawers} from "./shell/workspace-drawers.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {mountWorkspaceResultsResize} from "./shell/workspace-resizer.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {diversePageHTML} from "./diverse/diverse-page.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {DIVERSE_MODULES} from "./diverse/diverse-registry.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {configuredMatprisEndpoint} from "./diverse/matpris-api.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,initGoogleSession} from "./platform/google-session.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignOut,getFolkLinkedProviders} from "./platform/folkside-auth.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {probeFolkCoreBackend} from "./platform/folkside-cloud.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {createFolkAppearanceBackup} from "./platform/folkside-preferences.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {isStartRoute} from "./shell/start-route.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {lazyRouteKeys} from "./shell/lazy-routes.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+
+// Route-level code splitting. These page modules (and everything only they import,
+// about 80 files) are loaded the first time their route is opened instead of on every
+// page load. render() awaits loadLazyRouteModules(path) before it dispatches, so the
+// page functions below can keep using these names synchronously.
+let kisssoftPageHTML, mountKisssoft, cadToolHTML, mountCADTool,
+    staticVaultPageHTML, bindStaticVaultPage, renderPythonWorkbench, fluidCalculatorHTML,
+    modelInspectorHTML, bindModelInspector, chemEditorHTML, bindChemEditor,
+    coolPropToolHTML, bindCoolPropTool, loadPeriodicFixture, periodicTableHTML,
+    crystalToolHTML, mountCrystalViewer, editFromState, readCrystalEditorState,
+    themeStudioHTML, bindThemeStudio, photoFeedPageHTML, mountPhotoFeed,
+    diveMapHTML, mountDiveMap, sandalenPageHTML, studyCatalogPageHTML,
+    mountStudyCatalog, matprisPageHTML, mountMatpris, brewingPageHTML,
+    mountBrewing, medisinPageHTML, mountMedisin, mountCourseAdmin;
+const lazyRouteLoaders={
+  "kisssoft":async()=>{({kisssoftPageHTML,mountKisssoft}=await import("./engineering/kisssoft-tool.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "cad":async()=>{({cadToolHTML,mountCADTool}=await import("./engineering/cad-tool.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "vault":async()=>{({staticVaultPageHTML,bindStaticVaultPage}=await import("./tools/static-vault-page.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "python":async()=>{({render:renderPythonWorkbench}=await import("./viewers/adapters/python.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "fluid":async()=>{({fluidCalculatorHTML}=await import("./tools/fluid-calculator.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "model-inspector":async()=>{({modelInspectorHTML,bindModelInspector}=await import("./tools/model-inspector.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "chem":async()=>{({chemEditorHTML,bindChemEditor}=await import("./tools/chem-editor.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "coolprop":async()=>{({coolPropToolHTML,bindCoolPropTool}=await import("./tools/coolprop-tool.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "periodic":async()=>{({loadPeriodicFixture,periodicTableHTML}=await import("./tools/periodic-table.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "crystal":async()=>{({crystalToolHTML,mountCrystalViewer}=await import("./tools/crystal-viewer.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "crystal-editor":async()=>{({editFromState,readCrystalEditorState}=await import("./tools/crystal-editor-panel.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "theme-studio":async()=>{({themeStudioHTML,bindThemeStudio}=await import("./settings/theme-studio.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "photo-feed":async()=>{({photoFeedPageHTML,mountPhotoFeed}=await import("./diverse/photo-feed-page.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "dive-map":async()=>{({diveMapHTML,mountDiveMap}=await import("./diverse/dive-map.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "sandalen":async()=>{({sandalenPageHTML}=await import("./diverse/sandalen-page.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "study-catalog":async()=>{({studyCatalogPageHTML,mountStudyCatalog}=await import("./diverse/study-catalog-pages.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "matpris":async()=>{({matprisPageHTML,mountMatpris}=await import("./diverse/matpris-page.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "brewing":async()=>{({brewingPageHTML,mountBrewing}=await import("./diverse/brewing-page.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "medisin":async()=>{({medisinPageHTML,mountMedisin}=await import("./diverse/medisin-page.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))},
+  "course-admin":async()=>{({mountCourseAdmin}=await import("./courses/admin-page.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964"))}
+};
+const lazyRouteLoads=new Map();
+function loadLazyRouteModules(path){
+  return Promise.all(lazyRouteKeys(path).map(key=>{
+    if(!lazyRouteLoads.has(key)){
+      // A failed download (offline, deploy in progress) must not be cached as a failure.
+      lazyRouteLoads.set(key,lazyRouteLoaders[key]().catch(error=>{lazyRouteLoads.delete(key);throw error}));
+    }
+    return lazyRouteLoads.get(key);
+  }));
+}
 
 initSettings();
 initGoogleSession();
@@ -449,7 +477,8 @@ function portfolioPage(){
   document.documentElement.dataset.lens="portfolio";
   app.innerHTML=top("portfolio")+
     '<main><section class="hero"><div><h1>Engineering for real-world challenges</h1><p>Marine technology, CAD, analysis, practical fabrication and repair projects — presented without the course archive clutter.</p><div class="hero-actions"><button class="btn primary" data-go="/engineering">Explore engineering</button><button class="btn dark" data-go="/courses">Open Courses</button></div></div><div class="vessel-card">'+vessel+'<div class="waterline"></div></div></section>'+
-    '<section class="section"><div class="section-head"><div><h2>Selected projects</h2><p class="muted">Design, analysis, software and hands-on engineering work.</p></div></div><div class="project-list">'+projects.map(renderProjectCard).join("")+'</div></section></main><div class="preview-badge">v2 preview · separate repo</div>';
+    (projects.some(item=>item.current===true)?'<section class="section" id="current-projects"><div class="section-head"><div><h2>Pågående</h2><p class="muted">Prosjekter som er i arbeid nå, med logg og simulator.</p></div></div><div class="project-list">'+projects.filter(item=>item.current===true).map(renderProjectCard).join("")+'</div></section>':"")+
+    '<section class="section"><div class="section-head"><div><h2>Selected projects</h2><p class="muted">Design, analysis, software and hands-on engineering work.</p></div></div><div class="project-list">'+projects.filter(item=>item.current!==true).map(renderProjectCard).join("")+'</div></section></main><div class="preview-badge">v2 preview · separate repo</div>';
   bindNav();
   // Project cards are real links, supporting keyboard, new tab and deep links.
 }
@@ -2307,7 +2336,7 @@ async function engineeringPage(){
     if(status)status.textContent="Checking local triangulation repair…";
     try{
       const preview=await new Promise((resolve,reject)=>{
-        const worker=new Worker(new URL("./model/mesh-repair-worker.js?v=1a342824a06722100c319b29d295e0300e9128ff",import.meta.url),{type:"module"});
+        const worker=new Worker(new URL("./model/mesh-repair-worker.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964",import.meta.url),{type:"module"});
         let settled=false;
         const finish=(error,value)=>{
           if(settled)return;
@@ -2578,7 +2607,7 @@ async function engineeringPage(){
     if(gzCurve.length)downloadTextFile(gzCurveCSV(gzCurve),"gz-curve.csv");
   });
 }
-function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+escCourse(message)+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
+function notFoundPage(message,back={route:"/courses",label:"Back to Courses"}){app.innerHTML=top("")+'<main class="study" id="main" tabindex="-1"><section class="study-main"><div class="course-header" data-not-found><h1>Not found</h1><p>'+escCourse(message)+'</p><button class="btn" data-go="'+escCourse(back.route)+'">'+escCourse(back.label)+'</button></div></section></main>';bindNav()}
 function disposeActiveViewer(){
   const holder=app.__viewerHolder;
   if(!holder)return;
@@ -2603,12 +2632,32 @@ async function render(){disposeActiveViewer();const currentPath=route();if(curre
     engineeringCleanup?.();
     engineeringCleanup=null;
   }
-  if(path!=="/engineering/kisssoft"){kisssoftCleanup?.();kisssoftCleanup=null;}if(path!=="/engineering/cad"){cadToolCleanup?.();cadToolCleanup=null;}if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}if(!["/diverse/diving","/diverse/dive-map"].includes(path)){diveMapMountId++;diveMapCleanup?.();diveMapCleanup=null;}if(path!=="/diverse/brewing"){brewingMountId++;brewingCleanup?.();brewingCleanup=null;}if(path!=="/diverse/medisin"){medisinCleanup?.cleanup?.();medisinCleanup=null;}if(path!=="/diverse/bilder"){photoFeedCleanup?.cleanup?.();photoFeedCleanup=null;}studyCatalogMountId++;studyCatalogCleanup?.cleanup?.();studyCatalogCleanup=null;const viewer=parseViewerRoute(path);if(["/about","/cv","/contact"].includes(path)){document.documentElement.dataset.lens="portfolio";const page=path.slice(1);app.innerHTML=top(page)+'<main class="section"><p>Loading profile…</p></main>';bindNav();loadCV().then(cv=>{if(route()!==path)return;app.innerHTML=top(page)+portfolioInfoPageHTML(page,cv);bindNav();}).catch(error=>{if(route()!==path)return;app.innerHTML=top(page)+`<main class="section"><h1>Profile unavailable</h1><p>${String(error.message||error).replace(/[&<>"]/g,"")}</p></main>`;bindNav();});return;}if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code,course.sectionIndex);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/admin/courses")return courseAdminPage();if(path==="/courses"||path==="/study")return coursesPage();if(path==="/diverse")return diversePage();if(path==="/diverse/bilder")return photoFeedPage();if(path==="/diverse/diving"||path==="/diverse/dive-map")return diveMapPage();if(path==="/diverse/sandalen")return sandalenPage();if(path==="/diverse/matpris")return matprisPage();if(path==="/diverse/brewing")return brewingPage();if(path==="/diverse/medisin")return medisinPage();if(path==="/diverse/laos")return studyCatalogPage("laos");if(path==="/diverse/andrekok")return studyCatalogPage("kok");if(path==="/engineering/cad"){
+  if(path!=="/engineering/kisssoft"){kisssoftCleanup?.();kisssoftCleanup=null;}if(path!=="/engineering/cad"){cadToolCleanup?.();cadToolCleanup=null;}if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}if(!["/diverse/diving","/diverse/dive-map"].includes(path)){diveMapMountId++;diveMapCleanup?.();diveMapCleanup=null;}if(path!=="/diverse/brewing"){brewingMountId++;brewingCleanup?.();brewingCleanup=null;}if(path!=="/diverse/medisin"){medisinCleanup?.cleanup?.();medisinCleanup=null;}if(path!=="/diverse/bilder"){photoFeedCleanup?.cleanup?.();photoFeedCleanup=null;}studyCatalogMountId++;studyCatalogCleanup?.cleanup?.();studyCatalogCleanup=null;const viewer=parseViewerRoute(path);
+  // Load this route's on-demand modules first. If the visitor has moved on meanwhile,
+  // the render started by that navigation owns the page.
+  if(lazyRouteKeys(path).length){
+    try{await loadLazyRouteModules(path)}
+    catch(error){
+      if(route()!==path)return;
+      app.innerHTML=top("")+'<main class="study" id="main" tabindex="-1"><section class="study-main"><div class="course-header" data-lazy-route-error><h1>Could not load this page</h1><p>Part of the site did not download. Check the connection and try again.</p><button class="btn primary" id="lazy-route-retry">Try again</button></div></section></main>';
+      bindNav();
+      // A module that failed to download stays failed in this document's module map,
+      // so trying again needs a fresh page load.
+      app.querySelector("#lazy-route-retry")?.addEventListener("click",()=>location.reload());
+      return;
+    }
+    if(route()!==path)return;
+  }
+  if(["/about","/cv","/contact"].includes(path)){document.documentElement.dataset.lens="portfolio";const page=path.slice(1);app.innerHTML=top(page)+'<main class="section"><p>Loading profile…</p></main>';bindNav();loadCV().then(cv=>{if(route()!==path)return;app.innerHTML=top(page)+portfolioInfoPageHTML(page,cv);bindNav();}).catch(error=>{if(route()!==path)return;app.innerHTML=top(page)+`<main class="section"><h1>Profile unavailable</h1><p>${String(error.message||error).replace(/[&<>"]/g,"")}</p></main>`;bindNav();});return;}if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code,course.sectionIndex);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/admin/courses")return courseAdminPage();if(path==="/courses"||path==="/study")return coursesPage();if(path==="/diverse")return diversePage();if(path==="/diverse/bilder")return photoFeedPage();if(path==="/diverse/diving"||path==="/diverse/dive-map")return diveMapPage();if(path==="/diverse/sandalen")return sandalenPage();if(path==="/diverse/matpris")return matprisPage();if(path==="/diverse/brewing")return brewingPage();if(path==="/diverse/medisin")return medisinPage();if(path==="/diverse/laos")return studyCatalogPage("laos");if(path==="/diverse/andrekok")return studyCatalogPage("kok");if(path==="/engineering/cad"){
   document.documentElement.dataset.lens="workspace";
   app.innerHTML=top("engineering")+cadToolHTML();
   bindNav();cadToolCleanup=mountCADTool(app);return;
 }
-if(path==="/engineering/kisssoft"){document.documentElement.dataset.lens="workspace";app.innerHTML=top("engineering")+kisssoftPageHTML();bindNav();kisssoftCleanup=mountKisssoft(app);return;}if(path==="/tools")return toolsPage();if(path==="/tools/vault")return vaultToolPage();if(path==="/tools/python")return pythonToolPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/model-inspector")return modelInspectorPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings/theme-studio/manual")return themeStudioPage("manual");if(path==="/settings/theme-studio/image")return themeStudioPage("image");const settingsMatch=path.match(/^\/settings(?:\/(appearance|connections|courses|engineering|privacy|advanced))?$/);if(settingsMatch){settingsSection=settingsMatch[1]||"appearance";return settingsPage();}const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
+if(path==="/engineering/kisssoft"){document.documentElement.dataset.lens="workspace";app.innerHTML=top("engineering")+kisssoftPageHTML();bindNav();kisssoftCleanup=mountKisssoft(app);return;}if(path==="/tools")return toolsPage();if(path==="/tools/vault")return vaultToolPage();if(path==="/tools/python")return pythonToolPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/model-inspector")return modelInspectorPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings/theme-studio/manual")return themeStudioPage("manual");if(path==="/settings/theme-studio/image")return themeStudioPage("image");const settingsMatch=path.match(/^\/settings(?:\/(appearance|connections|courses|engineering|privacy|advanced))?$/);if(settingsMatch){settingsSection=settingsMatch[1]||"appearance";return settingsPage();}const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}
+  // Only the start page falls through to the portfolio. A mistyped or outdated
+  // link gets an explicit Not found page instead of silently showing the start page.
+  if(isStartRoute(path))return portfolioPage();
+  return notFoundPage("There is no page at "+path.slice(0,120)+".",{route:"/portfolio",label:"Go to the start page"})}
 window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();globalSearch.open()}});window.addEventListener("hashchange",render);render();
 initializeFolkAccount().then(()=>{
   if(route()==="/settings/connections"&&settingsSection==="connections")settingsPage();

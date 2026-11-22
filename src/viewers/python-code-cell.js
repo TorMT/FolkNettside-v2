@@ -1,5 +1,5 @@
-import {escapeHTML} from "./utils.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {renderPythonLines,pythonHighlightedLines,changeIndent,insertPythonNewline} from "./python-syntax.js?v=1a342824a06722100c319b29d295e0300e9128ff";
+import {escapeHTML} from "./utils.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {renderPythonLines,pythonHighlightedLines,changeIndent,insertPythonNewline} from "./python-syntax.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
 
 export function mountPythonCodeCell(container,{
   source="",title="Python",onRun=async()=>{},onStop=()=>{},output="",maxEditorHeight=520
@@ -164,10 +164,14 @@ export function mountPythonCodeCell(container,{
     event.currentTarget.setAttribute("aria-pressed",String(lines));
   });
   $("[data-py-copy]").addEventListener("click",async event=>{
+    // event.currentTarget is null after the first await: keep the button.
+    const button=event.currentTarget;
     try{
+      if(!navigator.clipboard?.writeText)throw Error("Clipboard unavailable");
       await navigator.clipboard.writeText(editor.value);
-      event.currentTarget.textContent="Copied";
-    }catch{event.currentTarget.textContent="Unavailable"}
+      button.textContent="Copied";
+    }catch{button.textContent="Unavailable"}
+    setTimeout(()=>{if(button.isConnected)button.textContent="Copy"},1200);
   });
   editor.addEventListener("input",updateSource);
   editor.addEventListener("scroll",syncScroll,{passive:true});

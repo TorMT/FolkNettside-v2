@@ -1,9 +1,9 @@
-import {escapeHTML,fetchText,extension} from "../utils.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {publicCodePreviewURL} from "../ntnu-public-code.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {getHighlighter} from "../../vendor/highlight.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {createDomFinder} from "../dom-search.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {codeRows} from "../highlighted-lines.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {codePreview} from "../code-preview-limits.js?v=1a342824a06722100c319b29d295e0300e9128ff";
+import {escapeHTML,fetchText,extension} from "../utils.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {publicCodePreviewURL} from "../ntnu-public-code.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {getHighlighter} from "../../vendor/highlight.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {createDomFinder} from "../dom-search.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {codeRows} from "../highlighted-lines.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {codePreview} from "../code-preview-limits.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
 
 const languageByExtension={
   py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",
@@ -58,10 +58,13 @@ export async function render(container,resource){
   });
 
   container.querySelector(".code-copy").onclick=async event=>{
+    // event.currentTarget is null after the first await: keep the button.
+    const button=event.currentTarget;
     try{if(!navigator.clipboard?.writeText)throw Error("Clipboard unavailable");
       await navigator.clipboard.writeText(text);
-      event.currentTarget.textContent="Copied";
-    }catch{event.currentTarget.textContent="Copy unavailable"}
+      button.textContent="Copied";
+    }catch{button.textContent="Copy unavailable"}
+    setTimeout(()=>{if(button.isConnected)button.textContent="Copy"},1200);
   };
 
   return {info:`${labelByExtension[ext]||"Text"} · ${preview.displayedLines} preview lines · ${text.length.toLocaleString()} total chars`+

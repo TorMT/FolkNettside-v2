@@ -26,6 +26,7 @@
   .top a { color: var(--primary) }
   h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); line-height: 1.2; margin: 28px 0 8px; color: var(--primary); text-wrap: balance }
   h2 { font-size: 1.3rem; margin: 0 0 10px; color: var(--primary) }
+  h3 { font-size: 1.05rem; margin: 22px 0 8px }
   .lead { font-size: 1.12rem; color: var(--muted); max-width: 68ch; margin: 0 0 22px }
   .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px }
   .btn { display: inline-flex; flex-direction: column; gap: 2px; padding: 12px 18px; border-radius: 8px; text-decoration: none;
@@ -37,8 +38,9 @@
   .warn { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-ink); border-radius: 8px; padding: 12px 16px; margin: 0 0 28px }
   .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; min-width: 0 }
-  .card ol, .card ul { margin: 0; padding-left: 1.2rem }
-  .card li + li { margin-top: 6px }
+  .card ol, .card ul, section > ul { margin: 0; padding-left: 1.2rem }
+  .card li + li, section > ul li + li { margin-top: 6px }
+  section > ul { margin-top: 14px }
   .shots { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 8px }
   figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px; min-width: 0 }
   figure img { width: 100%; height: auto; display: block; border-radius: 6px; background: #000 }
@@ -49,7 +51,11 @@
   table { border-collapse: collapse; width: 100%; font-size: .95rem }
   th, td { text-align: left; padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: top }
   th { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border-top: 0 }
-  .ok { color: var(--ok); font-weight: 600 } .no { color: var(--no); font-weight: 600 }
+  table.nowrap th, table.nowrap td { white-space: nowrap }
+  .ok { color: var(--ok); font-weight: 600 } .no { color: var(--no); font-weight: 600 } .part { color: var(--warn-line); font-weight: 600 }
+  td a { color: var(--primary) }
+  .sum { font-weight: 600 }
+  .note { font-size: .9rem; color: var(--muted); margin-top: 10px; max-width: 80ch }
   code { font-size: .9em; background: color-mix(in srgb, var(--line) 45%, transparent); padding: 1px 5px; border-radius: 4px }
   footer { margin-top: 40px; font-size: .88rem; color: var(--muted) }
 </style>
@@ -65,6 +71,9 @@
     <a class="btn primary" href="simulator.html"><b>Åpne simulatoren</b><span>Test hele computeren i nettleseren</span></a>
     <a class="btn" href="app.html"><b>Åpne mobilappen</b><span>Kobler til ekte maskinvare over Bluetooth</span></a>
     <a class="btn" href="dykkecomputer-kildekode.zip" download><b>Last ned kildekoden</b><span>Fastvare, tester, simulator (zip)</span></a>
+    <a class="btn" href="dykkecomputer-3d-modeller.zip" download><b>Last ned 3D-modellene</b><span>STEP for Fusion, fire varianter (zip, 2 MB)</span></a>
+    <a class="btn" href="logg.html"><b>Prosjektlogg</b><span>Utregninger, kretskontroll og videre arbeid</span></a>
+    <a class="btn" href="dykkecomputer-skjema-og-fusion.zip" download><b>Last ned koblingsskjemaet</b><span>EAGLE/Fusion .sch, PDF, netliste og Fusion-skript (zip)</span></a>
   </div>
 
   <p class="warn"><strong>Ikke til ekte dykking.</strong> Dette er en prototype som ikke er validert. Deko-beregningen er testet mot en uavhengig planlegger, men fastvaren har ennå ikke kjørt på maskinvaren og huset er ikke trykktestet.</p>
@@ -103,6 +112,164 @@
   </section>
 
   <section>
+    <h2>3D-modeller av huset</h2>
+    <p class="lead">Fire varianter, generert fra ett skript (CadQuery) og dimensjonert for 100 m med herdet glass. Zip-filen har hele sammenstillingen og hver del som STEP, tverrsnitt, beregningstall og skriptet som lager STL og 3MF. I Fusion: <b>File → Open</b> og velg <code>*_assembly.step</code>.</p>
+    <div class="table-wrap">
+      <table class="nowrap">
+        <thead><tr><th>Variant</th><th>Skjerm</th><th>Hus B × L × H</th><th>Linse</th><th>Bakplate</th><th>Skruer</th><th>Vekt, hus</th></tr></thead>
+        <tbody>
+          <tr><td><code>dc-2in41-wrist</code></td><td>2,41" AMOLED</td><td>64 × 78 × 27,8 mm</td><td>5,5 mm</td><td>5,0 mm</td><td>8 × M2</td><td>201 g</td></tr>
+          <tr><td><code>dc-3in5-forearm</code></td><td>3,5" IPS (demobygget)</td><td>78 × 106 × 30,7 mm</td><td>7,0 mm</td><td>5,0 mm</td><td>10 × M2</td><td>368 g</td></tr>
+          <tr><td><code>dc-5in0-budget</code></td><td>5,0" IPS 800 × 480</td><td>90 × 138 × 34,2 mm</td><td>9,0 mm</td><td>5,0 mm</td><td>14 × M2</td><td>599 g</td></tr>
+          <tr><td><code>dc-5in5-forearm</code></td><td>5,44" AMOLED</td><td>92 × 150 × 32,9 mm</td><td>10,0 mm</td><td>5,5 mm</td><td>14 × M2</td><td>691 g</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul>
+      <li>Skruene står utenfor O-ringen, og bakplaten har et 5 mm PEEK-vindu over ladespolen, fordi trådløs lading ikke virker gjennom aluminium.</li>
+      <li>Linse, linsekant og bakplate er håndregnet med plateformler for 1,5 × 100 m. Rammen er <b>ikke</b> FEA-sjekket, og ingen hus er trykktestet.</li>
+      <li>Ingen deler overlapper i noen av variantene (automatisk kollisjonssjekk).</li>
+      <li>Ikke gjort ennå: spenningssimulering (FEA) av rammen og trykktest.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Fusion-prosjekt: deler, komponenter og sammenstilling</h2>
+    <p class="lead">3,5"-varianten (demobygget) er bygget som et Fusion-prosjekt med 37 deler, hver lagret som egen design, og en full sammenstilling der alle delene er satt inn som referanser på riktig plass.</p>
+    <div class="shots">
+      <figure><img src="img/fusion-sammenstilling.jpg" alt="Fusion-sammenstilling av dykkecomputeren: aluminiumshus med linse, knapper og stroppfester" loading="lazy" width="700" height="480"><figcaption>Full sammenstilling i Fusion (3,5" forearm).</figcaption></figure>
+      <figure><img src="img/fusion-elektronikk.jpg" alt="Sammenstillingen med rammen skjult: kretskort med ESP32-S3-modul, IC-er, microSD, summer og knapper over bakplaten" loading="lazy" width="700" height="460"><figcaption>Rammen skjult: kretskort, ekte komponentmodeller, knapper og bakplate med O-ringspor.</figcaption></figure>
+    </div>
+    <ul>
+      <li><b>Mapper:</b> 01 Hus (det som lages selv), 02 Innkjøpte komponenter, 03 Elektronikk (kretskort og koblingsskjema), 04 Sammenstilling, 05 Dokumentasjon.</li>
+      <li><b>Hentede komponentmodeller:</b> ESP32-S3-WROOM-1 fra Espressif, og TSSOP/SOIC/LGA/DFN-pakker, Hirose microSD og Murata-summer fra KiCads 3D-bibliotek (CC-BY-SA 4.0). Resten er forenklede modeller med databladmål.</li>
+      <li><b>Materialer:</b> aluminium 6061 (hus), herdet glass (linse), PEEK (ladevindu), acetal (knapper), 316L (våtkontakter), FR4 (kort). Beregnet masse 487 g med bibliotekmaterialer; batteriet er grovt modellert.</li>
+      <li><b>Ledd:</b> huset er låst, hus, elektronikk og kraft er én stiv gruppe, og de tre knappene har glideledd med ±1,5 mm vandring.</li>
+      <li><b>Kollisjonssjekk i Fusion:</b> ingen overlapp mellom delene. De to treffene Fusion finner ligger inne i Espressifs egen modulmodell (0,002 mm³).</li>
+      <li>Prosjektet bygges på nytt med skriptet i skjema-zip-filen (<code>fusion/bygg_dykkecomputer.py</code>), som henter modellene selv.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Koblingsskjema, rev B</h2>
+    <p class="lead">Fire ark, 105 komponenter og 87 nett, med pinnene fra fastvarens <code>board.h</code>. Skjemaet er tegnet med nettnavn på hver pinne og åpnes som elektronikkdesign i Fusion. Fotavtrykk velges når kortet tegnes. Rev B retter elleve feil funnet i <a href="logg.html#krets">kontrollen av kretsene</a>.</p>
+    <div class="shots">
+      <figure class="light"><a href="img/skjema-ark1.png"><img src="img/skjema-ark1.png" alt="Ark 1: ESP32-S3-modul, servicekontakt, Qi-mottaker, lader, LDO og batterimåler" loading="lazy" width="1680" height="1188"></a><figcaption>1 MCU og strøm</figcaption></figure>
+      <figure class="light"><a href="img/skjema-ark2.png"><img src="img/skjema-ark2.png" alt="Ark 2: I2C-sensorer: multiplekser, to dybdesensorer, IMU, magnetometer, lyssensor, FRAM og klokke" loading="lazy" width="1680" height="1188"></a><figcaption>2 Sensorer</figcaption></figure>
+      <figure class="light"><a href="img/skjema-ark3.png"><img src="img/skjema-ark3.png" alt="Ark 3: mottakerspole, forforsterker, PCM1808-ADC, 5 V boost, 123 kHz-kanal og GNSS" loading="lazy" width="1680" height="1188"></a><figcaption>3 Tankmottaker og GNSS</figcaption></figure>
+      <figure class="light"><a href="img/skjema-ark4.png"><img src="img/skjema-ark4.png" alt="Ark 4: skjermkontakt, microSD, sikkerhets-MCU, summer- og vibrasjonsdrivere, hall-knapper og våtkontakter" loading="lazy" width="1680" height="1188"></a><figcaption>4 Skjerm, alarmer og knapper</figcaption></figure>
+    </div>
+    <p class="note">Viktigste funn: et lukket aluminiumshus stopper signalet fra tanksenderen, Bluetooth og GPS. Se <a href="logg.html#radio">utregningen</a> og forslaget om <a href="logg.html#plast">midtring i plast</a>.</p>
+  </section>
+
+  <section>
+    <h2>Foreløpig materialliste</h2>
+    <p class="lead">Prisene er estimater i USD fra november 2026. Lenkene er søk hos forhandleren, utenom der et varenummer står: sjekk at modulen er 3,3 V og at selgeren har gode vurderinger før du kjøper.</p>
+    <h3>Koblingsbrett-demo (byggetrinn 1–5)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Del</th><th>Trinn</th><th>Funksjon</th><th>Antall</th><th>Sum</th><th>Kjøp</th></tr></thead>
+        <tbody>
+          <tr><td>ESP32-S3 DevKitC-1 N16R8</td><td>1</td><td>Prosessor og Bluetooth</td><td>1</td><td>$10.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=ESP32-S3-DevKitC-1+N16R8" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>3,5&quot; SPI-skjerm ST7796</td><td>1</td><td>Skjerm</td><td>1</td><td>$18.99</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=3.5+inch+ST7796+SPI+IPS" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>MS5837-30BA breakout</td><td>1</td><td>Dybdesensor A og B</td><td>2</td><td>$40.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=GY-MS5837-30BA" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>TCA9548A I2C-multiplekser</td><td>1</td><td>Begge dybdesensorene på samme buss</td><td>1</td><td>$1.50</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=TCA9548A+module" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Vibrasjonsmotor-modul</td><td>1</td><td>Hovedalarm</td><td>1</td><td>$1.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=vibration+motor+module" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Summer-modul 3,3 V</td><td>1</td><td>Reservealarm</td><td>1</td><td>$0.50</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=active+buzzer+module+3.3V" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Trykknapper 6 mm</td><td>1</td><td>Tre knapper (byttes til hall-sensorer)</td><td>1</td><td>$0.50</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=6x6+tactile+switch" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Hall-sensorer + N52-magneter 6×3</td><td>1</td><td>Forseglede knapper</td><td>1</td><td>$3.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=hall+sensor+module" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Våtkontakter, 2 × A4 M3</td><td>1</td><td>Vekker computeren i vann</td><td>1</td><td>$0.50</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=M3+A4+316+stainless+screw" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Koblingsbrett + ledninger</td><td>1</td><td>Kobling</td><td>1</td><td>$8.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=830+breadboard+kit+jumper" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Kondensator- og motstandssett</td><td>1</td><td>Avkobling og pull-up</td><td>1</td><td>$2.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=0.1uF+ceramic+capacitor+kit" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>PCM1808 ADC-modul</td><td>2</td><td>Sampler mottakerspolen, 96 kHz</td><td>1</td><td>$4.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=PCM1808+ADC+module" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Op-amp (MCP6022/TL072) + passive</td><td>2</td><td>Forforsterker for spolen</td><td>1</td><td>$3.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=MCP6022" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Ferrittstavantenne</td><td>2</td><td>Tar imot tanksendere</td><td>1</td><td>$1.50</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=ferrite+rod+antenna" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>QMI8658 IMU-modul</td><td>3</td><td>Helning til kompasset</td><td>1</td><td>$4.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=QMI8658+module" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>MMC5603 magnetometer-modul</td><td>3</td><td>Kompass</td><td>1</td><td>$3.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=MMC5603+module" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>VEML7700 lyssensor-modul</td><td>3</td><td>Automatisk lysstyrke</td><td>1</td><td>$1.50</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=VEML7700+module" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>ATGM336H GNSS med antenne</td><td>3</td><td>Posisjon på overflaten</td><td>1</td><td>$6.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=ATGM336H" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>microSD-modul (3,3 V)</td><td>4</td><td>Logger og kart</td><td>1</td><td>$1.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=micro+SD+card+module+SPI+3.3V" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>MAX17048 batterimåler-modul</td><td>4</td><td>Batteriprosent</td><td>1</td><td>$3.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=MAX17048+module" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>LiPo 2000 mAh med JST</td><td>4</td><td>Batteri (med beskyttelseskort)</td><td>1</td><td>$7.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=2000mAh+lipo+JST" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>TP4056 lader USB-C</td><td>4</td><td>Lading</td><td>1</td><td>$0.50</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=TP4056+USB-C+protection" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Qi mottaker + sender</td><td>4</td><td>Trådløs lading</td><td>1</td><td>$6.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=Qi+wireless+charging+module+transmitter+receiver" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>3,3 V regulator / boost-modul</td><td>4</td><td>Drift fra batteri</td><td>1</td><td>$1.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=AMS1117+3.3V+module" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>FRAM MB85RC256-modul</td><td>5</td><td>Vevsmetning overlever strømbrudd</td><td>1</td><td>$4.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=MB85RC256+FRAM+module" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>RTC-modul</td><td>5</td><td>Klokke</td><td>1</td><td>$2.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=DS3231+module" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>CH32V003 utviklingskort</td><td>5</td><td>Sikkerhets-MCU</td><td>1</td><td>$2.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=CH32V003+development+board" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>123 kHz-deler (ferritt, diode, LM393)</td><td>5</td><td>Suunto Tank POD-kanal</td><td>1</td><td>$3.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=LM393+comparator+module" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>USB logikkanalysator 8 kanaler</td><td>Verktøy</td><td>Feilsøking av I2C, SPI og I2S</td><td>1</td><td>$8.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=24MHz+8CH+logic+analyzer" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr class="sum"><td>Totalt</td><td></td><td>Omtrent 1 370 kr, eller 1 710 kr med 25 % mva. ved import</td><td></td><td>$146.49</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Trinn 1: kjerne (dybde, alarmer, knapper). 2: flasketrykk. 3: kompass, GPS og lyssensor. 4: strøm og lagring. 5: senere (FRAM, klokke, sikkerhets-MCU, Suunto-kanal). Bygg og test ett trinn om gangen, slik byggeplanen i kildekoden beskriver.</p>
+    <h3>Kretskort-versjonen (fra koblingsskjemaet)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Ref.</th><th>Del</th><th>Antall</th><th>Sum</th><th>Kjøp</th></tr></thead>
+        <tbody>
+          <tr><td>U1</td><td>ESP32-S3-WROOM-1-N16R8</td><td>1</td><td>$3.15</td><td><a href="https://www.lcsc.com/product-detail/C2913202.html" target="_blank" rel="noopener">LCSC C2913202</a></td></tr>
+          <tr><td>U3, U4</td><td>MS5837-30BA</td><td>2</td><td>$19.54</td><td><a href="https://www.lcsc.com/product-detail/C2887941.html" target="_blank" rel="noopener">LCSC C2887941</a></td></tr>
+          <tr><td>U9</td><td>MAX17048G+T10</td><td>1</td><td>$1.15</td><td><a href="https://www.lcsc.com/product-detail/C2682616.html" target="_blank" rel="noopener">LCSC C2682616</a></td></tr>
+          <tr><td>U15</td><td>CH32V003F4P6</td><td>1</td><td>$0.20</td><td><a href="https://jlcpcb.com/partdetail/wch_jiangsu_Qin_heng-CH32V003F4P6/C5187096" target="_blank" rel="noopener">JLCPCB C5187096</a></td></tr>
+          <tr><td>U2</td><td>TCA9548APWR</td><td>1</td><td>$0.50</td><td><a href="https://www.lcsc.com/search?q=TCA9548APWR" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U5</td><td>QMI8658C</td><td>1</td><td>$1.00</td><td><a href="https://www.lcsc.com/search?q=QMI8658C" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U6</td><td>MMC5603NJ</td><td>1</td><td>$1.00</td><td><a href="https://www.lcsc.com/search?q=MMC5603NJ" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U7</td><td>VEML7700</td><td>1</td><td>$0.80</td><td><a href="https://www.lcsc.com/search?q=VEML7700" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U8</td><td>MB85RC256V</td><td>1</td><td>$2.00</td><td><a href="https://www.lcsc.com/search?q=MB85RC256V" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U10</td><td>PCF85063ATT</td><td>1</td><td>$0.50</td><td><a href="https://www.lcsc.com/search?q=PCF85063ATT" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U11</td><td>MCP6022</td><td>1</td><td>$1.00</td><td><a href="https://www.lcsc.com/search?q=MCP6022" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U12</td><td>PCM1808PWR</td><td>1</td><td>$2.00</td><td><a href="https://www.lcsc.com/search?q=PCM1808PWR" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U13</td><td>LM393</td><td>1</td><td>$0.10</td><td><a href="https://www.lcsc.com/search?q=LM393DR" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U14</td><td>ATGM336H-5N</td><td>1</td><td>$6.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=ATGM336H" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>U16–U18</td><td>TMAG5273 (A1, B1, C1)</td><td>3</td><td>$4.50</td><td><a href="https://www.lcsc.com/search?q=TMAG5273" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U21</td><td>MCP73831T-2ACI</td><td>1</td><td>$0.40</td><td><a href="https://www.lcsc.com/search?q=MCP73831T-2ACI%2FOT" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U23</td><td>TLV75733P (1 A)</td><td>1</td><td>$0.20</td><td><a href="https://www.lcsc.com/search?q=TLV75733P" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U24</td><td>TPS61023</td><td>1</td><td>$0.60</td><td><a href="https://www.lcsc.com/search?q=TPS61023DRLR" target="_blank" rel="noopener">LCSC-søk</a></td></tr><tr><td>U25</td><td>TPS22916C</td><td>1</td><td>$0.40</td><td><a href="https://www.lcsc.com/search?q=TPS22916C" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>J3</td><td>Hirose DM3D-SF microSD</td><td>1</td><td>$0.80</td><td><a href="https://www.lcsc.com/search?q=DM3D-SF" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>Q1–Q3</td><td>AO3400A</td><td>3</td><td>$0.09</td><td><a href="https://www.lcsc.com/search?q=AO3400A" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>BZ1</td><td>Murata PKMCS0909E4000</td><td>1</td><td>$0.40</td><td><a href="https://www.lcsc.com/search?q=PKMCS0909E4000-R1" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>J2</td><td>3,5&quot; ST7796 IPS-panel</td><td>1</td><td>$15.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=3.5+inch+ST7796+IPS+LCD" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>ANT1</td><td>Johanson 1575AT43A0040 GNSS-chipantenne (7 × 2 mm)</td><td>1</td><td>ca. $1.00</td><td><a href="https://www.digikey.com/en/products/detail/johanson-technology-inc/1575AT43A0040E/1560674" target="_blank" rel="noopener">DigiKey</a></td></tr>
+          <tr><td>J4</td><td>JST-SH 2-pins batterikontakt (BM02B-SRSS-TB)</td><td>1</td><td>$0.10</td><td><a href="https://www.lcsc.com/search?q=BM02B-SRSS-TB" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>J5</td><td>FPC-kontakt 0,5 mm, maks 1,0 mm høy (pinnetall etter skjermen)</td><td>1</td><td>$0.40</td><td><a href="https://www.lcsc.com/search?q=FPC%200.5mm%200.9mm%20height" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>—</td><td>Kretskort, 4 lag, 5 stk</td><td>1</td><td>$8.00</td><td><a href="https://jlcpcb.com/" target="_blank" rel="noopener">JLCPCB</a></td></tr>
+          <tr class="sum"><td></td><td>Sum for delene over</td><td></td><td>$70.83</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Ikke med i summen: motstander og kondensatorer, spoler, batteri, Qi-modul, vibrasjonsmotor, magneter, hus, linse, O-ringer og skruer. Budsjettversjonen med 5"-skjerm er anslått til rundt 1 530 kr med mva. når huset freses på verkstedet.</p>
+    <h3>Mekaniske deler til huset (rev B2)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Del</th><th>Antall</th><th>Hvor i huset</th><th>Kjøp</th></tr></thead>
+        <tbody>
+          <tr><td>Toppring og bezel, aluminium 6061, anodisert</td><td>1 sett</td><td>Toppen, linsekant</td><td><a href="https://jlccnc.com/" target="_blank" rel="noopener">CNC-tilbud (JLCCNC)</a></td></tr>
+          <tr><td>Midtring, POM-C</td><td>1</td><td>Vegg, flens, knappeører, stroppører</td><td><a href="https://jlccnc.com/" target="_blank" rel="noopener">CNC-tilbud (JLCCNC)</a></td></tr>
+          <tr><td>Bakplate, aluminium 6061</td><td>1</td><td>Bunnen</td><td><a href="https://jlccnc.com/" target="_blank" rel="noopener">CNC-tilbud (JLCCNC)</a></td></tr>
+          <tr><td>Ladevindu, PEEK Ø48 mm</td><td>1</td><td>I bakplaten</td><td><a href="https://jlccnc.com/" target="_blank" rel="noopener">CNC-tilbud (JLCCNC)</a></td></tr>
+          <tr><td>Linse, herdet glass 66 × 96 × 7 mm, R5-hjørner</td><td>1</td><td>Toppen</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=custom+tempered+glass+cut+to+size" target="_blank" rel="noopener">AliExpress (spesialkutt)</a></td></tr>
+          <tr><td>Batteriholder, PA12 (SLS-print)</td><td>1</td><td>Under kortet</td><td><a href="https://jlc3dp.com/" target="_blank" rel="noopener">JLC3DP</a></td></tr>
+          <tr><td>Knappespaker, POM svart</td><td>3</td><td>Sidene</td><td><a href="https://jlccnc.com/" target="_blank" rel="noopener">CNC-tilbud</a></td></tr>
+          <tr><td>M2,5 × 16 senkhodeskrue ISO 10642, A4</td><td>4</td><td>Bezel og toppring</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=M2.5x16+countersunk+hex+socket+316+stainless" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>M2 × 6 knapphodeskrue ISO 7380, A4</td><td>10</td><td>Bakplate</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=M2x6+button+head+hex+socket+316+stainless" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>M2 × 4 knapphodeskrue ISO 7380, A4</td><td>4</td><td>Kretskort</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=M2x4+button+head+hex+socket+stainless" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>M1,6 × 3 sylinderskrue, A4</td><td>2</td><td>Sensorkort</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=M1.6x3+hex+socket+stainless" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>M2 × 6 linsehodeskrue A4, M2-mutter A4 og M2-loddetunge</td><td>2 + 2 + 2</td><td>Våtkontakter</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=M2+solder+lug+ring+terminal" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Gjengeinnsatser messing (M2,5 Ø3,5 × 5,5; M2 Ø3,2 × 4; M1,6 Ø2,2 × 3)</td><td>4 + 14 + 2</td><td>POM-midtringen</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=press+in+threaded+insert+brass+M2" target="_blank" rel="noopener">AliExpress</a> (eller Helicoil)</td></tr>
+          <tr><td>O-ringsnor NBR 1,5 mm (toppring, bakplate, linse) og O-ringer ID 42,6 × 1, ID 3 × 0,75, ID 2 × 1</td><td>3 m + 1 + 2 + 2</td><td>Alle tetninger</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=NBR+o-ring+cord+1.5mm" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Sylinderstift Ø1,5 × 17 mm, A4 (ISO 2338)</td><td>3</td><td>Knappehengsler</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=1.5mm+dowel+pin+stainless+17mm" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Trykkfjær Ø3 mm, ca. 3,5 mm fri lengde, A4</td><td>3</td><td>Knappene</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=3mm+compression+spring+stainless+assortment" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Magnet N52 Ø4 × 2 mm</td><td>3</td><td>Knappene</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=N52+4x2mm+magnet" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>Fjærkontakt (pogo), 2,3 mm</td><td>4</td><td>Hovedkort til sensorkort</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=SMD+pogo+pin+2.5mm" target="_blank" rel="noopener">AliExpress</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Mål og plassering står i STEP-filene i <a href="dykkecomputer-revB2.zip" download>rev B2-zip-filen</a>. Rektangulære O-ringer lages av snor som skjøtes (vulkaniseres eller limes med cyanoakrylat for gummi); for serie bør de støpes. Lyssensor-flexen bestilles som flex-kretskort (JLCPCB).</p>
+  </section>
+
+  <section>
     <h2>Status</h2>
     <div class="table-wrap">
       <table>
@@ -114,10 +281,29 @@
           <tr><td>Simulator og mobilapp</td><td class="ok">Ferdig og testet</td><td>Fire testsuiter kjører uten nettleser</td></tr>
           <tr><td>Fastvare for ESP32-S3</td><td class="no">Ikke kjørt</td><td>Skrevet og typesjekket, men aldri bygget eller kjørt på et kort</td></tr>
           <tr><td>Skjermsider på enheten</td><td class="no">Ikke skrevet</td><td>Simulatoren viser hvordan de skal se ut</td></tr>
+          <tr><td>3D-modeller (STEP)</td><td class="ok">Rev B2, klar til montering</td><td>Hybridhus, 114 deler med skruer, innsatser, O-ringer, hengslede knapper og kontakter; 0 overlapp</td></tr>
+          <tr><td>Fusion-prosjekt med sammenstilling</td><td class="ok">Rev A og rev B</td><td>Rev B: 75 deler, 437 g, ledd og kollisjonssjekk; rev B2 lastes inn med eget skript</td></tr>
+          <tr><td>Koblingsskjema</td><td class="part">Rev B</td><td>Alle kretser regnet gjennom og elleve feil rettet; ikke gjennomgått av en annen person</td></tr>
+          <tr><td>Radio gjennom huset</td><td class="no">Problem funnet</td><td>Aluminium demper 38 kHz med ca. 59 dB; plast-midtring foreslått, må måles</td></tr>
+          <tr><td>Kretskortutlegg (PCB)</td><td class="no">Ikke startet</td><td>Fotavtrykk og utlegg i Fusion Electronics</td></tr>
           <tr><td>Hus og linse</td><td class="no">Ikke testet</td><td>Håndregnet for 100 m; trenger FEA og trykktest</td></tr>
         </tbody>
       </table>
     </div>
+  </section>
+
+  <section>
+    <h2>Dette gjenstår</h2>
+    <ol>
+      <li>Kjøp delene til koblingsbrett-demoen og bygg trinn 1. Første ekte bygg av fastvaren med <code>idf.py</code>.</li>
+      <li>Ta opp signalet fra en ekte Pelagic-sender og juster tidene i mottakeren.</li>
+      <li>Skriv skjermsidene (LVGL) og fastvaren til sikkerhets-MCU-en.</li>
+      <li>Mål signalet fra en tanksender gjennom aluminium og plast, og velg hybridhus eller PEEK-vindu.</li>
+      <li>Gjennomgå koblingsskjema rev B, velg fotavtrykk og legg ut kortet (4 lag, under 100 × 100 mm).</li>
+      <li>Spenningssimulering av rammen i Fusion, så fres huset og trykktest det: 1,5 × 100 m i 30 min, tre ganger, tørt.</li>
+      <li>Bluetooth med passord, FRAM- og klokkedrivere, og måling av strømforbruket under dykk.</li>
+    </ol>
+    <p class="note">Hele listen med begrunnelse står i <a href="logg.html#videre">prosjektloggen</a>.</p>
   </section>
 
   <footer>Simulatoren og appen kjører helt i nettleseren; ingenting sendes til en server. Kart: © OpenStreetMap-bidragsytere.</footer>

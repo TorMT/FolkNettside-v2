@@ -1,9 +1,9 @@
-import {loadAdapter,viewerKind} from "./registry.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {escapeHTML,safeViewerOriginalURL} from "./utils.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {viewerHelpHTML,bindViewerHelp} from "./viewer-help.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=1a342824a06722100c319b29d295e0300e9128ff";
-import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js?v=1a342824a06722100c319b29d295e0300e9128ff";
+import {loadAdapter,viewerKind} from "./registry.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {escapeHTML,safeViewerOriginalURL} from "./utils.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {viewerHelpHTML,bindViewerHelp} from "./viewer-help.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the
@@ -150,13 +150,16 @@ export async function mountViewer(root,resource,onBack){
   });
   root.querySelector("#viewer-copy-path")?.addEventListener("click",async event=>{
     const value=resource.relativePath||resource.path||resource.url||"";
+    // event.currentTarget is null after the first await: keep the button.
+    const button=event.currentTarget;
     try{
+      if(!navigator.clipboard?.writeText)throw Error("Clipboard unavailable");
       await navigator.clipboard.writeText(value);
-      event.currentTarget.textContent="Copied";
-      setTimeout(()=>{if(event.currentTarget?.isConnected)event.currentTarget.textContent="Copy path"},1200);
+      button.textContent="Copied";
     }catch{
-      event.currentTarget.textContent="Copy unavailable";
+      button.textContent="Copy unavailable";
     }
+    setTimeout(()=>{if(button.isConnected)button.textContent="Copy path"},1200);
   });
 
   root.querySelector("#viewer-quiz-info")?.addEventListener("click",event=>{
