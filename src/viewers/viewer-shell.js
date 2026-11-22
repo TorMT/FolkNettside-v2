@@ -1,9 +1,10 @@
-import {loadAdapter,viewerKind} from "./registry.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
-import {escapeHTML,safeViewerOriginalURL} from "./utils.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
-import {viewerHelpHTML,bindViewerHelp} from "./viewer-help.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
-import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
-import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
-import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
+import {loadAdapter,viewerKind} from "./registry.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
+import {escapeHTML,safeViewerOriginalURL} from "./utils.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
+import {viewerHelpHTML,bindViewerHelp} from "./viewer-help.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
+import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
+import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
+import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
+import {remoteViewerErrorMessage} from "./remote-error-message.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the
@@ -262,7 +263,7 @@ export async function mountViewer(root,resource,onBack){
     const remote=resource.remoteArchive===true&&typeof resource.url==="string"&&
       resource.url.startsWith("https://tormt.folk.ntnu.no/semestre/");
     const message=remote
-      ?"Forhåndsvisning på GitHub Pages kan være blokkert av NTNUs CORS-regler. Originalfilen kan åpnes direkte på NTNU."
+      ?escapeHTML(remoteViewerErrorMessage(error))
       :escapeHTML(error?.message||error);
     canvas.innerHTML=`<div class="viewer-error">
       <span class="project-kicker">Viewer error</span>

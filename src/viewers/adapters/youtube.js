@@ -1,5 +1,5 @@
-import {getYouTubeAPI} from "../../vendor/youtube.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
-import {localVideoProgress} from "../../video/progress-store.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
+import {getYouTubeAPI} from "../../vendor/youtube.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
+import {localVideoProgress} from "../../video/progress-store.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
 
 export function youtubeVideoId(value){
   const raw=String(value||"").trim();
