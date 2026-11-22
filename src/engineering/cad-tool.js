@@ -48,19 +48,6 @@ export function cadToolHTML(){
    </p>
    <p data-cad-fusion-install-status role="status" aria-live="polite"></p>
  </section>
- <section class="cad-example-munin" aria-labelledby="cad-dive-heading">
-  <span class="project-kicker">Eget CAD-prosjekt · Dykkecomputer rev B3</span>
-  <h2 id="cad-dive-heading">Dykkecomputer – hybridhus med all innmat</h2>
-  <p>120 deler: aluminium topp og bunn, POM-midtring, linse, skjerm, kretskort med komponenter, batteri, spoler, O-ringer, skruer og innsatser.
-  Bruk komponenttreet og «Explode» for å ta modellen fra hverandre gruppe for gruppe.</p>
-  <div class="cad-dive-actions">
-   <button class="btn primary" data-cad-dive-preview type="button">Vis dykkecomputeren i 3D</button>
-   <a class="btn" href="./assets/models/dykkecomputer-revb3.glb" download>Hent GLB (2 MB)</a>
-   <a class="btn" href="./assets/demos/dykkecomputer/dykkecomputer-revb3.zip" download>Hent STEP (120 deler)</a>
-   <a class="btn" href="#/projects/dykkecomputer">Om prosjektet</a>
-  </div>
-  <p class="muted">Visningsmodellen er tessellert og forenklet (ca. 110 000 trekanter) og bruker meter; mål og passform står i STEP-filene.</p>
- </section>
  <section class="cad-example-munin" aria-labelledby="cad-munin-heading">
   <span class="project-kicker">Eget CAD-prosjekt · Njord / Munin</span>
   <h2 id="cad-munin-heading">Munin – katamaran med thrusteroppsett</h2>
@@ -75,6 +62,19 @@ export function cadToolHTML(){
    <button class="btn" data-cad-munin-choose type="button">Åpne nedlastet modell</button>
   </div>
   <p class="muted">Forhåndsvisningen bruker meter. Lengde ca. 1,024 m, bredde 0,886 m og høyde 0,807 m. Dette er tessellert visningsgeometri; bruk original CAD for nøyaktige beregninger.</p>
+ </section>
+ <section class="cad-example-munin" aria-labelledby="cad-dive-heading">
+  <span class="project-kicker">Eget CAD-prosjekt · Dykkecomputer rev B3</span>
+  <h2 id="cad-dive-heading">Dykkecomputer – hybridhus med all innmat</h2>
+  <p>120 deler: aluminium topp og bunn, POM-midtring, linse, skjerm, kretskort med komponenter, batteri, spoler, O-ringer, skruer og innsatser.
+  Bruk komponenttreet og «Explode» for å ta modellen fra hverandre gruppe for gruppe.</p>
+  <div class="cad-asv-actions">
+   <button class="btn primary" data-cad-dive-preview type="button">Vis dykkecomputeren i 3D</button>
+   <a class="btn" href="./assets/models/dykkecomputer-revb3.glb" download>Hent GLB (2 MB)</a>
+   <a class="btn" href="./assets/demos/dykkecomputer/dykkecomputer-revb3.zip" download>Hent STEP (120 deler)</a>
+   <a class="btn" href="#/projects/dykkecomputer">Om prosjektet</a>
+  </div>
+  <p class="muted">Visningsmodellen er tessellert og forenklet (ca. 110 000 trekanter) og bruker meter; mål og passform står i STEP-filene.</p>
  </section>
  <section class="cad-example-munin" aria-labelledby="cad-asv-heading">
   <span class="project-kicker">ASV Tollak · forenklet visningsmodell</span>
