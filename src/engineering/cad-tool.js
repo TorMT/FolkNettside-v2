@@ -1,20 +1,20 @@
-import {MUNIN_PARTS,annotateMunin} from "./munin-parts.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {ASV_MODEL} from "./asv-model.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {DIVE_PARTS,annotateDive} from "./dive-parts.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {loadModelDocument} from "../model/load-model.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {parseGLB} from "../model/parsers/gltf.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {parseSTL} from "../model/parsers/stl.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {formatMeters,modelExtentMeters,unitPlausibilityAdvisory} from "../model/model-extent.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {parse3MF} from "../model/parsers/three-mf.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {downloadFusionScriptPackage} from "./fusion-installer.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {createModelDocument} from "../model/model-document.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {boxMesh} from "../hydro/fixtures.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
+import {MUNIN_PARTS,annotateMunin} from "./munin-parts.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {ASV_MODEL} from "./asv-model.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {DIVE_PARTS,annotateDive} from "./dive-parts.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {loadModelDocument} from "../model/load-model.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {parseGLB} from "../model/parsers/gltf.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {parseSTL} from "../model/parsers/stl.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {formatMeters,modelExtentMeters,unitPlausibilityAdvisory} from "../model/model-extent.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {parse3MF} from "../model/parsers/three-mf.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {downloadFusionScriptPackage} from "./fusion-installer.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {createModelDocument} from "../model/model-document.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {boxMesh} from "../hydro/fixtures.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
 
 /** Verified public originals on the NTNU file server; never mirrored to GitHub. */
 export const MUNIN_CAD_SOURCES=Object.freeze({
@@ -22,6 +22,9 @@ export const MUNIN_CAD_SOURCES=Object.freeze({
  step:"https://tormt.folk.ntnu.no/diverse/Njord/filer/MuninTing/NJ26_MUN_HULL_ASM_MASTER.step",
  drawing:"https://tormt.folk.ntnu.no/diverse/Njord/filer/MuninTing/NJ26_MUN_HULL_ASM_MASTER%20Drawing%20v1.pdf"
 });
+/** Full rev B3 assembly STEP (19 MB) on the owner's NTNU web space; step.php adds the CORS header for GitHub Pages. */
+export const DIVE_STEP_URL="https://tormt.folk.ntnu.no/diverse/Dykkecomputer/step.php";
+export const DIVE_STEP_DOWNLOAD="https://tormt.folk.ntnu.no/diverse/Dykkecomputer/dykkecomputer-revB3-sammenstilling.step";
 export const DIVE_PREVIEW_URL=new URL("../../assets/models/dykkecomputer-revb3.glb",import.meta.url).href;
 export const MUNIN_PREVIEW_URL=new URL("../../assets/models/munin-mobile-preview.glb",import.meta.url).href;
 export function cadToolHTML(){
@@ -70,11 +73,13 @@ export function cadToolHTML(){
   Bruk komponenttreet og «Explode» for å ta modellen fra hverandre gruppe for gruppe.</p>
   <div class="cad-asv-actions">
    <button class="btn primary" data-cad-dive-preview type="button">Vis dykkecomputeren i 3D</button>
+   <button class="btn" data-cad-dive-step type="button">Åpne full STEP fra NTNU (19 MB)</button>
+   <a class="btn" href="${DIVE_STEP_DOWNLOAD}" target="_blank" rel="noopener noreferrer">Hent STEP-sammenstilling ↗</a>
    <a class="btn" href="./assets/models/dykkecomputer-revb3.glb" download>Hent GLB (2 MB)</a>
-   <a class="btn" href="./assets/demos/dykkecomputer/dykkecomputer-revb3.zip" download>Hent STEP (120 deler)</a>
+   <a class="btn" href="./assets/demos/dykkecomputer/dykkecomputer-revb3.zip" download>Hent STEP-deler (120 filer, zip)</a>
    <a class="btn" href="#/projects/dykkecomputer">Om prosjektet</a>
   </div>
-  <p class="muted">Visningsmodellen er tessellert og forenklet (ca. 110 000 trekanter) og bruker meter; mål og passform står i STEP-filene.</p>
+  <p class="muted">Visningsmodellen er tessellert og forenklet (ca. 110 000 trekanter) og bruker meter; mål og passform står i STEP-filene. Full STEP åpnes med OpenCascade i nettleseren og tar litt tid.</p>
  </section>
  <section class="cad-example-munin" aria-labelledby="cad-asv-heading">
   <span class="project-kicker">ASV Tollak · forenklet visningsmodell</span>
@@ -139,6 +144,7 @@ export function mountCADTool(root,{open=""}={}){
  const muninPreview=root.querySelector("[data-cad-munin-preview]");
  const asvPreview=root.querySelector("[data-cad-asv-preview]");
  const divePreview=root.querySelector("[data-cad-dive-preview]");
+ const diveStep=root.querySelector("[data-cad-dive-step]");
  const installerStatus=root.querySelector("[data-cad-fusion-install-status]");
  if(!picker||!stage)return ()=>{};
  let controller=null,cleanup=()=>{},request=0,disposed=false;
@@ -222,6 +228,30 @@ export function mountCADTool(root,{open=""}={}){
      if(current===request&&!disposed){
        status.textContent="Kunne ikke åpne dykkecomputeren: "+String(error?.message||error)+". STEP-filene kan lastes ned over.";
        showEmpty("Dykkecomputeren kunne ikke lastes. STEP-filene finnes over.");
+     }
+   }finally{clearTimeout(timeout);if(current===request&&!disposed){cancel.disabled=true;controller=null}}
+ }
+ async function loadDiveStep(){
+   const current=++request;stop();stage.replaceChildren();
+   controller=new AbortController();cancel.disabled=false;
+   status.textContent="Henter full STEP fra NTNU (19 MB)…";
+   stage.scrollIntoView({block:"start",behavior:"instant"});
+   const activeController=controller;
+   const timeout=setTimeout(()=>activeController.abort(),120000);
+   try{
+     const response=await fetch(DIVE_STEP_URL,{signal:controller.signal});
+     if(!response.ok)throw Error("HTTP "+response.status);
+     const buffer=await response.arrayBuffer();
+     if(current!==request||disposed)return;
+     status.textContent="Tesselerer STEP med OpenCascade…";
+     const documentModel=await parseCADBuffer(buffer,"dykkecomputer-revB3-sammenstilling.step",{format:"step",signal:controller.signal});
+     if(current!==request||disposed)return;
+     await presentModel(documentModel,current);
+     if(current===request&&!disposed)status.textContent="Full STEP lastet · "+importSummary(documentModel);
+   }catch(error){
+     if(current===request&&!disposed){
+       status.textContent="Kunne ikke åpne full STEP fra NTNU: "+String(error?.message||error)+". Den lette 3D-visningen og nedlastingen virker fortsatt.";
+       showEmpty("Full STEP kunne ikke lastes. Prøv «Vis dykkecomputeren i 3D».");
      }
    }finally{clearTimeout(timeout);if(current===request&&!disposed){cancel.disabled=true;controller=null}}
  }
@@ -400,6 +430,7 @@ export function mountCADTool(root,{open=""}={}){
  muninPreview?.addEventListener("click",loadMunin);
  asvPreview?.addEventListener("click",loadASV);
  divePreview?.addEventListener("click",loadDive);
+ diveStep?.addEventListener("click",loadDiveStep);
  picker.addEventListener("change",onChange);
  unitSelect?.addEventListener("change",onUnitChange);
  dropZone?.addEventListener("dragover",onDrag);
@@ -420,5 +451,6 @@ export function mountCADTool(root,{open=""}={}){
    muninPreview?.removeEventListener("click",loadMunin);
   asvPreview?.removeEventListener("click",loadASV);
   divePreview?.removeEventListener("click",loadDive);
+  diveStep?.removeEventListener("click",loadDiveStep);
  };
 }

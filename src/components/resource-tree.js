@@ -1,5 +1,5 @@
-import {viewerKind} from "../viewers/registry.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
-import {isApprovedPublicCode} from "../viewers/ntnu-public-code.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
+import {viewerKind} from "../viewers/registry.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {isApprovedPublicCode} from "../viewers/ntnu-public-code.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
 
 function escapeHTML(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
