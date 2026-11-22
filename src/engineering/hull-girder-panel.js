@@ -1,4 +1,4 @@
-import {stressRGB,interpolateGirderAt} from "../structure/hull-contours.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
+import {stressRGB,interpolateGirderAt} from "../structure/hull-contours.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
 
 const esc=v=>String(v??"").replace(/[&<>"']/g,ch=>({
   "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"

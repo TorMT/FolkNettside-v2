@@ -1,11 +1,11 @@
-import {pythonSourceURL} from "../python-source.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {escapeHTML,fetchJSON} from "../utils.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {publicCodePreviewURL,publicCodeRelayURL} from "../ntnu-public-code.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {createDomFinder} from "../dom-search.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {mountPythonCodeCell} from "../python-code-cell.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {createPythonSession} from "../python-session.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {notebookMarkdownHTML} from "../notebook-markdown.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {notebookPreviewCells,notebookSavedOutputs,limitedNotebookText,notebookPNGData} from "../notebook-preview-limits.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
+import {pythonSourceURL} from "../python-source.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {escapeHTML,fetchJSON} from "../utils.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {publicCodePreviewURL,publicCodeRelayURL} from "../ntnu-public-code.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {createDomFinder} from "../dom-search.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {mountPythonCodeCell} from "../python-code-cell.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {createPythonSession} from "../python-session.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {notebookMarkdownHTML} from "../notebook-markdown.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {notebookPreviewCells,notebookSavedOutputs,limitedNotebookText,notebookPNGData} from "../notebook-preview-limits.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
 
 export const cellText=value=>Array.isArray(value)?value.join(""):String(value||"");
 export function renderNotebookOutput(output={}){

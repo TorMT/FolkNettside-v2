@@ -262,3 +262,56 @@ def assembly():
         log("lagret " + ASSEMBLY)
     except Exception:
         log(traceback.format_exc())
+
+THREAD_PAIRS = (("screw", "insert"), ("wet contact", "wet nut"))
+
+def _is_thread_pair(a, b):
+    a, b = a.lower(), b.lower()
+    return any((a.startswith(x) and b.startswith(y)) or (a.startswith(y) and b.startswith(x)) for x, y in THREAD_PAIRS)
+
+def check():
+    """Interference in the open assembly, without the expected overlap where modelled screw threads meet a plain insert bore."""
+    des = adsk.fusion.Design.cast(app.activeProduct); root = des.rootComponent
+    col = adsk.core.ObjectCollection.create()
+    for o in root.allOccurrences:
+        if o.bRepBodies.count:
+            col.add(o)
+    ii = des.createInterferenceInput(col); ii.areCoincidentFacesIncluded = False
+    hits = [(r.entityOne.parentComponent.name, r.entityTwo.parentComponent.name, round(r.interferenceBody.volume * 1000, 3)) for r in des.analyzeInterference(ii)]
+    thread = [h for h in hits if _is_thread_pair(h[0], h[1])]
+    real = [h for h in hits if not _is_thread_pair(h[0], h[1]) and h[2] >= 0.01]
+    log(f"kollisjoner: {len(real)} ekte {real[:15]}; {len(thread)} er gjenger mot glatt innsatshull; {len(hits) - len(real) - len(thread)} under 0,01 mm3")
+    pp = root.getPhysicalProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy)
+    log(f"masse {pp.mass * 1000:.0f} g")
+
+def fill_missing():
+    """Insert parts that addByInsert refused into the open assembly by importing their STEP straight into the group."""
+    doc = app.activeDocument
+    des = adsk.fusion.Design.cast(doc.products.itemByProductType("DesignProductType")); root = des.rootComponent
+    groups = {root.occurrences.item(i).component.name: root.occurrences.item(i) for i in range(root.occurrences.count)}
+    present = set()
+    for o in root.allOccurrences:
+        present.add(o.component.name.split(" v")[0].strip().lower())
+    added = 0
+    for n in names():
+        title = n.replace("_", " ")
+        if title.lower() in present:
+            continue
+        g = groups.get(group(n))
+        if not g:
+            log(f"{n}: fant ikke gruppen {group(n)}"); continue
+        try:
+            opts = app.importManager.createSTEPImportOptions(os.path.join(BASE, "step", n + ".step"))
+            app.importManager.importToTarget(opts, g.component)
+            last = g.component.occurrences.item(g.component.occurrences.count - 1)
+            last.component.name = title
+            mt = material(n)
+            if mt:
+                for b in last.component.bRepBodies:
+                    b.material = mt
+            added += 1; log(f"importerte {title}")
+        except Exception as e:
+            log(f"{n}: {e}")
+    log(f"la til {added} deler")
+    check()
+    doc.save("Rev B3: manglende deler importert")

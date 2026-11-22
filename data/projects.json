@@ -92,6 +92,10 @@
         "primary": true
       },
       {
+        "label": "3D-modell (sprengbar)",
+        "url": "#/engineering/cad/dykkecomputer"
+      },
+      {
         "label": "Demo og materialliste",
         "url": "./assets/demos/dykkecomputer/index.html"
       },
@@ -129,6 +133,11 @@
     ],
     "logUrl": "./assets/demos/dykkecomputer/logg.html",
     "log": [
+      {
+        "date": "22.11.2026",
+        "title": "Rev B3 i Fusion og 3D-visning på siden",
+        "result": "117 av 120 deler satt inn, 408 g; hele modellen kan åpnes og sprenges i CAD-viseren"
+      },
       {
         "date": "22.11.2026",
         "title": "Kontroller før bestilling",

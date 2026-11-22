@@ -1,19 +1,20 @@
-import {MUNIN_PARTS,annotateMunin} from "./munin-parts.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {ASV_MODEL} from "./asv-model.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {loadModelDocument} from "../model/load-model.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {parseGLB} from "../model/parsers/gltf.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {parseSTL} from "../model/parsers/stl.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {formatMeters,modelExtentMeters,unitPlausibilityAdvisory} from "../model/model-extent.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {parse3MF} from "../model/parsers/three-mf.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {downloadFusionScriptPackage} from "./fusion-installer.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {createModelDocument} from "../model/model-document.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
-import {boxMesh} from "../hydro/fixtures.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
+import {MUNIN_PARTS,annotateMunin} from "./munin-parts.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {ASV_MODEL} from "./asv-model.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {DIVE_PARTS,annotateDive} from "./dive-parts.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {loadModelDocument} from "../model/load-model.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {parseGLB} from "../model/parsers/gltf.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {parseSTL} from "../model/parsers/stl.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {formatMeters,modelExtentMeters,unitPlausibilityAdvisory} from "../model/model-extent.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {parse3MF} from "../model/parsers/three-mf.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {downloadFusionScriptPackage} from "./fusion-installer.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {createModelDocument} from "../model/model-document.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {boxMesh} from "../hydro/fixtures.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
 
 /** Verified public originals on the NTNU file server; never mirrored to GitHub. */
 export const MUNIN_CAD_SOURCES=Object.freeze({
@@ -21,6 +22,7 @@ export const MUNIN_CAD_SOURCES=Object.freeze({
  step:"https://tormt.folk.ntnu.no/diverse/Njord/filer/MuninTing/NJ26_MUN_HULL_ASM_MASTER.step",
  drawing:"https://tormt.folk.ntnu.no/diverse/Njord/filer/MuninTing/NJ26_MUN_HULL_ASM_MASTER%20Drawing%20v1.pdf"
 });
+export const DIVE_PREVIEW_URL=new URL("../../assets/models/dykkecomputer-revb3.glb",import.meta.url).href;
 export const MUNIN_PREVIEW_URL=new URL("../../assets/models/munin-mobile-preview.glb",import.meta.url).href;
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
@@ -60,6 +62,19 @@ export function cadToolHTML(){
    <button class="btn" data-cad-munin-choose type="button">Åpne nedlastet modell</button>
   </div>
   <p class="muted">Forhåndsvisningen bruker meter. Lengde ca. 1,024 m, bredde 0,886 m og høyde 0,807 m. Dette er tessellert visningsgeometri; bruk original CAD for nøyaktige beregninger.</p>
+ </section>
+ <section class="cad-example-munin" aria-labelledby="cad-dive-heading">
+  <span class="project-kicker">Eget CAD-prosjekt · Dykkecomputer rev B3</span>
+  <h2 id="cad-dive-heading">Dykkecomputer – hybridhus med all innmat</h2>
+  <p>120 deler: aluminium topp og bunn, POM-midtring, linse, skjerm, kretskort med komponenter, batteri, spoler, O-ringer, skruer og innsatser.
+  Bruk komponenttreet og «Explode» for å ta modellen fra hverandre gruppe for gruppe.</p>
+  <div class="cad-asv-actions">
+   <button class="btn primary" data-cad-dive-preview type="button">Vis dykkecomputeren i 3D</button>
+   <a class="btn" href="./assets/models/dykkecomputer-revb3.glb" download>Hent GLB (2 MB)</a>
+   <a class="btn" href="./assets/demos/dykkecomputer/dykkecomputer-revb3.zip" download>Hent STEP (120 deler)</a>
+   <a class="btn" href="#/projects/dykkecomputer">Om prosjektet</a>
+  </div>
+  <p class="muted">Visningsmodellen er tessellert og forenklet (ca. 110 000 trekanter) og bruker meter; mål og passform står i STEP-filene.</p>
  </section>
  <section class="cad-example-munin" aria-labelledby="cad-asv-heading">
   <span class="project-kicker">ASV Tollak · forenklet visningsmodell</span>
@@ -114,7 +129,8 @@ export function importSummary(documentModel){
   return "Imported "+parts+" mesh components · "+documentModel.unit+size+
     ". Move and inspect in the 3D view below."+(advisory?" Check units: "+advisory:"");
 }
-export function mountCADTool(root){
+/** `open:"dykkecomputer"` loads that example straight away (route /engineering/cad/dykkecomputer). */
+export function mountCADTool(root,{open=""}={}){
  const picker=root.querySelector("#cad-import-file"),stage=root.querySelector("#cad-geometry-stage");
  const cancel=root.querySelector("#cad-import-cancel"),status=root.querySelector("#cad-import-status");
  const dropZone=root.querySelector("#cad-drop-zone");
@@ -122,6 +138,7 @@ export function mountCADTool(root){
  const muninChoose=root.querySelector("[data-cad-munin-choose]");
  const muninPreview=root.querySelector("[data-cad-munin-preview]");
  const asvPreview=root.querySelector("[data-cad-asv-preview]");
+ const divePreview=root.querySelector("[data-cad-dive-preview]");
  const installerStatus=root.querySelector("[data-cad-fusion-install-status]");
  if(!picker||!stage)return ()=>{};
  let controller=null,cleanup=()=>{},request=0,disposed=false;
@@ -180,6 +197,33 @@ export function mountCADTool(root){
    controller?.abort();controller=null;
    cleanup();cleanup=()=>{};
    cancel.disabled=true;
+ }
+ async function loadDive(){
+   const current=++request;stop();stage.replaceChildren();
+   controller=new AbortController();cancel.disabled=false;
+   status.textContent="Laster dykkecomputeren…";
+   stage.scrollIntoView({block:"start",behavior:"instant"});
+   const activeController=controller;
+   const timeout=setTimeout(()=>activeController.abort(),30000);
+   try{
+     const response=await fetch(DIVE_PREVIEW_URL,{signal:controller.signal});
+     if(!response.ok)throw Error("HTTP "+response.status);
+     const buffer=await response.arrayBuffer();
+     if(current!==request||disposed)return;
+     if(buffer.byteLength>15_000_000)throw Error("Modellen overskrider størrelsesgrensen");
+     const model=await parseGLB(buffer,"Dykkecomputer rev B3",{coordinateSystem:"z-up",
+       partMetadata:DIVE_PARTS,
+       source:{url:"./assets/demos/dykkecomputer/dykkecomputer-revb3.zip",notes:"Tessellert fra STEP. Illustrative farger."}});
+     if(current!==request||disposed)return;
+     await presentModel(annotateDive(model),current);
+     if(current===request&&!disposed)status.textContent="Dykkecomputer lastet · "+
+       model.components.filter(c=>c.geometry).length+" deler · meter. Velg en gruppe i treet og dra «Explode» for å ta den fra hverandre.";
+   }catch(error){
+     if(current===request&&!disposed){
+       status.textContent="Kunne ikke åpne dykkecomputeren: "+String(error?.message||error)+". STEP-filene kan lastes ned over.";
+       showEmpty("Dykkecomputeren kunne ikke lastes. STEP-filene finnes over.");
+     }
+   }finally{clearTimeout(timeout);if(current===request&&!disposed){cancel.disabled=true;controller=null}}
  }
  async function loadMunin(){
    const current=++request;stop();stage.replaceChildren();
@@ -350,10 +394,12 @@ export function mountCADTool(root){
    }finally{if(!disposed)installer.disabled=false}
  };
  showEmpty();
+ if(open==="dykkecomputer")void loadDive();
  const onMuninChoose=()=>picker.click();
  muninChoose?.addEventListener("click",onMuninChoose);
  muninPreview?.addEventListener("click",loadMunin);
  asvPreview?.addEventListener("click",loadASV);
+ divePreview?.addEventListener("click",loadDive);
  picker.addEventListener("change",onChange);
  unitSelect?.addEventListener("change",onUnitChange);
  dropZone?.addEventListener("dragover",onDrag);
@@ -373,5 +419,6 @@ export function mountCADTool(root){
    muninChoose?.removeEventListener("click",onMuninChoose);
    muninPreview?.removeEventListener("click",loadMunin);
   asvPreview?.removeEventListener("click",loadASV);
+  divePreview?.removeEventListener("click",loadDive);
  };
 }
