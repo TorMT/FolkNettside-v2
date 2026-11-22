@@ -2,9 +2,9 @@
 with modelled ISO threads on the screws, then a full assembly with hinged buttons, interference check and mass. Run from Text Commands (Py):
   BASE_DIR=r'<this folder>'; exec(open(BASE_DIR + r'\\bygg_b3.py', encoding='utf-8').read()); exec('while parts(20)>0: pass'); assembly()
 """
-import adsk.core, adsk.fusion, os, time, traceback
+import adsk.core, adsk.fusion, os, re, time, traceback
 BASE = globals().get("BASE_DIR") or os.path.dirname(os.path.abspath(__file__))
-PROJECT, FOLDER = "Dykkecomputer", "08 Rev B3"
+PROJECT, FOLDER = "Dykkecomputer", "08 Rev B3"   # older revisions live in Arkiv/
 ASSEMBLY = "Dykkecomputer 3.5 rev B3 - sammenstilling"
 app = adsk.core.Application.get()
 LOG = os.path.join(BASE, "logg_hybrid.txt")
@@ -325,7 +325,7 @@ def fill_missing():
         log("dokumentet har ikke gruppene Hus/Elektronikk/Kraft/Knapper — avbryter"); return
     present = set()
     for o in root.allOccurrences:
-        present.add(o.component.name.split(" v")[0].strip().lower())
+        present.add(re.sub(r" v\d+$", "", o.component.name).strip().lower())   # strip a version suffix, not "veml"
     missing = [n for n in names() if n.replace("_", " ").lower() not in present]
     log(f"{doc.name}: mangler {len(missing)}: {[n for n in missing]}")
     if len(missing) > 10:
