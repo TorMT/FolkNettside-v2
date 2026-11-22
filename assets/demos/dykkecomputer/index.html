@@ -598,7 +598,8 @@
         <figure class="light"><img src="img/sensorkort-revd.jpg" alt="Sensorkortet med seks landingspunkter for fjærkontaktene og to MS5837 på undersiden" loading="lazy" width="620" height="344"><figcaption>Sensorkortet: topp og bunn.</figcaption></figure>
       </div>
       <p class="note">Ved utlegget ble fem ting rettet mot databladene. GNSS er byttet til MAX-M10S, med LNA for passiv antenne. MMC5603 har ingen CAP-pinne. TPS22917 erstatter en 0,4 mm WCSP. Skjermen bruker standard 50-pols FPC med 4-tråds SPI. Det er også lagt til avkobling. Det som må sjekkes ved bestilling står i <code>LES_MEG.md</code> i zip-filen.</p>
-      <div class="actions"><a class="btn primary" href="dykkecomputer-kretskort-revd.zip" download><b>Last ned kretskort rev D</b><span>Gerber, BOM, plassering, .brd/.sch for Fusion, KiCad, skript (1,6 MB)</span></a></div>
+      <div id="gerberslot" class="actions"><button class="btn primary" type="button" id="loadgerber"><b>Vis Gerber-filene her</b><span>Topp, bunn og hvert lag, slik kortet blir laget</span></button><a class="btn" href="../../../#/engineering/gerber/dykkecomputer"><b>Åpne i Gerber-viseren</b><span>Egen side, kan også åpne andre kort</span></a></div>
+      <div class="actions"><a class="btn" href="dykkecomputer-kretskort-revd.zip" download><b>Last ned kretskort rev D</b><span>Gerber, BOM, plassering, .brd/.sch for Fusion, KiCad, skript (1,6 MB)</span></a></div>
     </div>
 
     <div class="card" id="batterikalk" style="margin-top:16px">
@@ -1061,6 +1062,14 @@
     const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); start(); } }, { rootMargin: "200px" });
     io.observe($("#stage"));
   }
+
+  /* Gerber viewer, loaded on request */
+  $("#loadgerber")?.addEventListener("click", () => {
+    const slot = $("#gerberslot"), host = document.createElement("div");
+    host.style.marginTop = "12px"; slot.after(host); slot.querySelector("#loadgerber").remove();
+    import("../../../src/engineering/gerber-viewer.js").then(m => m.mountGerberViewer(host, {src: "dykkecomputer-kretskort-revd.zip", lang: "no", title: "Kretskort rev D"}))
+      .catch(err => { host.textContent = "Gerber-viseren kunne ikke lastes: " + (err?.message || err); });
+  });
 
   /* printing: show everything */
   const unfold = () => { $$("details.fold").forEach(d => d.open = true); };

@@ -73,7 +73,7 @@ import {lazyRouteKeys} from "./shell/lazy-routes.js";
 // about 80 files) are loaded the first time their route is opened instead of on every
 // page load. render() awaits loadLazyRouteModules(path) before it dispatches, so the
 // page functions below can keep using these names synchronously.
-let kisssoftPageHTML, mountKisssoft, cadToolHTML, mountCADTool,
+let kisssoftPageHTML, mountKisssoft, cadToolHTML, mountCADTool, gerberPageHTML, mountGerberPage,
     staticVaultPageHTML, bindStaticVaultPage, renderPythonWorkbench, fluidCalculatorHTML,
     modelInspectorHTML, bindModelInspector, chemEditorHTML, bindChemEditor,
     coolPropToolHTML, bindCoolPropTool, loadPeriodicFixture, periodicTableHTML,
@@ -85,6 +85,7 @@ let kisssoftPageHTML, mountKisssoft, cadToolHTML, mountCADTool,
 const lazyRouteLoaders={
   "kisssoft":async()=>{({kisssoftPageHTML,mountKisssoft}=await import("./engineering/kisssoft-tool.js"))},
   "cad":async()=>{({cadToolHTML,mountCADTool}=await import("./engineering/cad-tool.js"))},
+  "gerber":async()=>{({gerberPageHTML,mountGerberPage}=await import("./engineering/gerber-viewer.js"))},
   "vault":async()=>{({staticVaultPageHTML,bindStaticVaultPage}=await import("./tools/static-vault-page.js"))},
   "python":async()=>{({render:renderPythonWorkbench}=await import("./viewers/adapters/python.js"))},
   "fluid":async()=>{({fluidCalculatorHTML}=await import("./tools/fluid-calculator.js"))},
@@ -193,6 +194,7 @@ let diveMapCleanup=null;
 let diveMapMountId=0;
 let kisssoftCleanup=null;
 let cadToolCleanup=null;
+let gerberCleanup=null;
 let brewingCleanup=null;
 let medisinCleanup=null;
 let photoFeedCleanup=null;
@@ -232,7 +234,7 @@ function engineeringModelSelectHTML(){
   const uploaded=model?.id===LOCAL_HYDRO_MODEL_ID;
   return `<div class="engineering-model-control">
     <label class="engineering-model-select"><span>Model</span><select id="engineering-model-select">${engineeringModels.map(item=>`<option value="${item.id}" ${item.id===engineeringModelId?"selected":""}>${item.label||item.name} · ${engineeringModelReadinessLabel(item)}</option>`).join("")}</select></label>
-    <button type="button" class="btn" id="engineering-import-hull">Import STL/3MF</button><button type="button" class="btn" data-go="/engineering/cad">CAD workbench</button><button type="button" class="btn" data-go="/engineering/kisssoft">KISSsoft</button>
+    <button type="button" class="btn" id="engineering-import-hull">Import STL/3MF</button><button type="button" class="btn" data-go="/engineering/cad">CAD workbench</button><button type="button" class="btn" data-go="/engineering/gerber">Gerber viewer</button><button type="button" class="btn" data-go="/engineering/kisssoft">KISSsoft</button>
     <input type="file" id="engineering-hull-file" accept=".stl,.3mf" hidden>
     ${uploaded&&importedHydroOriginal?.format==="STL"
       ?`<label class="engineering-model-select"><span>STL source units</span><select id="engineering-hull-unit">${Object.keys(UNIT_SCALE_TO_METERS).map(unit=>`<option value="${unit}" ${unit===importedHydroUnit?"selected":""}>${unit}</option>`).join("")}</select></label>`:""}
@@ -2632,7 +2634,7 @@ async function render(){disposeActiveViewer();const currentPath=route();if(curre
     engineeringCleanup?.();
     engineeringCleanup=null;
   }
-  if(path!=="/engineering/kisssoft"){kisssoftCleanup?.();kisssoftCleanup=null;}if(path!=="/engineering/cad"){cadToolCleanup?.();cadToolCleanup=null;}if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}if(!["/diverse/diving","/diverse/dive-map"].includes(path)){diveMapMountId++;diveMapCleanup?.();diveMapCleanup=null;}if(path!=="/diverse/brewing"){brewingMountId++;brewingCleanup?.();brewingCleanup=null;}if(path!=="/diverse/medisin"){medisinCleanup?.cleanup?.();medisinCleanup=null;}if(path!=="/diverse/bilder"){photoFeedCleanup?.cleanup?.();photoFeedCleanup=null;}studyCatalogMountId++;studyCatalogCleanup?.cleanup?.();studyCatalogCleanup=null;const viewer=parseViewerRoute(path);
+  if(path!=="/engineering/kisssoft"){kisssoftCleanup?.();kisssoftCleanup=null;}if(path!=="/engineering/cad"){cadToolCleanup?.();cadToolCleanup=null;}if(!path.startsWith("/engineering/gerber")){gerberCleanup?.();gerberCleanup=null;}if(path!=="/tools/crystal"){crystalCleanup?.();crystalCleanup=null;}if(path!=="/tools/chemistry-editor"){chemEditorCleanup?.();chemEditorCleanup=null;}if(path!=="/tools/model-inspector"){modelInspectorCleanup?.();modelInspectorCleanup=null;}if(path!=="/tools/coolprop"){coolPropCleanup?.();coolPropCleanup=null;}if(!["/diverse/diving","/diverse/dive-map"].includes(path)){diveMapMountId++;diveMapCleanup?.();diveMapCleanup=null;}if(path!=="/diverse/brewing"){brewingMountId++;brewingCleanup?.();brewingCleanup=null;}if(path!=="/diverse/medisin"){medisinCleanup?.cleanup?.();medisinCleanup=null;}if(path!=="/diverse/bilder"){photoFeedCleanup?.cleanup?.();photoFeedCleanup=null;}studyCatalogMountId++;studyCatalogCleanup?.cleanup?.();studyCatalogCleanup=null;const viewer=parseViewerRoute(path);
   // Load this route's on-demand modules first. If the visitor has moved on meanwhile,
   // the render started by that navigation owns the page.
   if(lazyRouteKeys(path).length){
@@ -2648,7 +2650,12 @@ async function render(){disposeActiveViewer();const currentPath=route();if(curre
     }
     if(route()!==path)return;
   }
-  if(["/about","/cv","/contact"].includes(path)){document.documentElement.dataset.lens="portfolio";const page=path.slice(1);app.innerHTML=top(page)+'<main class="section"><p>Loading profile…</p></main>';bindNav();loadCV().then(cv=>{if(route()!==path)return;app.innerHTML=top(page)+portfolioInfoPageHTML(page,cv);bindNav();}).catch(error=>{if(route()!==path)return;app.innerHTML=top(page)+`<main class="section"><h1>Profile unavailable</h1><p>${String(error.message||error).replace(/[&<>"]/g,"")}</p></main>`;bindNav();});return;}if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code,course.sectionIndex);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/admin/courses")return courseAdminPage();if(path==="/courses"||path==="/study")return coursesPage();if(path==="/diverse")return diversePage();if(path==="/diverse/bilder")return photoFeedPage();if(path==="/diverse/diving"||path==="/diverse/dive-map")return diveMapPage();if(path==="/diverse/sandalen")return sandalenPage();if(path==="/diverse/matpris")return matprisPage();if(path==="/diverse/brewing")return brewingPage();if(path==="/diverse/medisin")return medisinPage();if(path==="/diverse/laos")return studyCatalogPage("laos");if(path==="/diverse/andrekok")return studyCatalogPage("kok");if(path==="/engineering/cad"||path==="/engineering/cad/dykkecomputer"){
+  if(["/about","/cv","/contact"].includes(path)){document.documentElement.dataset.lens="portfolio";const page=path.slice(1);app.innerHTML=top(page)+'<main class="section"><p>Loading profile…</p></main>';bindNav();loadCV().then(cv=>{if(route()!==path)return;app.innerHTML=top(page)+portfolioInfoPageHTML(page,cv);bindNav();}).catch(error=>{if(route()!==path)return;app.innerHTML=top(page)+`<main class="section"><h1>Profile unavailable</h1><p>${String(error.message||error).replace(/[&<>"]/g,"")}</p></main>`;bindNav();});return;}if(path.startsWith("/projects/"))return projectPage(decodeURIComponent(path.split("/")[2]||""));if(viewer)return viewerPage(viewer);const course=parseCourseRoute(path);if(course)return coursePage(course.semester,course.code,course.sectionIndex);const sem=path.match(/^\/(?:courses|study)\/(\d+)$/i);if(sem)return coursesPage(Number(sem[1]));if(path==="/admin/courses")return courseAdminPage();if(path==="/courses"||path==="/study")return coursesPage();if(path==="/diverse")return diversePage();if(path==="/diverse/bilder")return photoFeedPage();if(path==="/diverse/diving"||path==="/diverse/dive-map")return diveMapPage();if(path==="/diverse/sandalen")return sandalenPage();if(path==="/diverse/matpris")return matprisPage();if(path==="/diverse/brewing")return brewingPage();if(path==="/diverse/medisin")return medisinPage();if(path==="/diverse/laos")return studyCatalogPage("laos");if(path==="/diverse/andrekok")return studyCatalogPage("kok");if(path==="/engineering/gerber"||path==="/engineering/gerber/dykkecomputer"){
+  document.documentElement.dataset.lens="workspace";
+  gerberCleanup?.();
+  app.innerHTML=top("engineering")+gerberPageHTML();
+  bindNav();gerberCleanup=mountGerberPage(app,{preset:path.split("/")[3]||""});return;
+}if(path==="/engineering/cad"||path==="/engineering/cad/dykkecomputer"){
   document.documentElement.dataset.lens="workspace";
   app.innerHTML=top("engineering")+cadToolHTML();
   bindNav();cadToolCleanup=mountCADTool(app,{open:path.split("/")[3]||""});return;
