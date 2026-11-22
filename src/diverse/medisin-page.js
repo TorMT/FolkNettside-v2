@@ -1,12 +1,12 @@
-import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
-import {mergeMedisinBackups,newMedisinBackup,validateMedisinBackup} from "../platform/medisin-drive.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
-import {readEncryptedMedisinDriveBackup,writeEncryptedMedisinDriveBackup} from "../platform/medisin-encrypted-drive.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
-import {encryptMedisinVault,decryptMedisinVault,isEncryptedMedisinVault} from "../platform/medisin-vault.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
-import {medisinDriveFolder,setMedisinDriveFolder} from "../platform/medisin-folder.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
-import {medisinCloudSyncAllowed,setMedisinCloudSyncAllowed} from "../platform/medisin-cloud-consent.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
-import {CONCENTRATION_UNITS,medisinConcentrations,medisinSolutionVolume} from "./medisin-concentration.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
-import {medisinStorageKey,medisinTimers,medisinDoses,medisinNextAt,medisinRemainingLevel,medisinChart,medisinApply,medisinCreateTimer,medisinCreateDose,medisinDelete} from "./medisin-model.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
-import {reconcileMedisinLocalWrite} from "./medisin-local-sync.js?v=f792a704a2eea2aaeb4fea33ee311825c22112fb";
+import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
+import {mergeMedisinBackups,newMedisinBackup,validateMedisinBackup} from "../platform/medisin-drive.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
+import {readEncryptedMedisinDriveBackup,writeEncryptedMedisinDriveBackup} from "../platform/medisin-encrypted-drive.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
+import {encryptMedisinVault,decryptMedisinVault,isEncryptedMedisinVault} from "../platform/medisin-vault.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
+import {medisinDriveFolder,setMedisinDriveFolder} from "../platform/medisin-folder.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
+import {medisinCloudSyncAllowed,setMedisinCloudSyncAllowed} from "../platform/medisin-cloud-consent.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
+import {CONCENTRATION_UNITS,medisinConcentrations,medisinSolutionVolume} from "./medisin-concentration.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
+import {medisinStorageKey,medisinTimers,medisinDoses,medisinNextAt,medisinRemainingLevel,medisinChart,medisinApply,medisinCreateTimer,medisinCreateDose,medisinDelete} from "./medisin-model.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
+import {reconcileMedisinLocalWrite} from "./medisin-local-sync.js?v=76e1eaf009bc8ca0dcb60309b8eabc8000ff62e8";
 
 const LEGACY_URL="https://tormt.folk.ntnu.no/diverse/MedisinTimer/";
 const esc=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
