@@ -1,5 +1,7 @@
+import {fetchDiveBathymetry} from "./dive-bathymetry.js";
+import {loadDiveCatalog} from "./dive-catalog.js";
 import {mountDiveLog} from "./dive-log.js";
-import {diveCoordinateAssessment,diveDistanceKm,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveSourceUrls,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js";
+import {diveCoordinateAssessment,diveDistanceKm,diveFeatureCountry,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveSourceUrls,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js";
 import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js";
 import {diveMapLegendHTML,diveMarkerClass,diveMarkerHTML} from "./dive-marker-icons.js";
 
@@ -28,15 +30,19 @@ function featureDetail(feature,{origin=null}={}){
   const wildlife=diveFeatureWildlife(feature);
   return `<div class="dive-detail">
     <div class="dive-detail-head"><strong>${esc(p.Navn||"Unnamed site")}</strong><span>${diveFeatureLevel(feature)}</span></div>
-    <div class="dive-detail-meta"><span>${esc(p.Kategori||"")}</span><span>${esc(p.Område||"")}</span><span>${depth}</span>${distance===null?"":`<span>${distance.toFixed(1)} km away</span>`}</div>
+    <div class="dive-detail-meta"><span>${esc(p.Kategori||"")}</span><span>${esc(diveFeatureCountry(feature))} · ${esc(p.Område||"")}</span><span>${depth}</span>${distance===null?"":`<span>${distance.toFixed(1)} km away</span>`}</div>
     ${coordinate.status==="unverified"?`<p><b>Location:</b> Unverified source coordinate — omitted from map and exports pending local verification.</p>`:""}
     ${coordinate.status==="invalid"?`<p><b>Location:</b> Invalid coordinates — map marker withheld.</p>`:""}
     ${p.Notater?`<p><b>Source note:</b> ${esc(p.Notater)}</p>`:""}
+    ${!depthMax&&point&&diveFeatureCountry(feature)==="Norge"?'<button class="btn" type="button" data-dive-depth-estimate>Estimate seabed depth at map pin</button><p data-dive-depth-result>EMODnet model cell; this is NOT the depth of a dive or the deepest point at the site.</p>':""}
     ${p.Status?`<p><b>Status:</b> ${esc(p.Status)}</p>`:""}
     ${p.Adkomst?`<p><b>Access:</b> ${esc(p.Adkomst)}</p>`:""}
     ${p.Bunn_terreng?`<p><b>Bottom / terrain:</b> ${esc(p.Bunn_terreng)}</p>`:""}
     ${p.Strøm_fare_forbehold?`<p><b>Conditions / caveat:</b> ${esc(p.Strøm_fare_forbehold)}</p>`:""}
-    ${p.Observert_dyreliv?`<p><b>Observed wildlife:</b> ${esc(p.Observert_dyreliv)}</p>`:""}
+    ${p.Observert_dyreliv?`<p><b>Observed wildlife (source):</b> ${esc(p.Observert_dyreliv)}</p>`:""}
+    ${p.Mulig_rapportert_dyreliv?`<p><b>Reported / possible wildlife:</b> ${esc(p.Mulig_rapportert_dyreliv)}</p>`:""}
+    ${p.Global_rangering?`<p><b>International editorial rank:</b> #${esc(p.Global_rangering)} (not a safety score)</p>`:""}
+    ${Number.isFinite(p.Estimert_bunndyp_m)?`<p><b>Estimated seabed depth at map position:</b> ~${esc(p.Estimert_bunndyp_m)} m, model: ${esc(p.Dybdeestimat_kilde||"unspecified")}. Not a dive depth.</p>`:""}
     ${wildlife.length?`<div class="dive-wildlife-tags">${wildlife.slice(0,12).map(item=>`<span>${esc(item)}</span>`).join("")}</div>`:""}
     ${p.Vrak_historie?`<p><b>Wreck:</b> ${esc(p.Vrak_historie)}</p>`:""}
     ${p.Vern_kulturminne?`<p><b>Protection:</b> ${esc(p.Vern_kulturminne)}</p>`:""}
@@ -49,10 +55,10 @@ export function diveMapHTML(){
   return `<main class="dive-page">
     <header class="dive-hero">
       <div><span class="project-kicker">Diverse / Dive map</span><h1>Dive map</h1>
-      <p>Source-traceable dive sites and wrecks. Public coordinates can be approximate; verify local access, conditions, regulations and qualification before a dive.</p></div>
+      <p>Source-traceable dive sites and wrecks. Public coordinates can be approximate; verify local access, conditions, regulations and qualification before a dive. OpenDiveMap and OpenStreetMap-derived data © contributors (ODbL 1.0).</p></div>
       <button class="btn" data-go-diverse>Back to Diverse</button>
     </header>
-    <section class="dive-controls">
+    <section class="dive-controls">\n      <label><span>Country</span><select id="dive-country"><option value="all">All countries</option></select></label>\n      <label><span>Region / area</span><select id="dive-region"><option value="all">All regions</option></select></label>\n      <label><span>Source</span><select id="dive-source"><option value="all">All sources</option><option value="original">Trondheim master</option><option value="local">Local guides / Dykkekart.no</option><option value="dykkepedia">Dykkepedia</option><option value="opendivemap">OpenDiveMap</option><option value="osm">OpenStreetMap / Dive Vibe</option><option value="atlas">World ranking</option></select></label>
       <label class="dive-search"><span>Search</span><input id="dive-query" type="search" placeholder="Site, wreck, wildlife, area…"></label>
       <label><span>Level</span><select id="dive-level"><option value="all">All</option><option>P1</option><option>P2</option><option>P3</option><option value="TECH">Technical</option><option value="UNKNOWN">Unrated</option></select></label>
       <label><span>Type</span><select id="dive-kind"><option value="all">All</option><option value="nature">Nature / area</option><option value="wreck">Wreck</option></select></label>
@@ -60,11 +66,11 @@ export function diveMapHTML(){
       <label><span>Max depth</span><input id="dive-depth" type="number" min="0" step="1" placeholder="m"></label>
       <label><span>Wildlife</span><select id="dive-wildlife"><option value="all">All species</option></select></label>
       <label class="dive-exclude"><span>Species mode</span><select id="dive-wildlife-mode"><option value="include">With species</option><option value="exclude">Without species</option></select></label>
-      <label><span>Sort</span><select id="dive-sort"><option value="name">Name</option><option value="depth">Depth</option><option value="level">Level</option><option value="quality">Evidence quality</option><option value="nearest">Nearest me</option></select></label>
+      <label><span>Sort</span><select id="dive-sort"><option value="name">Name</option><option value="depth">Depth</option><option value="level">Level</option><option value="quality">Evidence quality</option><option value="nearest">Nearest me</option><option value="global">World ranking</option></select></label>
       <button class="btn dive-location-button" id="dive-locate" type="button" aria-describedby="dive-location-status">Use my location</button>
       <p class="dive-location-status" id="dive-location-status" role="status" aria-live="polite">Optional: location is requested only if you tap the button. Used locally for straight-line distances; not saved or exported.</p>
     </section>
-    <section class="dive-stats-row">
+    <p class="dive-location-status">Country, region and source filters narrow the results. Unlocated dive sites remain searchable. Depth values are source-reported dive-site limits, not safe dive profiles or seabed predictions.</p>\n    <section class="dive-stats-row">
       <div class="dive-stats" id="dive-stats">Loading dive dataset…</div>
       <div class="dive-export-actions">
         <button class="btn" id="dive-export-csv">Export filtered CSV</button>
@@ -86,26 +92,70 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
   let layer=null;
   let locating=false;
   let locationRequestId=0;
-  const state={query:"",level:"all",kind:"all",quality:"all",maxDepth:"",wildlife:"all",excludeWildlife:false,sort:"name",selected:null,origin:null};
-  const response=await fetch(dataUrl,{cache:"no-cache"});
-  if(!response.ok)throw new Error(`Dive dataset HTTP ${response.status}`);
-  const data=await response.json();
+  const state={query:"",level:"all",kind:"all",quality:"all",maxDepth:"",wildlife:"all",excludeWildlife:false,sort:"name",country:"Norge",region:"all",source:"all",pageSize:200,selected:null,origin:null};
+  const data=await loadDiveCatalog(dataUrl);
   const features=data.features||[];
   const diveLog=mountDiveLog(root.querySelector("#dive-log-root"));
   let currentVisible=features;
   const elements={
-    query:root.querySelector("#dive-query"),level:root.querySelector("#dive-level"),kind:root.querySelector("#dive-kind"),quality:root.querySelector("#dive-quality"),
+    query:root.querySelector("#dive-query"),country:root.querySelector("#dive-country"),region:root.querySelector("#dive-region"),source:root.querySelector("#dive-source"),level:root.querySelector("#dive-level"),kind:root.querySelector("#dive-kind"),quality:root.querySelector("#dive-quality"),
     depth:root.querySelector("#dive-depth"),wildlife:root.querySelector("#dive-wildlife"),wildlifeMode:root.querySelector("#dive-wildlife-mode"),sort:root.querySelector("#dive-sort"),locate:root.querySelector("#dive-locate"),stats:root.querySelector("#dive-stats"),
     list:root.querySelector("#dive-list"),inspector:root.querySelector("#dive-inspector"),map:root.querySelector("#dive-map-canvas"),
     note:root.querySelector("#dive-map-note"),locationStatus:root.querySelector("#dive-location-status"),csv:root.querySelector("#dive-export-csv"),geojson:root.querySelector("#dive-export-geojson")
   };
   root.querySelector("[data-go-diverse]")?.addEventListener("click",onBack);
+  const countryCounts=new Map();
+  for(const feature of features){const name=diveFeatureCountry(feature);countryCounts.set(name,(countryCounts.get(name)||0)+1);}
+  const countryNames=[...countryCounts.keys()].sort((a,b)=>a==="Norge"?-1:b==="Norge"?1:a.localeCompare(b,"no"));
+  elements.country?.insertAdjacentHTML("beforeend",
+    countryNames.map(name=>`<option value="${esc(name)}">${esc(name)} (${countryCounts.get(name)})</option>`).join(""));
+  if(elements.country)elements.country.value=countryCounts.has("Norge")?"Norge":"all";
+  state.country=elements.country?.value||"all";
+  const refreshRegions=()=>{
+    if(!elements.region)return;
+    const relevant=features.filter(f=>state.country==="all"||diveFeatureCountry(f)===state.country);
+    const areas=[...new Set(relevant.map(f=>String(f.properties?.Område||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"no"));
+    elements.region.innerHTML='<option value="all">All regions</option>'+
+      areas.map(area=>`<option value="${esc(area)}">${esc(area)}</option>`).join("");
+    elements.region.value="all";
+    state.region="all";
+  };
+  refreshRegions();
+  elements.country?.addEventListener("change",event=>{
+    state.country=event.currentTarget.value;state.pageSize=200;refreshRegions();render();
+  });
+  elements.region?.addEventListener("change",event=>{
+    state.region=event.currentTarget.value;state.pageSize=200;render();
+  });
+  elements.source?.addEventListener("change",event=>{
+    state.source=event.currentTarget.value;state.pageSize=200;render();
+  });
+
 
   const markers=new Map();
   const selectFeature=(feature,{zoom=true}={})=>{
     state.selected=feature?.properties?.ID==null?null:String(feature.properties.ID);
     diveLog.selectSite(feature);
     elements.inspector.innerHTML=featureDetail(feature,{origin:state.origin});
+    const estimate=elements.inspector.querySelector("[data-dive-depth-estimate]");
+    estimate?.addEventListener("click",async()=>{
+      const result=elements.inspector.querySelector("[data-dive-depth-result]");
+      if(!result)return;
+      estimate.disabled=true;
+      result.textContent="Looking up approximate seabed elevation in EMODnet…";
+      try{
+        const sample=await fetchDiveBathymetry(feature);
+        if(disposed||state.selected!==String(feature?.properties?.ID))return;
+        result.textContent=sample.status==="model"
+          ?`Estimated seabed depth at map coordinate: ~${sample.depth} m (EMODnet DTM cell mean${sample.spread!==null?`, cell range ${sample.spread} m`:""}). This is NOT a dive depth and may differ greatly from the nearby slope.`
+          :sample.status==="land-or-dry"||sample.status==="shoreline"
+            ?"The mapped GPS point is at/near land or too shallow for a reliable depth estimate. No depth assigned."
+            :"No usable seabed depth at this map position; no estimate assigned.";
+      }catch(error){
+        if(disposed)return;
+        result.textContent="Bathymetry lookup unavailable. No depth has been inferred; consult local nautical charts.";
+      }finally{if(!disposed)estimate.disabled=false;}
+    });
     root.querySelectorAll("[data-dive-id]").forEach(node=>node.classList.toggle("selected",node.dataset.diveId===state.selected));
     const marker=markers.get(state.selected);
     if(marker&&map){marker.openPopup();if(zoom)map.setView(marker.getLatLng(),Math.max(map.getZoom(),11),{animate:true})}
@@ -120,8 +170,8 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
       elements.inspector.innerHTML='<div class="dive-empty"><strong>Select a site</strong><span>Choose a visible map marker or listed dive site.</span></div>';
     }
     const stats=diveStats(visible);
-    elements.stats.innerHTML=`<strong>${stats.total}</strong> shown · ${stats.nature} nature/area · ${stats.wrecks} wreck · ${stats.withCoordinates} mapped${stats.unverifiedCoordinates?` · ${stats.unverifiedCoordinates} unverified pins withheld`:""} · ${stats.withDepth} with documented max depth · ${stats.withWildlife} with wildlife${state.origin?" · distance enabled":""}`;
-    elements.list.innerHTML=visible.map(feature=>{
+    elements.stats.innerHTML=`<strong>${stats.total}</strong> found · ${stats.nature} nature/area · ${stats.wrecks} wreck · ${stats.withCoordinates} mapped${stats.unverifiedCoordinates?` · ${stats.unverifiedCoordinates} unverified pins withheld`:""} · ${stats.withDepth} with documented max depth · ${stats.withWildlife} with wildlife${state.origin?" · distance enabled":""}`;
+    elements.list.innerHTML=visible.slice(0,state.pageSize).map(feature=>{
       const p=feature.properties||{};
       const max=diveFeatureMaxDepth(feature);
       const point=diveFeaturePoint(feature);
@@ -129,9 +179,13 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
       return `<button class="dive-list-item ${state.selected===p.ID?"selected":""}" data-dive-id="${esc(p.ID)}">
         <span class="dive-list-title"><strong>${esc(p.Navn)}</strong><em>${diveFeatureLevel(feature)}</em></span>
         <span>${esc(p.Område||"")}</span>
-        <small>${esc(p.Kategori||"")}${max===null?"":` · max ${max} m`} · quality ${diveFeatureQuality(feature)}${distance===null?"":` · ${distance.toFixed(1)} km`}${point?"":diveCoordinateAssessment(feature).status==="unverified"?" · coordinate unverified":" · no usable coordinates"}</small>
+        <small>${esc(p.Kategori||"")}${p.Global_rangering?` · world #${esc(p.Global_rangering)}`:""}${max===null?"":` · max ${max} m`} · quality ${diveFeatureQuality(feature)}${distance===null?"":` · ${distance.toFixed(1)} km`}${point?"":diveCoordinateAssessment(feature).status==="unverified"?" · coordinate unverified":" · no usable coordinates"}</small>
       </button>`;
     }).join("")||'<div class="dive-empty"><strong>No matching sites</strong><span>Adjust filters to show more locations.</span></div>';
+    if(visible.length>state.pageSize){
+      elements.list.insertAdjacentHTML("beforeend",`<button class="btn" id="dive-more" type="button">Show 200 more · ${state.pageSize} / ${visible.length}</button>`);
+      elements.list.querySelector("#dive-more")?.addEventListener("click",()=>{state.pageSize+=200;render()});
+    }
     elements.list.querySelectorAll("[data-dive-id]").forEach(button=>{
       button.addEventListener("click",()=>selectFeature(visible.find(feature=>feature.properties?.ID===button.dataset.diveId)));
     });
@@ -139,7 +193,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
     if(layer&&map){
       layer.clearLayers();markers.clear();
       const bounds=[];
-      visible.forEach(feature=>{
+      visible.slice(0,950).forEach(feature=>{
         const point=diveFeaturePoint(feature);
         if(!point)return;
         const {lat,lon}=point;
@@ -254,13 +308,13 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
   elements.wildlife?.insertAdjacentHTML("beforeend",
     wildlifeChoices.map(item=>`<option value="${esc(item.key)}">${esc(item.label)} (${item.count})</option>`).join(""));
   elements.csv?.addEventListener("click",()=>{
-    downloadDiveText(diveFeaturesCSV(currentVisible),"trondheim-dive-filtered.csv","text/csv;charset=utf-8");
+    downloadDiveText(diveFeaturesCSV(currentVisible),"world-dive-filtered.csv","text/csv;charset=utf-8");
   });
   elements.geojson?.addEventListener("click",()=>{
-    const filters={query:state.query,level:state.level,kind:state.kind,quality:state.quality,maxDepth:state.maxDepth,sort:state.sort,wildlife:state.wildlife,excludeWildlife:state.excludeWildlife};
+    const filters={query:state.query,country:state.country,region:state.region,source:state.source,level:state.level,kind:state.kind,quality:state.quality,maxDepth:state.maxDepth,sort:state.sort,wildlife:state.wildlife,excludeWildlife:state.excludeWildlife};
     downloadDiveText(
       diveFeaturesGeoJSON(currentVisible,{source:data.metadata?.source||null,sourceDate:data.metadata?.created||null,filters}),
-      "trondheim-dive-filtered.geojson","application/geo+json"
+      "world-dive-filtered.geojson","application/geo+json"
     );
   });
 
@@ -276,7 +330,7 @@ export async function mountDiveMap(root,{dataUrl="./data/diving/trondheim-sites.
       maxZoom:18,attribution:'&copy; OpenStreetMap contributors'
     }).addTo(map);
     layer=window.L.layerGroup().addTo(map);
-    elements.note.textContent=`${features.length} sourced locations · dataset ${data.metadata?.created||"snapshot"}`;
+    elements.note.textContent=`${features.length} sourced records · up to 950 map pins shown at once. Filter country/region for full detail.${data.failed?.length?` ${data.failed.length} sources unavailable.`:""}`;
     render();
     setTimeout(()=>map?.invalidateSize(),0);
   }catch(error){

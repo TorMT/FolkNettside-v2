@@ -164,11 +164,14 @@ export function mountPythonCodeCell(container,{
     event.currentTarget.setAttribute("aria-pressed",String(lines));
   });
   $("[data-py-copy]").addEventListener("click",async event=>{
-    const button=event.currentTarget; // null after the await below
+    // event.currentTarget is null after the first await: keep the button.
+    const button=event.currentTarget;
     try{
+      if(!navigator.clipboard?.writeText)throw Error("Clipboard unavailable");
       await navigator.clipboard.writeText(editor.value);
       button.textContent="Copied";
     }catch{button.textContent="Unavailable"}
+    setTimeout(()=>{if(button.isConnected)button.textContent="Copy"},1200);
   });
   editor.addEventListener("input",updateSource);
   editor.addEventListener("scroll",syncScroll,{passive:true});

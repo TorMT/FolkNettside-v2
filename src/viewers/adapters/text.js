@@ -58,11 +58,13 @@ export async function render(container,resource){
   });
 
   container.querySelector(".code-copy").onclick=async event=>{
-    const button=event.currentTarget; // null after the await below
+    // event.currentTarget is null after the first await: keep the button.
+    const button=event.currentTarget;
     try{if(!navigator.clipboard?.writeText)throw Error("Clipboard unavailable");
       await navigator.clipboard.writeText(text);
       button.textContent="Copied";
     }catch{button.textContent="Copy unavailable"}
+    setTimeout(()=>{if(button.isConnected)button.textContent="Copy"},1200);
   };
 
   return {info:`${labelByExtension[ext]||"Text"} · ${preview.displayedLines} preview lines · ${text.length.toLocaleString()} total chars`+

@@ -66,6 +66,7 @@ import {connectGoogleSession,disconnectGoogleSession,getGoogleSessionSnapshot,in
 import {initializeFolkAccount,getFolkAccountSnapshot,folkSignIn,folkSignOut,getFolkLinkedProviders} from "./platform/folkside-auth.js";
 import {probeFolkCoreBackend} from "./platform/folkside-cloud.js";
 import {createFolkAppearanceBackup} from "./platform/folkside-preferences.js";
+import {isStartRoute} from "./shell/start-route.js";
 import {lazyRouteKeys} from "./shell/lazy-routes.js";
 
 // Route-level code splitting. These page modules (and everything only they import,
@@ -2607,7 +2608,7 @@ async function engineeringPage(){
     if(gzCurve.length)downloadTextFile(gzCurveCSV(gzCurve),"gz-curve.csv");
   });
 }
-function notFoundPage(message){app.innerHTML=top("")+'<main class="study"><section class="study-main"><div class="course-header"><h1>Not found</h1><p>'+escCourse(message)+'</p><button class="btn" data-go="/courses">Back to Courses</button></div></section></main>';bindNav()}
+function notFoundPage(message,back={route:"/courses",label:"Back to Courses"}){app.innerHTML=top("")+'<main class="study" id="main" tabindex="-1"><section class="study-main"><div class="course-header" data-not-found><h1>Not found</h1><p>'+escCourse(message)+'</p><button class="btn" data-go="'+escCourse(back.route)+'">'+escCourse(back.label)+'</button></div></section></main>';bindNav()}
 function disposeActiveViewer(){
   const holder=app.__viewerHolder;
   if(!holder)return;
@@ -2653,7 +2654,11 @@ async function render(){disposeActiveViewer();const currentPath=route();if(curre
   app.innerHTML=top("engineering")+cadToolHTML();
   bindNav();cadToolCleanup=mountCADTool(app);return;
 }
-if(path==="/engineering/kisssoft"){document.documentElement.dataset.lens="workspace";app.innerHTML=top("engineering")+kisssoftPageHTML();bindNav();kisssoftCleanup=mountKisssoft(app);return;}if(path==="/tools")return toolsPage();if(path==="/tools/vault")return vaultToolPage();if(path==="/tools/python")return pythonToolPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/model-inspector")return modelInspectorPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings/theme-studio/manual")return themeStudioPage("manual");if(path==="/settings/theme-studio/image")return themeStudioPage("image");const settingsMatch=path.match(/^\/settings(?:\/(appearance|connections|courses|engineering|privacy|advanced))?$/);if(settingsMatch){settingsSection=settingsMatch[1]||"appearance";return settingsPage();}const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}return portfolioPage()}
+if(path==="/engineering/kisssoft"){document.documentElement.dataset.lens="workspace";app.innerHTML=top("engineering")+kisssoftPageHTML();bindNav();kisssoftCleanup=mountKisssoft(app);return;}if(path==="/tools")return toolsPage();if(path==="/tools/vault")return vaultToolPage();if(path==="/tools/python")return pythonToolPage();if(path==="/tools/fluid")return fluidToolPage();if(path==="/tools/model-inspector")return modelInspectorPage();if(path==="/tools/chemistry-editor")return chemEditorPage();if(path==="/tools/coolprop")return coolPropToolPage();if(path==="/tools/periodic")return periodicToolPage();if(path==="/tools/crystal")return crystalToolPage();if(path==="/mobile-preview")return mobilePreviewPage();if(path==="/settings/theme-studio/manual")return themeStudioPage("manual");if(path==="/settings/theme-studio/image")return themeStudioPage("image");const settingsMatch=path.match(/^\/settings(?:\/(appearance|connections|courses|engineering|privacy|advanced))?$/);if(settingsMatch){settingsSection=settingsMatch[1]||"appearance";return settingsPage();}const engineering=path.match(/^\/engineering(?:\/(model|hydro|structure|resistance|propulsion))?$/i);if(engineering){const requested=engineering[1]||"model";engineeringMode=requested.charAt(0).toUpperCase()+requested.slice(1).toLowerCase();return engineeringPage()}
+  // Only the start page falls through to the portfolio. A mistyped or outdated
+  // link gets an explicit Not found page instead of silently showing the start page.
+  if(isStartRoute(path))return portfolioPage();
+  return notFoundPage("There is no page at "+path.slice(0,120)+".",{route:"/portfolio",label:"Go to the start page"})}
 window.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();globalSearch.open()}});window.addEventListener("hashchange",render);render();
 initializeFolkAccount().then(()=>{
   if(route()==="/settings/connections"&&settingsSection==="connections")settingsPage();
