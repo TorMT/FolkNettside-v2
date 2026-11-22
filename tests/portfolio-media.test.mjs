@@ -108,7 +108,7 @@ test("current dive computer project: badge, local links, sandboxed simulator emb
  assert.match(detail,/loading="lazy" sandbox="allow-scripts" referrerpolicy="no-referrer"/);
  assert.doesNotMatch(detail,/sandbox="[^"]*allow-same-origin/);
  assert.match(detail,/class="project-log-table"/);
- assert.match(detail,/href="\.\/assets\/demos\/dykkecomputer\/logg\.html"/);
+ assert.match(detail,/href="\.\/assets\/demos\/dykkecomputer\/index\.html"/);
  assert.match(detail,/Dette gjenstår/);
  for(const item of [...project.links.filter(l=>!l.url.startsWith("#/")),{url:project.logUrl},...project.embeds.map(e=>({url:e.src})),...project.gallery.map(g=>({url:g.src}))])
    assert.ok(existsSync(new URL("../"+item.url.slice(2),import.meta.url)),"missing "+item.url);
