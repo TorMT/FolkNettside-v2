@@ -284,22 +284,56 @@ def check():
     pp = root.getPhysicalProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy)
     log(f"masse {pp.mass * 1000:.0f} g")
 
-def fill_missing():
-    """Insert parts that addByInsert refused into the open assembly by importing their STEP straight into the group."""
+def open_b3():
+    """Make the rev B3 assembly the active document (open it from the folder if needed) and return it."""
     doc = app.activeDocument
+    if doc and doc.name.startswith(ASSEMBLY):
+        return doc
+    for i in range(app.documents.count):
+        d = app.documents.item(i)
+        if d.name.startswith(ASSEMBLY):
+            d.activate(); return d
+    df = listing(folder()).get(ASSEMBLY)
+    if not df:
+        raise RuntimeError("fant ikke " + ASSEMBLY + " i " + FOLDER)
+    return app.documents.open(df, True)
+
+def revert_last(expected_description="Rev B3: manglende deler importert"):
+    """Undo a save made by fill_missing() in the wrong document: promote the version before it and reopen."""
+    doc = app.activeDocument
+    df = doc.dataFile
+    vers = [df.versions.item(i) for i in range(df.versions.count)]
+    latest = max(vers, key=lambda v: v.versionNumber)
+    log(f"aktivt dokument: {doc.name}, siste versjon {latest.versionNumber}: {latest.description!r}")
+    if latest.description != expected_description:
+        log("siste versjon er ikke fra fill_missing(); gjør ingenting"); return
+    prev = max((v for v in vers if v.versionNumber < latest.versionNumber), key=lambda v: v.versionNumber)
+    prev.promote()
+    log(f"versjon {prev.versionNumber} er nå gjeldende; lukker uten å lagre")
+    doc.close(False)
+    app.documents.open(app.data.findFileById(df.id), True)
+    log("åpnet på nytt: " + app.activeDocument.name)
+
+def fill_missing():
+    """Insert parts that addByInsert refused into the rev B3 assembly by importing their STEP straight into the group."""
+    doc = open_b3()
+    if not doc.name.startswith(ASSEMBLY):
+        log("feil dokument aktivt: " + doc.name + " — avbryter"); return
     des = adsk.fusion.Design.cast(doc.products.itemByProductType("DesignProductType")); root = des.rootComponent
     groups = {root.occurrences.item(i).component.name: root.occurrences.item(i) for i in range(root.occurrences.count)}
+    if not all(g in groups for g in ("Hus", "Elektronikk", "Kraft", "Knapper")):
+        log("dokumentet har ikke gruppene Hus/Elektronikk/Kraft/Knapper — avbryter"); return
     present = set()
     for o in root.allOccurrences:
         present.add(o.component.name.split(" v")[0].strip().lower())
+    missing = [n for n in names() if n.replace("_", " ").lower() not in present]
+    log(f"{doc.name}: mangler {len(missing)}: {[n for n in missing]}")
+    if len(missing) > 10:
+        log("for mange mangler; sjekk at riktig sammenstilling er åpen — avbryter"); return
     added = 0
-    for n in names():
+    for n in missing:
         title = n.replace("_", " ")
-        if title.lower() in present:
-            continue
-        g = groups.get(group(n))
-        if not g:
-            log(f"{n}: fant ikke gruppen {group(n)}"); continue
+        g = groups[group(n)]
         try:
             opts = app.importManager.createSTEPImportOptions(os.path.join(BASE, "step", n + ".step"))
             app.importManager.importToTarget(opts, g.component)
@@ -314,4 +348,5 @@ def fill_missing():
             log(f"{n}: {e}")
     log(f"la til {added} deler")
     check()
-    doc.save("Rev B3: manglende deler importert")
+    if added:
+        doc.save("Rev B3: manglende deler importert")
