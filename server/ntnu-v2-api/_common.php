@@ -15,7 +15,7 @@ function v2_cors(string $methods = 'GET'): void {
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
     if ($method === 'OPTIONS') {
         header('Access-Control-Allow-Methods: ' . $methods . ', OPTIONS');
-        header('Access-Control-Allow-Headers: Accept');
+        header('Access-Control-Allow-Headers: Accept, Content-Type');
         header('Access-Control-Max-Age: 600');
         http_response_code(204);
         exit;

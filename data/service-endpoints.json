@@ -9,8 +9,8 @@
     "brewingBase": null
   },
   "quizLeaderboard": {
-    "enabled": false,
-    "endpoint": null
+    "enabled": true,
+    "endpoint": "https://tormt.folk.ntnu.no/v2-api/quiz-leaderboard.php"
   },
   "legacyReadProxy": {
     "enabled": true,

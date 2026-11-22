@@ -27,7 +27,7 @@ function v2_scrub($value) {
     if (!is_array($value)) return $value;
     $out = [];
     foreach ($value as $k => $v) {
-        if (is_string($k) && preg_match('/token|secret|password|passwd|api[_-]?key|authorization|cookie|session/i', $k)) continue;
+        if (is_string($k) && preg_match('/token|secret|password|passwd|api[_-]?key|authorization|cookie|session|username|e-?mail/i', $k)) continue;
         $out[$k] = v2_scrub($v);
     }
     return $out;

@@ -19,7 +19,7 @@ if ($action === 'search') {
     $sort = (string)($_GET['sort'] ?? 'price_asc');
     if (!in_array($sort, ['price_asc', 'price_desc', 'name_asc', 'name_desc', 'date_asc', 'date_desc'], true)) $sort = 'price_asc';
     $url = $base . '/products?' . http_build_query(['search' => $q, 'page' => $page, 'size' => $size, 'sort' => $sort,
-        'exclude_without_ean' => 'false', 'unique' => 'false']);
+        'exclude_without_ean' => 0, 'unique' => 0]);
     $ttl = 300;
 } elseif ($action === 'compare') {
     $ean = preg_replace('/\D+/', '', (string)($_GET['ean'] ?? ''));
