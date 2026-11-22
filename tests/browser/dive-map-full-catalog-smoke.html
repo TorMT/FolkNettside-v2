@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- Resolve ./data/diving/* exactly as on the site, so every catalog file loads. -->
+<base href="../../">
+<title>Dive map full catalog smoke</title>
+<link rel="stylesheet" href="./assets/style.css">
+<link rel="stylesheet" href="./assets/diverse.css">
+</head>
+<body data-status="running">
+<div id="app"></div>
+<pre id="result">running</pre>
+<script type="module">
+import {diveMapHTML,mountDiveMap} from "./src/diverse/dive-map.js";
+import {diveFeaturePoint,diveFeatureCountry} from "./src/diverse/dive-core.js";
+import {loadDiveCatalog} from "./src/diverse/dive-catalog.js";
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+try{
+  // Regression: the map drew only the first 950 sites by name, so most of the
+  // 5,000+ mapped sites (and some Norwegian ones) never appeared on the map.
+  const catalog=await loadDiveCatalog();
+  assert(catalog.failed.length===0,"catalog files failed: "+catalog.failed.join(", "));
+  const mapped=catalog.features.filter(f=>diveFeaturePoint(f));
+  const norway=mapped.filter(f=>diveFeatureCountry(f)==="Norge");
+  assert(mapped.length>3000,"expected the full world catalog, got "+mapped.length);
+  assert(norway.length>950,"expected more than 950 mapped Norwegian sites, got "+norway.length);
+
+  // Minimal Leaflet stand-in with real bounds arithmetic.
+  const pins=new Set(),dots=[],handlers={};
+  let view={south:-85,west:-180,north:85,east:180};
+  const boundsOf=list=>{
+    const lat=list.map(p=>p[0]),lon=list.map(p=>p[1]);
+    return {south:Math.min(...lat),north:Math.max(...lat),west:Math.min(...lon),east:Math.max(...lon)};
+  };
+  const latLngBounds=b=>({
+    pad(r){const h=(b.north-b.south)*r,w=(b.east-b.west)*r;
+      return latLngBounds({south:b.south-h,north:b.north+h,west:b.west-w,east:b.east+w})},
+    contains([lat,lon]){return lat>=b.south&&lat<=b.north&&lon>=b.west&&lon<=b.east}
+  });
+  const fire=()=>(handlers.moveend||[]).forEach(fn=>fn());
+  const map={
+    getZoom(){return 5},
+    fitBounds(list){view=boundsOf(list);fire();return this},
+    setView([lat,lon]){view={south:lat-.05,north:lat+.05,west:lon-.1,east:lon+.1};fire();return this},
+    getBounds(){return latLngBounds(view)},
+    on(name,fn){(handlers[name]??=[]).push(fn);return this},
+    invalidateSize(){},remove(){}
+  };
+  const layerGroup=()=>({addTo(){return this},
+    clearLayers(){for(const m of [...pins])if(m.group===this){m.el?.remove();pins.delete(m)}
+      if(this.dots)dots.length=0},
+    removeLayer(m){m.el?.remove();pins.delete(m)}});
+  const L={
+    map(){return map},
+    tileLayer(){return {addTo(){return this}}},
+    layerGroup,
+    divIcon(options){return options},
+    marker(coords,options){
+      const m={coords,group:null,el:null,
+        addTo(group){m.group=group;m.el=document.createElement("div");m.el.className="leaflet-marker-icon";
+          m.el.innerHTML=options.icon.html;document.querySelector("#dive-map-canvas").append(m.el);pins.add(m);return m},
+        bindTooltip(){return m},bindPopup(){return m},on(){return m},
+        getElement(){return m.el},getLatLng(){return coords},openPopup(){return m}};
+      return m;
+    },
+    circleMarker(coords){
+      const d={coords,click:null,bindTooltip(){return d},on(name,fn){if(name==="click")d.click=fn;return d},
+        addTo(group){group.dots=true;dots.push(d);return d}};
+      return d;
+    }
+  };
+
+  document.querySelector("#app").innerHTML=diveMapHTML();
+  const cleanup=await mountDiveMap(document.querySelector("#app"),{leaflet:L,geolocation:null});
+  const note=()=>document.querySelector("#dive-map-note").textContent;
+
+  // Default filter (Norway): every mapped Norwegian site is on the map as a dot;
+  // the whole-country view is over the pin budget, so no DOM pins pile up.
+  assert(dots.length===norway.length,`Norway: ${dots.length} dots for ${norway.length} mapped sites`);
+  assert(pins.size<=300,"Norway overview exceeded the DOM pin budget: "+pins.size);
+  assert(note().includes(`${norway.length} mapped sites shown as dots`),"Norway note wrong: "+note());
+
+  // All countries: every mapped site is on the map as a dot.
+  const country=document.querySelector("#dive-country");
+  country.value="all";country.dispatchEvent(new Event("change",{bubbles:true}));
+  assert(dots.length===mapped.length,`world: ${dots.length} dots for ${mapped.length} mapped sites`);
+  assert(pins.size<=300,"world view exceeded the DOM pin budget: "+pins.size);
+  assert(note().includes(`${mapped.length} mapped sites shown as dots`),"world note wrong: "+note());
+
+  // Zooming in to Trondheimsfjorden swaps in full markers for that view only.
+  map.setView([63.45,10.4]);
+  map.fitBounds([[63.2,9.8],[63.8,11.0]]);
+  const inView=mapped.filter(f=>{const {lat,lon}=diveFeaturePoint(f);return lat>=63.2&&lat<=63.8&&lon>=9.8&&lon<=11.0});
+  assert(inView.length>10,"expected Trondheim sites in view");
+  assert(pins.size>=inView.length&&pins.size<=300,`zoomed: ${pins.size} pins, ${inView.length} in view`);
+
+  // Clicking a dot far outside the view pins and selects that site.
+  const farDot=dots.find(d=>d.coords[0]<0);
+  assert(farDot,"no southern-hemisphere dot");
+  farDot.click();
+  assert([...pins].some(m=>m.coords===farDot.coords||String(m.coords)===String(farDot.coords)),"clicked dot did not get a marker");
+  assert(document.querySelector("#dive-inspector").textContent.trim().length>20,"inspector empty after dot click");
+
+  cleanup();
+  document.body.dataset.status="pass";
+  document.querySelector("#result").textContent=JSON.stringify({records:catalog.features.length,mapped:mapped.length,norwayMapped:norway.length});
+}catch(error){
+  document.body.dataset.status="fail";
+  document.querySelector("#result").textContent=String(error?.stack||error);
+}
+</script>
+</body>
+</html>

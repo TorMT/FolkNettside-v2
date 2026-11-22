@@ -390,6 +390,30 @@ jobs:
             exit 1
           }
 
+      - name: Dive map shows every mapped site from the full catalog
+        run: |
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$browser"
+          python3 -m http.server 4192 --bind 127.0.0.1 >/tmp/dive-full-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python3 - <<'PY'
+          import time, urllib.request
+          for _ in range(60):
+              try:
+                  urllib.request.urlopen('http://127.0.0.1:4192/tests/browser/dive-map-full-catalog-smoke.html',timeout=1)
+                  break
+              except Exception: time.sleep(.1)
+          else: raise SystemExit('Dive map smoke server did not start')
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=1400,900 --virtual-time-budget=30000 \
+            --dump-dom http://127.0.0.1:4192/tests/browser/dive-map-full-catalog-smoke.html \
+            >/tmp/dive-full-smoke-dom.html
+          grep -q 'data-status="pass"' /tmp/dive-full-smoke-dom.html || {
+            cat /tmp/dive-full-smoke-dom.html
+            exit 1
+          }
+          grep '<pre id="result">' /tmp/dive-full-smoke-dom.html || true
       - name: Hydro worker geometry gate browser smoke
         run: |
           command -v chromedriver
