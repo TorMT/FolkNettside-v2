@@ -1,4 +1,4 @@
-import {getJSZip} from "../vendor/jszip.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
+import {getJSZip} from "../vendor/jszip.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
 
 export const FUSION_SCRIPT_FOLDER="FolkNetFusion";
 export const FUSION_MANIFEST=Object.freeze({

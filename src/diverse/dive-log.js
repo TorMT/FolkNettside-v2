@@ -1,7 +1,7 @@
-import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
-import {readAccountVault,writeAccountVault,encryptAccountVault,decryptAccountVault,validateAccountVaultFolder} from "../platform/account-vault-sync.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
-import {addDiveEntry,createDiveEntry,deleteDiveEntry,mergeDiveLogs,newDiveLog,validateDiveLog,visibleDiveEntries} from "./dive-log-model.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
-import {reconcileDiveLogLocalWrite} from "./dive-log-local-sync.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
+import {getGoogleSessionSnapshot,subscribeGoogleSession} from "../platform/google-session.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
+import {readAccountVault,writeAccountVault,encryptAccountVault,decryptAccountVault,validateAccountVaultFolder} from "../platform/account-vault-sync.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
+import {addDiveEntry,createDiveEntry,deleteDiveEntry,mergeDiveLogs,newDiveLog,validateDiveLog,visibleDiveEntries} from "./dive-log-model.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
+import {reconcileDiveLogLocalWrite} from "./dive-log-local-sync.js?v=0d23b69ef67722f06c8123b1f7c857375f4358b4";
 
 const PURPOSE="dive-log";
 const STORAGE="folk-v2-dive-log-v1";
