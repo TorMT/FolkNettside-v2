@@ -27,6 +27,10 @@ function portfolioLink(value){
 export function projectLocalFileURL(value){
   return typeof value==="string"&&LOCAL_DEMO_FILE.test(value)?value:"";
 }
+/** In-site route that opens a checked-in example model in the CAD workbench. */
+export function projectModelRoute(value){
+  return typeof value==="string"&&/^#\/engineering\/cad\/[a-z0-9][a-z0-9-]*$/.test(value)?value:"";
+}
 /** Only checked-in demo pages that run entirely in the browser can be embedded. */
 export function projectEmbedURL(value){
   return typeof value==="string"&&/^\.\/assets\/demos\/[a-z0-9][a-z0-9-]*\/simulator\.html$/.test(value)?value:"";
@@ -90,6 +94,8 @@ export function renderProjectDetail(project){
         rel="noopener noreferrer">${esc(item.label||"Prosjektfil")} ↗</a>`:"";
   }).filter(Boolean).join("");
   const links=(project.links||[]).map(item=>{
+    const route=projectModelRoute(item?.url);
+    if(route)return `<a class="btn${item.primary?" primary":""}" href="${esc(route)}">${esc(item.label||"Åpne 3D")}</a>`;
     const href=projectLocalFileURL(item?.url);
     return href?`<a class="btn${item.primary?" primary":""}" href="${esc(href)}"${href.endsWith(".zip")?" download":' target="_blank" rel="noopener"'}>${esc(item.label||"Åpne")}${href.endsWith(".zip")?"":" ↗"}</a>`:"";
   }).filter(Boolean).join("");

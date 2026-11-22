@@ -3,6 +3,7 @@
 const ROUTES={
   "/engineering/kisssoft":["kisssoft"],
   "/engineering/cad":["cad"],
+  "/engineering/cad/dykkecomputer":["cad"],
   "/tools/vault":["vault"],
   "/tools/python":["python"],
   "/tools/fluid":["fluid"],
