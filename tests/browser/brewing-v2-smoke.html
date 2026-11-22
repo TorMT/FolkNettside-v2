@@ -17,6 +17,7 @@ const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 const realFetch=window.fetch.bind(window);
 let legacyBackendRequests=0;
 let protectedProxyRequests=0;
+let ntnuPublicReadRequests=0;
 const jsonResponse=value=>new Response(JSON.stringify(value),{status:200,headers:{"Content-Type":"application/json"}});
 window.FolkGoogleSession={
   isSignedIn:()=>false,
@@ -27,6 +28,14 @@ window.fetch=async(input,init)=>{
   const url=String(typeof input==="string"?input:input?.url||"");
   if(url.startsWith("/includes/")||url.includes("/v2-staging/includes/")||url.includes("/FolkNettside-v2/includes/"))
     legacyBackendRequests++;
+  // Public read-only NTNU proxy (data the owner has chosen to publish): stub it so CI never depends on NTNU.
+  if(url.startsWith("https://tormt.folk.ntnu.no/v2-api/brewing.php/")){
+    ntnuPublicReadRequests++;
+    if(url.includes("/rapt/dashboard.php"))return jsonResponse({devices:[],generatedAt:"2026-10-07T18:00:00Z"});
+    if(url.includes("/brewing/logs.php"))return jsonResponse({logs:[],storageConfig:{defaultMode:"local",googleDrive:{}},storageOptions:[]});
+    if(url.includes("/brewing/recipes.php"))return jsonResponse({recipes:[],providers:[],catalogs:{},storageOptions:[]});
+    return jsonResponse({references:[],providers:[],storageOptions:[]});
+  }
   if(url.startsWith("https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/legacy-brewing/"))
     protectedProxyRequests++;
   if(url.includes("/includes/rapt/api/dashboard.php")){
@@ -67,11 +76,16 @@ try{
   // Owner-only read bridge is configured in V2, but a guest must receive an
   // actionable login message and must never send a request to the private proxy.
   const backendNote=document.getElementById("brewing-backend-note");
+  const ntnuPublicRead=ntnuPublicReadRequests>0;
+  if(ntnuPublicRead){
+    assert(document.getElementById("downloadLogBtn")?.disabled!==false,"NTNU public read proxy must stay read-only");
+  }
   assert(backendNote&&(
+    ntnuPublicRead||
     backendNote.textContent.includes("Sign in to your FolkNet owner account")||
     backendNote.textContent.includes("not configured")
   ),"Signed-out Brewing must explain owner login or unavailable API");
-  assert(backendNote.dataset.kind!=="ready",
+  assert(ntnuPublicRead||backendNote.dataset.kind!=="ready",
     "Signed-out user must never see an authenticated backend success state");
   assert(protectedProxyRequests===0,
     "Signed-out Brewing must not contact the authenticated legacy bridge");
