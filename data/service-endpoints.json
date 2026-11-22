@@ -1,7 +1,7 @@
 {
   "matpris": {
-    "enabled": false,
-    "endpoint": null
+    "enabled": true,
+    "endpoint": "https://tormt.folk.ntnu.no/v2-api/matpris.php"
   },
   "brewing": {
     "enabled": false,
@@ -9,11 +9,15 @@
     "brewingBase": null
   },
   "quizLeaderboard": {
-    "enabled": false,
-    "endpoint": null
+    "enabled": true,
+    "endpoint": "https://tormt.folk.ntnu.no/v2-api/quiz-leaderboard.php"
   },
   "legacyReadProxy": {
     "enabled": true,
     "base": "https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/legacy-brewing/"
+  },
+  "ntnuReadProxy": {
+    "enabled": true,
+    "base": "https://tormt.folk.ntnu.no/v2-api/brewing.php/"
   }
 }

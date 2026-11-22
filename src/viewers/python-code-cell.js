@@ -1,5 +1,5 @@
-import {escapeHTML} from "./utils.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
-import {renderPythonLines,pythonHighlightedLines,changeIndent,insertPythonNewline} from "./python-syntax.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
+import {escapeHTML} from "./utils.js?v=06a87a720a94d806809ac49f022413be5bc79968";
+import {renderPythonLines,pythonHighlightedLines,changeIndent,insertPythonNewline} from "./python-syntax.js?v=06a87a720a94d806809ac49f022413be5bc79968";
 
 export function mountPythonCodeCell(container,{
   source="",title="Python",onRun=async()=>{},onStop=()=>{},output="",maxEditorHeight=520

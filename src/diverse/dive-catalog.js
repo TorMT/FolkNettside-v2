@@ -1,4 +1,4 @@
-import {diveDistanceKm,diveFeaturePoint,diveOriginalId} from "./dive-core.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
+import {diveDistanceKm,diveFeaturePoint,diveOriginalId} from "./dive-core.js?v=06a87a720a94d806809ac49f022413be5bc79968";
 
 export const DIVE_CATALOG_FILES=[
   "./data/diving/norway-additions.geojson",

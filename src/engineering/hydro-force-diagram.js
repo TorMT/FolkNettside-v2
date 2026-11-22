@@ -1,5 +1,5 @@
-import {hydroForceBalance,hydroForceInputs} from "./hydro-force-balance.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
-import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
+import {hydroForceBalance,hydroForceInputs} from "./hydro-force-balance.js?v=06a87a720a94d806809ac49f022413be5bc79968";
+import {analyzeModelDiagnostics} from "../model/mesh-diagnostics.js?v=06a87a720a94d806809ac49f022413be5bc79968";
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({
   "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
 }[c]));

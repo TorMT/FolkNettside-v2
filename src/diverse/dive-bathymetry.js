@@ -1,4 +1,4 @@
-import {diveFeaturePoint} from "./dive-core.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
+import {diveFeaturePoint} from "./dive-core.js?v=06a87a720a94d806809ac49f022413be5bc79968";
 
 // EMODnet's avg is seabed ELEVATION relative to its vertical datum.
 // A negative value corresponds to water depth; a positive value may be land.

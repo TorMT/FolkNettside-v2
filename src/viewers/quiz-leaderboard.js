@@ -1,7 +1,9 @@
 /** Optional PHP leaderboard, never required for local quiz progress. */
-import {escapeHTML} from "./utils.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
+import {escapeHTML} from "./utils.js?v=06a87a720a94d806809ac49f022413be5bc79968";
 
 const NTNU_ORIGIN="https://tormt.folk.ntnu.no";
+/** Leaderboard on the owner's NTNU web space (server/ntnu-v2-api/quiz-leaderboard.php), used from GitHub Pages. */
+export const NTNU_LEADERBOARD_ENDPOINT="https://tormt.folk.ntnu.no/v2-api/quiz-leaderboard.php";
 
 export function leaderboardQuizId(resource={}){
   if(resource.source!=="ntnu")return null;
@@ -26,6 +28,7 @@ export function leaderboardPayload(resource,quiz,attempt,expectedQuestionCount){
 
 export function leaderboardEndpoint(config,{base=globalThis.location?.href,origin=globalThis.location?.origin}={}){
   if(config?.quizLeaderboard?.enabled!==true||typeof config.quizLeaderboard.endpoint!=="string")return null;
+  if(config.quizLeaderboard.endpoint===NTNU_LEADERBOARD_ENDPOINT)return NTNU_LEADERBOARD_ENDPOINT;
   try{
     const url=new URL(config.quizLeaderboard.endpoint,base);
     if(url.origin!==origin||url.protocol!=="https:"||

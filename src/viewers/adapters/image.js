@@ -1,4 +1,4 @@
-import {escapeHTML,previewContentURL} from "../utils.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
+import {escapeHTML,previewContentURL} from "../utils.js?v=06a87a720a94d806809ac49f022413be5bc79968";
 export async function render(container,resource){
   const path=previewContentURL(resource);
   if(!path)throw new Error("Image file has no source URL");

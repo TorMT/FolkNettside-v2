@@ -1,6 +1,6 @@
-import {mountBrewingIngredients} from "./brewing/inventory.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
-import {brewingEndpoint,loadBrewingServiceConfig} from "./brewing/backend-config.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
-import {folkBrewingFetch,LEGACY_READ_BASE} from "./brewing/legacy-read-client.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
+import {mountBrewingIngredients} from "./brewing/inventory.js?v=06a87a720a94d806809ac49f022413be5bc79968";
+import {brewingEndpoint,loadBrewingServiceConfig} from "./brewing/backend-config.js?v=06a87a720a94d806809ac49f022413be5bc79968";
+import {folkBrewingFetch,LEGACY_READ_BASE,NTNU_READ_BASE} from "./brewing/legacy-read-client.js?v=06a87a720a94d806809ac49f022413be5bc79968";
 const LEGACY_BREWING_URL="https://tormt.folk.ntnu.no/diverse/Brygging/";
 const MODULES=[
   "./src/diverse/brewing/legacy/hydrometer-filter.js",
@@ -209,17 +209,19 @@ export async function mountBrewing(root,{account={},onBack=()=>{}}={}){
   // Legacy module adapters now resolve services only within the actual V2
   // deployment base. Never discover root-relative PHP on the V1 NTNU site.
   const endpoint=(service,file)=>brewingEndpoint(settings,service,file);
-  const legacyRead=settings?.legacyReadProxy?.enabled===true&&
+  const ntnuRead=settings?.ntnuReadProxy?.enabled===true&&
+    settings.ntnuReadProxy.base===NTNU_READ_BASE;
+  const legacyRead=!ntnuRead&&settings?.legacyReadProxy?.enabled===true&&
     settings.legacyReadProxy.base===LEGACY_READ_BASE;
   const backendFetch=(url,options)=>folkBrewingFetch(url,options);
   globalThis.FolkBrewingEndpoint=endpoint;
   globalThis.FolkBrewingFetch=backendFetch;
   globalThis.FolkBrewingPrivateProxy=legacyRead;
-  if(legacyRead){
+  if(legacyRead||ntnuRead){
     for(const id of ["downloadLogBtn","saveStorageConfigBtn","saveLogDriveBtn",
       "syncSelectedDriveBtn"]){
       const button=root.querySelector("#"+id);
-      if(button){button.disabled=true;button.title="V1 bridge provides read-only access";}
+      if(button){button.disabled=true;button.title=ntnuRead?"Read-only data from the NTNU site":"V1 bridge provides read-only access";}
     }
     const maxButton=root.querySelector('[data-days="max"]');
     if(maxButton)maxButton.textContent="60 d max";
@@ -227,7 +229,7 @@ export async function mountBrewing(root,{account={},onBack=()=>{}}={}){
   const raptEndpoint=endpoint("rapt","dashboard.php");
   if(note){
     note.textContent=raptEndpoint
-      ?(legacyRead?"Read-only V1 bridge selected; FolkNet owner login is required.":"Brewing modules loaded; verifying this V2 deployment's RAPT backend…")
+      ?(ntnuRead?"Read-only live data from the NTNU site.":legacyRead?"Read-only V1 bridge selected; FolkNet owner login is required.":"Brewing modules loaded; verifying this V2 deployment's RAPT backend…")
       :"V2 server APIs are not configured. Local inventory works; live RAPT, recipes and logs are unavailable here. Legacy fallback is preserved.";
     note.dataset.kind=raptEndpoint?"loading":"preview";
   }

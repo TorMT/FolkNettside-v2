@@ -1,15 +1,20 @@
 import {
   getFolkAccessToken,getFolkAccountSnapshot,validateFolkAuthConfig
-} from "../../platform/folkside-auth.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
+} from "../../platform/folkside-auth.js?v=06a87a720a94d806809ac49f022413be5bc79968";
 
 export const LEGACY_READ_BASE=
   "https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/legacy-brewing/";
+/** Read-only proxy on the owner's NTNU web space (server/ntnu-v2-api/brewing.php), no FolkNet login needed. */
+export const NTNU_READ_BASE="https://tormt.folk.ntnu.no/v2-api/brewing.php/";
 const FILES={
   rapt:new Set(["dashboard.php"]),
   brewing:new Set(["recipes.php","reference.php","logs.php"])
 };
 /** All other PHP routes, especially writes and secrets, are denied. */
 export function legacyReadEndpoint(config,service,file){
+  if(config?.ntnuReadProxy?.enabled===true&&config.ntnuReadProxy.base===NTNU_READ_BASE&&
+      Object.hasOwn(FILES,service)&&FILES[service].has(file))
+    return NTNU_READ_BASE+service+"/"+file;
   if(config?.legacyReadProxy?.enabled!==true||
       config?.legacyReadProxy?.base!==LEGACY_READ_BASE||
       !Object.hasOwn(FILES,service)||!FILES[service].has(file))return null;
