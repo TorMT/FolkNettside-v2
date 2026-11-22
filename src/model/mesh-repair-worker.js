@@ -1,4 +1,4 @@
-import {previewHydroMeshRepair} from "./mesh-repair.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {previewHydroMeshRepair} from "./mesh-repair.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
 
 // Run triangulation search off the UI thread. The caller retains the source
 // document and must explicitly apply a successful preview.

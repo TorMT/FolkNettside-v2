@@ -1,4 +1,4 @@
-import {filterPhotoAlbums,publishedAlbums,photoCarouselWindow} from "./photo-feed-model.js?v=d740b77b80b6a8023d9528c3e6395f02f722d911";
+import {filterPhotoAlbums,publishedAlbums,photoCarouselWindow} from "./photo-feed-model.js?v=86b20816318b8e513425aaba26beb19fd7dd8fbc";
 
 const MANIFEST="./data/diverse/photo-feed.json";
 const CONFIG="./data/diverse/photo-feed-config.json";

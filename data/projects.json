@@ -87,17 +87,13 @@
     "files": [],
     "links": [
       {
-        "label": "Prosjektlogg",
-        "url": "./assets/demos/dykkecomputer/logg.html",
+        "label": "Prosjektside: 3D, simulator og logg",
+        "url": "./assets/demos/dykkecomputer/index.html",
         "primary": true
       },
       {
         "label": "3D-modell (sprengbar)",
         "url": "#/engineering/cad/dykkecomputer"
-      },
-      {
-        "label": "Demo og materialliste",
-        "url": "./assets/demos/dykkecomputer/index.html"
       },
       {
         "label": "Mobilapp (Bluetooth)",
@@ -127,7 +123,7 @@
         "text": "Den ekte dykkekoden kompilert til WebAssembly: dykk et av fem eksempeldykk på autopilot eller styr selv, se skjermene, profilen med tak og alarmene, og koble til den simulerte telefonen."
       }
     ],
-    "logUrl": "./assets/demos/dykkecomputer/logg.html",
+    "logUrl": "./assets/demos/dykkecomputer/index.html#logg",
     "log": [
       {
         "date": "22.11.2026",
