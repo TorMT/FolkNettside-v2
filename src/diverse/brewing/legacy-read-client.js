@@ -4,12 +4,17 @@ import {
 
 export const LEGACY_READ_BASE=
   "https://aeuouzkiyddfjtjfdosp.supabase.co/functions/v1/legacy-brewing/";
+/** Read-only proxy on the owner's NTNU web space (server/ntnu-v2-api/brewing.php), no FolkNet login needed. */
+export const NTNU_READ_BASE="https://tormt.folk.ntnu.no/v2-api/brewing.php/";
 const FILES={
   rapt:new Set(["dashboard.php"]),
   brewing:new Set(["recipes.php","reference.php","logs.php"])
 };
 /** All other PHP routes, especially writes and secrets, are denied. */
 export function legacyReadEndpoint(config,service,file){
+  if(config?.ntnuReadProxy?.enabled===true&&config.ntnuReadProxy.base===NTNU_READ_BASE&&
+      Object.hasOwn(FILES,service)&&FILES[service].has(file))
+    return NTNU_READ_BASE+service+"/"+file;
   if(config?.legacyReadProxy?.enabled!==true||
       config?.legacyReadProxy?.base!==LEGACY_READ_BASE||
       !Object.hasOwn(FILES,service)||!FILES[service].has(file))return null;
