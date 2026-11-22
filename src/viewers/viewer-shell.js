@@ -4,6 +4,7 @@ import {viewerHelpHTML,bindViewerHelp} from "./viewer-help.js";
 import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js";
 import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js";
 import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js";
+import {remoteViewerErrorMessage} from "./remote-error-message.js";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the
@@ -262,7 +263,7 @@ export async function mountViewer(root,resource,onBack){
     const remote=resource.remoteArchive===true&&typeof resource.url==="string"&&
       resource.url.startsWith("https://tormt.folk.ntnu.no/semestre/");
     const message=remote
-      ?"Forhåndsvisning på GitHub Pages kan være blokkert av NTNUs CORS-regler. Originalfilen kan åpnes direkte på NTNU."
+      ?escapeHTML(remoteViewerErrorMessage(error))
       :escapeHTML(error?.message||error);
     canvas.innerHTML=`<div class="viewer-error">
       <span class="project-kicker">Viewer error</span>
