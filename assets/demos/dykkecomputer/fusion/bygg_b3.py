@@ -4,7 +4,7 @@ with modelled ISO threads on the screws, then a full assembly with hinged button
 """
 import adsk.core, adsk.fusion, os, re, time, traceback
 BASE = globals().get("BASE_DIR") or os.path.dirname(os.path.abspath(__file__))
-PROJECT, FOLDER = "Dykkecomputer", "08 Rev B3"   # older revisions live in Arkiv/
+PROJECT, FOLDER = "Dykkecomputer", "01 Rev B3"   # renamed from "08 Rev B3"; older revisions live in "99 Arkiv"
 ASSEMBLY = "Dykkecomputer 3.5 rev B3 - sammenstilling"
 app = adsk.core.Application.get()
 LOG = os.path.join(BASE, "logg_hybrid.txt")
