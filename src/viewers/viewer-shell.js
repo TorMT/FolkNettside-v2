@@ -1,10 +1,10 @@
-import {loadAdapter,viewerKind} from "./registry.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
-import {escapeHTML,safeViewerOriginalURL} from "./utils.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
-import {viewerHelpHTML,bindViewerHelp} from "./viewer-help.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
-import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
-import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
-import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
-import {remoteViewerErrorMessage} from "./remote-error-message.js?v=006c7e6f7dcf9ff7d3ec52dcb41c83a07f2c2766";
+import {loadAdapter,viewerKind} from "./registry.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
+import {escapeHTML,safeViewerOriginalURL} from "./utils.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
+import {viewerHelpHTML,bindViewerHelp} from "./viewer-help.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
+import {viewerBreadcrumbHTML} from "./viewer-breadcrumb.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
+import {remoteReadOnlyFallbackURL} from "./remote-readonly-fallback.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
+import {canRetryNTNUWithLocalFile,createNTNULocalPreview} from "./local-ntnu-preview.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
+import {remoteViewerErrorMessage} from "./remote-error-message.js?v=60c2ff1e468a5162296feb3b1992c444272810c3";
 
 export async function mountViewer(root,resource,onBack){
   // A previous asynchronous adapter may finish after navigation. Only the
