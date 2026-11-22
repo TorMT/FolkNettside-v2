@@ -2,7 +2,7 @@
  * This is not an atomic cross-tab or cross-device transaction: authoritative
  * concurrency requires transactional server-side compare-and-swap.
  */
-import {mergeDiveLogs,newDiveLog,validateDiveLog} from "./dive-log-model.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {mergeDiveLogs,newDiveLog,validateDiveLog} from "./dive-log-model.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
 
 export function reconcileDiveLogLocalWrite(incoming,currentRaw,{previouslySeenRaw=null}={}){
  validateDiveLog(incoming);

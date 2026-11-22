@@ -1,4 +1,4 @@
-import {escapeHTML} from "./utils.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {escapeHTML} from "./utils.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
 
 const KEYWORDS=new Set(("False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while with yield match case").split(" "));
 const BUILTINS=new Set(("abs all any bool bytes callable chr classmethod dict dir divmod enumerate filter float format frozenset getattr hasattr hash help hex id input int isinstance issubclass iter len list map max memoryview min next object oct open ord pow print property range repr reversed round set setattr slice sorted staticmethod str sum super tuple type vars zip __name__ __file__").split(" "));

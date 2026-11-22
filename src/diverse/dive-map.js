@@ -1,9 +1,9 @@
-import {fetchDiveBathymetry} from "./dive-bathymetry.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
-import {loadDiveCatalog} from "./dive-catalog.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
-import {mountDiveLog} from "./dive-log.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
-import {diveCoordinateAssessment,diveDistanceKm,diveFeatureCountry,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveSourceUrls,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
-import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
-import {diveMapLegendHTML,diveMarkerClass,diveMarkerHTML} from "./dive-marker-icons.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {fetchDiveBathymetry} from "./dive-bathymetry.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
+import {loadDiveCatalog} from "./dive-catalog.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
+import {mountDiveLog} from "./dive-log.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
+import {diveCoordinateAssessment,diveDistanceKm,diveFeatureCountry,diveFeatureKind,diveFeatureLevel,diveFeatureMaxDepth,diveFeaturePoint,diveFeatureQuality,diveFeatureWildlife,diveSourceUrls,diveStats,diveWildlifeIndex,filterDiveFeatures,sortDiveFeatures} from "./dive-core.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
+import {diveFeaturesCSV,diveFeaturesGeoJSON,downloadDiveText} from "./dive-export.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
+import {diveMapLegendHTML,diveMarkerClass,diveMarkerHTML} from "./dive-marker-icons.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));

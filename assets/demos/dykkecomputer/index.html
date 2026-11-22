@@ -76,7 +76,7 @@
     <a class="btn" href="dykkecomputer-skjema-og-fusion.zip" download><b>Last ned koblingsskjemaet</b><span>EAGLE/Fusion .sch, PDF, netliste og Fusion-skript (zip)</span></a>
   </div>
 
-  <p class="warn"><strong>Ikke til ekte dykking.</strong> Dette er en prototype som ikke er validert. Deko-beregningen er testet mot en uavhengig planlegger, men fastvaren har ennå ikke kjørt på maskinvaren og huset er ikke trykktestet.</p>
+  <p class="warn"><strong>Ikke til ekte dykking.</strong> Dette er en prototype som ikke er validert. Deko-beregningen er testet mot en uavhengig planlegger, og fastvaren bygger og starter i en emulator, men den har ennå ikke kjørt på maskinvaren og huset er ikke trykktestet.</p>
 
   <div class="grid">
     <div class="card">
@@ -151,8 +151,8 @@
   </section>
 
   <section>
-    <h2>Koblingsskjema, rev B</h2>
-    <p class="lead">Fire ark, 105 komponenter og 87 nett, med pinnene fra fastvarens <code>board.h</code>. Skjemaet er tegnet med nettnavn på hver pinne og åpnes som elektronikkdesign i Fusion. Fotavtrykk velges når kortet tegnes. Rev B retter elleve feil funnet i <a href="logg.html#krets">kontrollen av kretsene</a>.</p>
+    <h2>Koblingsskjema, rev C</h2>
+    <p class="lead">Fire ark, 114 komponenter og 89 nett, med pinnene fra fastvarens <code>board.h</code>. Skjemaet er tegnet med nettnavn på hver pinne og åpnes som elektronikkdesign i Fusion. Fotavtrykk velges når kortet tegnes. Rev B retter elleve feil funnet i <a href="logg.html#krets">kontrollen av kretsene</a>.</p>
     <div class="shots">
       <figure class="light"><a href="img/skjema-ark1.png"><img src="img/skjema-ark1.png" alt="Ark 1: ESP32-S3-modul, servicekontakt, Qi-mottaker, lader, LDO og batterimåler" loading="lazy" width="1680" height="1188"></a><figcaption>1 MCU og strøm</figcaption></figure>
       <figure class="light"><a href="img/skjema-ark2.png"><img src="img/skjema-ark2.png" alt="Ark 2: I2C-sensorer: multiplekser, to dybdesensorer, IMU, magnetometer, lyssensor, FRAM og klokke" loading="lazy" width="1680" height="1188"></a><figcaption>2 Sensorer</figcaption></figure>
@@ -216,7 +216,7 @@
           <tr><td>U2</td><td>TCA9548APWR</td><td>1</td><td>$0.50</td><td><a href="https://www.lcsc.com/search?q=TCA9548APWR" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>U5</td><td>QMI8658C</td><td>1</td><td>$1.00</td><td><a href="https://www.lcsc.com/search?q=QMI8658C" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>U6</td><td>MMC5603NJ</td><td>1</td><td>$1.00</td><td><a href="https://www.lcsc.com/search?q=MMC5603NJ" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
-          <tr><td>U7</td><td>VEML7700</td><td>1</td><td>$0.80</td><td><a href="https://www.lcsc.com/search?q=VEML7700" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U7</td><td>VEML6030 (2 × 2 mm, på flex)</td><td>1</td><td>$0.80</td><td><a href="https://www.lcsc.com/search?q=VEML6030" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>U8</td><td>MB85RC256V</td><td>1</td><td>$2.00</td><td><a href="https://www.lcsc.com/search?q=MB85RC256V" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>U10</td><td>PCF85063ATT</td><td>1</td><td>$0.50</td><td><a href="https://www.lcsc.com/search?q=PCF85063ATT" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>U11</td><td>MCP6022</td><td>1</td><td>$1.00</td><td><a href="https://www.lcsc.com/search?q=MCP6022" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
@@ -258,7 +258,7 @@
           <tr><td>M1,6 × 3 sylinderskrue, A4</td><td>2</td><td>Sensorkort</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=M1.6x3+hex+socket+stainless" target="_blank" rel="noopener">AliExpress</a></td></tr>
           <tr><td>M2 × 6 linsehodeskrue A4, M2-mutter A4 og M2-loddetunge</td><td>2 + 2 + 2</td><td>Våtkontakter</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=M2+solder+lug+ring+terminal" target="_blank" rel="noopener">AliExpress</a></td></tr>
           <tr><td>Gjengeinnsatser messing (M2,5 Ø3,5 × 5,5; M2 Ø3,2 × 4; M1,6 Ø2,2 × 3)</td><td>4 + 14 + 2</td><td>POM-midtringen</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=press+in+threaded+insert+brass+M2" target="_blank" rel="noopener">AliExpress</a> (eller Helicoil)</td></tr>
-          <tr><td>O-ringsnor NBR 1,5 mm (toppring, bakplate, linse) og O-ringer ID 42,6 × 1, ID 3 × 0,75, ID 2 × 1</td><td>3 m + 1 + 2 + 2</td><td>Alle tetninger</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=NBR+o-ring+cord+1.5mm" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>O-ringsnor NBR 70 1,5 mm (toppring, bakplate, linse, Qi-vindu) og O-ringer 3,0 × 1,0 og 2,0 × 0,8</td><td>3,5 m + 2 + 2</td><td>Alle tetninger</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=NBR+o-ring+cord+1.5mm" target="_blank" rel="noopener">AliExpress</a></td></tr>
           <tr><td>Sylinderstift Ø1,5 × 17 mm, A4 (ISO 2338)</td><td>3</td><td>Knappehengsler</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=1.5mm+dowel+pin+stainless+17mm" target="_blank" rel="noopener">AliExpress</a></td></tr>
           <tr><td>Trykkfjær Ø3 mm, ca. 3,5 mm fri lengde, A4</td><td>3</td><td>Knappene</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=3mm+compression+spring+stainless+assortment" target="_blank" rel="noopener">AliExpress</a></td></tr>
           <tr><td>Magnet N52 Ø4 × 2 mm</td><td>3</td><td>Knappene</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=N52+4x2mm+magnet" target="_blank" rel="noopener">AliExpress</a></td></tr>
@@ -266,7 +266,10 @@
         </tbody>
       </table>
     </div>
-    <p class="note">Mål og plassering står i STEP-filene i <a href="dykkecomputer-revB2.zip" download>rev B2-zip-filen</a>. Rektangulære O-ringer lages av snor som skjøtes (vulkaniseres eller limes med cyanoakrylat for gummi); for serie bør de støpes. Lyssensor-flexen bestilles som flex-kretskort (JLCPCB).</p>
+    <p class="note">Mål og plassering står i STEP-filene i <a href="dykkecomputer-revb3.zip" download>rev B3-zip-filen</a>. Rektangulære O-ringer lages av snor som skjøtes (vulkaniseres eller limes med cyanoakrylat for gummi); for serie bør de støpes. Lyssensor-flexen bestilles som flex-kretskort (JLCPCB).</p>
+    <h3>Testrigg (3D-print)</h3>
+    <figure><img src="img/testrigg.jpg" alt="Testriggen: blå plate A med to koblingsbrett og skjermstativ, oransje plate B med modulrutenett, LiPo-lomme, Qi-lomme, sprøyteklemmer, knappetest og våtkopp" loading="lazy" width="1600" height="1000"></figure>
+    <p>Riggen holder koblingsbrett-prototypen ryddig før huset finnes: plate A for koblingsbrettene og skjermen, plate B for moduler, batteri og mottaker, pluss en knappetest (magnet bak 3 mm vegg mot TMAG5273) og en våtkopp for kontaktene. Ca. 280 cm³ plast; begge platene passer på en 220 × 220-skriver. Ekstra innkjøp: ca. 30 M3 selvgjengende skruer eller nylon-avstandsstykker, 8 gummiføtter og borrelåsbånd. <a href="dykkecomputer-testrigg.zip" download>Last ned riggen (STL og STEP)</a>.</p>
   </section>
 
   <section>
@@ -279,11 +282,12 @@
           <tr><td>Alarmer, gassplanlegging, sjekk før dykket, dykkeplan</td><td class="ok">Ferdig og testet</td><td>191 enhetstester, også med minnesjekk</td></tr>
           <tr><td>Lesing av Pelagic-sendere (38 kHz)</td><td class="ok">Ferdig i simulator</td><td>Tidene i signalet må måles på en ekte sender</td></tr>
           <tr><td>Simulator og mobilapp</td><td class="ok">Ferdig og testet</td><td>Fire testsuiter kjører uten nettleser</td></tr>
-          <tr><td>Fastvare for ESP32-S3</td><td class="no">Ikke kjørt</td><td>Skrevet og typesjekket, men aldri bygget eller kjørt på et kort</td></tr>
+          <tr><td>Fastvare for ESP32-S3</td><td class="part">Bygget, ikke kjørt på kort</td><td>ESP-IDF 5.3.2: 0 advarsler, 746 kB (76 % ledig); starter til <code>app_main</code> i QEMU</td></tr>
           <tr><td>Skjermsider på enheten</td><td class="no">Ikke skrevet</td><td>Simulatoren viser hvordan de skal se ut</td></tr>
-          <tr><td>3D-modeller (STEP)</td><td class="ok">Rev B2, klar til montering</td><td>Hybridhus, 114 deler med skruer, innsatser, O-ringer, hengslede knapper og kontakter; 0 overlapp</td></tr>
-          <tr><td>Fusion-prosjekt med sammenstilling</td><td class="ok">Rev A og rev B</td><td>Rev B: 75 deler, 437 g, ledd og kollisjonssjekk; rev B2 lastes inn med eget skript</td></tr>
-          <tr><td>Koblingsskjema</td><td class="part">Rev B</td><td>Alle kretser regnet gjennom og elleve feil rettet; ikke gjennomgått av en annen person</td></tr>
+          <tr><td>3D-modeller (STEP)</td><td class="ok">Rev B3, klar til bestilling</td><td>120 deler med ekte mål; 0 overlapp; 24 monteringssteg sjekket; O-ringspor og skruelast regnet</td></tr>
+          <tr><td>Testrigg for koblingsbrettet</td><td class="ok">Klar til print</td><td>To plater (210 × 190), skjermstativ, knappetest og våtkopp</td></tr>
+          <tr><td>Fusion-prosjekt med sammenstilling</td><td class="ok">Rev A og rev B</td><td>Rev B: 75 deler, 437 g, ledd og kollisjonssjekk; rev B3 lastes inn med eget skript, med gjenger på skruene</td></tr>
+          <tr><td>Koblingsskjema</td><td class="part">Rev C</td><td>Passer til hus rev B3; elektrisk regelsjekk: 0 feil, 5 bevisst ubrukte avbruddspinner; ikke gjennomgått av en annen person</td></tr>
           <tr><td>Radio gjennom huset</td><td class="no">Problem funnet</td><td>Aluminium demper 38 kHz med ca. 59 dB; plast-midtring foreslått, må måles</td></tr>
           <tr><td>Kretskortutlegg (PCB)</td><td class="no">Ikke startet</td><td>Fotavtrykk og utlegg i Fusion Electronics</td></tr>
           <tr><td>Hus og linse</td><td class="no">Ikke testet</td><td>Håndregnet for 100 m; trenger FEA og trykktest</td></tr>
@@ -299,7 +303,7 @@
       <li>Ta opp signalet fra en ekte Pelagic-sender og juster tidene i mottakeren.</li>
       <li>Skriv skjermsidene (LVGL) og fastvaren til sikkerhets-MCU-en.</li>
       <li>Mål signalet fra en tanksender gjennom aluminium og plast, og velg hybridhus eller PEEK-vindu.</li>
-      <li>Gjennomgå koblingsskjema rev B, velg fotavtrykk og legg ut kortet (4 lag, under 100 × 100 mm).</li>
+      <li>Gjennomgå koblingsskjema rev C, velg fotavtrykk og legg ut kortet (4 lag, 70 × 96 mm).</li>
       <li>Spenningssimulering av rammen i Fusion, så fres huset og trykktest det: 1,5 × 100 m i 30 min, tre ganger, tørt.</li>
       <li>Bluetooth med passord, FRAM- og klokkedrivere, og måling av strømforbruket under dykk.</li>
     </ol>

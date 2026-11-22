@@ -1,4 +1,4 @@
-import {diveFeatureKind,diveFeatureLevel,diveFeatureQuality} from "./dive-core.js?v=2b353cf6da72a1d7cc61c3bad70605b408844964";
+import {diveFeatureKind,diveFeatureLevel,diveFeatureQuality} from "./dive-core.js?v=625ab66ed8a7b04f32af5781dabc49ae5abfedc6";
 
 // Bundled vector artwork: unlike the Leaflet default PNG marker icons, these
 // do not depend on assets loading from the external Leaflet stylesheet/CDN.
