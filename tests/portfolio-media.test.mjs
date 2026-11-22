@@ -110,7 +110,7 @@ test("current dive computer project: badge, local links, sandboxed simulator emb
  assert.match(detail,/class="project-log-table"/);
  assert.match(detail,/href="\.\/assets\/demos\/dykkecomputer\/logg\.html"/);
  assert.match(detail,/Dette gjenstår/);
- for(const item of [...project.links,{url:project.logUrl},...project.embeds.map(e=>({url:e.src})),...project.gallery.map(g=>({url:g.src}))])
+ for(const item of [...project.links.filter(l=>!l.url.startsWith("#/")),{url:project.logUrl},...project.embeds.map(e=>({url:e.src})),...project.gallery.map(g=>({url:g.src}))])
    assert.ok(existsSync(new URL("../"+item.url.slice(2),import.meta.url)),"missing "+item.url);
  for(const bad of ["javascript:alert(1)","./assets/demos/dykkecomputer/../../secret.html",
    "./assets/demos/dykkecomputer/simulator.html?x=1","https://evil.invalid/simulator.html","./assets/demos/dykkecomputer/app.html",null]){
@@ -120,4 +120,18 @@ test("current dive computer project: badge, local links, sandboxed simulator emb
    assert.equal(projectLocalFileURL(bad),"",bad);
  const unsafe=renderProjectDetail({...project,embeds:[{src:"javascript:alert(1)",title:"<script>"}],links:[{url:"javascript:alert(1)",label:"x"}],log:[{date:"<b>",title:"<script>alert(1)</script>"}]});
  assert.doesNotMatch(unsafe,/<script>|javascript:/);
+});
+
+test("dive computer opens its checked-in 3D model in the CAD workbench",async()=>{
+ const {projectModelRoute}=await import("../src/components/project-card.js");
+ const project=projects.find(p=>p.slug==="dykkecomputer");
+ const link=project.links.find(l=>l.url.startsWith("#/"));
+ assert.equal(projectModelRoute(link.url),"#/engineering/cad/dykkecomputer");
+ assert.match(renderProjectDetail(project),/href="#\/engineering\/cad\/dykkecomputer">3D-modell \(sprengbar\)</);
+ for(const bad of ["#/engineering/cad/../x","javascript:alert(1)","#/engineering/cad/x?y=1","https://evil.invalid/#/engineering/cad/x"])
+   assert.equal(projectModelRoute(bad),"");
+ assert.ok(existsSync(new URL("../assets/models/dykkecomputer-revb3.glb",import.meta.url)));
+ const {DIVE_PARTS}=await import("../src/engineering/dive-parts.js");
+ assert.equal(DIVE_PARTS.length,120);
+ assert.equal(new Set(DIVE_PARTS.map(p=>p.node)).size,120);
 });
