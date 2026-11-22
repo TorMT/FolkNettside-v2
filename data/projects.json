@@ -112,6 +112,10 @@
         "url": "./assets/demos/dykkecomputer/dykkecomputer-revb3.zip"
       },
       {
+        "label": "Kretskort rev D (Gerber, BOM, Fusion)",
+        "url": "./assets/demos/dykkecomputer/dykkecomputer-kretskort-revd.zip"
+      },
+      {
         "label": "Testrigg (STL)",
         "url": "./assets/demos/dykkecomputer/dykkecomputer-testrigg.zip"
       }
@@ -125,6 +129,11 @@
     ],
     "logUrl": "./assets/demos/dykkecomputer/index.html#logg",
     "log": [
+      {
+        "date": "22.11.2026",
+        "title": "Kretskort rev D lagt ut og rutet",
+        "result": "4-lags hovedkort og 2-lags sensorkort, 0 DRC-feil; Gerber, deleliste og plassering klare for JLCPCB"
+      },
       {
         "date": "22.11.2026",
         "title": "Rev B3 i Fusion og 3D-visning på siden",
@@ -194,7 +203,7 @@
     "next": [
       "Print testriggen, bygg koblingsbrett-demoen og flash fastvaren.",
       "Mål tanksignalet og GPS gjennom POM for å bekrefte hybridhuset.",
-      "Gjennomgå koblingsskjema rev C og legg ut kretskortet.",
+      "Gjennomgå kretskort rev D og bestill det hos JLCPCB med montering.",
       "Trekktest av en innsats i POM, sjekk lagerstatus og be om tilbud på fresing (rev B3).",
       "Pleksiglass-prototype for 60 m med trykktest til 0,90 MPa."
     ]
