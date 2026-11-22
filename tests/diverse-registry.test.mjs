@@ -42,7 +42,7 @@ test("Dive computer prototype opens its static demo bundle from the published as
   assert.equal(entry.route,null);
   assert.equal(entry.legacyUrl,null);
   assert.equal(entry.externalUrl,"./assets/demos/dykkecomputer/");
-  for(const file of ["index.html","simulator.html","app.html","arkiv/dykkecomputer-3d-modeller.zip","dykkecomputer-revb3.zip","dykkecomputer-skjema-og-fusion.zip","logg.html","img/fusion-sammenstilling.jpg","img/skjema-ark1.png"]){
+  for(const file of ["index.html","simulator.html","app.html","arkiv/LES_MEG.md","dykkecomputer-revb3.zip","dykkecomputer-skjema-og-fusion.zip","logg.html","img/fusion-sammenstilling.jpg","img/skjema-ark1.png"]){
     assert.ok(existsSync(new URL(`../assets/demos/dykkecomputer/${file}`,import.meta.url)),`missing demo file: ${file}`);
   }
 });
