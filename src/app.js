@@ -477,8 +477,7 @@ function portfolioPage(){
   document.documentElement.dataset.lens="portfolio";
   app.innerHTML=top("portfolio")+
     '<main><section class="hero"><div><h1>Engineering for real-world challenges</h1><p>Marine technology, CAD, analysis, practical fabrication and repair projects — presented without the course archive clutter.</p><div class="hero-actions"><button class="btn primary" data-go="/engineering">Explore engineering</button><button class="btn dark" data-go="/courses">Open Courses</button></div></div><div class="vessel-card">'+vessel+'<div class="waterline"></div></div></section>'+
-    (projects.some(item=>item.current===true)?'<section class="section" id="current-projects"><div class="section-head"><div><h2>Pågående</h2><p class="muted">Prosjekter som er i arbeid nå, med logg og simulator.</p></div></div><div class="project-list">'+projects.filter(item=>item.current===true).map(renderProjectCard).join("")+'</div></section>':"")+
-    '<section class="section"><div class="section-head"><div><h2>Selected projects</h2><p class="muted">Design, analysis, software and hands-on engineering work.</p></div></div><div class="project-list">'+projects.filter(item=>item.current!==true).map(renderProjectCard).join("")+'</div></section></main><div class="preview-badge">v2 preview · separate repo</div>';
+    '<section class="section"><div class="section-head"><div><h2>Selected projects</h2><p class="muted">Design, analysis, software and hands-on engineering work. Ongoing projects come first and are marked.</p></div></div><div class="project-list">'+[...projects.filter(item=>item.current===true),...projects.filter(item=>item.current!==true)].map(renderProjectCard).join("")+'</div></section></main><div class="preview-badge">v2 preview · separate repo</div>';
   bindNav();
   // Project cards are real links, supporting keyboard, new tab and deep links.
 }

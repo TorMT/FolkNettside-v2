@@ -8,7 +8,7 @@
     "year": 2026,
     "summary": "En armmontert dykkecomputer med stor skjerm, flasketrykk fra tanksender, dekoberegning, trådløs lading og mobilapp. Simulatoren kjører den samme C-koden som computeren.",
     "problem": "Kommersielle dykkecomputere med stor skjerm og flasketrykk er dyre og lukkede. Målet er en åpen computer som kan bygges av studenter, med deko, gass, kompass og logg, og som kan testes i nettleseren før den bygges.",
-    "solution": "ESP32-S3 med to dybdesensorer, mottaker for 38 kHz tanksendere, kompass, GPS og en egen sikkerhets-MCU. Bühlmann ZHL-16C med gradientfaktorer, sjekket mot decotengu. Huset blir et hybridhus (aluminium topp og bunn, plastmidtring) for 100 m, med en pleksiglass-prototype for 60 m; koblingsskjemaet er regnet gjennom og rettet (rev B).",
+    "solution": "ESP32-S3 med to dybdesensorer, mottaker for 38 kHz tanksendere, kompass, GPS og en egen sikkerhets-MCU. Bühlmann ZHL-16C med gradientfaktorer, sjekket mot decotengu. Huset er et hybridhus (aluminium topp og bunn, POM-midtring) for 100 m, tegnet ferdig til bestilling (rev B3), med en pleksiglass-prototype for 60 m; koblingsskjemaet er på rev C.",
     "skills": [
       "Innebygd C",
       "Dekomodeller",
@@ -35,15 +35,34 @@
       "Simulator og mobilapp i nettleseren, bygget fra samme kode som fastvaren.",
       "Husgenerator med platedimensjonering (Roark) for fire skjermstørrelser.",
       "Fusion-prosjekt med 37 deler, ekte komponentmodeller, ledd og kollisjonssjekk.",
-      "Koblingsskjema på fire ark, kontrollert punkt for punkt og rettet til rev B."
+      "Koblingsskjema på fire ark, kontrollert punkt for punkt og rettet til rev B.",
+      "Fastvaren bygget med ESP-IDF uten advarsler og startet i QEMU.",
+      "Hus rev B3: 120 deler med ekte mål, monteringsrekkefølge, O-ringspor og skruelast kontrollert.",
+      "Printbar testrigg for koblingsbrett-prototypen."
     ],
     "results": [
       "Simulatoren og mobilappen virker i nettleseren.",
-      "3D-modeller i STEP og Fusion-sammenstilling for 3,5\"-bygget.",
-      "Koblingsskjema rev B med 105 komponenter og 87 nett.",
-      "Funn: aluminiumshuset stopper tanksignal, Bluetooth og GPS; midtring i plast foreslått."
+      "Fastvaren bygger (746 kB) og starter i emulator.",
+      "Hus rev B3 klart til bestilling: 120 deler, 0 overlapp, 24 monteringssteg sjekket.",
+      "Koblingsskjema rev C, elektrisk regelsjekk uten feil.",
+      "Funn: aluminiumshuset stopper tanksignal, Bluetooth og GPS; midtring i POM valgt."
     ],
     "gallery": [
+      {
+        "src": "./assets/demos/dykkecomputer/img/revb3-hus.jpg",
+        "alt": "Dykkecomputeren rev B3: mørk aluminiumsbezel med linse over skjermen, POM-midtring og røde knapper",
+        "caption": "Hus rev B3, klar til bestilling"
+      },
+      {
+        "src": "./assets/demos/dykkecomputer/img/revb3-sprengt.jpg",
+        "alt": "Sprengskisse av rev B3 med bezel, linse, toppring, skjerm, kretskort, midtring, batteri og bakplate",
+        "caption": "Sprengskisse"
+      },
+      {
+        "src": "./assets/demos/dykkecomputer/img/testrigg.jpg",
+        "alt": "3D-printet testrigg med koblingsbrett, skjermstativ og modulplate",
+        "caption": "Testrigg for koblingsbrettet"
+      },
       {
         "src": "./assets/demos/dykkecomputer/img/fusion-sammenstilling.jpg",
         "alt": "Fusion-sammenstilling av dykkecomputeren: aluminiumshus med linse, knapper og stroppfester",
@@ -91,6 +110,14 @@
       {
         "label": "Kildekode",
         "url": "./assets/demos/dykkecomputer/dykkecomputer-kildekode.zip"
+      },
+      {
+        "label": "Hus rev B3 (STEP og Fusion-skript)",
+        "url": "./assets/demos/dykkecomputer/dykkecomputer-revb3.zip"
+      },
+      {
+        "label": "Testrigg (STL)",
+        "url": "./assets/demos/dykkecomputer/dykkecomputer-testrigg.zip"
       }
     ],
     "embeds": [
@@ -102,6 +129,16 @@
     ],
     "logUrl": "./assets/demos/dykkecomputer/logg.html",
     "log": [
+      {
+        "date": "22.11.2026",
+        "title": "Kontroller før bestilling",
+        "result": "Fastvaren bygget uten advarsler; 0 ERC-feil; O-ringspor, skruelast og 24 monteringssteg OK; seks feil rettet"
+      },
+      {
+        "date": "22.11.2026",
+        "title": "Hus rev B3 og testrigg",
+        "result": "120 deler med ekte mål; printbar rigg i to plater med knappetest og våtkopp"
+      },
       {
         "date": "21.11.2026",
         "title": "Rev B2 av huset: klar til montering",
@@ -154,14 +191,11 @@
       }
     ],
     "next": [
-      "Mål tanksignalet og GPS gjennom aluminium og plast for å bekrefte hybridhuset.",
-      "Bygg koblingsbrett-demoen trinn for trinn, og gjør første bygg av fastvaren.",
-      "Pleksiglass-prototype for 60 m med trykktest til 0,90 MPa.",
-      "Koblingsskjema rev C: chipantenne, lyssensor-flex, fjærkontakter og batterikontakt som rev B2 krever.",
-      "Bestill mekaniske deler og be om tilbud på fresing av huset (rev B2).",
-      "Gjennomgå koblingsskjema rev B med en annen person, og legg ut kortet.",
-      "Hybridhus for 100 m: FEA og trykktest 1,51 MPa.",
-      "Fastvare: skjermsider, sikkerhets-MCU, Bluetooth med passord, nye knapper."
+      "Print testriggen, bygg koblingsbrett-demoen og flash fastvaren.",
+      "Mål tanksignalet og GPS gjennom POM for å bekrefte hybridhuset.",
+      "Gjennomgå koblingsskjema rev C og legg ut kretskortet.",
+      "Trekktest av en innsats i POM, sjekk lagerstatus og be om tilbud på fresing (rev B3).",
+      "Pleksiglass-prototype for 60 m med trykktest til 0,90 MPa."
     ]
   },
   {
