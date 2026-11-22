@@ -2,10 +2,10 @@ import {
   DEFAULT_FLUIDS,DEFAULT_UNITS,INPUTS,OUTPUTS,PROCESS_TYPES,TABLE4_PRESETS,
   computeBatch,computeCourseReferenceTable,computeProcess,computeState,computeTable4,convertCoolPropDraftUnits,courseCalibrationSummary,courseTableConfig,courseTableDefaultRows,courseTableLabel,processTargetOptions,
   rowsToCSV,rowsToJSON,saturationWarning,tableReferenceProfile,unitLabel
-} from "./coolprop-core.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
-import {getCoolProp} from "../vendor/coolprop-runtime.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
-import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
-import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=d97324820154988db8a9dbe762b2f04ca65b6ad9";
+} from "./coolprop-core.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
+import {getCoolProp} from "../vendor/coolprop-runtime.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
+import {mountCoolPropDiagram} from "./coolprop-diagram-view.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
+import {COOLPROP_HELP,searchCoolPropHelp} from "./coolprop-help.js?v=7074fbd28c67a3039d4b7261a367e0ea552508b2";
 
 function esc(value){
   return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
