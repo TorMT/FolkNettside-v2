@@ -200,7 +200,7 @@
     <div class="kpi"><b>418 g</b><span>sammenstilling i Fusion</span></div>
     <div class="kpi"><b>28,5 mm</b><span>høyde, hybridhus</span></div>
     <div class="kpi"><b>191</b><span>enhetstester, deko ±1 min</span></div>
-    <div class="kpi"><b>0</b><span>ERC-feil, koblingsskjema rev C</span></div>
+    <div class="kpi"><b>0</b><span>DRC-feil, kretskort rev D (4 lag)</span></div>
   </div>
 
   <nav class="sections" aria-label="Deler av siden">
@@ -236,7 +236,7 @@
           <tr><td>Fusion-prosjekt med sammenstilling</td><td class="ok">Rev A, B og B3</td><td>Rev B3: alle 120 deler, 418 g, 0 ekte kollisjoner, gjenger på skruene og hengslede knapper; eldre revisjoner i Arkiv</td></tr>
           <tr><td>Koblingsskjema</td><td class="part">Rev C</td><td>Passer til hus rev B3; elektrisk regelsjekk: 0 feil, 5 bevisst ubrukte avbruddspinner; ikke gjennomgått av en annen person</td></tr>
           <tr><td>Radio gjennom huset</td><td class="no">Problem funnet</td><td>Aluminium demper 38 kHz med ca. 59 dB; plast-midtring foreslått, må måles</td></tr>
-          <tr><td>Kretskortutlegg (PCB)</td><td class="no">Ikke startet</td><td>Fotavtrykk og utlegg i Fusion Electronics</td></tr>
+          <tr><td>Kretskort (PCB)</td><td class="ok">Rev D ferdig rutet</td><td>Hovedkort 4 lag og sensorkort 2 lag, 0 DRC-feil; Gerber, deleliste og plassering for JLCPCB, og .brd/.sch for Fusion. <a href="#kretskort">Se kortet</a></td></tr>
           <tr><td>Hus og linse</td><td class="no">Ikke testet</td><td>Håndregnet for 100 m; trenger FEA og trykktest</td></tr>
         </tbody>
       </table>
@@ -245,6 +245,7 @@
       <a class="btn" href="dykkecomputer-kildekode.zip" download><b>Kildekoden</b><span>Fastvare, tester, simulator (zip)</span></a>
       <a class="btn" href="dykkecomputer-revb3.zip" download><b>Hus rev B3</b><span>120 STEP-deler, Fusion-skript, kontroller (zip)</span></a>
       <a class="btn" href="dykkecomputer-skjema-og-fusion.zip" download><b>Koblingsskjema rev C</b><span>.sch, PDF, netliste, ERC (zip)</span></a>
+      <a class="btn" href="dykkecomputer-kretskort-revd.zip" download><b>Kretskort rev D</b><span>Gerber, BOM, plassering, .brd/.sch, KiCad (zip)</span></a>
       <a class="btn" href="dykkecomputer-prosjektlogg.pdf"><b>Hele siden som PDF</b><span>Alt utfoldet, A4</span></a>
     </div>
   </section>
@@ -588,6 +589,18 @@
     </div>
     </div>
 
+    <div class="card" id="kretskort" style="margin-top:16px">
+      <h3>Kretskort rev D: ferdig rutet</h3>
+      <p>Hovedkortet er 70 × 96 × 0,8 mm med 4 lag: GND-plan og 3V3-plan inni, signaler og GND-fylling ytterst. Det har 120 deler og 0 feil i designregelsjekken. Toppsiden under skjermen har bare deler under 1,0 mm. Høyere deler står i stripene utenfor skjermen eller på undersiden ved siden av batteriet. Det er ikke kobber under antennene. Sensorkortet (4,6 × 23 mm, 2 lag) bærer de to MS5837-sensorene ned i boringene i flensen.</p>
+      <div class="shots">
+        <figure><img src="img/kretskort-revd-topp.jpg" alt="Hovedkort rev D sett ovenfra: skjermkontakt nederst, lader og LDO i venstre stripe, analog mottaker i høyre stripe" loading="lazy" width="900" height="1068"><figcaption>Toppside, under skjermen.</figcaption></figure>
+        <figure><img src="img/kretskort-revd-bunn.jpg" alt="Hovedkort rev D sett nedenfra (speilvendt): ESP32-modul, microSD, GNSS og chipantenne øverst, batterifeltet fritt" loading="lazy" width="900" height="1068"><figcaption>Underside, speilvendt. Feltet over batteriet har bare spor.</figcaption></figure>
+        <figure class="light"><img src="img/sensorkort-revd.jpg" alt="Sensorkortet med seks landingspunkter for fjærkontaktene og to MS5837 på undersiden" loading="lazy" width="620" height="344"><figcaption>Sensorkortet: topp og bunn.</figcaption></figure>
+      </div>
+      <p class="note">Ved utlegget ble fem ting rettet mot databladene. GNSS er byttet til MAX-M10S, med LNA for passiv antenne. MMC5603 har ingen CAP-pinne. TPS22917 erstatter en 0,4 mm WCSP. Skjermen bruker standard 50-pols FPC med 4-tråds SPI. Det er også lagt til avkobling. Det som må sjekkes ved bestilling står i <code>LES_MEG.md</code> i zip-filen.</p>
+      <div class="actions"><a class="btn primary" href="dykkecomputer-kretskort-revd.zip" download><b>Last ned kretskort rev D</b><span>Gerber, BOM, plassering, .brd/.sch for Fusion, KiCad, skript (1,6 MB)</span></a></div>
+    </div>
+
     <div class="card" id="batterikalk" style="margin-top:16px">
       <h3>Prøv selv: batteritid under dykk</h3>
       <div class="calc">
@@ -719,7 +732,7 @@
       </table>
     </div>
     <p class="note">Trinn 1: kjerne (dybde, alarmer, knapper). 2: flasketrykk. 3: kompass, GPS og lyssensor. 4: strøm og lagring. 5: senere (FRAM, klokke, sikkerhets-MCU, Suunto-kanal). Bygg og test ett trinn om gangen, slik byggeplanen i kildekoden beskriver.</p></div>
-    <div class="tabpanel" role="tabpanel" id="bom-pcb" aria-labelledby="tab-pcb" hidden><div class="table-wrap">
+    <div class="tabpanel" role="tabpanel" id="bom-pcb" aria-labelledby="tab-pcb" hidden><p class="note">Hovedlinjene under. Den komplette lista for montering (73 linjer, med alle motstander og kondensatorer) og plasseringsfila ligger i <a href="dykkecomputer-kretskort-revd.zip" download>kretskort-zip-fila</a>.</p><div class="table-wrap">
       <table>
         <thead><tr><th>Ref.</th><th>Del</th><th>Antall</th><th>Sum</th><th>Kjøp</th></tr></thead>
         <tbody>
@@ -736,11 +749,11 @@
           <tr><td>U11</td><td>MCP6022</td><td>1</td><td>$1.00</td><td><a href="https://www.lcsc.com/search?q=MCP6022" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>U12</td><td>PCM1808PWR</td><td>1</td><td>$2.00</td><td><a href="https://www.lcsc.com/search?q=PCM1808PWR" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>U13</td><td>LM393</td><td>1</td><td>$0.10</td><td><a href="https://www.lcsc.com/search?q=LM393DR" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
-          <tr><td>U14</td><td>ATGM336H-5N</td><td>1</td><td>$6.00</td><td><a href="https://www.aliexpress.com/wholesale?SearchText=ATGM336H" target="_blank" rel="noopener">AliExpress</a></td></tr>
+          <tr><td>U14</td><td>u-blox MAX-M10S (rev D, innebygd LNA)</td><td>1</td><td>$12.00</td><td><a href="https://www.lcsc.com/search?q=MAX-M10S" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>U16–U18</td><td>TMAG5273 (A1, B1, C1)</td><td>3</td><td>$4.50</td><td><a href="https://www.lcsc.com/search?q=TMAG5273" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>U21</td><td>MCP73831T-2ACI</td><td>1</td><td>$0.40</td><td><a href="https://www.lcsc.com/search?q=MCP73831T-2ACI%2FOT" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>U23</td><td>TLV75733P (1 A)</td><td>1</td><td>$0.20</td><td><a href="https://www.lcsc.com/search?q=TLV75733P" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
-          <tr><td>U24</td><td>TPS61023</td><td>1</td><td>$0.60</td><td><a href="https://www.lcsc.com/search?q=TPS61023DRLR" target="_blank" rel="noopener">LCSC-søk</a></td></tr><tr><td>U25</td><td>TPS22916C</td><td>1</td><td>$0.40</td><td><a href="https://www.lcsc.com/search?q=TPS22916C" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
+          <tr><td>U24</td><td>TPS61023</td><td>1</td><td>$0.60</td><td><a href="https://www.lcsc.com/search?q=TPS61023DRLR" target="_blank" rel="noopener">LCSC-søk</a></td></tr><tr><td>U25</td><td>TPS22917DBVR (rev D)</td><td>1</td><td>$0.40</td><td><a href="https://www.lcsc.com/search?q=TPS22917DBVR" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>J3</td><td>Hirose DM3D-SF microSD</td><td>1</td><td>$0.80</td><td><a href="https://www.lcsc.com/search?q=DM3D-SF" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>Q1–Q3</td><td>AO3400A</td><td>3</td><td>$0.09</td><td><a href="https://www.lcsc.com/search?q=AO3400A" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
           <tr><td>BZ1</td><td>Murata PKMCS0909E4000</td><td>1</td><td>$0.40</td><td><a href="https://www.lcsc.com/search?q=PKMCS0909E4000-R1" target="_blank" rel="noopener">LCSC-søk</a></td></tr>
@@ -800,6 +813,7 @@
       <table>
         <thead><tr><th>Dato</th><th>Hva</th><th>Resultat</th></tr></thead>
         <tbody>
+          <tr><td>22.11.2026</td><td>Kretskort rev D lagt ut og rutet: 4-lags hovedkort 70 × 96 mm og 2-lags sensorkort; fotavtrykk og pinner sjekket mot databladene; .brd/.sch lagt i Fusion</td><td>0 DRC-feil, 0 åpne forbindelser; Gerber, deleliste og plassering klare for JLCPCB</td></tr>
           <tr><td>22.11.2026</td><td>Full STEP av rev B3 (19 MB) og de arkiverte zip-filene flyttet til NTNU-disken (<code>diverse/Dykkecomputer/</code>); CAD-viseren kan åpne hele STEP-filen derfra</td><td>Sparer ca. 10 MB i GitHub; en liten PHP-fil gir nettleseren lov til å hente filen fra GitHub Pages</td></tr>
           <tr><td>22.11.2026</td><td>Rydding i Fusion: mappene er nå 01 Rev B3, 02 Elektronikk (koblingsskjema rev C), 03 Dokumentasjon (prosjektloggen) og 99 Arkiv (Rev A, Rev B hybrid, Rev B2); fem tomme mapper slettet. På siden ligger eldre nedlastinger i <code>arkiv/</code>. Rev B3 komplett i Fusion</td><td>120 av 120 deler, 418 g, 0 ekte kollisjoner (22 treff er modellerte skruegjenger mot glatte innsatshull)</td></tr>
           <tr><td>22.11.2026</td><td>Rev B3 lagt inn i Fusion med gjenger på skruene; hele modellen som 3D-visning på siden</td><td>117 av 120 deler satt inn, 408 g; 120 deler kan sprenges i CAD-viseren</td></tr>
@@ -839,6 +853,9 @@
       <table>
         <thead><tr><th>Område</th><th>Hva vi fant eller støtte på</th><th>Konsekvens</th><th>Løsning og status</th></tr></thead>
         <tbody>
+          <tr><td>Elektronikk, GNSS</td><td>ATGM336H-5N trenger aktiv antenne eller en egen LNA; med en passiv 7 × 2 mm chipantenne bak plast blir signalet for svakt.</td><td>Dårlig eller ingen GPS-posisjon.</td><td>Byttet til u-blox MAX-M10S (samme fotavtrykk, innebygd LNA og SAW). <span class="fix">Rettet i rev D</span></td></tr>
+          <tr><td>Elektronikk, sensor</td><td>MMC5603NJ har ingen CAP-pinne; skjemaet hadde en SET/RESET-kondensator som ikke finnes, og manglet 2,2 µF på VDD.</td><td>Feil kobling og for lite avkobling.</td><td>C10 er nå 2,2 µF på VDD. <span class="fix">Rettet i rev D</span></td></tr>
+          <tr><td>Elektronikk, utlegg</td><td>Biblioteksfotavtrykket til ESP32-modulen har en 48 mm bred antennesperre; plassert på undersiden pekte antennen mot batteriet, og sperren blokkerte rutingen.</td><td>62 åpne forbindelser i første ruting.</td><td>Modulen snudd, egen sperre bare under antennen. <span class="ok">Løst</span></td></tr>
           <tr><td>Hus og radio</td><td>Aluminium demper 38 kHz med ca. 59 dB (skinndybde 0,52 mm), og stopper Bluetooth og GPS helt. Skjermen dekker nesten hele linsen, så linsen er heller ikke noe radiovindu.</td><td>Tankmottaker, Bluetooth og GPS ville ikke virket i det lukkede aluminiumshuset.</td><td>Hybridhus med plastmidtring vedtatt. Må måles med ekte sender. <span class="part">Planlagt</span></td></tr>
           <tr><td>Hus, plast</td><td>Et helt plasthus blir for tykt ved 100 m: linsekant 8–11 mm og bakplate 11–15 mm.</td><td>Over 3 cm.</td><td>Hybrid for 100 m; helt plast bare for 60 m-prototypen. <span class="ok">Løst</span></td></tr>
           <tr><td>Hus, CAD</td><td>Qi-spolen kolliderte med batteriet i første modell.</td><td>Overlapp i modellen.</td><td>Batterigulvet løftet; kollisjonssjekk viser 0 overlapp. <span class="ok">Løst</span></td></tr>
@@ -897,7 +914,7 @@
       <li><b>Print testriggen og bygg koblingsbrett-demoen</b>, flash fastvaren og kjør benktesten; sjekk at alle I2C-enheter svarer og at knappene virker gjennom veggen.</li>
       <li><b>Ta opp en ekte Pelagic-sender</b> og juster tidene i mottakeren; mål spolesignalet og velg forsterkning og demping.</li>
       <li><b>Lag forsterkertrinn for 123 kHz</b>, eller vent med Suunto-kanalen.</li>
-      <li><b>Gjennomgå koblingsskjema rev C</b> med en annen person; velg fotavtrykk og legg ut kortet (4 lag, 70 × 96 mm).</li>
+      <li><b>Bestill kretskortene</b> (rev D) hos JLCPCB med montering, etter at en annen person har gått gjennom skjema og kort. Sjekk først FPC-pinnene på skjermpanelet som kjøpes, landmønsteret til antenne og summer, og lagerstatus.</li>
       <li><b>Trekktest av en innsats i POM</b>, sjekk lagerstatus, og be om tilbud på fresing av toppring, midtring og bakplate etter rev B3.</li>
       <li><b>Hus:</b> pleksiglass-prototype for 60 m (13/12/4 mm, ca. 37 mm høy) med trykktest til 0,90 MPa; deretter hybridhus med POM-C-midtring og aluminium topp og bunn for 100 m, FEA og trykktest 1,51 MPa.</li>
       <li><b>Fastvare:</b> skjermsider (LVGL), sikkerhets-MCU, Bluetooth med passord, FRAM- og klokkedrivere, 4 kHz summer, TMAG5273-knapper, styring av boost og GNSS over UART.</li>
