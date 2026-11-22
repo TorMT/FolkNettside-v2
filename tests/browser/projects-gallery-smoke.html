@@ -26,9 +26,12 @@ try{
    card.querySelector("[data-project-image-fallback]:not([hidden])")),
    "Every project requires its source image, intentional illustration-free placeholder, or error fallback");
  const remainingImages=[...cards].flatMap(card=>[...card.querySelectorAll("img.project-card-image")]);
+ // Same two sources projectImageURL() allows: NTNU portfolio screenshots, or an
+ // image checked in under ./assets/demos/<slug>/img/ (dive computer project, #218).
  check(remainingImages.every(img=>img.src.startsWith(
-   "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/")),
-   "Any remaining project image must have the allowlisted NTNU portfolio source");
+   "https://tormt.folk.ntnu.no/diverse/portfolio/screenshots/")||
+   /^\.\/assets\/demos\/[a-z0-9][a-z0-9-]*\/img\/[a-z0-9][a-z0-9-]*\.(?:png|jpe?g|webp)$/.test(img.getAttribute("src"))),
+   "Any remaining project image must have an allowlisted portfolio source");
  const first=doc().querySelector('.project-row[data-project="equipment-mount-fixture"]');
  check(first,"Dive computer project not found");
  const cardImg=first.querySelector("img[data-project-image='card']");

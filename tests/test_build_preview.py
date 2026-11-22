@@ -71,13 +71,17 @@ class PagesBuildTests(unittest.TestCase):
             html = (target / "index.html").read_text(encoding="utf-8")
             import re
             hrefs = re.findall(r'<link rel="modulepreload" href="([^"]+)">', html)
-            self.assertGreater(len(hrefs), 150)
+            # Route-level code splitting (#214) keeps lazy page modules out of the static
+            # graph, so ~130 modules are preloaded instead of ~210. Sanity floor only.
+            self.assertGreater(len(hrefs), 100)
             self.assertEqual(len(hrefs), len(set(hrefs)))
             for href in hrefs:
                 path, _, query = href.partition("?")
                 self.assertEqual(query, "v=" + version, href)
                 self.assertTrue((target / path).is_file(), href)
             self.assertIn("./src/diverse/diverse-registry.js?v=" + version, hrefs)
+            # A lazily imported route module must not be preloaded on every page.
+            self.assertNotIn("./src/engineering/kisssoft-tool.js?v=" + version, hrefs)
             # On-demand modules must stay on demand.
             self.assertFalse(any("kisssoft-pair-3d.js" in href for href in hrefs))
 
