@@ -62,12 +62,16 @@ test("ranking responses are bounded and structurally validated",()=>{
   assert.throws(()=>normalizeLeaderboardEntries({entries:"unsafe"}),/Invalid/);
 });
 
-test("quiz renderer mounts ranking only in full completed result; PHP remains opt-in",()=>{
+test("quiz renderer mounts ranking only in full completed result; PHP endpoint is the reviewed NTNU proxy",async()=>{
   const adapter=readFileSync(new URL("../src/viewers/adapters/quiz.js",import.meta.url),"utf8");
   const config=JSON.parse(readFileSync(new URL("../data/service-endpoints.json",import.meta.url),"utf8"));
   const php=readFileSync(new URL("../server/quiz-leaderboard.php",import.meta.url),"utf8");
-  assert.equal(config.quizLeaderboard.enabled,false);
-  assert.equal(config.quizLeaderboard.endpoint,null);
+  const {NTNU_LEADERBOARD_ENDPOINT,leaderboardEndpoint}=await import("../src/viewers/quiz-leaderboard.js");
+  assert.equal(config.quizLeaderboard.enabled,true);
+  assert.equal(config.quizLeaderboard.endpoint,NTNU_LEADERBOARD_ENDPOINT);
+  assert.equal(leaderboardEndpoint(config,{base:"https://tormt.github.io/FolkNettside-v2/",origin:"https://tormt.github.io"}),NTNU_LEADERBOARD_ENDPOINT);
+  for(const bad of ["https://evil.invalid/v2-api/quiz-leaderboard.php","https://tormt.folk.ntnu.no/v2-api/quiz-leaderboard.php?x=1"])
+    assert.equal(leaderboardEndpoint({quizLeaderboard:{enabled:true,endpoint:bad}},{base:"https://tormt.github.io/",origin:"https://tormt.github.io"}),null);
   assert.match(adapter,/mountQuizLeaderboard/);
   assert.match(adapter,/!mistakeMode&&selectedChapter==="all"&&quiz.questions.length===wholeQuiz.questions.length/);
   assert.match(adapter,/expectedQuestionCount:Math.min\(catalogQuiz.select,catalogQuiz.questions.length\)/);

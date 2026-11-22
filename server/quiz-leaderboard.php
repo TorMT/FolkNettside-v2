@@ -8,6 +8,10 @@
  * FOLK_LEADERBOARD_DIR: absolute private writable directory outside web root.
  * FOLK_LEADERBOARD_KEY: at least 32 random secret characters.
  * FOLK_LEADERBOARD_QUIZZES: comma-separated approved 'semester/slug' IDs.
+ * Optional:
+ * FOLK_LEADERBOARD_ORIGINS: comma-separated extra origins allowed to POST (e.g. the GitHub Pages site).
+ * FOLK_LEADERBOARD_PRIVATE_DIR_OK=1: accept a storage directory inside the web root when it is
+ *   owner-only (mode 0700), as on NTNU folk where PHP runs as the owner and Apache cannot read it.
  */
 declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
@@ -28,7 +32,8 @@ if ($method === 'POST') {
     $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
     $host = $_SERVER['HTTP_HOST'] ?? '';
     $scheme = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://';
-    if ($origin !== $scheme . $host ||
+    $extraOrigins = array_filter(array_map('trim', explode(',', getenv('FOLK_LEADERBOARD_ORIGINS') ?: '')));
+    if (($origin !== $scheme . $host && !in_array($origin, $extraOrigins, true)) ||
         !str_starts_with(strtolower($_SERVER['CONTENT_TYPE'] ?? ''), 'application/json')) {
         respond(403, ['error' => 'Same-origin JSON request required']);
     }
@@ -40,7 +45,8 @@ $allow = array_filter(array_map('trim', explode(',', getenv('FOLK_LEADERBOARD_QU
 $webroot = realpath($_SERVER['DOCUMENT_ROOT'] ?? '');
 if (!$root || !$storage || strlen($key) < 32 || !$allow || !$webroot ||
     $storage === $webroot ||
-    str_starts_with($storage . DIRECTORY_SEPARATOR, $webroot . DIRECTORY_SEPARATOR) ||
+    (str_starts_with($storage . DIRECTORY_SEPARATOR, $webroot . DIRECTORY_SEPARATOR) &&
+        !(getenv('FOLK_LEADERBOARD_PRIVATE_DIR_OK') === '1' && (fileperms($storage) & 0077) === 0)) ||
     !is_writable($storage)) {
     respond(503, ['error' => 'Leaderboard is not configured']);
 }
