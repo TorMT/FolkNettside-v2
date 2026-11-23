@@ -1,20 +1,21 @@
-import {MUNIN_PARTS,annotateMunin} from "./munin-parts.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {ASV_MODEL} from "./asv-model.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {DIVE_PARTS,annotateDive} from "./dive-parts.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {loadModelDocument} from "../model/load-model.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {parseGLB} from "../model/parsers/gltf.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {parseSTL} from "../model/parsers/stl.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {formatMeters,modelExtentMeters,unitPlausibilityAdvisory} from "../model/model-extent.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {parse3MF} from "../model/parsers/three-mf.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {renderModelWorkbench} from "../viewers/model-workbench.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {downloadFusionScriptPackage} from "./fusion-installer.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {createModelDocument} from "../model/model-document.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {boxMesh} from "../hydro/fixtures.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
+import {MUNIN_PARTS,annotateMunin} from "./munin-parts.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {ASV_MODEL} from "./asv-model.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {DIVE_PARTS,annotateDive} from "./dive-parts.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {DPV_PARTS,annotateDpv} from "./dpv-parts.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {loadModelDocument} from "../model/load-model.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {parseCADBuffer,isCADFile} from "../model/parsers/cad-runtime.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {parseGLB} from "../model/parsers/gltf.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {parseSTL} from "../model/parsers/stl.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {formatMeters,modelExtentMeters,unitPlausibilityAdvisory} from "../model/model-extent.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {parse3MF} from "../model/parsers/three-mf.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {renderModelWorkbench} from "../viewers/model-workbench.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {renderFusionPackage} from "../viewers/fusion-package-view.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {parseFusionEngineeringBundle} from "../model/parsers/fusion-engineering-bundle.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {fusionEngineeringReportHTML} from "./fusion-engineering-report.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {downloadFusionScriptPackage} from "./fusion-installer.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {mountAutodeskHubBrowser} from "./fusion-hub-browser.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {createModelDocument} from "../model/model-document.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {boxMesh} from "../hydro/fixtures.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
 
 /** Verified public originals on the NTNU file server; never mirrored to GitHub. */
 export const MUNIN_CAD_SOURCES=Object.freeze({
@@ -26,6 +27,7 @@ export const MUNIN_CAD_SOURCES=Object.freeze({
 export const DIVE_STEP_URL="https://tormt.folk.ntnu.no/diverse/Dykkecomputer/step.php";
 export const DIVE_STEP_DOWNLOAD="https://tormt.folk.ntnu.no/diverse/Dykkecomputer/dykkecomputer-revB3-sammenstilling.step";
 export const DIVE_PREVIEW_URL=new URL("../../assets/models/dykkecomputer-revb3.glb",import.meta.url).href;
+export const DPV_PREVIEW_URL=new URL("../../assets/models/dpv-reva2.glb",import.meta.url).href;
 export const MUNIN_PREVIEW_URL=new URL("../../assets/models/munin-mobile-preview.glb",import.meta.url).href;
 export function cadToolHTML(){
  return `<main class="section engineering-cad-page">
@@ -81,6 +83,20 @@ export function cadToolHTML(){
   </div>
   <p class="muted">Visningsmodellen er tessellert og forenklet (ca. 110 000 trekanter) og bruker meter; mål og passform står i STEP-filene. Full STEP åpnes med OpenCascade i nettleseren og tar litt tid.</p>
  </section>
+ <section class="cad-example-munin" aria-labelledby="cad-dpv-heading">
+  <span class="project-kicker">Eget CAD-prosjekt · DPV rev A2 (startmodell)</span>
+  <h2 id="cad-dpv-heading">DPV – undervannsscooter med innmat</h2>
+  <p>32 deler med typiske mål: PVC-trykkrør 110×6,6, limt frontkappe, POM-plugg med O-ringer, batteri 6S2P (12 × 21700),
+  BMS, ESC, ESP32, våt motor, propell i printet dyse, håndtak med magnettrigger og trimbly. Startmodell – mål erstattes når delene er veid og målt.</p>
+  <div class="cad-asv-actions">
+   <button class="btn primary" data-cad-dpv-preview type="button">Vis DPV-en i 3D</button>
+   <a class="btn" href="./assets/models/dpv-reva2.glb" download>Hent GLB (0,6 MB)</a>
+   <a class="btn" href="./assets/demos/dpv/dpv-reva2-step.zip" download>Hent STEP-deler (zip)</a>
+   <a class="btn" href="./assets/demos/dpv/dpv-reva2-print-stl.zip" download>Printdeler (STL, zip)</a>
+   <a class="btn" href="#/projects/dpv">Om prosjektet</a>
+  </div>
+  <p class="muted">Visningsmodellen bruker meter og er tessellert fra CadQuery-modellen. Prototype – ikke sertifisert dykkeutstyr.</p>
+ </section>
  <section class="cad-example-munin" aria-labelledby="cad-asv-heading">
   <span class="project-kicker">ASV Tollak · forenklet visningsmodell</span>
   <h2 id="cad-asv-heading">ASV Tollak — skrog og propulsjon</h2>
@@ -134,7 +150,7 @@ export function importSummary(documentModel){
   return "Imported "+parts+" mesh components · "+documentModel.unit+size+
     ". Move and inspect in the 3D view below."+(advisory?" Check units: "+advisory:"");
 }
-/** `open:"dykkecomputer"` loads that example straight away (route /engineering/cad/dykkecomputer). */
+/** `open:"dykkecomputer"` or `open:"dpv"` loads that example straight away (route /engineering/cad/<name>). */
 export function mountCADTool(root,{open=""}={}){
  const picker=root.querySelector("#cad-import-file"),stage=root.querySelector("#cad-geometry-stage");
  const cancel=root.querySelector("#cad-import-cancel"),status=root.querySelector("#cad-import-status");
@@ -145,6 +161,7 @@ export function mountCADTool(root,{open=""}={}){
  const asvPreview=root.querySelector("[data-cad-asv-preview]");
  const divePreview=root.querySelector("[data-cad-dive-preview]");
  const diveStep=root.querySelector("[data-cad-dive-step]");
+ const dpvPreview=root.querySelector("[data-cad-dpv-preview]");
  const installerStatus=root.querySelector("[data-cad-fusion-install-status]");
  if(!picker||!stage)return ()=>{};
  let controller=null,cleanup=()=>{},request=0,disposed=false;
@@ -228,6 +245,33 @@ export function mountCADTool(root,{open=""}={}){
      if(current===request&&!disposed){
        status.textContent="Kunne ikke åpne dykkecomputeren: "+String(error?.message||error)+". STEP-filene kan lastes ned over.";
        showEmpty("Dykkecomputeren kunne ikke lastes. STEP-filene finnes over.");
+     }
+   }finally{clearTimeout(timeout);if(current===request&&!disposed){cancel.disabled=true;controller=null}}
+ }
+ async function loadDpv(){
+   const current=++request;stop();stage.replaceChildren();
+   controller=new AbortController();cancel.disabled=false;
+   status.textContent="Laster DPV-en…";
+   stage.scrollIntoView({block:"start",behavior:"instant"});
+   const activeController=controller;
+   const timeout=setTimeout(()=>activeController.abort(),30000);
+   try{
+     const response=await fetch(DPV_PREVIEW_URL,{signal:controller.signal});
+     if(!response.ok)throw Error("HTTP "+response.status);
+     const buffer=await response.arrayBuffer();
+     if(current!==request||disposed)return;
+     if(buffer.byteLength>15_000_000)throw Error("Modellen overskrider størrelsesgrensen");
+     const model=await parseGLB(buffer,"DPV rev A2",{coordinateSystem:"z-up",
+       partMetadata:DPV_PARTS,
+       source:{url:"./assets/demos/dpv/dpv-reva2-step.zip",notes:"Startmodell med typiske mål. Illustrative farger."}});
+     if(current!==request||disposed)return;
+     await presentModel(annotateDpv(model),current);
+     if(current===request&&!disposed)status.textContent="DPV lastet · "+
+       model.components.filter(c=>c.geometry).length+" deler · meter. Velg en gruppe i treet og dra «Explode» for å ta den fra hverandre.";
+   }catch(error){
+     if(current===request&&!disposed){
+       status.textContent="Kunne ikke åpne DPV-en: "+String(error?.message||error)+". STEP-filene kan lastes ned over.";
+       showEmpty("DPV-en kunne ikke lastes. STEP-filene finnes over.");
      }
    }finally{clearTimeout(timeout);if(current===request&&!disposed){cancel.disabled=true;controller=null}}
  }
@@ -425,12 +469,14 @@ export function mountCADTool(root,{open=""}={}){
  };
  showEmpty();
  if(open==="dykkecomputer")void loadDive();
+ if(open==="dpv")void loadDpv();
  const onMuninChoose=()=>picker.click();
  muninChoose?.addEventListener("click",onMuninChoose);
  muninPreview?.addEventListener("click",loadMunin);
  asvPreview?.addEventListener("click",loadASV);
  divePreview?.addEventListener("click",loadDive);
  diveStep?.addEventListener("click",loadDiveStep);
+ dpvPreview?.addEventListener("click",loadDpv);
  picker.addEventListener("change",onChange);
  unitSelect?.addEventListener("change",onUnitChange);
  dropZone?.addEventListener("dragover",onDrag);
@@ -452,5 +498,6 @@ export function mountCADTool(root,{open=""}={}){
   asvPreview?.removeEventListener("click",loadASV);
   divePreview?.removeEventListener("click",loadDive);
   diveStep?.removeEventListener("click",loadDiveStep);
+  dpvPreview?.removeEventListener("click",loadDpv);
  };
 }

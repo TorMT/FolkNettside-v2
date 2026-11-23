@@ -1,0 +1,339 @@
+{
+ "resultat": {
+  "LP_mm": 500.0,
+  "masse_kg": 6.265,
+  "fortrengning_L": 6.169,
+  "netto_sjo_kg": 0.057,
+  "netto_fersk_kg": -0.097,
+  "xG_mm": 369.5,
+  "xB_mm": 365.9,
+  "xG_minus_xB_mm": 3.7,
+  "zG_mm": 1.2,
+  "zB_mm": 4.1,
+  "lengde_mm": 762.3,
+  "dyse_OD_mm": 198.0,
+  "LP_noytral_sjo_mm": 492.0
+ },
+ "deler": [
+  {
+   "node": "dpv-nose",
+   "label": "Nese (PETG, fritt-flømmende)",
+   "group": "Skrog / Nese",
+   "mat": "PETG",
+   "vol_cm3": 102.85277136595477,
+   "mass_kg": 0.13062301963476255,
+   "x": 44.75043787923683,
+   "z": -3.9585749853699075
+  },
+  {
+   "node": "dpv-lead-trim",
+   "label": "Trimbly ~0,65 kg (segmenter)",
+   "group": "Trim / Bly",
+   "mat": "Bly",
+   "vol_cm3": 60.731698382871095,
+   "mass_kg": 0.6862681917264435,
+   "x": 53.99999999999999,
+   "z": -20.0
+  },
+  {
+   "node": "dpv-front-cap",
+   "label": "Frontkappe PVC-U 110 (limt)",
+   "group": "Skrog / Trykkhus",
+   "mat": "PVC-U",
+   "vol_cm3": 275.140684601394,
+   "mass_kg": 0.3851969584419516,
+   "x": 104.63804521580268,
+   "z": -6.421040115071744e-15
+  },
+  {
+   "node": "dpv-hull-pipe",
+   "label": "Trykkrør PVC-U 110x6,6 PN16, L=500 mm",
+   "group": "Skrog / Trykkhus",
+   "mat": "PVC-U",
+   "vol_cm3": 1071.936665165512,
+   "mass_kg": 1.5007113312317166,
+   "x": 339.9914744530612,
+   "z": 1.9041988716870884e-05
+  },
+  {
+   "node": "dpv-rear-plug",
+   "label": "Bakplugg POM (dobbel radiell O-ring)",
+   "group": "Skrog / Bakplugg",
+   "mat": "POM",
+   "vol_cm3": 264.175102977086,
+   "mass_kg": 0.37248689519769124,
+   "x": 581.9213629571942,
+   "z": -0.04954858726961285
+  },
+  {
+   "node": "dpv-oring-1",
+   "label": "O-ring 1 NBR70 (3,53 mm, TBD Parker)",
+   "group": "Skrog / Bakplugg",
+   "mat": "NBR",
+   "vol_cm3": 2.8655307761197326,
+   "mass_kg": 0.003438636931343679,
+   "x": 558.0,
+   "z": -1.1368683772161603e-13
+  },
+  {
+   "node": "dpv-oring-2",
+   "label": "O-ring 2 NBR70 (3,53 mm, TBD Parker)",
+   "group": "Skrog / Bakplugg",
+   "mat": "NBR",
+   "vol_cm3": 2.8655307761197326,
+   "mass_kg": 0.003438636931343679,
+   "x": 574.0,
+   "z": -1.1368683772161603e-13
+  },
+  {
+   "node": "dpv-penetrator-1",
+   "label": "Fasegjennomføring 1 (A4 M6)",
+   "group": "Elektrisk / Gjennomføringer",
+   "mat": "A4",
+   "vol_cm3": 1.4545573986120741,
+   "mass_kg": 0.011491003449035387,
+   "x": 589.7537796976243,
+   "z": 22.0
+  },
+  {
+   "node": "dpv-penetrator-2",
+   "label": "Fasegjennomføring 2 (A4 M6)",
+   "group": "Elektrisk / Gjennomføringer",
+   "mat": "A4",
+   "vol_cm3": 1.4545573986120743,
+   "mass_kg": 0.011491003449035388,
+   "x": 589.7537796976243,
+   "z": -11.000000000000004
+  },
+  {
+   "node": "dpv-penetrator-3",
+   "label": "Fasegjennomføring 3 (A4 M6)",
+   "group": "Elektrisk / Gjennomføringer",
+   "mat": "A4",
+   "vol_cm3": 1.4545573986120743,
+   "mass_kg": 0.011491003449035388,
+   "x": 589.7537796976242,
+   "z": -11.00000000000001
+  },
+  {
+   "node": "dpv-schrader",
+   "label": "Schrader-ventil (vakuumtest)",
+   "group": "Skrog / Ventiler",
+   "mat": "Messing/gummi",
+   "vol_cm3": 1.5079644737231004,
+   "mass_kg": 0.006031857894892401,
+   "x": 590.0,
+   "z": -8.0
+  },
+  {
+   "node": "dpv-relief",
+   "label": "Trykkavlastningsventil (fjær + O-ring)",
+   "group": "Skrog / Ventiler",
+   "mat": "POM/A4",
+   "vol_cm3": 2.4881413816431164,
+   "mass_kg": 0.00746442414492935,
+   "x": 593.0,
+   "z": 8.0
+  },
+  {
+   "node": "dpv-retainer-1",
+   "label": "Pluggholder 1 (A4 M5, radiell)",
+   "group": "Skrog / Bakplugg",
+   "mat": "A4",
+   "vol_cm3": 0.3141592653589782,
+   "mass_kg": 0.002481858196335928,
+   "x": 584.0,
+   "z": 20.5
+  },
+  {
+   "node": "dpv-retainer-2",
+   "label": "Pluggholder 2 (A4 M5, radiell)",
+   "group": "Skrog / Bakplugg",
+   "mat": "A4",
+   "vol_cm3": 0.31415926535897815,
+   "mass_kg": 0.0024818581963359275,
+   "x": 584.0000000000001,
+   "z": 20.499999999999996
+  },
+  {
+   "node": "dpv-retainer-3",
+   "label": "Pluggholder 3 (A4 M5, radiell)",
+   "group": "Skrog / Bakplugg",
+   "mat": "A4",
+   "vol_cm3": 0.3141592653589782,
+   "mass_kg": 0.002481858196335928,
+   "x": 584.0,
+   "z": -40.99999999999999
+  },
+  {
+   "node": "dpv-battery",
+   "label": "Batteri 6S2P Molicel P45B (12 celler)",
+   "group": "Kraft / Batteri",
+   "mat": "Li-ion",
+   "vol_cm3": 307.0208673440581,
+   "mass_kg": 0.816,
+   "x": 137.07500000000005,
+   "z": -3.9999999999999933
+  },
+  {
+   "node": "dpv-bms",
+   "label": "BMS 6S med NTC",
+   "group": "Kraft / Batteri",
+   "mat": "PCB",
+   "vol_cm3": 13.5,
+   "mass_kg": 0.04,
+   "x": 190.0,
+   "z": -4.0
+  },
+  {
+   "node": "dpv-fuse",
+   "label": "Hovedsikring 40 A",
+   "group": "Kraft / Batteri",
+   "mat": "-",
+   "vol_cm3": 9.0,
+   "mass_kg": 0.03,
+   "x": 212.0,
+   "z": -27.5
+  },
+  {
+   "node": "dpv-sled",
+   "label": "Indre slede (PETG)",
+   "group": "Innmat / Slede",
+   "mat": "PETG",
+   "vol_cm3": 101.85547189241497,
+   "mass_kg": 0.129356449303367,
+   "x": 330.7740490691761,
+   "z": -25.944552165369647
+  },
+  {
+   "node": "dpv-esc-plate",
+   "label": "Varmeplate aluminium for ESC",
+   "group": "Elektrisk / ESC",
+   "mat": "Aluminium",
+   "vol_cm3": 34.39999999999999,
+   "mass_kg": 0.09287999999999998,
+   "x": 517.7674418604653,
+   "z": -17.44186046511629
+  },
+  {
+   "node": "dpv-esc",
+   "label": "ESC Turnigy Marine 120A (76x56x25)",
+   "group": "Elektrisk / ESC",
+   "mat": "-",
+   "vol_cm3": 106.40000000000003,
+   "mass_kg": 0.155,
+   "x": 506.0,
+   "z": -15.499999999999996
+  },
+  {
+   "node": "dpv-esp32",
+   "label": "ESP32-kort (gass, dødmann, logging)",
+   "group": "Elektrisk / Styring",
+   "mat": "PCB",
+   "vol_cm3": 14.56,
+   "mass_kg": 0.02,
+   "x": 411.0,
+   "z": -30.0
+  },
+  {
+   "node": "dpv-hall",
+   "label": "Hall-sensor (trigger)",
+   "group": "Elektrisk / Styring",
+   "mat": "-",
+   "vol_cm3": 0.06,
+   "mass_kg": 0.001,
+   "x": 459.0,
+   "z": 46.39999999999999
+  },
+  {
+   "node": "dpv-motor-mount",
+   "label": "Motorfeste (PETG)",
+   "group": "Drivlinje / Feste",
+   "mat": "PETG",
+   "vol_cm3": 51.67134516991815,
+   "mass_kg": 0.06562260836579606,
+   "x": 607.8016415868672,
+   "z": -3.1590256395646833e-15
+  },
+  {
+   "node": "dpv-motor",
+   "label": "Motor Flipsky 6374 140KV (våt)",
+   "group": "Drivlinje / Motor",
+   "mat": "Stål/Cu",
+   "vol_cm3": 232.8752678363238,
+   "mass_kg": 0.86,
+   "x": 657.4816091411302,
+   "z": 8.4880730053448075e-16
+  },
+  {
+   "node": "dpv-propeller",
+   "label": "Propell Ø180, 3 blader (PETG/nylon, plassholder)",
+   "group": "Drivlinje / Propell",
+   "mat": "PETG",
+   "vol_cm3": 37.608048698435574,
+   "mass_kg": 0.04776222184701318,
+   "x": 714.9999999990744,
+   "z": 2.2248831156876817e-12
+  },
+  {
+   "node": "dpv-duct",
+   "label": "Dyse ID186 med stator og stag (PETG, én print, propellvern)",
+   "group": "Drivlinje / Dyse",
+   "mat": "PETG",
+   "vol_cm3": 357.9122882831785,
+   "mass_kg": 0.4545486061196367,
+   "x": 715.2729677510798,
+   "z": -0.0011837361024757147
+  },
+  {
+   "node": "dpv-handle",
+   "label": "Håndtak (PETG)",
+   "group": "Kontroll / Håndtak",
+   "mat": "PETG",
+   "vol_cm3": 280.86058726540995,
+   "mass_kg": 0.3566929458270706,
+   "x": 480.00000000000006,
+   "z": 94.69994183588804
+  },
+  {
+   "node": "dpv-trigger",
+   "label": "Trigger med magnet (PETG)",
+   "group": "Kontroll / Trigger",
+   "mat": "PETG",
+   "vol_cm3": 7.2,
+   "mass_kg": 0.009144,
+   "x": 459.0,
+   "z": 87.0
+  },
+  {
+   "node": "dpv-clamp-1",
+   "label": "Slangeklemme 1 (rustfri)",
+   "group": "Kontroll / Håndtak",
+   "mat": "A4",
+   "vol_cm3": 2.7758262378063767,
+   "mass_kg": 0.02192902727867038,
+   "x": 449.99999999999994,
+   "z": -7.105427357601002e-14
+  },
+  {
+   "node": "dpv-clamp-2",
+   "label": "Slangeklemme 2 (rustfri)",
+   "group": "Kontroll / Håndtak",
+   "mat": "A4",
+   "vol_cm3": 2.7758262378063767,
+   "mass_kg": 0.02192902727867038,
+   "x": 509.99999999999994,
+   "z": -7.105427357601002e-14
+  },
+  {
+   "node": "dpv-tow-eye",
+   "label": "Festeøye for tow-cord (A4)",
+   "group": "Kontroll / Tow-cord",
+   "mat": "A4",
+   "vol_cm3": 0.7402203300817025,
+   "mass_kg": 0.00584774060764545,
+   "x": 630.0,
+   "z": -92.5
+  }
+ ]
+}

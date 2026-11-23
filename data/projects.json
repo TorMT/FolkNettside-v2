@@ -209,6 +209,119 @@
     ]
   },
   {
+    "slug": "dpv",
+    "title": "DPV (Underwater Scooter)",
+    "type": "design",
+    "current": true,
+    "status": "Pågående · startmodell rev A2, ikke testet i vann",
+    "year": 2026,
+    "summary": "En billig undervannsscooter (DPV) for dykkere med fart og robusthet i tek-klassen, dimensjonert for 40 m og under 3 000 kr. Bygges av standard butikkdeler og 3D-printede deler, med nøytral oppdrift ved design.",
+    "problem": "Tek-DPV-er koster 15 000–130 000 kr og er dimensjonert for 100–300 m. Målet er en DPV for 40 m med tek-fart som studenter kan bygge billig, uten å gå på akkord med sikkerhet: trykktest, dødmannsbryter, propellvern og trygg håndtering av litiumbatteriet.",
+    "solution": "PVC-U trykkrør 110×6,6 PN16 med limt frontkappe og POM-bakplugg med doble O-ringer som trykkbarriere. Alle printede deler er våte. Våt outrunner (Flipsky 6374) uten akselpakning, båt-ESC 2–6S, egenbygd 6S Li-ion-pakke med BMS, ESP32 som gass og dødmannsbryter via hall-sensor gjennom veggen. Røret kappes etter veiing for nøytral oppdrift, og bly i nesa gir vannrett trim.",
+    "skills": [
+      "Hydrodynamikk",
+      "Trykkhus",
+      "Oppdrift og trim",
+      "CAD",
+      "Budsjettering"
+    ],
+    "tools": [
+      "CadQuery",
+      "Python",
+      "Fusion"
+    ],
+    "materials": [
+      "PVC-U",
+      "POM",
+      "PETG",
+      "A4-stål"
+    ],
+    "process": [
+      "Forstudie: ingen egen EN/ISO for DPV-er; krav hentet fra maskindirektivet, opplæringsstandarder og produsentmanualer.",
+      "Lavkost-konsept med tek-ytelse og budsjett under 3 000 kr.",
+      "Knekking av trykkrøret: PN16 110×6,6 gir SF 3,2–3,8 ved 40 m; avløpsrør 110×3,2 kollapser ved ~14 m.",
+      "Aktuatorskive og virkningsgradskjede: 1,1–1,5 m/s toppfart ved 500 W (overslag).",
+      "Parametrisk startmodell i CadQuery: 32 deler, 0 overlapp, masse- og oppdriftsbalanse fra CAD-volumer."
+    ],
+    "results": [
+      "Startmodell rev A2 med STEP, STL for printdeler og GLB for 3D-visning.",
+      "CAD-balanse: 6,27 kg, 6,17 L, netto +0,06 kg i sjø med 0,69 kg bly; tyngdepunktet 3,7 mm bak oppdriftssenteret.",
+      "Funn: innestengt luft i printede deler kan koste 0,24–0,48 kg oppdrift ved 40 m; våte deler printes massive eller drenert."
+    ],
+    "gallery": [
+      {
+        "src": "./assets/demos/dpv/img/reva2-hel.jpg",
+        "alt": "DPV rev A2: oransje printet nese, grått PVC-trykkrør, svart håndtak med rød trigger, hvit POM-bakplugg og oransje dyse",
+        "caption": "Startmodell rev A2 (typiske mål)"
+      },
+      {
+        "src": "./assets/demos/dpv/img/reva2-innmat.jpg",
+        "alt": "Innmaten i DPV-en: battericeller i holderringer, BMS, slede, ESP32, ESC, bakplugg, motor og propell",
+        "caption": "Innmat uten rør og dyse"
+      },
+      {
+        "src": "./assets/demos/dpv/img/reva2-sprengt.jpg",
+        "alt": "Sprengskisse av DPV rev A2 langs lengdeaksen",
+        "caption": "Sprengskisse"
+      }
+    ],
+    "files": [],
+    "links": [
+      {
+        "label": "Prosjektside: 3D, utregninger og logg",
+        "url": "./assets/demos/dpv/index.html",
+        "primary": true
+      },
+      {
+        "label": "3D-modell (sprengbar)",
+        "url": "#/engineering/cad/dpv"
+      },
+      {
+        "label": "STEP-deler rev A2",
+        "url": "./assets/demos/dpv/dpv-reva2-step.zip"
+      },
+      {
+        "label": "Printdeler (STL)",
+        "url": "./assets/demos/dpv/dpv-reva2-print-stl.zip"
+      }
+    ],
+    "embeds": [],
+    "logUrl": "./assets/demos/dpv/index.html",
+    "log": [
+      {
+        "date": "23.11.2026",
+        "title": "Startmodell rev A2 i CadQuery",
+        "result": "32 deler, 0 overlapp; netto +0,06 kg i sjø, xG − xB = +3,7 mm; STEP, STL og GLB"
+      },
+      {
+        "date": "23.11.2026",
+        "title": "Rev A2: første design",
+        "result": "Alt printet er vått; PN16-trykkrør, POM-plugg, A4-gjennomføringer, hall-trigger"
+      },
+      {
+        "date": "23.11.2026",
+        "title": "Rev A1/A1b: budsjett 3 000 kr",
+        "result": "Båt-ESC 2–6S, ESP32 som dødmann, egenbygd 6S-pakke som alternativ"
+      },
+      {
+        "date": "23.11.2026",
+        "title": "Rev A0: lavkost-konsept",
+        "result": "Tek-fart, 40 m; kostnad mot BlackTip og DIY T500 sammenlignet"
+      },
+      {
+        "date": "23.11.2026",
+        "title": "Forstudie",
+        "result": "Standarder, krav og typiske DPV-er kartlagt"
+      }
+    ],
+    "next": [
+      "Låse måltall (toppfart, brenntid), batterivalg og grensesnitt mot dykkecomputeren.",
+      "O-ringspor fra Parker-tabell og pluggtykkelse mot 4,4 kN ved 6 bar.",
+      "Propell og dyse (KT/KQ) mot motoren, Ø ≤ 0,18 m.",
+      "Veie deler, trykkteste hus til 6 bar, verifisere dødmannsbryter og trimme i basseng før noen test med dykker."
+    ]
+  },
+  {
     "slug": "pitch-drive-wind-turbine",
     "title": "Wind turbine pitch drive",
     "type": "design",

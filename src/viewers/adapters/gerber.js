@@ -1,5 +1,5 @@
-import {mountGerberViewer} from "../../engineering/gerber-viewer.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
-import {fetchBoundedBuffer,previewContentURL} from "../utils.js?v=906d934ae3aa2b43c5d1f5bdc0422e6b2240cd78";
+import {mountGerberViewer} from "../../engineering/gerber-viewer.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
+import {fetchBoundedBuffer,previewContentURL} from "../utils.js?v=e6965e51fc31049b66b431e203a66c2d95ac1cab";
 // Single Gerber or Excellon file from the library: shown in the Gerber viewer (layer view of that one file).
 export async function render(container,resource){
   const buffer=await fetchBoundedBuffer(previewContentURL(resource),{maxBytes:30_000_000});

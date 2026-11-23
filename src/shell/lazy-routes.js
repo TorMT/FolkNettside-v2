@@ -4,6 +4,7 @@ const ROUTES={
   "/engineering/kisssoft":["kisssoft"],
   "/engineering/cad":["cad"],
   "/engineering/cad/dykkecomputer":["cad"],
+  "/engineering/cad/dpv":["cad"],
   "/engineering/gerber":["gerber"],
   "/engineering/gerber/dykkecomputer":["gerber"],
   "/tools/vault":["vault"],
