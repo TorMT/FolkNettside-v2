@@ -47,6 +47,18 @@ test("Dive computer prototype opens its static demo bundle from the published as
   }
 });
 
+test("DPV prototype opens its static project page, model and downloads from the published assets",async()=>{
+  const {existsSync}=await import("node:fs");
+  const entry=diverseModule("dpv");
+  assert.equal(entry.status,"prototype");
+  assert.equal(entry.route,null);
+  assert.equal(entry.legacyUrl,null);
+  assert.equal(entry.externalUrl,"./assets/demos/dpv/");
+  for(const file of ["index.html","modell3d.js","dpv-reva2-step.zip","dpv-reva2-print-stl.zip","cad/bygg_reva2.py","cad/masse-oppdrift.json","dok/prosjektlogg.md","img/reva2-hel.jpg"]){
+    assert.ok(existsSync(new URL(`../assets/demos/dpv/${file}`,import.meta.url)),`missing demo file: ${file}`);
+  }
+});
+
 test("native Diverse modules all have routes",()=>{
   assert.ok(nativeDiverseModules().length>=2);
   assert.ok(nativeDiverseModules().every(item=>item.route));
