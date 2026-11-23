@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dykkelykt – prosjekt</title>
+<meta name="description" content="Studentprosjekt ved NTNU: en kanisterlykt for dykking som skal være bedre og billigere enn kommersielle lykter. Krav, startdesign, beregninger, testplan og prosjektlogg.">
+<style>
+  :root {
+    --bg: #f4f6f9; --card: #ffffff; --ink: #1a202c; --muted: #5a6574; --line: #d6dbe2; --soft: #e9eef4;
+    --primary: #004f9f; --warn-bg: #fff4e0; --warn-line: #e3a23b; --warn-ink: #6b4300;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f151c; --card: #18212b; --ink: #e5eaf0; --muted: #9aa7b5; --line: #2a3643; --soft: #1f2a36;
+      --primary: #6aa8ea; --warn-bg: #2b2112; --warn-line: #a8782c; --warn-ink: #f2d29b; color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  a { color: var(--primary) }
+  .wrap { max-width: 1000px; margin: 0 auto; padding-block: 20px 64px }
+  .top { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; flex-wrap: wrap }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); line-height: 1.2; margin: 22px 0 8px; color: var(--primary) }
+  h2 { font-size: 1.4rem; margin: 40px 0 10px; color: var(--primary) }
+  h3 { font-size: 1.05rem; margin: 22px 0 6px }
+  .lead { font-size: 1.08rem; color: var(--muted); max-width: 70ch }
+  .warn { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-ink); border-radius: 8px; padding: 10px 14px; font-size: .95rem }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 18px 0 }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px }
+  .kpi b { display: block; font-size: 1.3rem; color: var(--primary); font-variant-numeric: tabular-nums }
+  .kpi span { font-size: .82rem; color: var(--muted) }
+  nav.sections { position: sticky; top: 0; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); overflow-x: auto }
+  nav.sections ul { display: flex; gap: 4px; list-style: none; margin: 0; padding: 8px 0; white-space: nowrap }
+  nav.sections a { display: block; padding: 6px 12px; border-radius: 999px; text-decoration: none; color: var(--muted); font-size: .92rem }
+  nav.sections a:hover, nav.sections a:focus-visible { color: var(--ink); background: var(--soft) }
+  [id] { scroll-margin-top: 60px }
+  .table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 10px }
+  table { border-collapse: collapse; width: 100%; font-size: .93rem }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top }
+  th { background: var(--soft); font-weight: 600 }
+  tr:last-child td { border-bottom: 0 }
+  .eq { display: block; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin: 8px 0;
+        font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: .92rem; overflow-x: auto; white-space: nowrap }
+  figure { margin: 16px 0 }
+  figure img { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); background: #f4f6f9 }
+  figcaption { font-size: .88rem; color: var(--muted); margin-top: 6px }
+  .ass { color: var(--muted); font-style: italic }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="../../../#/projects/dykkelykt">← Til prosjektkortet</a><span>Prosjekter · Dykkelykt · sist oppdatert 23.11.2026</span></div>
+
+  <h1>Dykkelykt: kanisterlykt for dykking</h1>
+  <p class="lead">Et studentprosjekt i marin teknikk ved NTNU: en primærlykt med batterikanister, kabel og et lite lyktehode på hånden (Goodman-håndtak). Målet er å slå kommersielle kanisterlykter på lys, brenntid og service, til en materialkost på omtrent 1000 kr.</p>
+  <p class="warn"><strong>Ikke til ekte dykking.</strong> Prototypen er i konseptfasen og er ikke sertifisert eller trykktestet. Den skal aldri være eneste lyskilde: det dykkes alltid med en kjøpt backup-lykt. Alle tall merket <span class="ass">antatt</span> skal kontrolleres mot datablad, leverandørpris eller beregning.</p>
+
+  <div class="kpis" aria-label="Nøkkeltall (mål)">
+    <div class="kpi"><b>≥ 80 kcd</b><span>senterstyrke (Halcyon ~80)</span></div>
+    <div class="kpi"><b>≥ 3 t</b><span>brenntid på høy, 10 °C</span></div>
+    <div class="kpi"><b>65 m</b><span>driftsdybde (test 100 m)</span></div>
+    <div class="kpi"><b>≈ 1000 kr</b><span>materialkost</span></div>
+  </div>
+
+  <nav class="sections" aria-label="Seksjoner">
+    <ul>
+      <li><a href="#mal">Mål</a></li>
+      <li><a href="#design">Startdesign</a></li>
+      <li><a href="#beregninger">Beregninger</a></li>
+      <li><a href="#sikkerhet">Sikkerhet</a></li>
+      <li><a href="#budsjett">Budsjett</a></li>
+      <li><a href="#test">Testplan</a></li>
+      <li><a href="#apent">Åpne valg</a></li>
+      <li><a href="#logg">Logg</a></li>
+    </ul>
+  </nav>
+
+  <section id="mal">
+    <h2>Mål og sammenligning</h2>
+    <p>Referanselykter, hentet fra produsent og forhandlere 23.11.2026:</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Lykt</th><th>Lys</th><th>Brenntid høy</th><th>Pris (ca.)</th></tr></thead>
+      <tbody>
+        <tr><td>Halcyon Focus 2.0 (kanister)</td><td>~80 000 lux @ 1 m</td><td>~2,5 t (5,2 Ah)</td><td>ca. 1650 USD</td></tr>
+        <tr><td>Light Monkey 32 W VF</td><td>opptil 8600 lm</td><td>ca. 200 min (10 Ah)</td><td>ikke hentet</td></tr>
+        <tr><td>OrcaTorch D630 V2.0</td><td>4000–4600 lm, 7°</td><td>ca. 5 t (oppgitte batteridata er motstridende)</td><td>fra ca. 550 USD</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Hva «bedre» betyr</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Kriterium</th><th>Vårt mål</th></tr></thead>
+      <tbody>
+        <tr><td>Senterstyrke</td><td>≥ 80 kcd (krav), ≥ 100 kcd (strekkmål)</td></tr>
+        <tr><td>Brenntid</td><td>≥ 3 t på høy ved 10 °C, ≥ 10 t på lav</td></tr>
+        <tr><td>Batteri</td><td>Standard 21700-celler som kan byttes, og en vanlig 1S-lader</td></tr>
+        <tr><td>Forvarsel</td><td>Lyset blir aldri mørkt uten forvarsel (blink og trinnvis dimming)</td></tr>
+        <tr><td>Service</td><td>Alle deler kan kjøpes og byttes; dokumentasjonen er åpen</td></tr>
+        <tr><td>Pris</td><td>Materialkost ca. 1000 kr (maks 1300 kr)</td></tr>
+      </tbody>
+    </table></div>
+    <p>Bevisste kompromisser i rev A: driftsdybde 65 m (kommersielle lykter tåler typisk ca. 150 m), ingen våt-koblbar kabel og en ferdigkjøpt driver.</p>
+  </section>
+
+  <section id="design">
+    <h2>Startdesign rev A0</h2>
+    <figure>
+      <img src="img/startdesign-snitt.png" alt="Skjematisk snitt: POM-kanister med fire celler, vernekort og lokk, 2-leder kabel og aluminiumshode med driver, LED, TIR-linse og glass" width="1200" height="760" loading="lazy">
+      <figcaption>Skjematisk oppbygging. Målene er foreløpige.</figcaption>
+    </figure>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Enhet</th><th>Utforming</th></tr></thead>
+      <tbody>
+        <tr><td>Kanister</td><td>POM, dreid som én kopp: Ø 67 mm, vegg 6 mm, bunn 10 mm. 4 × 21700 i parallell (1S4P, ca. 72 Wh). Lokk med flens (12 mm), to radielle O-ringer og en løs koblingsmutter, så kabelen ikke vris. Egen trykkavlastningsplugg som bare kan åpne utover.</td></tr>
+        <tr><td>Kabel</td><td>Ca. 1,1 m, 2 × 1,5 mm² med PUR-kappe. Støpt i epoksy i begge ender, med hver leder tettet for seg slik at vann ikke vandrer langs lederne.</td></tr>
+        <tr><td>Hode</td><td>Aluminium 6061-T6, anodisert, Ø 50 × ca. 75 mm. Bare én tetning: glasset (borosilikat 4,5 mm) ligger mot en skulder med O-ring. Luminus SST-40 på Cu-DTP MCPCB, TIR-linse ca. 10°, ferdig 1S-driver med temperaturregulering og varsel om lav spenning.</td></tr>
+        <tr><td>Bryter</td><td>Momentan skyver med magnet og fjær. En hall-sensor bak 2–3 mm aluminium styrer driverens e-bryter. Ingen akselgjennomføring.</td></tr>
+        <tr><td>Oppdrift</td><td>Fra 3D-modellen: kanister ca. −0,18 kg og hode ca. −0,17 kg i sjøvann (synker svakt). Kabel, håndtak og feste er ikke med.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>3D-startmodeller</h3>
+    <figure>
+      <img src="img/reva0-3d-snitt.png" alt="Halvsnitt av 3D-modellen: POM-kanister med fire celler, vernekort, lokk med stopeboring og mutter, og aluminiumshode med glass, TIR-linse, LED, hylle, bryterkrage og driver" width="694" height="901" loading="lazy">
+      <figcaption>Halvsnitt av sammenstillingen rev A0, laget med CadQuery. 23 deler, ingen overlapp mellom delene.</figcaption>
+    </figure>
+    <p><a href="dykkelykt-reva0-3d.zip" download>Last ned 3D-modellene (STEP for Fusion, GLB og CadQuery-skript, 0,3 MB)</a>. Alle mål er typiske startstørrelser. O-ringsporene er plassholdere som skal dimensjoneres etter Parker, gjenger er ikke modellert, og LED, linse, driver og vernekort er forenklede klosser.</p>
+  </section>
+
+  <section id="beregninger">
+    <h2>Beregninger</h2>
+    <p>Dimensjonerende trykk er testtrykket ved 100 m:</p>
+    <span class="eq">p = ρ g h = 1025 · 9,81 · 100 ≈ 1,0 MPa ≈ 10 bar &nbsp;(driftsdybde 65 m ≈ 6,5 bar, forhold ≈ 1,55)</span>
+    <h3>Kanister (POM, E ≈ 3 GPa, ν ≈ 0,35 <span class="ass">antatt</span>)</h3>
+    <span class="eq">σ<sub>θ</sub> = p r<sub>m</sub> / t = 1,0 · 30,5 / 6 ≈ 5,1 MPa &nbsp;(tillatt ca. 10 MPa ved kryp)</span>
+    <span class="eq">p<sub>cr</sub> = 2E/(1 − ν²) · (t/D<sub>m</sub>)³ = 6,84·10⁹ · (6/61)³ ≈ 6,5 MPa &nbsp;→ SF ≈ 6,5</span>
+    <span class="eq">Bunn (innspent): t ≥ a √(3p / 4σ) = 27,5 √(3/40) ≈ 7,5 mm → 10 mm</span>
+    <span class="eq">Lokk (fritt opplagt): t ≥ a √(3(3+ν)p / 8σ) = 27,5 √(10,05/80) ≈ 9,7 mm → 12 mm</span>
+    <h3>Frontglass (borosilikat, σ<sub>till</sub> ≈ 20 MPa inkl. SF <span class="ass">antatt</span>)</h3>
+    <span class="eq">t ≥ a √(3p / 4σ) = 20 √(3/80) ≈ 3,9 mm → 4,5 mm</span>
+    <h3>Kabel</h3>
+    <span class="eq">R = ρ L / A = 1,68·10⁻⁸ · 2,2 / 1,5·10⁻⁶ ≈ 0,025 Ω &nbsp;→ ΔU ≈ 0,14 V ved 5,5 A</span>
+    <h3>Brenntid</h3>
+    <span class="eq">t ≈ (72 Wh · 0,8 · 0,85) / (15 W + 0,75 W) ≈ 3,1 t &nbsp;(antatt LED-effekt og virkningsgrad)</span>
+    <h3>Varme i hodet (A ≈ 0,0157 m², P<sub>th</sub> ≈ 12 W)</h3>
+    <span class="eq">Vann: ΔT ≈ 12 / (300 · 0,0157) ≈ 2,5 K &nbsp;|&nbsp; Luft: ΔT ≈ 12 / (10 · 0,0157) ≈ 76 K → driveren må regulere ned</span>
+  </section>
+
+  <section id="sikkerhet">
+    <h2>Sikkerhet og kritiske feilmoder</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Feilmode</th><th>Tiltak</th></tr></thead>
+      <tbody>
+        <tr><td>Mørke uten forvarsel</td><td>Driver med varsel om lav spenning og temperaturregulering som ikke slukker lyset; backup-lykt alltid med</td></tr>
+        <tr><td>Lekkasje til batteriet eller langs kabelen</td><td>To O-ringer på lokket, støpte gjennomføringer med hver leder tettet, trykktest før bruk</td></tr>
+        <tr><td>Termisk løp i celle</td><td>1S-vernekort, sikring 10 A, polaritetskodet holder, trykkavlastningsplugg, lading bare utenfor kanisteren</td></tr>
+        <tr><td>Overoppheting i luft</td><td>Massiv aluminiumshylle bak LED-en og temperaturregulering i driveren</td></tr>
+        <tr><td>Kollaps av glass eller hus</td><td>Dimensjonert mot 10 bar med sikkerhetsfaktor, trykktestet med papir inni</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="budsjett">
+    <h2>Budsjett <span class="ass">(antatte priser)</span></h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Post</th><th>kr</th></tr></thead>
+      <tbody>
+        <tr><td>LED SST-40 + TIR-linse</td><td>100</td></tr>
+        <tr><td>Ferdig driver, hall-sensor og magnet</td><td>130</td></tr>
+        <tr><td>4 × 21700 + vernekort, sikring og holder</td><td>280</td></tr>
+        <tr><td>Kabel og epoksy</td><td>130</td></tr>
+        <tr><td>Husmateriale (0 kr med restmateriale fra verkstedet)</td><td>150</td></tr>
+        <tr><td>Glass og O-ringer</td><td>140</td></tr>
+        <tr><td>Håndtak, skruer A4, Tef-Gel, termisk pasta, silikagel</td><td>110</td></tr>
+        <tr><th>Sum</th><th>≈ 1040</th></tr>
+      </tbody>
+    </table></div>
+    <p>Lader, testbeholder og anodisering er ikke med.</p>
+  </section>
+
+  <section id="test">
+    <h2>Testplan</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>Test</th><th>Bestått når</th></tr></thead>
+      <tbody>
+        <tr><td>T0</td><td>Prøvestøp av kabelgjennomføringen (POM og Al) ved 10–11 bar</td><td>Ingen lekkasje</td></tr>
+        <tr><td>T1</td><td>Tomme hus med kabel og tørt papir inni, 10–11 bar i 30 min, 5 sykler</td><td>Papiret er tørt, ingen deformasjon</td></tr>
+        <tr><td>T2</td><td>Driver og LED på benk gjennom kabelen</td><td>Moduser, forvarsel og temperaturregulering virker</td></tr>
+        <tr><td>T3–T4</td><td>Varmetest i luft (25 °C) og i bøtte med vann</td><td>Hodet under 50 °C i luft, stabil full effekt i vann</td></tr>
+        <tr><td>T5</td><td>Brenntid ved 10 °C</td><td>≥ 3 t på høy</td></tr>
+        <tr><td>T6</td><td>Kabeltrekk, bøying og fallprøve</td><td>Ingen skade, T1 bestås etterpå</td></tr>
+        <tr><td>T7</td><td>Lux-måling på 1 m og 5 m</td><td>≥ 80 kcd</td></tr>
+        <tr><td>T8–T9</td><td>Basseng, deretter sjø gradvis ned til maks 65 m, alltid med backup-lykt</td><td>Ingen lekkasje, betjening med hansker virker</td></tr>
+        <tr><td>T10</td><td>Side om side med en lånt referanselykt</td><td>Dokumentert</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="apent">
+    <h2>Åpne valg</h2>
+    <ul>
+      <li>Konkret TIR-linse (bestemmer hodets diameter) og konkret 1S-driver for ca. 5 A.</li>
+      <li>Cellemodell og faktiske priser.</li>
+      <li>Restmateriale og mulighet for anodisering i verkstedet.</li>
+      <li>Testbeholder for 10–11 bar (NTNU eller egen, alltid testet med vann).</li>
+      <li>Punktsveising av cellene, eller ferdig 1S4P-pakke.</li>
+    </ul>
+  </section>
+
+  <section id="logg">
+    <h2>Prosjektlogg</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Dato</th><th>Rev</th><th>Endring</th></tr></thead>
+      <tbody>
+        <tr><td>23.11.2026</td><td>A0</td><td>Enkle 3D-startmodeller i CadQuery: 23 deler, 0 overlapp, STEP og GLB. Masse og oppdrift regnet fra modellen.</td></tr>
+        <tr><td>23.11.2026</td><td>A0</td><td>Startdesign: POM-kanister Ø 67, Al-hode Ø 50 med én tetning, glass 4,5 mm, støpte gjennomføringer og hall-skyver.</td></tr>
+        <tr><td>23.11.2026</td><td>Krav rev 3</td><td>Kostnadsmål ca. 1000 kr: 1S4P, SST-40, ferdig driver i hodet og 2-leder kabel.</td></tr>
+        <tr><td>23.11.2026</td><td>Krav rev 2</td><td>Testdybde 100 m (10–11 bar) og driftsdybde 65 m.</td></tr>
+        <tr><td>23.11.2026</td><td>Krav rev 1</td><td>Mål satt: bedre og billigere enn en tilsvarende kanisterlykt. Benchmark mot Halcyon, Light Monkey og OrcaTorch.</td></tr>
+        <tr><td>23.11.2026</td><td>Krav rev 0</td><td>Kravspesifikasjon og kartlegging opprettet.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+</div>
+</body>
+</html>
