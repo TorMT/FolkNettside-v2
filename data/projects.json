@@ -322,6 +322,99 @@
     ]
   },
   {
+    "slug": "dykkelykt",
+    "title": "Dykkelykt",
+    "type": "design",
+    "current": true,
+    "status": "Pågående · konseptfase, ikke trykktestet",
+    "year": 2026,
+    "summary": "En kanisterlykt for dykking med batterikanister, kabel og lyktehode på hånden. Målet er å slå kommersielle kanisterlykter på lys, brenntid og service, til en materialkost på omtrent 1000 kr.",
+    "problem": "Kommersielle kanisterlykter koster fra ca. 550 til over 1600 USD og bruker forseglede, proprietære batteripakker. Målet er en åpen lykt med standard 21700-celler som studenter kan bygge og vedlikeholde selv.",
+    "solution": "Kanister i POM med fire 21700-celler i parallell, 2-leder kabel støpt i epoksy og et lite aluminiumshode med Luminus SST-40, TIR-linse og ferdig driver med temperaturregulering og varsel om lav spenning. Magnetisk hall-bryter uten akselgjennomføring. Driftsdybde 65 m, trykktestet til 100 m.",
+    "skills": [
+      "Trykkhus",
+      "Varmeberegning",
+      "Optikk",
+      "Batterisikkerhet",
+      "Fusion"
+    ],
+    "tools": [
+      "Fusion",
+      "CadQuery"
+    ],
+    "materials": [
+      "POM-C",
+      "Aluminium 6061",
+      "Borosilikatglass",
+      "Li-ion 21700"
+    ],
+    "process": [
+      "Kravspesifikasjon med kritiske feilmoder, målbare mål og benchmark mot Halcyon, Light Monkey og OrcaTorch.",
+      "Vegg, bunn, lokk og glass dimensjonert mot 10 bar, med kontroll mot både flytegrense og knekking.",
+      "Varmevei og brenntid regnet grovt; termisk nedregulering i luft er et krav.",
+      "Startdesign rev A0 med enkle 3D-modeller i typiske størrelser."
+    ],
+    "results": [
+      "Kravspesifikasjon rev 3 og startdesign rev A0 klare.",
+      "Enkle 3D-startmodeller: 23 deler uten overlapp, som STEP for Fusion og GLB.",
+      "Anslått materialkost ca. 1040 kr.",
+      "Funn: en POM-kanister med samme vegg som aluminium knekker; 6 mm vegg gir sikkerhetsfaktor ca. 6,5."
+    ],
+    "gallery": [
+      {
+        "src": "./assets/demos/dykkelykt/img/startdesign-snitt.png",
+        "alt": "Skjematisk snitt av dykkelykten: POM-kanister med fire celler og lokk, kabel og aluminiumshode med LED, linse og glass",
+        "caption": "Startdesign rev A0 (skjematisk)"
+      },
+      {
+        "src": "./assets/demos/dykkelykt/img/reva0-3d-snitt.png",
+        "alt": "Halvsnitt av 3D-modellen: kanister med fire celler og lokk, og aluminiumshode med glass, linse, LED og driver",
+        "caption": "3D-startmodell rev A0 (halvsnitt)"
+      }
+    ],
+    "files": [],
+    "links": [
+      {
+        "label": "Prosjektside: krav, design og logg",
+        "url": "./assets/demos/dykkelykt/index.html",
+        "primary": true
+      },
+      {
+        "label": "3D-modeller rev A0 (STEP, GLB og CadQuery-skript)",
+        "url": "./assets/demos/dykkelykt/dykkelykt-reva0-3d.zip"
+      }
+    ],
+    "embeds": [],
+    "logUrl": "./assets/demos/dykkelykt/index.html",
+    "log": [
+      {
+        "date": "23.11.2026",
+        "title": "3D-startmodeller rev A0",
+        "result": "23 deler i CadQuery, 0 overlapp; kanister ca. −0,18 kg og hode ca. −0,17 kg i sjøvann"
+      },
+      {
+        "date": "23.11.2026",
+        "title": "Startdesign rev A0",
+        "result": "POM-kanister Ø 67 og Al-hode Ø 50 med én tetning; vegg, lokk og glass dimensjonert mot 10 bar"
+      },
+      {
+        "date": "23.11.2026",
+        "title": "Kostnadsmål ca. 1000 kr",
+        "result": "1S4P 21700, SST-40, ferdig driver og 2-leder kabel; anslag ca. 1040 kr"
+      },
+      {
+        "date": "23.11.2026",
+        "title": "Dybde satt",
+        "result": "Driftsdybde 65 m, trykktest ved 100 m (10–11 bar)"
+      },
+      {
+        "date": "23.11.2026",
+        "title": "Kravspesifikasjon",
+        "result": "Mål: bedre og billigere enn en tilsvarende kanisterlykt"
+      }
+    ]
+  },
+  {
     "slug": "pitch-drive-wind-turbine",
     "title": "Wind turbine pitch drive",
     "type": "design",

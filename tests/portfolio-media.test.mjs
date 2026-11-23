@@ -157,3 +157,17 @@ test("current DPV project: badge, local links, log and checked-in 3D model in th
  assert.equal(new Set(DPV_PARTS.map(p=>p.node)).size,32);
  assert.ok(DPV_PARTS.every(p=>p.node.startsWith("dpv-")&&p.label&&p.viewerGroup));
 });
+
+test("dive light is an ongoing project with checked-in page, sketch and 3D package",()=>{
+ const project=projects.find(p=>p.slug==="dykkelykt");
+ assert.ok(project,"dive light project card must exist");
+ assert.equal(project.current,true);
+ for(const file of ["index.html","dykkelykt-reva0-3d.zip","img/startdesign-snitt.png","img/reva0-3d-snitt.png"])
+   assert.ok(existsSync(new URL(`../assets/demos/dykkelykt/${file}`,import.meta.url)),"missing: "+file);
+ const card=renderProjectCard(project);
+ assert.match(card,/project-row-current/);
+ assert.match(card,/href="#\/projects\/dykkelykt"/);
+ const detail=renderProjectDetail(project);
+ assert.match(detail,/href="\.\/assets\/demos\/dykkelykt\/index\.html"/);
+ assert.match(detail,/href="\.\/assets\/demos\/dykkelykt\/dykkelykt-reva0-3d\.zip"/);
+});
