@@ -105,6 +105,20 @@ export const DIVERSE_MODULES=[
     sync:"none"
   },
   {
+    id:"dpv",
+    title:"DPV (Underwater Scooter)",
+    short:"DPV",
+    route:null,
+    status:"prototype",
+    access:"public",
+    category:"Prototype",
+    summary:"Studentprosjekt: billig undervannsscooter for dykkere med tek-fart, dimensjonert for 40 m. Startmodell i 3D med innmat, utregninger av trykkhus, oppdrift og trim, budsjett og logg. Ikke testet i vann.",
+    legacyUrl:null,
+    externalUrl:"./assets/demos/dpv/",
+    storage:"browser-only-demo",
+    sync:"none"
+  },
+  {
     id:"medisin",
     title:"MedisinTimer",
     short:"TIME",

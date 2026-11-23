@@ -135,3 +135,25 @@ test("dive computer opens its checked-in 3D model in the CAD workbench",async()=
  assert.equal(DIVE_PARTS.length,120);
  assert.equal(new Set(DIVE_PARTS.map(p=>p.node)).size,120);
 });
+
+test("current DPV project: badge, local links, log and checked-in 3D model in the CAD workbench",async()=>{
+ const {projectModelRoute}=await import("../src/components/project-card.js");
+ const project=projects.find(item=>item.slug==="dpv");
+ assert.ok(project&&project.current===true,"DPV must be listed as a current project");
+ assert.match(renderProjectCard(project),/class="project-current-badge">Pågående</);
+ const detail=renderProjectDetail(project);
+ assert.match(detail,/class="project-log-table"/);
+ assert.match(detail,/href="\.\/assets\/demos\/dpv\/index\.html"/);
+ assert.match(detail,/href="#\/engineering\/cad\/dpv">3D-modell \(sprengbar\)</);
+ assert.match(detail,/href="\.\/assets\/demos\/dpv\/dpv-reva2-step\.zip" download/);
+ assert.match(detail,/Dette gjenstår/);
+ const link=project.links.find(l=>l.url.startsWith("#/"));
+ assert.equal(projectModelRoute(link.url),"#/engineering/cad/dpv");
+ for(const item of [...project.links.filter(l=>!l.url.startsWith("#/")),{url:project.logUrl},...project.gallery.map(g=>({url:g.src}))])
+   assert.ok(existsSync(new URL("../"+item.url.slice(2),import.meta.url)),"missing "+item.url);
+ assert.ok(existsSync(new URL("../assets/models/dpv-reva2.glb",import.meta.url)));
+ const {DPV_PARTS}=await import("../src/engineering/dpv-parts.js");
+ assert.equal(DPV_PARTS.length,32);
+ assert.equal(new Set(DPV_PARTS.map(p=>p.node)).size,32);
+ assert.ok(DPV_PARTS.every(p=>p.node.startsWith("dpv-")&&p.label&&p.viewerGroup));
+});

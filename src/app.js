@@ -2655,7 +2655,7 @@ async function render(){disposeActiveViewer();const currentPath=route();if(curre
   gerberCleanup?.();
   app.innerHTML=top("engineering")+gerberPageHTML();
   bindNav();gerberCleanup=mountGerberPage(app,{preset:path.split("/")[3]||""});return;
-}if(path==="/engineering/cad"||path==="/engineering/cad/dykkecomputer"){
+}if(path==="/engineering/cad"||path==="/engineering/cad/dykkecomputer"||path==="/engineering/cad/dpv"){
   document.documentElement.dataset.lens="workspace";
   app.innerHTML=top("engineering")+cadToolHTML();
   bindNav();cadToolCleanup=mountCADTool(app,{open:path.split("/")[3]||""});return;
