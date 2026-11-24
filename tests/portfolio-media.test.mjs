@@ -171,3 +171,26 @@ test("dive light is an ongoing project with checked-in page, sketch and 3D packa
  assert.match(detail,/href="\.\/assets\/demos\/dykkelykt\/index\.html"/);
  assert.match(detail,/href="\.\/assets\/demos\/dykkelykt\/dykkelykt-reva0-3d\.zip"/);
 });
+
+test("STA plate is an active project with page, 3D viewers, taco data and stress images",()=>{
+ const project=projects.find(p=>p.slug==="sta-plate");
+ assert.ok(project,"STA plate project card must exist");
+ assert.equal(project.current,true);
+ const base="../assets/demos/sta-plate/";
+ for(const file of ["index.html","sta-modell3d.js","taco3d.js","sta-plate-v04.glb","taco-oppsett.glb","taco-profiler.json",
+   "img/v04-samlet.jpg","img/v04-deler.jpg","img/gd-forhandsvisning-topp.jpg","img/gd-forhandsvisning-skra.jpg",
+   "img/sf-a-web.jpg","img/sf-b-langsribber.jpg","img/sf-c-tverrribber.jpg","img/sf-d-hoyere.jpg","img/sf-e-avfaset.jpg","img/sf-f-endelig.jpg"])
+   assert.ok(existsSync(new URL(base+file,import.meta.url)),"missing: "+file);
+ for(const g of project.gallery) assert.ok(existsSync(new URL("../"+g.src.slice(2),import.meta.url)),"missing "+g.src);
+ const page=readFileSync(new URL(base+"index.html",import.meta.url),"utf8");
+ for(const m of page.matchAll(/(?:src|href)="((?:img\/)?[\w.-]+\.(?:jpg|png|glb|json|js))"/g))
+   assert.ok(existsSync(new URL(base+m[1],import.meta.url)),"page references missing "+m[1]);
+ const prof=JSON.parse(readFileSync(new URL(base+"taco-profiler.json",import.meta.url),"utf8"));
+ assert.deepEqual(Object.keys(prof).sort(),["D12","single","v02","v03","v04"]);
+ assert.ok(prof.single.mean>prof.v02.mean&&prof.v02.mean>prof.v04.mean&&prof.v04.mean>prof.D12.mean);
+ const card=renderProjectCard(project);
+ assert.match(card,/project-row-current/);
+ assert.match(card,/href="#\/projects\/sta-plate"/);
+ const detail=renderProjectDetail(project);
+ assert.match(detail,/href="\.\/assets\/demos\/sta-plate\/index\.html"/);
+});

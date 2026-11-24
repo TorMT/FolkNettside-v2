@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>STA-omgjøringsplate – prosjekt</title>
+<meta name="description" content="Studentprosjekt: en 3D-printet plate mellom Tecline Donut 22-vinge og STA, slik at en enkeltflaske oppfører seg som et D12-dobbelsett uten taco. Iterasjoner, duksimulering, generativt design, styrkeanalyse og seks printbare deler.">
+<style>
+  :root {
+    --bg: #f4f6f9; --card: #ffffff; --ink: #1a202c; --muted: #5a6574; --line: #d6dbe2; --soft: #e9eef4;
+    --primary: #004f9f; --warn-bg: #fff4e0; --warn-line: #e3a23b; --warn-ink: #6b4300; --stage: #dfe5ec;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
+    --nedre: #4a86d4; --midt: #ec9a3e; --ovre: #55ad6c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f151c; --card: #18212b; --ink: #e5eaf0; --muted: #9aa7b5; --line: #2a3643; --soft: #1f2a36;
+      --primary: #6aa8ea; --warn-bg: #2b2112; --warn-line: #a8782c; --warn-ink: #f2d29b; --stage: #121b24; color-scheme: dark;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+    }
+  }
+  * { box-sizing: border-box; min-width: 0 }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  a { color: var(--primary) }
+  .wrap { max-width: 1040px; margin: 0 auto; padding-block: 20px 64px }
+  .top { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; flex-wrap: wrap }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); line-height: 1.2; margin: 22px 0 8px; color: var(--primary) }
+  h2 { font-size: 1.4rem; margin: 40px 0 10px; color: var(--primary) }
+  h3 { font-size: 1.05rem; margin: 22px 0 6px }
+  p, li { max-width: 75ch }
+  .lead { font-size: 1.08rem; color: var(--muted) }
+  .muted { color: var(--muted); font-size: .92rem }
+  .warn { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-ink); border-radius: 8px; padding: 10px 14px; font-size: .95rem }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px }
+  .kpi b { display: block; font-size: 1.3rem; color: var(--primary); font-variant-numeric: tabular-nums }
+  .kpi span { font-size: .82rem; color: var(--muted) }
+  nav.sections { position: sticky; top: 0; z-index: 3; background: var(--bg); border-bottom: 1px solid var(--line); overflow-x: auto }
+  nav.sections ul { display: flex; gap: 4px; list-style: none; margin: 0; padding: 8px 0; white-space: nowrap }
+  nav.sections li { flex: none }
+  nav.sections a { display: block; padding: 6px 12px; border-radius: 999px; text-decoration: none; color: var(--muted); font-size: .92rem }
+  nav.sections a:hover, nav.sections a:focus-visible { color: var(--ink); background: var(--soft) }
+  [id] { scroll-margin-top: 60px }
+  .table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin: 10px 0 }
+  table { border-collapse: collapse; width: 100%; font-size: .93rem }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top }
+  th { background: var(--soft); font-weight: 600 }
+  td.n, th.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums }
+  tr:last-child td { border-bottom: 0 }
+  .eq { display: block; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin: 8px 0;
+        font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: .92rem; overflow-x: auto; white-space: nowrap }
+  figure { margin: 16px 0 }
+  figure img { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); background: var(--stage); display: block }
+  figcaption { font-size: .88rem; color: var(--muted); margin-top: 6px }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 14px }
+  .grid2 figure { margin: 0 }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 12px 0 }
+  .card h3 { margin-top: 2px }
+  .tag { display: inline-block; font-size: .78rem; padding: 1px 8px; border-radius: 999px; background: var(--soft); color: var(--muted); margin-left: 6px; vertical-align: 2px }
+
+  /* 3D viewers */
+  .viewer { display: grid; grid-template-columns: minmax(0, 1fr) 230px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden }
+  @media (max-width: 820px) { .viewer { grid-template-columns: minmax(0, 1fr) } }
+  .stage { position: relative; aspect-ratio: 4 / 3; max-height: 72vh; width: 100%; background: radial-gradient(circle at 50% 35%, var(--card), var(--stage)); min-height: 280px }
+  .stage canvas { display: block; width: 100%; height: 100%; touch-action: none }
+  .stage .msg { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: .95rem; text-align: center; padding: 20px }
+  .stage .pick { position: absolute; left: 12px; bottom: 12px; right: 12px; pointer-events: none; display: flex }
+  .stage .pick[hidden] { display: none }
+  .stage .pick span, .stage .cap { background: color-mix(in srgb, var(--card) 88%, transparent); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: .88rem }
+  .stage .cap { position: absolute; left: 12px; top: 12px; pointer-events: none }
+  .stage .cap:empty { display: none }
+  .panel { padding: 12px; border-left: 1px solid var(--line); display: grid; gap: 12px; align-content: start }
+  @media (max-width: 820px) { .panel { border-left: 0; border-top: 1px solid var(--line) } }
+  .panel h3 { margin: 0; font-size: .85rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em }
+  .seg { display: flex; flex-wrap: wrap; gap: 6px }
+  button { font: inherit }
+  .seg button, .parts button, .btn, .ctrl label {
+    min-height: 44px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); cursor: pointer; font-size: .92rem;
+    display: inline-flex; align-items: center; gap: 8px }
+  .seg button[aria-pressed="true"], .parts button[aria-pressed="true"] { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); font-weight: 600 }
+  button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px }
+  .parts { display: grid; gap: 4px }
+  .parts button { width: 100%; justify-content: flex-start; text-align: left }
+  .parts .n { margin-left: auto; color: var(--muted); font-size: .82rem }
+  .sw { width: 12px; height: 12px; border-radius: 3px; flex: none }
+  .sw-nedre { background: var(--nedre) } .sw-midt { background: var(--midt) } .sw-ovre { background: var(--ovre) }
+  .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; flex-direction: column; gap: 0; padding: 10px 18px }
+  .btn.primary span { font-size: .8rem; opacity: .85 }
+  .ctrl { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line) }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 }
+  .tabs button { min-height: 44px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 8px }
+  .tabs button[aria-pressed="true"] { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); font-weight: 600 }
+  .dot { width: 12px; height: 12px; border-radius: 50%; flex: none }
+  .taco .stage { aspect-ratio: 16 / 10 }
+
+  /* chart */
+  .chart { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px }
+  .chart svg { display: block; width: 100%; height: 320px }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .88rem; padding: 4px 8px 2px; color: var(--muted) }
+  .legend span { display: inline-flex; align-items: center; gap: 6px }
+  .legend i { width: 18px; height: 3px; border-radius: 2px; display: inline-block }
+  .tip { position: absolute; pointer-events: none; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: .82rem; box-shadow: 0 4px 14px rgb(0 0 0 / .15); white-space: nowrap }
+  .tip[hidden] { display: none }
+  .tip b { display: block; margin-bottom: 2px }
+  .tip div { display: flex; align-items: center; gap: 6px }
+  .tip i { width: 10px; height: 3px; border-radius: 2px }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth } }
+  @media print { nav.sections, .viewer, .tabs, .ctrl { display: none !important } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="../../../#/projects/sta-plate">← Til prosjektkortet</a><span>Prosjekter · STA-omgjøringsplate · sist oppdatert 24.11.2026</span></div>
+
+  <h1>STA-omgjøringsplate: enkeltflaske som D12, uten taco</h1>
+  <p class="lead">En 3D-printet plate som sitter mellom en Tecline Donut 22-dobbeltvinge og STA-en på en Halcyon backplate. Platen gir vinga samme støtte som et D12-dobbelsett, slik at sidene ikke bretter seg rundt en enkeltflaske («taco»). Den printes på en Bambu P2S i seks deler som skrues sammen. Ingen lim.</p>
+  <p class="warn"><strong>Ikke testet i vann.</strong> Platen er modellert, simulert og klargjort for print, men ennå ikke printet eller prøvd på et ekte dykk. Vingeomrisset og lastene er anslått. Tallene sammenligner oppsett; de er ikke en sertifisering.</p>
+
+  <div class="kpis" aria-label="Nøkkeltall">
+    <div class="kpi"><b>104 → 24 mm</b><span>tupphøyde, enkel + STA → med plate (D12: 19 mm)</span></div>
+    <div class="kpi"><b>6 deler</b><span>maks 173 × 200 × 42 mm, passer P2S</span></div>
+    <div class="kpi"><b>20 × M4</b><span>skruer og mutterlommer, ingen lim</span></div>
+    <div class="kpi"><b>SF ≈ 4</b><span>ved STA-kanten (håndregning, ABS)</span></div>
+  </div>
+
+  <nav class="sections" aria-label="Seksjoner">
+    <ul>
+      <li><a href="#modell">3D-modell</a></li>
+      <li><a href="#problem">Problemet</a></li>
+      <li><a href="#iterasjoner">Iterasjoner</a></li>
+      <li><a href="#taco">Taco-test</a></li>
+      <li><a href="#gd">Generativt design</a></li>
+      <li><a href="#styrke">Styrkeanalyse</a></li>
+      <li><a href="#montering">Montering og print</a></li>
+      <li><a href="#filer">Filer</a></li>
+      <li><a href="#logg">Logg</a></li>
+    </ul>
+  </nav>
+
+  <section id="modell">
+    <h2>Endelig design v0.4 i 3D</h2>
+    <p>Se platen samlet, sprengt eller som seks enkeltdeler slik de ligger på printeren. Trykk på en del i listen eller i modellen for å se mål og volum.</p>
+    <div class="viewer">
+      <div class="stage" id="stage">
+        <div class="msg" id="stagemsg"><button class="btn primary" type="button" id="load3d"><b>Vis 3D-modellen</b><span>0,9 MB, lastes i nettleseren</span></button></div>
+        <div class="pick" id="pick" hidden><span></span></div>
+      </div>
+      <div class="panel">
+        <h3>Visning</h3>
+        <div class="seg" role="group" aria-label="Oppstilling">
+          <button type="button" data-mode="assembled" aria-pressed="true">Samlet plate</button>
+          <button type="button" data-mode="exploded" aria-pressed="false">Sprengt</button>
+          <button type="button" data-mode="separate" aria-pressed="false">Hver for seg</button>
+        </div>
+        <h3>Retning</h3>
+        <div class="seg" role="group" aria-label="Kamera">
+          <button type="button" data-view="iso">Skrått</button>
+          <button type="button" data-view="tank">Flaskeside</button>
+          <button type="button" data-view="wing">Vingeside</button>
+          <button type="button" data-view="top">Ovenfra</button>
+        </div>
+        <h3>Deler</h3>
+        <div class="parts" id="parts"><span class="muted">Delene vises når modellen er lastet.</span></div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <figure><img src="img/v04-samlet.jpg" alt="Ferdig STA-plate v0.4 samlet, sett skrått fra flaskesiden: ribber, skjøtevegger og D12-buer langs kantene" width="1597" height="1000" loading="lazy"><figcaption>Samlet plate, 346 × 515 mm.</figcaption></figure>
+      <figure><img src="img/v04-deler.jpg" alt="De seks delene av STA-plate v0.4 lagt hver for seg i to kolonner og tre rader" width="1597" height="1000" loading="lazy"><figcaption>De seks printdelene hver for seg.</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="problem">
+    <h2>Problemet</h2>
+    <p>En Donut 22 er laget for dobbelsett. På et D12-sett ligger vinga mot to flasker (Ø 171 mm, 215 mm mellom sentrene), og sidene får god støtte. Med en enkeltflaske på en 70 mm bred STA har vinga ingenting å legge seg mot på sidene. Når den fylles, bretter sidene seg opp rundt flaska som et taco-skall. Det gir trim-problemer og gass som blir fanget i brettene.</p>
+    <p>Målet: en plate under STA-en som gir vinga samme form å legge seg mot som et D12-sett, som printes på en Bambu P2S (256 × 256 × 256 mm) og som skrues sammen.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Utstyr</th><th>Mål brukt i modellene</th></tr></thead>
+      <tbody>
+        <tr><td>Halcyon standard backplate</td><td>393 × 260 mm, bolter 280 mm c/c, 3,7 mm (kalibrert mot vekt)</td></tr>
+        <tr><td>Tecline STA</td><td>70 × 360 mm, 20 mm dyp, bolter 5/16-18; med platen trengs 1,5" bolter</td></tr>
+        <tr><td>Tecline Donut 22</td><td>Omriss ikke oppgitt av produsent; anslått og kalibrert til 22 L</td></tr>
+        <tr><td>D12-referanse</td><td>2 × Ø 171 mm, 215 mm c/c</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="iterasjoner">
+    <h2>Iterasjoner og tankene bak</h2>
+
+    <div class="card"><h3>v0.1 · Flat plate<span class="tag">23.11.2026</span></h3>
+      <p><b>Tanke:</b> Det enkleste som kan virke: en flat plate (380 × 320 mm) under STA-en som gjør støtteflaten bredere.</p>
+      <p><b>Funn:</b> En flat plate støtter bare der den er. Vinga på et D12-sett ligger mot to runde flasker, så kantene må bue fram mot flaska for å gi samme form.</p></div>
+
+    <div class="card"><h3>v0.2 · D12-kontur<span class="tag">23.11.2026</span></h3>
+      <p><b>Tanke:</b> Kopier vingesida av et D12-sett: flat mellom ±107,5 mm (der flaskene står), deretter en bue med radius 85,5 mm (halve flaskediameteren) 47° framover. 340 × 320 mm i seks deler med overlappskjøt og M5 senkskruer.</p>
+      <p><b>Funn:</b> Taco-testen (under) viste at formen virker der platen sitter, men vinga er bredest ca. 150 mm under boltene, altså under platen. Snittet ble 42 mm tupphøyde mot 19 mm for D12.</p></div>
+
+    <div class="card"><h3>v0.3 · Lengre, og rammeplate<span class="tag">23.11.2026</span></h3>
+      <p><b>Tanke:</b> Dekk hele vinga (−300 til +215 mm langs ryggen). Et søk med duksimuleringen testet lengde og buevinkel: 57° var ikke bedre enn 50°, men lengden var avgjørende. Siden vinga spenner over hull, prøvde vi en åpen ramme: ryggstav, fem tverrarmer og to buede skinner.</p>
+      <p><b>Funn:</b> Rammen ga 24,4 mm tupphøyde, like godt som hel plate (23,6 mm), med 23 % mindre plast. Men rammen var ni deler med mange skjøter, og ingen styrkeanalyse ennå.</p></div>
+
+    <div class="card"><h3>Generativt design · Hvor skal materialet sitte?<span class="tag">24.11.2026</span></h3>
+      <p><b>Tanke:</b> La Fusion finne lastveien. Studien fikk vingeflatene og STA-setet som faste områder, flaske, STA og bolter som hindringer, og fire lasttilfeller, blant annet tacokraften sideveis.</p>
+      <p><b>Funn:</b> Skyberegningen krevde 11 Cloud Credits som kontoen ikke hadde, så vi brukte den lokale forhåndsvisningen. Den la et sammenhengende tynt skall fra ryggen ut til buene, fortykket nær STA-endene. Rammen med hull var altså ikke den beste lastveien for sideveis last. Det ble grunnlaget for v0.4.</p></div>
+
+    <div class="card"><h3>v0.4 · Ribbet skall<span class="tag">24.11.2026</span></h3>
+      <p><b>Tanke:</b> Følg forhåndsvisningen: et 3 mm skall med D12-buer, 8 mm ryggstav og skinner, bygget parametrisk i Fusion (alle mål som <code>sta_</code>-parametere). Styrken testes lokalt i Fusion med tacolasten.</p>
+      <p><b>Funn:</b> Bare skall holdt ikke (SF 0,49). Lengdegående ribber hjalp nesten ikke, fordi taco er bøying <i>ut fra</i> STA-en, om lengdeaksen. Tverrribber og en tykk rot ut til STA-kanten løste det. Se <a href="#styrke">styrkeanalysen</a>.</p></div>
+
+    <div class="card"><h3>v0.4 ferdig · Printklar i seks deler<span class="tag">24.11.2026</span></h3>
+      <p><b>Tanke:</b> Del platen der lasten er lav: midtskjøten ligger under STA-en (STA-boltene klemmer den), og tverrskjøtene ligger på tvers av bøyeretningen. Skjøtene får 16 mm vegger med M4-skruer og sekskantede mutterlommer, slik at alt kan skrus sammen uten lim.</p>
+      <p><b>Funn:</b> Alle 20 skruehull er kontrollert med skript i Fusion: hullet går gjennom begge deler, veggen er hel rundt hullet, og det er plass til hode og mutter. Delene overlapper ikke (interferenssjekk 0).</p></div>
+  </section>
+
+  <section id="taco" class="taco">
+    <h2>Taco-test: duksimulering av vinga</h2>
+    <p>Samme Donut 22 på Halcyon-plate i fire oppsett, med ekte duksimulering: stoffet strekker seg ikke, oppdriften sitter i gassringen, og ingenting går gjennom flasker, STA, plate eller backplate. Taco-målet er hvor høyt vingetuppen klatrer mot flaska.</p>
+    <div class="tabs" id="tacotabs" role="group" aria-label="Oppsett">
+      <button type="button" data-c="D12" aria-pressed="false"><span class="dot" style="background:var(--s1)"></span>D12 dobbelsett</button>
+      <button type="button" data-c="single" aria-pressed="false"><span class="dot" style="background:var(--s2)"></span>Enkel + STA</button>
+      <button type="button" data-c="plate" aria-pressed="false"><span class="dot" style="background:var(--s3)"></span>Enkel + plate v0.2</button>
+      <button type="button" data-c="v03" aria-pressed="true"><span class="dot" style="background:var(--s4)"></span>Enkel + ramme v0.3</button>
+    </div>
+    <div class="viewer" style="grid-template-columns:minmax(0,1fr)">
+      <div class="stage" id="tacostage">
+        <div class="msg" id="tacomsg"><button class="btn primary" type="button" id="loadtaco"><b>Vis simuleringene i 3D</b><span>2,3 MB, lastes i nettleseren</span></button></div>
+        <span class="cap" id="tacocap"></span>
+      </div>
+      <div class="ctrl" id="tacoctrl">
+        <label><input type="checkbox" data-k="tank" checked> Flaske(r)</label>
+        <label><input type="checkbox" data-k="wing" checked> Vinge</label>
+        <label><input type="checkbox" data-k="bp" checked> Backplate</label>
+        <label><input type="checkbox" data-k="hw" checked> STA / plate / bånd</label>
+        <button class="btn" type="button" data-view="end">Fra enden (taco)</button>
+        <button class="btn" type="button" data-view="iso">3D</button>
+        <button class="btn" type="button" data-view="back">Bakfra</button>
+      </div>
+    </div>
+
+    <h3>Hvor høyt vingetuppen klatrer, langs vinga</h3>
+    <div class="chart" id="chart">
+      <div class="legend" id="legend"></div>
+      <svg id="tacosvg" role="img" aria-label="Tupphøyde langs vinga for fem oppsett. Tabellen under har snittverdiene."></svg>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+    <p class="muted">Venstre er bunnen av vinga, høyre er toppen. Det grå feltet er platens utstrekning (−300 til +215 mm). Toppen (over +230 mm) løfter seg også på D12, rundt ventilene. v0.4 har samme utstrekning og bue som «hel plate, full lengde».</p>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th>Oppsett</th><th class="n">Langs ryggen</th><th class="n">Bue</th><th class="n">Snitt tupphøyde</th></tr></thead>
+      <tbody>
+        <tr><td>D12 (referanse)</td><td class="n">–</td><td class="n">–</td><td class="n">18,7 mm</td></tr>
+        <tr><td>Enkel + STA, ingen plate</td><td class="n">–</td><td class="n">–</td><td class="n">103,7 mm</td></tr>
+        <tr><td>v0.2 hel</td><td class="n">−160 … +160</td><td class="n">47°</td><td class="n">42,4 mm</td></tr>
+        <tr><td>Hel, kortere topp</td><td class="n">−300 … +160</td><td class="n">57°</td><td class="n">31,5 mm</td></tr>
+        <tr><td>Ramme v0.3</td><td class="n">−300 … +215</td><td class="n">50°</td><td class="n">24,4 mm</td></tr>
+        <tr><td><b>Hel, full lengde (geometrien til v0.4)</b></td><td class="n">−300 … +215</td><td class="n">50°</td><td class="n"><b>23,6 mm</b></td></tr>
+      </tbody>
+    </table></div>
+    <ul>
+      <li><b>Lengden trengs.</b> Vinga er bredest ved −150 mm og har mye stoff øverst; stopper platen på +160 mm, klatrer toppen igjen.</li>
+      <li><b>50° bue holder.</b> 57° ga ingen målbar forbedring.</li>
+      <li><b>Midten trengs ikke for formen.</b> Åpen ramme ga samme tupphøyde som hel plate. For styrken viste generativt design og FEM likevel at et sammenhengende skall er bedre.</li>
+    </ul>
+    <h3>Slik er vinga simulert</h3>
+    <ol>
+      <li>Vinga er et nett av 3580 punkter i omrisset fra modellbiblioteket, med glatt søm langs kanten. Kantene holder lengden (cordura strekker seg nesten ikke, maks 5 % i løsningen), og svake bånd over to punkter gir stoffstivhet.</li>
+      <li>Oppdriften virker der gassen er: tykk ring (30 mm, delvis fylt) og tynt sydd senterfelt (6 mm). Maljene ved boltene står fast.</li>
+      <li>For hvert steg skyves stoffet ut av flasker (med kupler, halser og ventiler), manifold, STA, plate eller ramme og backplate. Til slutt får vinga tykkelse bakover, begrenset av avstanden til backplaten.</li>
+      <li>Kontroll: ingen del av vinga går mer enn 1,5 mm inn i en annen del (fasettering i nettene).</li>
+    </ol>
+    <p class="muted">Forenklinger: vingeomrisset er anslått, ingen strømning i gassen, symmetrisk last. Sammenligningen mellom oppsett er mer pålitelig enn de absolutte millimeterne.</p>
+  </section>
+
+  <section id="gd">
+    <h2>Generativt design (lokal forhåndsvisning)</h2>
+    <div class="grid2">
+      <figure><img src="img/gd-forhandsvisning-topp.jpg" alt="Fusion generativt design, forhåndsvisning ovenfra: grønne faste vingeflater og ryggstav, grått skall mellom dem med fortykkelser nær STA-endene" width="900" height="700" loading="lazy"><figcaption>Forhåndsvisning ovenfra. Grønt er faste områder, grått er det løseren la til.</figcaption></figure>
+      <figure><img src="img/gd-forhandsvisning-skra.jpg" alt="Samme forhåndsvisning sett skrått med lastpiler for tacokraft og trykk" width="900" height="700" loading="lazy"><figcaption>Skrått, med tacokreftene (grønne piler) og fastholdningen.</figcaption></figure>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Oppsett</th><th>Innhold</th></tr></thead>
+      <tbody>
+        <tr><td>Bevares</td><td>Vingeflate høyre/venstre (D12-buer), ryggstav, STA-sete</td></tr>
+        <tr><td>Hindringer</td><td>Vingeside, flaske, STA, bolter og muttere, grenser for P2S</td></tr>
+        <tr><td>Last 1–3</td><td>Trykk 2,4 kPa, 10 kPa og 4,8 kPa på én side (vingeløft)</td></tr>
+        <tr><td>Last 4</td><td>Last 1 + tacokraft ±100 N innover og +100 N opp på hver bue</td></tr>
+        <tr><td>Mål</td><td>Minst mulig masse, SF 2,5, forskyvning ≤ 2 mm; ABS; additiv produksjon (Z+, 45°, 3 mm)</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted">Den fulle skyberegningen er ikke kjørt (krever Cloud Credits). Forhåndsvisningen er grov, men den pekte tydelig mot et sammenhengende skall.</p>
+  </section>
+
+  <section id="styrke">
+    <h2>Styrkeanalyse (Fusion Static Stress, lokalt)</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Lastoppsett</th><th>Verdi</th></tr></thead>
+      <tbody>
+        <tr><td>Fastholdt</td><td>STA-setet på ryggen (til slutt hele STA-flaten, 70 × 360 mm)</td></tr>
+        <tr><td>Vingeløft</td><td>Trykk 0,0024 MPa (2,4 kPa) på hele vingesida</td></tr>
+        <tr><td>Taco</td><td>100 N sideveis innover + 100 N opp på hver bueflate</td></tr>
+        <tr><td>Materiale / mål</td><td>ABS fra Fusion-biblioteket, mål SF ≥ 2 mot flytegrense</td></tr>
+        <tr><td>Løser</td><td>Lineær statisk, lokal løsning (0 Cloud Credits), standard nett</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="table-wrap"><table>
+      <thead><tr><th>Steg</th><th>Endring</th><th class="n">Volum</th><th class="n">Min SF</th><th>Hva det lærte oss</th></tr></thead>
+      <tbody>
+        <tr><td>a</td><td>3 mm skall, ingen ribber</td><td class="n">1020 cm³</td><td class="n">0,49</td><td>Hele skallet mellom STA og skinne er under mål</td></tr>
+        <tr><td>b</td><td>+ lengderibber x = ±60 mm</td><td class="n">1055 cm³</td><td class="n">0,65</td><td>Feil retning: taco bøyer om lengdeaksen</td></tr>
+        <tr><td>c</td><td>+ 8 mm rot ut til STA-kant og 9 tverrribber per side</td><td class="n">1138 cm³</td><td class="n">1,19</td><td>Nesten hele platen over SF 4; topper ved ribbe-ender</td></tr>
+        <tr><td>d</td><td>Ribber 18 mm høye</td><td class="n">1181 cm³</td><td class="n">1,07</td><td>Bare skarpe hjørner igjen</td></tr>
+        <tr><td>e</td><td>+ skjøtevegger, R2-runding, avfasede ribbe-ender</td><td class="n">1237 cm³</td><td class="n">0,50</td><td>Avfasing gjorde det verre: ribben trengs høy ved roten. Fjernet</td></tr>
+        <tr><td>f</td><td>Fastholdt over hele STA-bredden (70 mm, ikke 34 mm)</td><td class="n">1243 cm³</td><td class="n">0,62</td><td>Bare en tynn linje langs kanten av fastholdningen er under mål</td></tr>
+      </tbody>
+    </table></div>
+    <div class="grid2">
+      <figure><img src="img/sf-a-web.jpg" alt="Sikkerhetsfaktor for bare skall sett nedenfra: røde felt langs hele platen mellom STA og skinner" width="916" height="498" loading="lazy"><figcaption>a: bare skall. Rødt er under SF 2.</figcaption></figure>
+      <figure><img src="img/sf-b-langsribber.jpg" alt="Sikkerhetsfaktor med lengderibber: fortsatt store røde felt" width="916" height="498" loading="lazy"><figcaption>b: lengderibber hjelper lite.</figcaption></figure>
+      <figure><img src="img/sf-c-tverrribber.jpg" alt="Sikkerhetsfaktor med tverrribber: platen er blå, små røde punkter ved ribbe-endene" width="916" height="498" loading="lazy"><figcaption>c: tverrribber og tykk rot. Gjennombruddet.</figcaption></figure>
+      <figure><img src="img/sf-d-hoyere.jpg" alt="Sikkerhetsfaktor med høyere ribber: nesten bare blått" width="916" height="498" loading="lazy"><figcaption>d: 18 mm ribber.</figcaption></figure>
+      <figure><img src="img/sf-e-avfaset.jpg" alt="Sikkerhetsfaktor med avfasede ribbe-ender: røde punkter på skråkantene ved roten" width="916" height="498" loading="lazy"><figcaption>e: avfasingen ble forkastet.</figcaption></figure>
+      <figure><img src="img/sf-f-endelig.jpg" alt="Endelig sikkerhetsfaktor: blå plate med en tynn linje langs STA-kanten" width="916" height="498" loading="lazy"><figcaption>f: endelig. Linjen langs STA-kanten er en kantsingularitet.</figcaption></figure>
+    </div>
+    <h3>Hvorfor 0,62 ikke betyr brudd</h3>
+    <p>I en lineær analyse blir spenningen der «helt fast» møter «helt fri» i prinsippet uendelig, og tallet vokser når nettet blir finere. I virkeligheten er det en STA-kant med radius og litt fjæring. Derfor regnes snittet ved STA-kanten for hånd, per tverrribbe (60 mm deling, T-tverrsnitt 4 × 15 mm ribbe på 60 × 3 mm skall):</p>
+    <span class="eq">q ≈ 2,4 kPa · 0,138 m + 100 N / 0,515 m ≈ 0,33 + 0,19 kN/m</span>
+    <span class="eq">M ≈ (23 + 22) N·m/m · 0,06 m ≈ 2,7 N·m per ribbe</span>
+    <span class="eq">I ≈ 4905 mm⁴, c = 14,25 mm → W ≈ 344 mm³ → σ = M/W ≈ 2700/344 ≈ 7,8 MPa</span>
+    <p>Mot flytegrensen for ABS (rundt 30–40 MPa) gir det SF ≈ 4. Analysen er kjørt på platen som ett stykke, før delingen og skruehullene.</p>
+    <p class="muted">Ikke gjort ennå: forskyvning er ikke lest ut, simulering i PETG/ASA, og en analyse av de seks delene med kontakt i skjøtene.</p>
+  </section>
+
+  <section id="montering">
+    <h2>Montering og print</h2>
+    <div class="grid2">
+      <div class="card"><h3>Skjøter</h3>
+        <ul>
+          <li><b>Midtskjøt (venstre/høyre)</b> under STA-en: klemmes av STA-boltene, 6 styrepinner Ø 4 mm holder delene på linje.</li>
+          <li><b>Midtskjøt utenfor STA-en:</b> 16 mm vegg med 4 × M4 (3 nederst, 1 øverst), mutterlomme på høyre del.</li>
+          <li><b>Tverrskjøtene</b> ved −100 og +80 mm: 16 mm vegg med 4 × M4 per side, mutterlomme på midt- og øvre del.</li>
+        </ul></div>
+      <div class="card"><h3>Handleliste</h3>
+        <ul>
+          <li>20 × M4 × 20 unbrako, 20 × M4 mutter, 20 skiver</li>
+          <li>6 × styrepinne Ø 4 × 24 mm (stål eller kappet M4 gjengestang)</li>
+          <li>STA-bolter 5/16-18 × 1,5"</li>
+        </ul></div>
+      <div class="card"><h3>Rekkefølge</h3>
+        <ol>
+          <li>Pinner i midtskjøten; sett venstre og høyre sammen.</li>
+          <li>Skru midtskjøten nederst og øverst.</li>
+          <li>Skru tverrskjøtene (8 skruer per skjøt).</li>
+          <li>Monter på vinga under STA-en.</li>
+        </ol></div>
+      <div class="card"><h3>Print (forslag)</h3>
+        <ul>
+          <li>PETG eller ASA, vingesida (flat) ned</li>
+          <li>4 vegger, 25–30 % gyroid, 0,2 mm lag</li>
+          <li>Tree support bare under buespissene</li>
+          <li>Print én midtdel først og prøv pinner, mutterlommer og STA</li>
+        </ul></div>
+    </div>
+  </section>
+
+  <section id="filer">
+    <h2>Filer</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Fil</th><th>Innhold</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://tormt.folk.ntnu.no/diverse/STA-plate/">Fulle printfiler (NTNU)</a></td><td>6 × 3MF, 6 × STL, samlet STEP og monteringsliste (ligger på NTNU-området, ikke i GitHub)</td></tr>
+        <tr><td><a href="https://tormt.folk.ntnu.no/diverse/STA-plate/STA-plate_v0.4_print.zip">STA-plate_v0.4_print.zip</a></td><td>Alt over i én fil</td></tr>
+        <tr><td><a href="sta-plate-v04.glb">sta-plate-v04.glb</a></td><td>Visningsmodellen over (6 deler, mm)</td></tr>
+        <tr><td><a href="taco-oppsett.glb">taco-oppsett.glb</a></td><td>Taco-testens fire oppsett med simulert vinge</td></tr>
+      </tbody>
+    </table></div>
+    <p class="muted">Fusion-modellen «STA-plate v0.4» er parametrisk: alle hovedmål ligger som <code>sta_</code>-parametere for videre utvikling og tilbehør.</p>
+  </section>
+
+  <section id="logg">
+    <h2>Logg</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Dato</th><th>Hva</th><th>Resultat</th></tr></thead>
+      <tbody>
+        <tr><td>24.11.2026</td><td>Printklar v0.4</td><td>6 deler, 20 × M4 med mutterlommer, 6 styrepinner, ingen lim; interferens 0</td></tr>
+        <tr><td>24.11.2026</td><td>Styrkeanalyse v0.4</td><td>SF 0,49 → nesten alt over 4 med tverrribber og tykk rot; håndregning SF ≈ 4 ved STA-kant</td></tr>
+        <tr><td>24.11.2026</td><td>Generativt design</td><td>Lokal forhåndsvisning: sammenhengende skall er beste lastvei</td></tr>
+        <tr><td>23.11.2026</td><td>Rammeplate v0.3</td><td>24,4 mm tupphøyde, 23 % mindre plast enn hel plate</td></tr>
+        <tr><td>23.11.2026</td><td>Duksimulering</td><td>Enkel + STA 103,7 mm, D12 18,7 mm, v0.2 42,4 mm</td></tr>
+        <tr><td>23.11.2026</td><td>Plate v0.2</td><td>D12-kontur, 6 deler; for kort</td></tr>
+        <tr><td>23.11.2026</td><td>Start</td><td>Mål: enkeltflaske som D12 på Donut 22, printbar på P2S</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+
+  /* main 3D viewer: load on tap, or when scrolled into view on fast connections */
+  let started = false;
+  const start = () => {
+    if (started) return; started = true;
+    import("./sta-modell3d.js")
+      .then(m => m.mount({stage: $("#stage"), msg: $("#stagemsg"), pick: $("#pick"), list: $("#parts"), modes: $$("[data-mode]"), views: $$("#modell [data-view]")}))
+      .catch(err => { $("#stagemsg").textContent = "3D-modellen kunne ikke lastes: " + (err?.message || err) + ". Bildene under viser det samme."; });
+  };
+  $("#load3d").addEventListener("click", start);
+  for (const b of $$("[data-mode], #modell [data-view]")) b.addEventListener("click", start, {once: true});
+
+  /* taco viewer */
+  let tacoStarted = false;
+  const startTaco = () => {
+    if (tacoStarted) return; tacoStarted = true;
+    import("./taco3d.js")
+      .then(m => m.mount({stage: $("#tacostage"), msg: $("#tacomsg"), cap: $("#tacocap"), tabs: $$("#tacotabs button"), toggles: $$("#tacoctrl input"), views: $$("#tacoctrl [data-view]"), onSetup: c => { cur = c; draw(); }}))
+      .catch(err => { $("#tacomsg").textContent = "Simuleringene kunne ikke lastes: " + (err?.message || err) + "."; });
+  };
+  $("#loadtaco").addEventListener("click", startTaco);
+
+  /* tip-height chart (inline SVG, hover tooltip, table view above) */
+  const SERIES = [
+    {k: "D12", name: "D12 dobbelsett", c: "--s1"},
+    {k: "single", name: "Enkel + STA", c: "--s2"},
+    {k: "v02", name: "Plate v0.2", c: "--s3"},
+    {k: "v03", name: "Ramme v0.3", c: "--s4"},
+    {k: "v04", name: "Hel plate (v0.4)", c: "--s5"}
+  ];
+  const TAB2SERIES = {D12: "D12", single: "single", plate: "v02", v03: "v03"};
+  let cur = "v03", PROF = null;
+  const svg = $("#tacosvg"), tip = $("#tip");
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  $("#legend").innerHTML = SERIES.map(s => `<span><i style="background:var(${s.c})"></i>${s.name}</span>`).join("");
+  for (const b of $$("#tacotabs button")) b.addEventListener("click", () => { cur = b.dataset.c; for (const x of $$("#tacotabs button")) x.setAttribute("aria-pressed", String(x === b)); draw(); startTaco(); });
+  let geom = null;
+  function draw() {
+    if (!PROF) return;
+    const W = svg.clientWidth || 600, H = svg.clientHeight || 320, m = {l: 48, r: 14, t: 12, b: 40}, iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const x = y => m.l + (y + 340) / 640 * iw, yv = z => m.t + ih - Math.max(0, Math.min(z, 130)) / 130 * ih;
+    const small = W < 520, mute = css("--muted"), line = css("--line");
+    let g = `<rect x="${x(-300)}" y="${m.t}" width="${x(215) - x(-300)}" height="${ih}" fill="${line}" opacity=".45"/>`;
+    for (const t of [0, 40, 80, 120]) g += `<line x1="${m.l}" x2="${W - m.r}" y1="${yv(t)}" y2="${yv(t)}" stroke="${line}"/><text x="${m.l - 8}" y="${yv(t) + 4}" text-anchor="end" font-size="12" fill="${mute}">${t}</text>`;
+    for (const t of (small ? [-300, 0, 300] : [-300, -200, -100, 0, 100, 200, 300])) g += `<text x="${x(t)}" y="${H - m.b + 18}" text-anchor="middle" font-size="12" fill="${mute}">${t}</text>`;
+    g += `<text x="${m.l + iw / 2}" y="${H - 4}" text-anchor="middle" font-size="12" fill="${mute}">posisjon langs vinga, mm (bunn → topp)</text>`;
+    g += `<text x="12" y="${m.t + ih / 2}" transform="rotate(-90 12 ${m.t + ih / 2})" text-anchor="middle" font-size="12" fill="${mute}">tupphøyde, mm</text>`;
+    const hl = TAB2SERIES[cur];
+    for (const s of [...SERIES].sort((a, b) => (a.k === hl) - (b.k === hl))) {
+      const d = PROF[s.k].p.map((p, i) => (i ? "L" : "M") + x(p[0]).toFixed(1) + "," + yv(p[1]).toFixed(1)).join("");
+      g += `<path d="${d}" fill="none" stroke="${css(s.c)}" stroke-width="${s.k === hl ? 3.5 : 2}" stroke-linejoin="round" stroke-linecap="round" opacity="${hl && s.k !== hl ? .75 : 1}"/>`;
+    }
+    g += `<line id="xh" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="${mute}" stroke-dasharray="3 3" visibility="hidden"/>`;
+    svg.innerHTML = g;
+    geom = {x, m, iw};
+  }
+  svg.addEventListener("pointermove", e => {
+    if (!geom) return;
+    const r = svg.getBoundingClientRect(), px = e.clientX - r.left;
+    const yPos = Math.round(((px - geom.m.l) / geom.iw * 640 - 340) / 10) * 10;
+    if (yPos < -330 || yPos > 290) { tip.hidden = true; svg.querySelector("#xh")?.setAttribute("visibility", "hidden"); return; }
+    const xh = svg.querySelector("#xh"); xh.setAttribute("x1", geom.x(yPos)); xh.setAttribute("x2", geom.x(yPos)); xh.setAttribute("visibility", "visible");
+    tip.innerHTML = `<b>${yPos} mm langs vinga</b>` + SERIES.map(s => { const p = PROF[s.k].p.find(q => q[0] === yPos); return `<div><i style="background:var(${s.c})"></i>${s.name}: ${p ? p[1].toFixed(1).replace(".", ",") : "–"} mm</div>`; }).join("");
+    tip.hidden = false;
+    const left = Math.min(Math.max(8, px + 14), r.width - tip.offsetWidth - 8);
+    tip.style.left = left + "px"; tip.style.top = "40px";
+  });
+  svg.addEventListener("pointerleave", () => { tip.hidden = true; svg.querySelector("#xh")?.setAttribute("visibility", "hidden"); });
+  new ResizeObserver(draw).observe(svg);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", draw);
+  fetch("taco-profiler.json").then(r => r.json()).then(d => { PROF = d; draw(); }).catch(() => { svg.outerHTML = '<p class="muted">Diagrammet kunne ikke lastes; tabellen under har snittverdiene.</p>'; });
+})();
+</script>
+</body>
+</html>
