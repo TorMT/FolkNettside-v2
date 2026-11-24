@@ -415,6 +415,111 @@
     ]
   },
   {
+    "slug": "sta-plate",
+    "title": "STA-omgjøringsplate",
+    "type": "design",
+    "current": true,
+    "status": "Pågående · printklar v0.4, ikke testet i vann",
+    "year": 2026,
+    "summary": "En 3D-printet plate mellom en Tecline Donut 22-vinge og STA-en, slik at en enkeltflaske oppfører seg som et D12-dobbelsett uten at vinga bretter seg rundt flaska (taco). Seks printdeler for Bambu P2S som skrues sammen.",
+    "problem": "En dobbeltvinge på en enkeltflaske har ingenting å legge seg mot på sidene og bretter seg opp rundt flaska når den fylles. STA-en er bare 70 mm bred, mens et D12-sett gir støtte over to Ø 171 mm flasker.",
+    "solution": "Platen kopierer D12-konturen på vingesida (flat midt, R85,5-buer i 50°) over hele vinga, −300 til +215 mm langs ryggen. Duksimulering valgte lengde og bue, generativt design viste at et sammenhengende skall er beste lastvei, og Fusion Static Stress dimensjonerte tverrribber og rot mot tacolasten sideveis.",
+    "skills": [
+      "Duksimulering",
+      "Generativt design",
+      "FEM",
+      "Parametrisk CAD",
+      "Design for 3D-print"
+    ],
+    "tools": [
+      "Fusion",
+      "CadQuery",
+      "Python",
+      "three.js"
+    ],
+    "materials": [
+      "PETG/ASA",
+      "M4 rustfri"
+    ],
+    "process": [
+      "Plate v0.1 (flat) og v0.2 (D12-kontur, 320 mm høy) modellert i CadQuery.",
+      "Duksimulering av vinga på fire oppsett: tupphøyde 104 mm på enkel + STA mot 19 mm på D12; v0.2 var for kort.",
+      "Søk på lengde og bue; rammeplate v0.3 ga 24 mm med 23 % mindre plast enn hel plate.",
+      "Generativt design i Fusion (lokal forhåndsvisning) pekte mot et sammenhengende skall.",
+      "v0.4 bygd parametrisk i Fusion og iterert i Static Stress: SF 0,49 → nesten alt over 4 med tverrribber og tykk rot.",
+      "Delt i seks printdeler med skruede skjøter og mutterlommer; hull og interferens kontrollert med skript."
+    ],
+    "results": [
+      "Tupphøyde ca. 24 mm med plate, mot 104 mm uten (D12: 19 mm).",
+      "Seks deler på maks 173 × 200 × 42 mm, 20 × M4 og 6 styrepinner, ingen lim.",
+      "Håndregning ved STA-kanten gir SF ≈ 4 i ABS; FEM-minimum 0,62 er en kantsingularitet ved fastholdningen.",
+      "Ikke printet eller testet i vann ennå."
+    ],
+    "gallery": [
+      {
+        "src": "./assets/demos/sta-plate/img/v04-samlet.jpg",
+        "alt": "Ferdig STA-plate v0.4 samlet, sett skrått: seks fargede deler med ribber og D12-buer",
+        "caption": "v0.4 samlet"
+      },
+      {
+        "src": "./assets/demos/sta-plate/img/v04-deler.jpg",
+        "alt": "De seks delene av STA-plate v0.4 lagt hver for seg",
+        "caption": "Seks printdeler"
+      },
+      {
+        "src": "./assets/demos/sta-plate/img/sf-f-endelig.jpg",
+        "alt": "Sikkerhetsfaktor fra Fusion for endelig design: nesten hele platen blå",
+        "caption": "Styrkeanalyse, endelig"
+      }
+    ],
+    "files": [],
+    "links": [
+      {
+        "label": "Prosjektside: 3D, iterasjoner, taco-test og styrkeanalyse",
+        "url": "./assets/demos/sta-plate/index.html",
+        "primary": true
+      },
+      {
+        "label": "Fulle printfiler (3MF, STL, STEP) på NTNU",
+        "url": "https://tormt.folk.ntnu.no/diverse/STA-plate/"
+      }
+    ],
+    "embeds": [],
+    "logUrl": "./assets/demos/sta-plate/index.html#logg",
+    "log": [
+      {
+        "date": "24.11.2026",
+        "title": "Printklar v0.4",
+        "result": "6 deler, 20 × M4 med mutterlommer og 6 styrepinner, ingen lim; interferens 0"
+      },
+      {
+        "date": "24.11.2026",
+        "title": "Styrkeanalyse v0.4",
+        "result": "SF 0,49 → nesten alt over 4 med tverrribber og 8 mm rot; håndregning SF ≈ 4"
+      },
+      {
+        "date": "24.11.2026",
+        "title": "Generativt design",
+        "result": "Lokal forhåndsvisning: sammenhengende skall er beste lastvei"
+      },
+      {
+        "date": "23.11.2026",
+        "title": "Rammeplate v0.3",
+        "result": "24,4 mm tupphøyde, 23 % mindre plast enn hel plate"
+      },
+      {
+        "date": "23.11.2026",
+        "title": "Duksimulering",
+        "result": "Enkel + STA 103,7 mm, D12 18,7 mm, v0.2 42,4 mm"
+      },
+      {
+        "date": "23.11.2026",
+        "title": "Start",
+        "result": "Mål: enkeltflaske som D12 på Donut 22, printbar på Bambu P2S"
+      }
+    ]
+  },
+  {
     "slug": "pitch-drive-wind-turbine",
     "title": "Wind turbine pitch drive",
     "type": "design",
